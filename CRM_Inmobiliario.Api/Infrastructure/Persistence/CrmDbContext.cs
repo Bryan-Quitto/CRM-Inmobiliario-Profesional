@@ -45,6 +45,7 @@ public sealed class CrmDbContext : DbContext
             entity.HasOne(d => d.Agente)
                 .WithMany(p => p.Leads)
                 .HasForeignKey(d => d.AgenteId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

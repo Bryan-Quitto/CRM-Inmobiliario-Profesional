@@ -1,3 +1,4 @@
+using CRM_Inmobiliario.Api.Features.Clientes;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Registro de Features (Vertical Slice)
-// Los endpoints se mapearán dinámicamente o mediante extensiones en /Features
+app.MapRegistrarClienteEndpoint();
 
 app.Run();

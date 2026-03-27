@@ -32,7 +32,7 @@ public sealed class Lead
     [MaxLength(50)]
     public string EtapaEmbudo { get; set; } = "Nuevo";
 
-    public Guid AgenteId { get; set; }
+    public Guid? AgenteId { get; set; }
     public Agent? Agente { get; set; }
 
     public string? Notas { get; set; }
