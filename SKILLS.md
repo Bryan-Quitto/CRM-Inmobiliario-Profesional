@@ -1,0 +1,38 @@
+# CRM Inmobiliario Profesional - Project Skills & Standards (TL)
+
+This file defines the strict technical standards and architectural rules for the project. All agents (including sub-agents) must adhere to these "Inquebrantables" rules.
+
+## Core Stack
+- **Backend:** .NET 10 (C#)
+- **Frontend:** React 19 (Vite)
+- **Styles:** Tailwind CSS
+- **Database & Auth:** Supabase (PostgreSQL + Supabase Auth JWT)
+- **ORM:** Entity Framework Core (EF Core)
+
+## Architectural Standards
+
+### Backend (Vertical Slice Architecture)
+- **Rule:** Strict prohibition of MVC, Clean Architecture, or Onion.
+- **Organization:** Code must be organized by features in `/Features`.
+- **Logic:** Each feature (e.g., `CreateProperty`) must contain its own route, validation, command/query, and data access in the same logical space.
+
+### Frontend (Feature-Sliced Design)
+- **Rule:** Organize React code by features in `/src/features/`.
+- **Organization:** Avoid global centralization of components, hooks, or services.
+
+### Styling & UI (Tailwind CSS)
+- **Rule:** STRICT prohibition of inline styles (`style={{...}}`).
+- **Standard:** Use exclusively Tailwind utility classes (`className="..."`).
+- **Files:** No separate `.css` files for components. Only use global CSS for Tailwind directives and base variables.
+
+### Code Documentation
+- **Rule:** Formal and professional technical comments only.
+- **Purpose:** Explain the "why" of complex logic, not the "what" (tutorial-style comments are forbidden).
+
+### Data & Media
+- **Rule:** No base64 images in the database.
+- **Standard:** Use Object Storage and store only URLs.
+
+## Agent Behavior
+- **Role:** Senior Software Architect and Tech Lead.
+- **Guidance:** Prioritize surgical updates, ensure full type safety, and maintain strict consistency with these standards.
