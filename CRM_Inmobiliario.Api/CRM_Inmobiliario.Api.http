@@ -1,6 +1,15 @@
-@CRM_Inmobiliario.Api_HostAddress = http://localhost:5134
+@HostAddress = http://localhost:5164
 
-GET {{CRM_Inmobiliario.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Registrar un nuevo cliente (Prospecto)
+POST {{HostAddress}}/api/clientes
+Content-Type: application/json
+
+{
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "email": "juan.perez@ejemplo.com",
+  "telefono": "+593987654321",
+  "origen": "Facebook Ads"
+}
 
 ###

@@ -1,0 +1,37 @@
+using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+
+namespace CRM_Inmobiliario.Api.Features.Clientes;
+
+public static class RegistrarClienteFeature
+{
+    public record Command(string Nombre, string? Apellido, string? Email, string Telefono, string Origen);
+
+    public static void MapRegistrarClienteEndpoint(this IEndpointRouteBuilder app)
+    {
+        app.MapPost("/api/clientes", async (Command command, CrmDbContext context) =>
+        {
+            var lead = new Lead
+            {
+                Id = Guid.NewGuid(),
+                Nombre = command.Nombre,
+                Apellido = command.Apellido,
+                Email = command.Email,
+                Telefono = command.Telefono,
+                Origen = command.Origen,
+                EtapaEmbudo = "Nuevo", // Valor por defecto según requerimiento
+                FechaCreacion = DateTimeOffset.UtcNow
+            };
+
+            context.Leads.Add(lead);
+            await context.SaveChangesAsync();
+
+            return Results.Created($"/api/clientes/{lead.Id}", lead);
+        })
+        .WithTags("Clientes")
+        .WithName("RegistrarCliente");
+    }
+}
