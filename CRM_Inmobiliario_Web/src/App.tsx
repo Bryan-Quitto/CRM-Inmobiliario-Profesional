@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ClientesList } from './features/clientes/components/ClientesList';
+import { PropiedadesList } from './features/propiedades/components/PropiedadesList';
 import { 
   Users, 
   Home, 
@@ -12,14 +13,34 @@ import {
   Search
 } from 'lucide-react';
 
+type Tab = 'prospectos' | 'propiedades' | 'kpis';
+
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<Tab>('prospectos');
 
   const menuItems = [
-    { icon: <Users className="h-5 w-5" />, label: 'Prospectos', active: true },
-    { icon: <Home className="h-5 w-5" />, label: 'Propiedades', active: false },
-    { icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs', active: false },
+    { id: 'prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
+    { id: 'propiedades', icon: <Home className="h-5 w-5" />, label: 'Propiedades' },
+    { id: 'kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
   ];
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'prospectos':
+        return <ClientesList />;
+      case 'propiedades':
+        return <PropiedadesList />;
+      default:
+        return (
+          <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400">
+            <BarChart3 className="h-16 w-16 mb-4 opacity-20" />
+            <p className="text-xl font-bold">Módulo en Desarrollo</p>
+            <p className="text-sm">Esta funcionalidad estará disponible en la próxima actualización.</p>
+          </div>
+        );
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
@@ -45,16 +66,17 @@ function App() {
 
         {/* Navigation */}
         <nav className="flex-1 py-6 px-3 space-y-2">
-          {menuItems.map((item, idx) => (
+          {menuItems.map((item) => (
             <button
-              key={idx}
-              className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative ${
-                item.active 
+              key={item.id}
+              onClick={() => setActiveTab(item.id as Tab)}
+              className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative cursor-pointer ${
+                activeTab === item.id 
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                   : 'hover:bg-slate-800 hover:text-slate-200'
               }`}
             >
-              <div className={item.active ? 'text-white' : 'group-hover:scale-110 transition-transform'}>
+              <div className={activeTab === item.id ? 'text-white' : 'group-hover:scale-110 transition-transform'}>
                 {item.icon}
               </div>
               {isSidebarOpen && (
@@ -73,11 +95,11 @@ function App() {
 
         {/* Bottom Actions */}
         <div className="p-3 border-t border-slate-800/50 space-y-2">
-          <button className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition-all group relative">
+          <button className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition-all group relative cursor-pointer">
             <Settings className="h-5 w-5 group-hover:rotate-45 transition-transform" />
             {isSidebarOpen && <span className="text-sm font-bold">Configuración</span>}
           </button>
-          <button className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-rose-500/10 hover:text-rose-400 transition-all group relative">
+          <button className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-rose-500/10 hover:text-rose-400 transition-all group relative cursor-pointer">
             <LogOut className="h-5 w-5" />
             {isSidebarOpen && <span className="text-sm font-bold">Cerrar Sesión</span>}
           </button>
@@ -86,7 +108,7 @@ function App() {
         {/* Toggle Button */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="absolute -right-3 top-24 h-6 w-6 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all z-[110]"
+          className="absolute -right-3 top-24 h-6 w-6 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all z-[110] cursor-pointer"
         >
           {isSidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -108,7 +130,7 @@ function App() {
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+            <button className="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
               <Bell className="h-5 w-5" />
               <span className="absolute top-2 right-2 h-2 w-2 bg-rose-500 rounded-full border-2 border-white"></span>
             </button>
@@ -127,7 +149,7 @@ function App() {
 
         {/* Page Content */}
         <main className="p-8 max-w-7xl mx-auto w-full">
-          <ClientesList />
+          {renderContent()}
         </main>
 
         {/* Minimal Footer inside content */}

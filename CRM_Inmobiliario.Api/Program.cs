@@ -1,4 +1,5 @@
 using CRM_Inmobiliario.Api.Features.Clientes;
+using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,5 +40,9 @@ app.UseCors("FrontendPolicy");
 app.MapRegistrarClienteEndpoint();
 app.MapListarClientesEndpoint();
 app.MapCambiarEtapaClienteEndpoint();
+
+// Propiedades
+app.MapRegistrarPropiedadEndpoint();
+app.MapListarPropiedadesEndpoint();
 
 app.Run();
