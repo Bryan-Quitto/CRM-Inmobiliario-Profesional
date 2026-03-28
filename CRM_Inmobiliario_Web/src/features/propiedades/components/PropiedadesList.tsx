@@ -10,9 +10,12 @@ import {
   Loader2, 
   TrendingUp, 
   Tag, 
-  Building2 
+  Building2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { getPropiedades } from '../api/getPropiedades';
+import { CrearPropiedadForm } from './CrearPropiedadForm';
 import type { Propiedad } from '../types';
 
 const formatCurrency = (amount: number) => {
@@ -80,6 +83,8 @@ export const PropiedadesList = () => {
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fetchPropiedades = useCallback(async () => {
     try {
@@ -97,6 +102,13 @@ export const PropiedadesList = () => {
     fetchPropiedades();
   }, [fetchPropiedades]);
 
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
   const filteredPropiedades = useMemo(() => {
     return propiedades.filter(p => 
       p.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -112,7 +124,32 @@ export const PropiedadesList = () => {
   }), [propiedades]);
 
   return (
-    <div className="bg-slate-50 min-h-screen font-sans antialiased">
+    <div className="bg-slate-50 min-h-screen font-sans antialiased relative">
+      {notification && (
+        <div className={`fixed bottom-8 right-8 z-[200] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 animate-in slide-in-from-bottom-10 duration-300 ${
+          notification.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white'
+        }`}>
+          {notification.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+          <span className="font-bold text-sm tracking-tight">{notification.message}</span>
+          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all cursor-pointer">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <CrearPropiedadForm 
+            onSuccess={() => { 
+              setIsModalOpen(false); 
+              fetchPropiedades(); 
+              setNotification({ type: 'success', message: 'Inmueble registrado correctamente.' }); 
+            }} 
+            onCancel={() => setIsModalOpen(false)} 
+          />
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Catálogo de Inmuebles</h2>
@@ -136,7 +173,10 @@ export const PropiedadesList = () => {
             )}
           </div>
 
-          <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer"
+          >
             <Plus className="h-5 w-5" />
             <span>Nueva Propiedad</span>
           </button>
@@ -159,7 +199,7 @@ export const PropiedadesList = () => {
             No hay propiedades que coincidan con tu búsqueda o el inventario está vacío.
           </p>
           <button 
-            onClick={() => setSearchQuery('')}
+            onClick={() => { setSearchQuery(''); fetchPropiedades(); }}
             className="mt-8 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all cursor-pointer shadow-lg shadow-blue-600/10"
           >
             Ver todo el catálogo
