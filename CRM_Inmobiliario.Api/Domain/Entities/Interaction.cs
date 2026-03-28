@@ -9,7 +9,7 @@ public sealed class Interaction
 {
     public Guid Id { get; set; }
 
-    public Guid AgenteId { get; set; }
+    public Guid? AgenteId { get; set; }
     public Agent? Agente { get; set; }
 
     public Guid ClienteId { get; set; }

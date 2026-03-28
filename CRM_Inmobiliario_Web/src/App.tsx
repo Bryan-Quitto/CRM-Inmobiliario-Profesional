@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ClientesList } from './features/clientes/components/ClientesList';
 import { PropiedadesList } from './features/propiedades/components/PropiedadesList';
+import { AgendaPanel } from './features/tareas/components/AgendaPanel';
+import { getTareas } from './features/tareas/api/getTareas';
 import { 
   Users, 
   Home, 
@@ -16,8 +18,34 @@ import {
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isAgendaOpen, setIsAgendaOpen] = useState(true);
+  const [urgentesCount, setUrgentesCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const fetchUrgentes = useCallback(async () => {
+    try {
+      const tareas = await getTareas();
+      const hoy = new Date();
+      hoy.setHours(23, 59, 59, 999);
+      
+      const count = tareas.filter(t => 
+        t.estado === 'Pendiente' && 
+        new Date(t.fechaVencimiento) <= hoy
+      ).length;
+      
+      setUrgentesCount(count);
+    } catch (err) {
+      console.error('Error al obtener tareas para notificaciones:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUrgentes();
+    // Polling cada 1 minuto para actualizar notificaciones
+    const interval = setInterval(fetchUrgentes, 60000);
+    return () => clearInterval(interval);
+  }, [fetchUrgentes]);
 
   const menuItems = [
     { id: 'prospectos', path: '/prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
@@ -28,14 +56,14 @@ function App() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900 overflow-x-hidden">
+      {/* Sidebar (Izquierdo) */}
       <aside 
         className={`fixed left-0 top-0 h-full bg-slate-900 text-slate-400 transition-all duration-300 z-[100] shadow-2xl flex flex-col ${
           isSidebarOpen ? 'w-64' : 'w-20'
         }`}
       >
-        {/* Logo Section */}
+        {/* ... (resto del sidebar igual) ... */}
         <div className="h-20 flex items-center px-6 border-b border-slate-800/50">
           <div className="flex items-center gap-3">
             <div className="min-w-[36px] h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-600/20">
@@ -49,7 +77,6 @@ function App() {
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 py-6 px-3 space-y-2">
           {menuItems.map((item) => (
             <button
@@ -69,16 +96,10 @@ function App() {
                   {item.label}
                 </span>
               )}
-              {!isSidebarOpen && (
-                <div className="absolute left-full ml-4 px-3 py-1 bg-slate-800 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                  {item.label}
-                </div>
-              )}
             </button>
           ))}
         </nav>
 
-        {/* Bottom Actions */}
         <div className="p-3 border-t border-slate-800/50 space-y-2">
           <button className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition-all group relative cursor-pointer">
             <Settings className="h-5 w-5 group-hover:rotate-45 transition-transform" />
@@ -90,7 +111,6 @@ function App() {
           </button>
         </div>
 
-        {/* Toggle Button */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="absolute -right-3 top-24 h-6 w-6 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all z-[110] cursor-pointer"
@@ -100,7 +120,7 @@ function App() {
       </aside>
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} ${isAgendaOpen ? 'mr-80' : 'mr-0'}`}>
         {/* Header Superior */}
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
           <div className="flex items-center gap-4 flex-1">
@@ -115,9 +135,16 @@ function App() {
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
+            <button 
+              onClick={() => setIsAgendaOpen(!isAgendaOpen)}
+              className={`p-2 rounded-xl transition-all cursor-pointer relative ${isAgendaOpen ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
+            >
               <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 h-2 w-2 bg-rose-500 rounded-full border-2 border-white"></span>
+              {urgentesCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-rose-500 text-white text-[10px] font-black rounded-full border-2 border-white flex items-center justify-center animate-in zoom-in duration-300">
+                  {urgentesCount}
+                </span>
+              )}
             </button>
             <div className="h-8 w-px bg-slate-200"></div>
             <div className="flex items-center gap-3">
@@ -133,7 +160,7 @@ function App() {
         </header>
 
         {/* Page Content */}
-        <main className="p-8 max-w-7xl mx-auto w-full">
+        <main className="p-8 w-full max-w-full">
           <Routes>
             <Route path="/prospectos" element={<ClientesList />} />
             <Route path="/propiedades" element={<PropiedadesList />} />
@@ -148,7 +175,6 @@ function App() {
           </Routes>
         </main>
 
-        {/* Minimal Footer inside content */}
         <footer className="p-8 border-t border-slate-100 mt-auto">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-slate-400 text-[11px] font-bold uppercase tracking-widest">
             <p>© 2026 CRM Inmobiliario Profesional. v1.1.0-Elite</p>
@@ -161,6 +187,15 @@ function App() {
           </div>
         </footer>
       </div>
+
+      {/* Agenda Sidebar (Derecho) */}
+      <aside 
+        className={`fixed right-0 top-0 h-full transition-all duration-300 z-50 ${
+          isAgendaOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <AgendaPanel />
+      </aside>
     </div>
   )
 }

@@ -33,6 +33,11 @@ This file defines the strict technical standards and architectural rules for the
 - **Rule:** No base64 images in the database.
 - **Standard:** Use Object Storage and store only URLs.
 
+### Database & Migrations (Supabase)
+- **CRITICAL RULE:** Do NOT use `dotnet ef database update`. It is strictly forbidden to apply migrations directly from the CLI.
+- **Standard:** Generate SQL scripts using `dotnet ef migrations script` and apply them manually in the **Supabase SQL Editor**.
+- **Reason:** Ensuring environmental consistency and avoiding connection/permission conflicts with Supabase direct access.
+
 ## Agent Behavior
 - **Role:** Senior Software Architect and Tech Lead.
 - **Guidance:** Prioritize surgical updates, ensure full type safety, and maintain strict consistency with these standards.

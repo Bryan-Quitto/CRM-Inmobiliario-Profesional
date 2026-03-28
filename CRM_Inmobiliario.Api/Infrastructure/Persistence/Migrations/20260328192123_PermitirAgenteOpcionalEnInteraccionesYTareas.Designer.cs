@@ -3,6 +3,7 @@ using System;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328192123_PermitirAgenteOpcionalEnInteraccionesYTareas")]
+    partial class PermitirAgenteOpcionalEnInteraccionesYTareas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,7 +66,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Agents", (string)null);
+                    b.ToTable("Agents");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>
@@ -101,7 +104,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("Interactions", (string)null);
+                    b.ToTable("Interactions");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Lead", b =>
@@ -151,7 +154,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AgenteId");
 
-                    b.ToTable("Leads", (string)null);
+                    b.ToTable("Leads");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.LeadPropertyInterest", b =>
@@ -174,7 +177,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("LeadPropertyInterests", (string)null);
+                    b.ToTable("LeadPropertyInterests");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Property", b =>
@@ -255,7 +258,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropietarioId");
 
-                    b.ToTable("Properties", (string)null);
+                    b.ToTable("Properties");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyMedia", b =>
@@ -290,7 +293,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("PropertyMedia", (string)null);
+                    b.ToTable("PropertyMedia");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.TaskItem", b =>
@@ -337,7 +340,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("Tasks", (string)null);
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>
