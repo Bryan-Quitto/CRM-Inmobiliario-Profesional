@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ClientesList } from './features/clientes/components/ClientesList';
 import { PropiedadesList } from './features/propiedades/components/PropiedadesList';
 import { 
@@ -13,34 +14,18 @@ import {
   Search
 } from 'lucide-react';
 
-type Tab = 'prospectos' | 'propiedades' | 'kpis';
-
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>('prospectos');
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const menuItems = [
-    { id: 'prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
-    { id: 'propiedades', icon: <Home className="h-5 w-5" />, label: 'Propiedades' },
-    { id: 'kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
+    { id: 'prospectos', path: '/prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
+    { id: 'propiedades', path: '/propiedades', icon: <Home className="h-5 w-5" />, label: 'Propiedades' },
+    { id: 'kpis', path: '/kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
   ];
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'prospectos':
-        return <ClientesList />;
-      case 'propiedades':
-        return <PropiedadesList />;
-      default:
-        return (
-          <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400">
-            <BarChart3 className="h-16 w-16 mb-4 opacity-20" />
-            <p className="text-xl font-bold">Módulo en Desarrollo</p>
-            <p className="text-sm">Esta funcionalidad estará disponible en la próxima actualización.</p>
-          </div>
-        );
-    }
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
@@ -69,14 +54,14 @@ function App() {
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id as Tab)}
+              onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative cursor-pointer ${
-                activeTab === item.id 
+                isActive(item.path)
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                   : 'hover:bg-slate-800 hover:text-slate-200'
               }`}
             >
-              <div className={activeTab === item.id ? 'text-white' : 'group-hover:scale-110 transition-transform'}>
+              <div className={isActive(item.path) ? 'text-white' : 'group-hover:scale-110 transition-transform'}>
                 {item.icon}
               </div>
               {isSidebarOpen && (
@@ -149,7 +134,18 @@ function App() {
 
         {/* Page Content */}
         <main className="p-8 max-w-7xl mx-auto w-full">
-          {renderContent()}
+          <Routes>
+            <Route path="/prospectos" element={<ClientesList />} />
+            <Route path="/propiedades" element={<PropiedadesList />} />
+            <Route path="/kpis" element={
+              <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400">
+                <BarChart3 className="h-16 w-16 mb-4 opacity-20" />
+                <p className="text-xl font-bold">Módulo en Desarrollo</p>
+                <p className="text-sm">Esta funcionalidad estará disponible en la próxima actualización.</p>
+              </div>
+            } />
+            <Route path="/" element={<Navigate to="/prospectos" replace />} />
+          </Routes>
         </main>
 
         {/* Minimal Footer inside content */}
