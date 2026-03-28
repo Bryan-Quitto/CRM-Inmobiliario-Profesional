@@ -303,7 +303,7 @@ export const ClientesList = () => {
                             <button
                               key={etapa.value}
                               onClick={() => handleStageChange(cliente.id, etapa.value)}
-                              className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
+                              className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
                                 cliente.etapaEmbudo === etapa.value ? 'text-blue-600' : 'text-slate-600'
                               }`}
                             >

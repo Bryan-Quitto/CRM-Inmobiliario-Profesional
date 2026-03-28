@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { 
   Home, 
   MapPin, 
@@ -12,11 +12,22 @@ import {
   Tag, 
   Building2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 import { getPropiedades } from '../api/getPropiedades';
+import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { CrearPropiedadForm } from './CrearPropiedadForm';
 import type { Propiedad } from '../types';
+
+const ESTADOS = [
+  { label: 'Disponible', value: 'Disponible', color: 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600' },
+  { label: 'Reservada', value: 'Reservada', color: 'bg-amber-500 border-amber-400 text-white hover:bg-amber-600' },
+  { label: 'Vendida', value: 'Vendida', color: 'bg-slate-700 border-slate-600 text-white hover:bg-slate-800' },
+  { label: 'Alquilada', value: 'Alquilada', color: 'bg-blue-600 border-blue-500 text-white hover:bg-blue-700' },
+  { label: 'Inactiva', value: 'Inactiva', color: 'bg-rose-500 border-rose-400 text-white hover:bg-rose-600' },
+];
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-EC', {
@@ -82,9 +93,14 @@ const PropertyStats = ({ total, venta, alquiler }: { total: number, venta: numbe
 export const PropiedadesList = () => {
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de propiedad
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterEstado, setFilterEstado] = useState('Todos');
 
   const fetchPropiedades = useCallback(async () => {
     try {
@@ -103,19 +119,52 @@ export const PropiedadesList = () => {
   }, [fetchPropiedades]);
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [notification]);
 
+  const handleStatusChange = async (id: string, nuevoEstado: string) => {
+    setOpenDropdownId(null);
+    if (propiedades.find(p => p.id === id)?.estadoComercial === nuevoEstado) return;
+
+    try {
+      setUpdatingId(id);
+      await actualizarEstadoPropiedad(id, nuevoEstado);
+      setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: nuevoEstado } : p));
+      setNotification({ type: 'success', message: 'Estado actualizado correctamente.' });
+    } catch (err: any) {
+      setNotification({ type: 'error', message: 'Error al actualizar el estado.' });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const getStatusStyles = (estado: string) => {
+    const found = ESTADOS.find(e => e.value === estado);
+    return found?.color || 'bg-slate-500 border-slate-400 text-white';
+  };
+
   const filteredPropiedades = useMemo(() => {
-    return propiedades.filter(p => 
-      p.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.sector.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.ciudad.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [propiedades, searchQuery]);
+    return propiedades.filter(p => {
+      const matchesSearch = p.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           p.sector.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           p.ciudad.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesEstado = filterEstado === 'Todos' || p.estadoComercial === filterEstado;
+      return matchesSearch && matchesEstado;
+    });
+  }, [propiedades, searchQuery, filterEstado]);
 
   const stats = useMemo(() => ({
     total: propiedades.length,
@@ -173,6 +222,46 @@ export const PropiedadesList = () => {
             )}
           </div>
 
+          <div className="relative" ref={openDropdownId === 'filter' ? dropdownRef : null}>
+            <button 
+              onClick={() => setOpenDropdownId(openDropdownId === 'filter' ? null : 'filter')}
+              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-sm cursor-pointer"
+            >
+              <FilterIcon className="h-4 w-4 text-slate-400" />
+              <span>{filterEstado === 'Todos' ? 'Todos los estados' : filterEstado}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} />
+            </button>
+
+            {openDropdownId === 'filter' && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
+                <div className="px-4 py-2 mb-1 border-b border-slate-50">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtrar por estado</span>
+                </div>
+                <button
+                  onClick={() => { setFilterEstado('Todos'); setOpenDropdownId(null); }}
+                  className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 cursor-pointer ${
+                    filterEstado === 'Todos' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                  }`}
+                >
+                  Todos los estados
+                  {filterEstado === 'Todos' && <Check className="h-4 w-4" />}
+                </button>
+                {ESTADOS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => { setFilterEstado(option.value); setOpenDropdownId(null); }}
+                    className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 cursor-pointer ${
+                      filterEstado === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                    }`}
+                  >
+                    {option.label}
+                    {filterEstado === option.value && <Check className="h-4 w-4" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <button 
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer"
@@ -194,37 +283,72 @@ export const PropiedadesList = () => {
           <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
             <Home className="h-10 w-10 text-slate-200" />
           </div>
-          <p className="text-xl font-bold text-slate-900">Catálogo vacío</p>
+          <p className="text-xl font-bold text-slate-900">Sin resultados</p>
           <p className="text-slate-400 text-sm mt-1 max-w-xs mx-auto">
-            No hay propiedades que coincidan con tu búsqueda o el inventario está vacío.
+            No encontramos lo que buscas. Intenta con otros filtros o limpia la búsqueda actual.
           </p>
           <button 
-            onClick={() => { setSearchQuery(''); fetchPropiedades(); }}
+            onClick={() => { setSearchQuery(''); setFilterEstado('Todos'); }}
             className="mt-8 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all cursor-pointer shadow-lg shadow-blue-600/10"
           >
-            Ver todo el catálogo
+            Limpiar filtros
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-in fade-in duration-500">
           {filteredPropiedades.map((p) => (
-            <div key={p.id} className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group">
+            <div 
+              key={p.id} 
+              className={`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative ${
+                openDropdownId === p.id ? 'z-[60]' : 'z-10'
+              }`}
+            >
+              {/* Badges Flotantes - Movidos fuera del contenedor de imagen para evitar recortes (clipping) */}
+              <div className="absolute top-4 left-4 flex gap-2 z-30">
+                <div className="relative" ref={openDropdownId === p.id ? dropdownRef : null}>
+                  {updatingId === p.id ? (
+                    <div className="px-3 py-1 bg-white/90 backdrop-blur-md border border-white/20 rounded-full flex items-center gap-2 shadow-sm">
+                      <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
+                      <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">SYNC...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => setOpenDropdownId(openDropdownId === p.id ? null : p.id)}
+                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 ${getStatusStyles(p.estadoComercial)}`}
+                      >
+                        {p.estadoComercial}
+                        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${openDropdownId === p.id ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {openDropdownId === p.id && (
+                        <div className="absolute left-0 mt-2 w-40 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[100] py-2 animate-in fade-in zoom-in duration-200 origin-top-left backdrop-blur-xl bg-white/95">
+                          {ESTADOS.map((estado) => (
+                            <button
+                              key={estado.value}
+                              onClick={() => handleStatusChange(p.id, estado.value)}
+                              className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
+                                p.estadoComercial === estado.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                              }`}
+                            >
+                              {estado.label}
+                              {p.estadoComercial === estado.value && <Check className="h-3.5 w-3.5" />}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <span className="px-3 py-1 bg-white/90 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-slate-900 shadow-sm h-fit">
+                  {p.operacion}
+                </span>
+              </div>
+
               {/* Imagen / Placeholder */}
-              <div className="h-56 bg-slate-200 relative overflow-hidden flex items-center justify-center">
+              <div className="h-56 bg-slate-200 relative overflow-hidden flex items-center justify-center rounded-t-3xl">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
                 <ImageIcon className="h-12 w-12 text-slate-300 group-hover:scale-110 transition-transform duration-500" />
-                
-                {/* Badges Flotantes */}
-                <div className="absolute top-4 left-4 flex gap-2 z-20">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm ${
-                    p.estadoComercial === 'Disponible' ? 'bg-emerald-500 border-emerald-400 text-white' : 'bg-slate-500 border-slate-400 text-white'
-                  }`}>
-                    {p.estadoComercial}
-                  </span>
-                  <span className="px-3 py-1 bg-white/90 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-slate-900 shadow-sm">
-                    {p.operacion}
-                  </span>
-                </div>
               </div>
 
               {/* Contenido */}
