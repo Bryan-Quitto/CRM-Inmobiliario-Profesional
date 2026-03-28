@@ -12,4 +12,8 @@ Content-Type: application/json
   "origen": "Facebook Ads"
 }
 
+### Listar todos los clientes (Prospectos)
+GET {{HostAddress}}/api/clientes
+Accept: application/json
+
 ###

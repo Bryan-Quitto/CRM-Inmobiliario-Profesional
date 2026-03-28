@@ -8,6 +8,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 
+// Configuración de CORS para el Frontend (Vite default: http://localhost:5173)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Configuración de EF Core con PostgreSQL (Npgsql)
 builder.Services.AddDbContext<CrmDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -22,7 +33,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("FrontendPolicy");
+
 // Registro de Features (Vertical Slice)
 app.MapRegistrarClienteEndpoint();
+app.MapListarClientesEndpoint();
 
 app.Run();
