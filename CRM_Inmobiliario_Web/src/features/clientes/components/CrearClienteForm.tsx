@@ -1,12 +1,20 @@
-import { useForm } from 'react-hook-form';
-import { User, Mail, Phone, Tag, Loader2, AlertCircle, X, Trash2, Check, RotateCcw } from 'lucide-react';
+import { useForm, Controller } from 'react-hook-form';
+import { User, Mail, Phone, Tag, Loader2, AlertCircle, X, Trash2, Check, RotateCcw, ChevronDown } from 'lucide-react';
 import { crearCliente, type CrearClienteDTO } from '../api/crearCliente';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Props {
   onSuccess: () => void;
   onCancel: () => void;
 }
+
+const ORIGENES = [
+  { label: 'Facebook Ads', value: 'Facebook Ads' },
+  { label: 'Google Search', value: 'Google Search' },
+  { label: 'Referido', value: 'Referido' },
+  { label: 'Portal Inmobiliario', value: 'Portal Inmobiliario' },
+  { label: 'WhatsApp Directo', value: 'WhatsApp Directo' },
+];
 
 const DRAFT_STORAGE_KEY = 'crm_prospecto_draft';
 
@@ -14,6 +22,8 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const selectRef = useRef<HTMLDivElement>(null);
 
   const getInitialValues = (): Partial<CrearClienteDTO> => {
     const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -27,7 +37,7 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
     return {};
   };
 
-  const { register, handleSubmit, watch, formState: { errors }, reset } = useForm<CrearClienteDTO>({
+  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<CrearClienteDTO>({
     defaultValues: getInitialValues() as CrearClienteDTO
   });
 
@@ -37,6 +47,16 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
   useEffect(() => {
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
   }, [formData]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsSelectOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleClearDraft = () => {
     localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -67,7 +87,7 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-300 relative overflow-hidden">
+    <div className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
       {/* Botón de cierre */}
       <button 
         onClick={onCancel}
@@ -183,19 +203,48 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
 
         <div className="space-y-2">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Origen del Prospecto</label>
-          <div className="relative">
+          <div className="relative" ref={selectRef}>
             <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <select 
-              {...register('origen', { required: 'Selecciona un origen' })}
-              className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.origen ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none appearance-none cursor-pointer`}
-            >
-              <option value="">Selecciona origen...</option>
-              <option value="Facebook Ads">Facebook Ads</option>
-              <option value="Google Search">Google Search</option>
-              <option value="Referido">Referido</option>
-              <option value="Portal Inmobiliario">Portal Inmobiliario</option>
-              <option value="WhatsApp">WhatsApp Directo</option>
-            </select>
+            <Controller
+              name="origen"
+              control={control}
+              rules={{ required: 'Selecciona un origen' }}
+              render={({ field }) => (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsSelectOpen(!isSelectOpen)}
+                    className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.origen ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer`}
+                  >
+                    <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
+                      {field.value || 'Selecciona origen...'}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${isSelectOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isSelectOpen && (
+                    <div className="absolute w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200 origin-top max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                      {ORIGENES.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setValue('origen', opt.value, { shouldValidate: true });
+                            setIsSelectOpen(false);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${
+                            field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
+                          }`}
+                        >
+                          {opt.label}
+                          {field.value === opt.value && <Check className="h-4 w-4" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            />
           </div>
           {errors.origen && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.origen.message}</p>}
         </div>
