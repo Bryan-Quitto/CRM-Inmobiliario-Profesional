@@ -44,5 +44,6 @@ app.MapCambiarEtapaClienteEndpoint();
 // Propiedades
 app.MapRegistrarPropiedadEndpoint();
 app.MapListarPropiedadesEndpoint();
+app.MapCambiarEstadoPropiedadEndpoint();
 
 app.Run();
