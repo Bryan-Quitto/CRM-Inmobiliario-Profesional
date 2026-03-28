@@ -1,5 +1,7 @@
 using CRM_Inmobiliario.Api.Features.Clientes;
 using CRM_Inmobiliario.Api.Features.Propiedades;
+using CRM_Inmobiliario.Api.Features.Tareas;
+using CRM_Inmobiliario.Api.Features.Interacciones;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,6 +41,7 @@ app.UseCors("FrontendPolicy");
 // Registro de Features (Vertical Slice)
 app.MapRegistrarClienteEndpoint();
 app.MapListarClientesEndpoint();
+app.MapObtenerClientePorIdEndpoint();
 app.MapCambiarEtapaClienteEndpoint();
 
 // Propiedades
@@ -46,5 +49,13 @@ app.MapRegistrarPropiedadEndpoint();
 app.MapListarPropiedadesEndpoint();
 app.MapObtenerPropiedadPorIdEndpoint();
 app.MapCambiarEstadoPropiedadEndpoint();
+
+// Tareas
+app.MapRegistrarTareaEndpoint();
+app.MapListarTareasEndpoint();
+app.MapCompletarTareaEndpoint();
+
+// Interacciones
+app.MapRegistrarInteraccionEndpoint();
 
 app.Run();

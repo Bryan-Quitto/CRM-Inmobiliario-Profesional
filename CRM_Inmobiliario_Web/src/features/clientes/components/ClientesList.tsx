@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check } from 'lucide-react';
+import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, User, Clock } from 'lucide-react';
 import { getClientes } from '../api/getClientes';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { CrearClienteForm } from './CrearClienteForm';
+import { ClienteDetalle } from './ClienteDetalle';
 import type { Cliente } from '../types';
 
 const ETAPAS = [
@@ -72,6 +73,7 @@ export const ClientesList = () => {
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de cliente
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -90,7 +92,6 @@ export const ClientesList = () => {
       console.error('Error al cargar clientes:', err);
       setError('No se pudo establecer conexión con el CRM.');
     } finally {
-      // Pequeño delay artificial para apreciar los skeletons y evitar parpadeos
       setTimeout(() => setLoading(false), 600);
     }
   }, []);
@@ -175,6 +176,13 @@ export const ClientesList = () => {
             onCancel={() => setIsModalOpen(false)} 
           />
         </div>
+      )}
+
+      {selectedClienteId && (
+        <ClienteDetalle 
+          id={selectedClienteId} 
+          onClose={() => setSelectedClienteId(null)} 
+        />
       )}
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
@@ -275,7 +283,11 @@ export const ClientesList = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
           {filteredClientes.map((cliente) => (
-            <div key={cliente.id} className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 group">
+            <div 
+              key={cliente.id} 
+              onClick={() => setSelectedClienteId(cliente.id)}
+              className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer"
+            >
               <div className="flex justify-between items-start mb-5">
                 <div className="h-12 w-12 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-slate-900/10 group-hover:bg-blue-600 group-hover:shadow-blue-600/20 transition-all">
                   {cliente.nombre[0]}{cliente.apellido?.[0] || ''}
@@ -290,7 +302,10 @@ export const ClientesList = () => {
                   ) : (
                     <>
                       <button 
-                        onClick={() => setOpenDropdownId(openDropdownId === cliente.id ? null : cliente.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenDropdownId(openDropdownId === cliente.id ? null : cliente.id);
+                        }}
                         className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 group/btn ${getEtapaStyles(cliente.etapaEmbudo)}`}
                       >
                         {cliente.etapaEmbudo}
@@ -302,7 +317,10 @@ export const ClientesList = () => {
                           {ETAPAS.map((etapa) => (
                             <button
                               key={etapa.value}
-                              onClick={() => handleStageChange(cliente.id, etapa.value)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStageChange(cliente.id, etapa.value);
+                              }}
                               className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
                                 cliente.etapaEmbudo === etapa.value ? 'text-blue-600' : 'text-slate-600'
                               }`}
@@ -340,6 +358,13 @@ export const ClientesList = () => {
                   <Phone className="h-4 w-4 text-slate-300 group-hover:text-blue-500" />
                   <span>{cliente.telefono}</span>
                 </div>
+              </div>
+
+              <div className="mt-6 pt-5 border-t border-slate-50 flex items-center justify-between">
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                  <Clock className="h-3 w-3" />
+                  Desde: {new Date(cliente.fechaCreacion).toLocaleDateString()}
+                </span>
               </div>
             </div>
           ))}

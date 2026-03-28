@@ -1,0 +1,62 @@
+using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+
+namespace CRM_Inmobiliario.Api.Features.Clientes;
+
+public static class ObtenerClientePorIdFeature
+{
+    public record Response(
+        Guid Id,
+        string Nombre,
+        string? Apellido,
+        string? Email,
+        string Telefono,
+        string Origen,
+        string EtapaEmbudo,
+        string? Notas,
+        DateTimeOffset FechaCreacion,
+        List<InteraccionResponse> Interacciones);
+
+    public record InteraccionResponse(
+        Guid Id,
+        string TipoInteraccion,
+        string Notas,
+        DateTimeOffset FechaInteraccion);
+
+    public static void MapObtenerClientePorIdEndpoint(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/clientes/{id:guid}", async (Guid id, CrmDbContext context) =>
+        {
+            var cliente = await context.Leads
+                .Where(c => c.Id == id)
+                .Select(c => new Response(
+                    c.Id,
+                    c.Nombre,
+                    c.Apellido,
+                    c.Email,
+                    c.Telefono,
+                    c.Origen,
+                    c.EtapaEmbudo,
+                    c.Notas,
+                    c.FechaCreacion,
+                    c.Interactions
+                        .OrderByDescending(i => i.FechaInteraccion)
+                        .Select(i => new InteraccionResponse(
+                            i.Id,
+                            i.TipoInteraccion,
+                            i.Notas,
+                            i.FechaInteraccion))
+                        .ToList()))
+                .FirstOrDefaultAsync();
+
+            return cliente is not null 
+                ? Results.Ok(cliente) 
+                : Results.NotFound();
+        })
+        .WithTags("Clientes")
+        .WithName("ObtenerClientePorId");
+    }
+}
