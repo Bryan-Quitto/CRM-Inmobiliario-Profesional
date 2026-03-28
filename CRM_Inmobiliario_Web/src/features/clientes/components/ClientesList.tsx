@@ -18,10 +18,59 @@ const FILTER_OPTIONS = [
   ...ETAPAS
 ];
 
+const SkeletonCard = () => (
+  <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm animate-pulse">
+    <div className="flex justify-between items-start mb-5">
+      <div className="h-12 w-12 bg-slate-100 rounded-xl"></div>
+      <div className="h-6 w-24 bg-slate-50 rounded-full"></div>
+    </div>
+    <div className="mb-6 space-y-2">
+      <div className="h-5 w-3/4 bg-slate-100 rounded-md"></div>
+      <div className="h-3 w-1/2 bg-slate-50 rounded-md"></div>
+    </div>
+    <div className="space-y-3 pt-5 border-t border-slate-50">
+      <div className="h-4 w-full bg-slate-50 rounded-md"></div>
+      <div className="h-4 w-2/3 bg-slate-50 rounded-md"></div>
+    </div>
+  </div>
+);
+
+const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: number, negociacion: number }) => (
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-100 transition-all">
+      <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+        <CheckCircle2 className="h-6 w-6" />
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Prospectos</p>
+        <p className="text-2xl font-black text-slate-900">{total}</p>
+      </div>
+    </div>
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-amber-100 transition-all">
+      <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-all">
+        <Plus className="h-6 w-6" />
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nuevos (Hoy)</p>
+        <p className="text-2xl font-black text-slate-900">{nuevos}</p>
+      </div>
+    </div>
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-indigo-100 transition-all">
+      <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+        <AlertCircle className="h-6 w-6" />
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Negociación</p>
+        <p className="text-2xl font-black text-slate-900">{negociacion}</p>
+      </div>
+    </div>
+  </div>
+);
+
 export const ClientesList = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de cliente
@@ -41,7 +90,8 @@ export const ClientesList = () => {
       console.error('Error al cargar clientes:', err);
       setError('No se pudo establecer conexión con el CRM.');
     } finally {
-      setLoading(false);
+      // Pequeño delay artificial para apreciar los skeletons y evitar parpadeos
+      setTimeout(() => setLoading(false), 600);
     }
   }, []);
 
@@ -76,6 +126,12 @@ export const ClientesList = () => {
     });
   }, [clientes, searchQuery, filterEtapa]);
 
+  const stats = useMemo(() => ({
+    total: clientes.length,
+    nuevos: clientes.filter(c => c.etapaEmbudo === 'Nuevo').length,
+    negociacion: clientes.filter(c => c.etapaEmbudo === 'En Negociación').length
+  }), [clientes]);
+
   const handleStageChange = async (id: string, nuevaEtapa: string) => {
     setOpenDropdownId(null);
     if (clientes.find(c => c.id === id)?.etapaEmbudo === nuevaEtapa) return;
@@ -97,18 +153,6 @@ export const ClientesList = () => {
     const found = ETAPAS.find(e => e.value === etapa);
     return found?.color || 'bg-gray-50 text-gray-600 border-gray-100';
   };
-
-  if (loading && clientes.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl border border-gray-100 shadow-sm min-h-[400px]">
-        <div className="relative">
-          <div className="h-12 w-12 border-4 border-blue-50 rounded-full"></div>
-          <Loader2 className="h-12 w-12 text-blue-600 animate-spin absolute top-0 left-0 border-t-4 border-transparent rounded-full" />
-        </div>
-        <p className="mt-4 text-slate-400 font-bold text-sm animate-pulse uppercase tracking-widest">Sincronizando...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-slate-50 min-h-screen relative font-sans antialiased">
@@ -156,7 +200,6 @@ export const ClientesList = () => {
             )}
           </div>
 
-          {/* Filtro de Etapa CUSTOM */}
           <div className="relative" ref={openDropdownId === 'filter' ? dropdownRef : null}>
             <button 
               onClick={() => setOpenDropdownId(openDropdownId === 'filter' ? null : 'filter')}
@@ -199,16 +242,35 @@ export const ClientesList = () => {
         </div>
       </div>
 
-      {filteredClientes.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-dashed border-slate-200 py-24 text-center shadow-sm">
-          <Search className="h-10 w-10 text-slate-200 mx-auto mb-4" />
-          <p className="text-xl font-bold text-slate-400">Sin resultados</p>
-          <button 
-            onClick={() => { setSearchQuery(''); setFilterEtapa('Todas'); }}
-            className="mt-4 text-sm font-bold text-blue-600 hover:underline cursor-pointer"
-          >
-            Limpiar filtros
-          </button>
+      <StatsBar total={stats.total} nuevos={stats.nuevos} negociacion={stats.negociacion} />
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
+        </div>
+      ) : filteredClientes.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-dashed border-slate-200 py-32 text-center shadow-sm flex flex-col items-center">
+          <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+            <Search className="h-10 w-10 text-slate-200" />
+          </div>
+          <p className="text-xl font-bold text-slate-900">Sin resultados</p>
+          <p className="text-slate-400 text-sm mt-1 max-w-xs mx-auto">
+            No encontramos lo que buscas. Intenta con otros filtros o registra un nuevo prospecto.
+          </p>
+          <div className="flex gap-4 mt-8">
+            <button 
+              onClick={() => { setSearchQuery(''); setFilterEtapa('Todas'); }}
+              className="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              Limpiar filtros
+            </button>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all cursor-pointer shadow-lg shadow-blue-600/10"
+            >
+              Crear Prospecto
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
