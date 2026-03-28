@@ -1,0 +1,57 @@
+using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+
+namespace CRM_Inmobiliario.Api.Features.Propiedades;
+
+public static class ObtenerPropiedadPorIdFeature
+{
+    public record Response(
+        Guid Id,
+        string Titulo,
+        string Descripcion,
+        string TipoPropiedad,
+        string Operacion,
+        decimal Precio,
+        string Direccion,
+        string Sector,
+        string Ciudad,
+        int Habitaciones,
+        decimal Banos,
+        decimal AreaTotal,
+        string EstadoComercial,
+        DateTimeOffset FechaIngreso);
+
+    public static void MapObtenerPropiedadPorIdEndpoint(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/propiedades/{id:guid}", async (Guid id, CrmDbContext context) =>
+        {
+            var propiedad = await context.Properties
+                .Where(p => p.Id == id)
+                .Select(p => new Response(
+                    p.Id,
+                    p.Titulo,
+                    p.Descripcion,
+                    p.TipoPropiedad,
+                    p.Operacion,
+                    p.Precio,
+                    p.Direccion,
+                    p.Sector,
+                    p.Ciudad,
+                    p.Habitaciones,
+                    p.Banos,
+                    p.AreaTotal,
+                    p.EstadoComercial,
+                    p.FechaIngreso))
+                .FirstOrDefaultAsync();
+
+            return propiedad is not null 
+                ? Results.Ok(propiedad) 
+                : Results.NotFound();
+        })
+        .WithTags("Propiedades")
+        .WithName("ObtenerPropiedadPorId");
+    }
+}

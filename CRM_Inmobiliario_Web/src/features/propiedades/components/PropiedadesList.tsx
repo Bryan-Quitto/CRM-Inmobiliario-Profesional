@@ -19,6 +19,7 @@ import {
 import { getPropiedades } from '../api/getPropiedades';
 import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { CrearPropiedadForm } from './CrearPropiedadForm';
+import { PropiedadDetalle } from './PropiedadDetalle';
 import type { Propiedad } from '../types';
 
 const ESTADOS = [
@@ -97,6 +98,7 @@ export const PropiedadesList = () => {
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de propiedad
+  const [selectedPropiedadId, setSelectedPropiedadId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -299,7 +301,8 @@ export const PropiedadesList = () => {
           {filteredPropiedades.map((p) => (
             <div 
               key={p.id} 
-              className={`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative ${
+              onClick={() => setSelectedPropiedadId(p.id)}
+              className={`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative cursor-pointer ${
                 openDropdownId === p.id ? 'z-[60]' : 'z-10'
               }`}
             >
@@ -314,7 +317,10 @@ export const PropiedadesList = () => {
                   ) : (
                     <>
                       <button 
-                        onClick={() => setOpenDropdownId(openDropdownId === p.id ? null : p.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenDropdownId(openDropdownId === p.id ? null : p.id);
+                        }}
                         className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 ${getStatusStyles(p.estadoComercial)}`}
                       >
                         {p.estadoComercial}
@@ -326,7 +332,10 @@ export const PropiedadesList = () => {
                           {ESTADOS.map((estado) => (
                             <button
                               key={estado.value}
-                              onClick={() => handleStatusChange(p.id, estado.value)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange(p.id, estado.value);
+                              }}
                               className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
                                 p.estadoComercial === estado.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
                               }`}
@@ -380,6 +389,13 @@ export const PropiedadesList = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {selectedPropiedadId && (
+        <PropiedadDetalle 
+          id={selectedPropiedadId} 
+          onClose={() => setSelectedPropiedadId(null)} 
+        />
       )}
     </div>
   );
