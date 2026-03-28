@@ -50,10 +50,10 @@ public sealed class Property
     [MaxLength(50)]
     public string EstadoComercial { get; set; } = "Disponible";
 
-    public Guid AgenteId { get; set; }
+    public Guid? AgenteId { get; set; }
     public Agent? Agente { get; set; }
 
-    public Guid PropietarioId { get; set; }
+    public Guid? PropietarioId { get; set; }
     public Lead? Propietario { get; set; }
 
     public DateTimeOffset FechaIngreso { get; set; } = DateTimeOffset.UtcNow;
