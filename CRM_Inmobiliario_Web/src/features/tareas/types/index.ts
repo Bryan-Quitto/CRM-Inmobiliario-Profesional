@@ -2,7 +2,7 @@ export interface Tarea {
   id: string;
   titulo: string;
   descripcion?: string;
-  tipoTarea: 'Llamada' | 'Visita' | 'Reunión';
+  tipoTarea: 'Llamada' | 'Visita' | 'Reunión' | 'Trámite';
   fechaVencimiento: string;
   estado: 'Pendiente' | 'Completada';
   clienteNombre?: string;

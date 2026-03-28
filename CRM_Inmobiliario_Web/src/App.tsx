@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ClientesList } from './features/clientes/components/ClientesList';
 import { PropiedadesList } from './features/propiedades/components/PropiedadesList';
 import { AgendaPanel } from './features/tareas/components/AgendaPanel';
-import { getTareas } from './features/tareas/api/getTareas';
+import { TareasProvider, useTareas } from './features/tareas/context/TareasContext';
 import { 
   Users, 
   Home, 
@@ -16,36 +16,12 @@ import {
   Search
 } from 'lucide-react';
 
-function App() {
+function AppContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAgendaOpen, setIsAgendaOpen] = useState(true);
-  const [urgentesCount, setUrgentesCount] = useState(0);
+  const { urgentesCount } = useTareas();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const fetchUrgentes = useCallback(async () => {
-    try {
-      const tareas = await getTareas();
-      const hoy = new Date();
-      hoy.setHours(23, 59, 59, 999);
-      
-      const count = tareas.filter(t => 
-        t.estado === 'Pendiente' && 
-        new Date(t.fechaVencimiento) <= hoy
-      ).length;
-      
-      setUrgentesCount(count);
-    } catch (err) {
-      console.error('Error al obtener tareas para notificaciones:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUrgentes();
-    // Polling cada 1 minuto para actualizar notificaciones
-    const interval = setInterval(fetchUrgentes, 60000);
-    return () => clearInterval(interval);
-  }, [fetchUrgentes]);
 
   const menuItems = [
     { id: 'prospectos', path: '/prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
@@ -63,7 +39,6 @@ function App() {
           isSidebarOpen ? 'w-64' : 'w-20'
         }`}
       >
-        {/* ... (resto del sidebar igual) ... */}
         <div className="h-20 flex items-center px-6 border-b border-slate-800/50">
           <div className="flex items-center gap-3">
             <div className="min-w-[36px] h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-600/20">
@@ -197,7 +172,15 @@ function App() {
         <AgendaPanel />
       </aside>
     </div>
-  )
+  );
 }
 
-export default App
+function App() {
+  return (
+    <TareasProvider>
+      <AppContent />
+    </TareasProvider>
+  );
+}
+
+export default App;

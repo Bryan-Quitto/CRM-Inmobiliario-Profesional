@@ -54,6 +54,9 @@ app.MapCambiarEstadoPropiedadEndpoint();
 app.MapRegistrarTareaEndpoint();
 app.MapListarTareasEndpoint();
 app.MapCompletarTareaEndpoint();
+app.MapObtenerTareaPorIdEndpoint();
+app.MapActualizarTareaEndpoint();
+app.MapCancelarTareaEndpoint();
 
 // Interacciones
 app.MapRegistrarInteraccionEndpoint();
