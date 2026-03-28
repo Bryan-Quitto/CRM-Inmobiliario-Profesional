@@ -38,5 +38,6 @@ app.UseCors("FrontendPolicy");
 // Registro de Features (Vertical Slice)
 app.MapRegistrarClienteEndpoint();
 app.MapListarClientesEndpoint();
+app.MapCambiarEtapaClienteEndpoint();
 
 app.Run();
