@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, User, Clock } from 'lucide-react';
+import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock } from 'lucide-react';
 import { getClientes } from '../api/getClientes';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { CrearClienteForm } from './CrearClienteForm';
