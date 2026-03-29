@@ -62,29 +62,29 @@ const SkeletonPropertyCard = () => (
 const PropertyStats = ({ total, venta, alquiler }: { total: number, venta: number, alquiler: number }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-100 transition-all">
-      <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+      <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-all">
         <Building2 className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Catálogo</p>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Catálogo</p>
         <p className="text-2xl font-black text-slate-900">{total}</p>
       </div>
     </div>
     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-emerald-100 transition-all">
-      <div className="h-12 w-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+      <div className="h-12 w-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-all">
         <TrendingUp className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Venta</p>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">En Venta</p>
         <p className="text-2xl font-black text-slate-900">{venta}</p>
       </div>
     </div>
     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-amber-100 transition-all">
-      <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-all">
+      <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-all">
         <Tag className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Alquiler</p>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">En Alquiler</p>
         <p className="text-2xl font-black text-slate-900">{alquiler}</p>
       </div>
     </div>
@@ -218,13 +218,13 @@ export const PropiedadesList = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Catálogo de Inmuebles</h2>
-          <p className="text-gray-500 mt-1 font-medium italic">Explora y gestiona el inventario de propiedades.</p>
+          <p className="text-slate-600 mt-1 font-medium italic">Explora y gestiona el inventario de propiedades.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 sm:min-w-[300px]">
             <label htmlFor="propiedad-search" className="sr-only">Buscar propiedades por título, sector o ciudad</label>
-            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true" />
             <input 
               id="propiedad-search"
               type="text" 
@@ -251,7 +251,7 @@ export const PropiedadesList = () => {
               aria-expanded={openDropdownId === 'filter'}
               className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-sm cursor-pointer"
             >
-              <FilterIcon className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              <FilterIcon className="h-4 w-4 text-slate-500" aria-hidden="true" />
               <span>{filterEstado === 'Todos' ? 'Todos los estados' : filterEstado}</span>
               <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
@@ -405,8 +405,8 @@ export const PropiedadesList = () => {
                   {p.titulo}
                 </h3>
                 
-                <div className="flex items-center gap-1.5 text-slate-400 mb-6">
-                  <MapPin className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-1.5 text-slate-500 mb-6">
+                  <MapPin className="h-3.5 w-3.5 text-slate-400" />
                   <span className="text-xs font-bold truncate italic">{p.sector}, {p.ciudad}</span>
                 </div>
 
@@ -416,7 +416,7 @@ export const PropiedadesList = () => {
                   </span>
                   <div 
                     aria-label={`Ver más detalles de ${p.titulo}`}
-                    className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all cursor-pointer"
+                    className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-all cursor-pointer border border-slate-100"
                   >
                     <Plus className="h-5 w-5" aria-hidden="true" />
                   </div>

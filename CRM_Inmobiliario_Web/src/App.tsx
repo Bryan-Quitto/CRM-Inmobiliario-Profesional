@@ -21,14 +21,14 @@ const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel'
 
 const PageLoader = () => (
   <div className="flex flex-col items-center justify-center h-[60vh] animate-in fade-in duration-500">
-    <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
-    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Cargando módulo...</p>
+    <Loader2 className="h-10 w-10 text-blue-700 animate-spin mb-4" />
+    <p className="text-sm font-bold text-slate-700 uppercase tracking-widest">Cargando módulo...</p>
   </div>
 );
 
 const SidebarLoader = () => (
   <div className="w-80 bg-white border-l border-slate-200 h-full flex items-center justify-center">
-    <Loader2 className="h-6 w-6 text-slate-300 animate-spin" />
+    <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
   </div>
 );
 
@@ -125,12 +125,12 @@ function AppContent() {
           <div className="flex items-center gap-4 flex-1">
             <div className="relative w-full max-w-md hidden md:block">
               <label htmlFor="global-search" className="sr-only">Búsqueda global</label>
-              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+              <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true" />
               <input 
                 id="global-search"
                 type="text" 
                 placeholder="Búsqueda global..." 
-                className="w-full bg-slate-50 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-100 transition-all"
+                className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 pl-10 pr-4 text-sm font-medium focus:ring-4 focus:ring-blue-100 transition-all outline-none"
               />
             </div>
           </div>
@@ -139,7 +139,7 @@ function AppContent() {
             <button 
               onClick={() => setIsAgendaOpen(!isAgendaOpen)}
               aria-label={isAgendaOpen ? "Cerrar agenda y notificaciones" : "Abrir agenda y notificaciones"}
-              className={`p-2 rounded-xl transition-all cursor-pointer relative ${isAgendaOpen ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
+              className={`p-2.5 rounded-xl transition-all cursor-pointer relative ${isAgendaOpen ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
             >
               <Bell className="h-5 w-5" aria-hidden="true" />
               {urgentesCount > 0 && (
@@ -180,11 +180,11 @@ function AppContent() {
         </main>
 
         <footer className="p-8 border-t border-slate-100 mt-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-slate-500 text-[11px] font-bold uppercase tracking-widest">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-slate-600 text-[11px] font-bold uppercase tracking-widest">
             <p>© 2026 CRM Inmobiliario Profesional. v1.1.0-Elite</p>
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="flex items-center gap-2 text-slate-500">
+                <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse"></div>
                 Cloud Systems Active
               </span>
             </div>
