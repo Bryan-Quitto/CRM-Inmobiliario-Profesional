@@ -153,6 +153,12 @@ export const PropiedadesList = () => {
     }
   };
 
+  const handleCoverUpdate = (propiedadId: string, newUrl: string) => {
+    setPropiedades(prev => prev.map(p => 
+      p.id === propiedadId ? { ...p, imagenPortadaUrl: newUrl } : p
+    ));
+  };
+
   const getStatusStyles = (estado: string) => {
     const found = ESTADOS.find(e => e.value === estado);
     return found?.color || 'bg-slate-500 border-slate-400 text-white';
@@ -306,7 +312,7 @@ export const PropiedadesList = () => {
                 openDropdownId === p.id ? 'z-[60]' : 'z-10'
               }`}
             >
-              {/* Badges Flotantes - Movidos fuera del contenedor de imagen para evitar recortes (clipping) */}
+              {/* Badges Flotantes */}
               <div className="absolute top-4 left-4 flex gap-2 z-30">
                 <div className="relative" ref={openDropdownId === p.id ? dropdownRef : null}>
                   {updatingId === p.id ? (
@@ -357,7 +363,15 @@ export const PropiedadesList = () => {
               {/* Imagen / Placeholder */}
               <div className="h-56 bg-slate-200 relative overflow-hidden flex items-center justify-center rounded-t-3xl">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
-                <ImageIcon className="h-12 w-12 text-slate-300 group-hover:scale-110 transition-transform duration-500" />
+                {p.imagenPortadaUrl ? (
+                  <img 
+                    src={p.imagenPortadaUrl} 
+                    alt={p.titulo} 
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                ) : (
+                  <ImageIcon className="h-12 w-12 text-slate-300 group-hover:scale-110 transition-transform duration-500" />
+                )}
               </div>
 
               {/* Contenido */}
@@ -395,6 +409,7 @@ export const PropiedadesList = () => {
         <PropiedadDetalle 
           id={selectedPropiedadId} 
           onClose={() => setSelectedPropiedadId(null)} 
+          onCoverUpdated={(url) => handleCoverUpdate(selectedPropiedadId, url)}
         />
       )}
     </div>

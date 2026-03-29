@@ -22,7 +22,15 @@ public static class ObtenerPropiedadPorIdFeature
         decimal Banos,
         decimal AreaTotal,
         string EstadoComercial,
-        DateTimeOffset FechaIngreso);
+        DateTimeOffset FechaIngreso,
+        IEnumerable<MediaResponse> Media);
+
+    public record MediaResponse(
+        Guid Id,
+        string TipoMultimedia,
+        string UrlPublica,
+        bool EsPrincipal,
+        int Orden);
 
     public static void MapObtenerPropiedadPorIdEndpoint(this IEndpointRouteBuilder app)
     {
@@ -44,7 +52,15 @@ public static class ObtenerPropiedadPorIdFeature
                     p.Banos,
                     p.AreaTotal,
                     p.EstadoComercial,
-                    p.FechaIngreso))
+                    p.FechaIngreso,
+                    p.Media
+                        .OrderBy(m => m.Orden)
+                        .Select(m => new MediaResponse(
+                            m.Id,
+                            m.TipoMultimedia,
+                            m.UrlPublica,
+                            m.EsPrincipal,
+                            m.Orden))))
                 .FirstOrDefaultAsync();
 
             return propiedad is not null 
