@@ -14,4 +14,20 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'vendor-react';
+            if (id.includes('lucide')) return 'vendor-icons';
+            if (id.includes('jszip') || id.includes('browser-image-compression')) return 'vendor-media';
+            if (id.includes('axios') || id.includes('react-hook-form') || id.includes('sonner') || id.includes('supabase')) return 'vendor-utils';
+            return 'vendor';
+          }
+        },
+      },
+    },
+  },
 })
