@@ -16,7 +16,8 @@ public static class ListarPropiedadesFeature
         decimal Precio,
         string Sector,
         string Ciudad,
-        string EstadoComercial);
+        string EstadoComercial,
+        string? ImagenPortadaUrl);
 
     public static void MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
@@ -32,7 +33,11 @@ public static class ListarPropiedadesFeature
                     p.Precio,
                     p.Sector,
                     p.Ciudad,
-                    p.EstadoComercial))
+                    p.EstadoComercial,
+                    p.Media
+                        .Where(m => m.EsPrincipal)
+                        .Select(m => m.UrlPublica)
+                        .FirstOrDefault()))
                 .ToListAsync();
 
             return Results.Ok(propiedades);

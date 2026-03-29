@@ -1,3 +1,12 @@
+export interface MultimediaPropiedad {
+  id: string;
+  propiedadId: string;
+  tipoMultimedia: string;
+  urlPublica: string;
+  esPrincipal: boolean;
+  orden: number;
+}
+
 export interface Propiedad {
   id: string;
   titulo: string;
@@ -13,4 +22,6 @@ export interface Propiedad {
   areaTotal: number;
   estadoComercial: string;
   fechaIngreso: string;
+  media?: MultimediaPropiedad[];
+  imagenPortadaUrl?: string;
 }
