@@ -140,7 +140,7 @@ export const AgendaPanel = () => {
       <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div>
           <h2 className="text-lg font-black text-slate-900 tracking-tight">Agenda Diaria</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
             {tareasPendientes.length} Tareas Pendientes
           </p>
         </div>
@@ -158,15 +158,15 @@ export const AgendaPanel = () => {
         {loading && allTareas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sincronizando...</p>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sincronizando...</p>
           </div>
         ) : tareasPendientes.length === 0 ? (
           <div className="py-20 text-center px-6">
-            <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="h-8 w-8 text-slate-200" />
+            <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+              <CheckCircle2 className="h-8 w-8 text-slate-400" />
             </div>
             <p className="text-sm font-bold text-slate-900">¡Todo al día!</p>
-            <p className="text-xs text-slate-400 mt-1 italic">No tienes tareas pendientes para mostrar.</p>
+            <p className="text-xs text-slate-500 mt-1 italic">No tienes tareas pendientes para mostrar.</p>
           </div>
         ) : (
           <>
@@ -254,7 +254,7 @@ export const AgendaPanel = () => {
           className="w-full p-4 flex items-center justify-between group hover:bg-slate-100 transition-colors cursor-pointer"
         >
           <div className="flex items-center gap-2">
-            <History className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" aria-hidden="true" />
+            <History className="h-4 w-4 text-slate-500 group-hover:text-slate-600 transition-colors" aria-hidden="true" />
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Historial</span>
           </div>
           <span className="bg-slate-200 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded-full">

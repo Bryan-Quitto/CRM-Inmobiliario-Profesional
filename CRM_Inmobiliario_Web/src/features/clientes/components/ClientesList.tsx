@@ -39,29 +39,29 @@ const SkeletonCard = () => (
 const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: number, negociacion: number }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-100 transition-all">
-      <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+      <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-all">
         <CheckCircle2 className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Prospectos</p>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Prospectos</p>
         <p className="text-2xl font-black text-slate-900">{total}</p>
       </div>
     </div>
     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-amber-100 transition-all">
-      <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-all">
+      <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-all">
         <Plus className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nuevos (Hoy)</p>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nuevos (Hoy)</p>
         <p className="text-2xl font-black text-slate-900">{nuevos}</p>
       </div>
     </div>
     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-indigo-100 transition-all">
-      <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+      <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white transition-all">
         <AlertCircle className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Negociación</p>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">En Negociación</p>
         <p className="text-2xl font-black text-slate-900">{negociacion}</p>
       </div>
     </div>
@@ -196,7 +196,7 @@ export const ClientesList = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Cartera de Clientes</h2>
-          <p className="text-gray-500 mt-1 font-medium italic">Gestión integral de prospectos e interesados.</p>
+          <p className="text-slate-600 mt-1 font-medium italic">Gestión integral de prospectos e interesados.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
@@ -227,11 +227,11 @@ export const ClientesList = () => {
               onClick={() => setOpenDropdownId(openDropdownId === 'filter' ? null : 'filter')}
               aria-label={`Filtrar por etapa. Filtro actual: ${filterEtapa === 'Todas' ? 'Todas las etapas' : filterEtapa}`}
               aria-expanded={openDropdownId === 'filter'}
-              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-sm cursor-pointer"
+              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-sm cursor-pointer"
             >
-              <FilterIcon className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              <FilterIcon className="h-4 w-4 text-slate-500" aria-hidden="true" />
               <span>{filterEtapa === 'Todas' ? 'Todas las etapas' : filterEtapa}</span>
-              <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} aria-hidden="true" />
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
 
             {openDropdownId === 'filter' && (
