@@ -4,19 +4,15 @@ import {
   User, 
   Mail, 
   Phone, 
-  Calendar, 
   Send, 
   Loader2, 
   MessageSquare, 
   Clock, 
-  Info,
-  CheckCircle2,
-  Tag,
-  Plus
+  Info
 } from 'lucide-react';
 import { getClienteById } from '../api/getClienteById';
 import { registrarInteraccion } from '../api/registrarInteraccion';
-import type { Cliente, Interaccion } from '../types';
+import type { Cliente } from '../types';
 
 interface ClienteDetalleProps {
   id: string;

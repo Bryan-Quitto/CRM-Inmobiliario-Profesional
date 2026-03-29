@@ -1,16 +1,13 @@
 import { useState, useMemo } from 'react';
 import { 
+  Users, 
   Phone, 
   MapPin, 
-  Users, 
-  Calendar, 
   CheckCircle2, 
   Clock, 
   ChevronRight, 
   Plus,
   Loader2,
-  AlertCircle,
-  MoreVertical,
   Check,
   Briefcase,
   History,

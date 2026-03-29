@@ -18,10 +18,16 @@ builder.Services.AddEndpointsApiExplorer();
 
 // Configuración de Supabase Client usando variables de entorno
 builder.Services.AddScoped<Supabase.Client>(_ => 
-    new Supabase.Client(
-        Environment.GetEnvironmentVariable("SUPABASE_URL") ?? builder.Configuration["Supabase:Url"]!,
-        Environment.GetEnvironmentVariable("SUPABASE_KEY") ?? builder.Configuration["Supabase:Key"],
-        new SupabaseOptions { AutoConnectRealtime = true }));
+{
+    var url = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? builder.Configuration["Supabase:Url"]!;
+    
+    // Priorizamos la ROLE_KEY (Service Role) para el backend, ya que permite bypass de RLS
+    var key = Environment.GetEnvironmentVariable("SUPABASE_ROLE_KEY") 
+              ?? Environment.GetEnvironmentVariable("SUPABASE_KEY") 
+              ?? builder.Configuration["Supabase:Key"]!;
+
+    return new Supabase.Client(url, key, new SupabaseOptions { AutoConnectRealtime = true });
+});
 
 // Configuración de CORS para el Frontend (Vite default: http://localhost:5173)
 builder.Services.AddCors(options =>
@@ -63,6 +69,9 @@ app.MapObtenerPropiedadPorIdEndpoint();
 app.MapCambiarEstadoPropiedadEndpoint();
 app.MapSubirImagenPropiedadEndpoint();
 app.MapEstablecerImagenPrincipalEndpoint();
+app.MapEliminarImagenPropiedadEndpoint();
+app.MapEliminarTodasLasImagenesEndpoint();
+app.MapEliminarImagenesSeleccionadasEndpoint();
 
 // Tareas
 app.MapRegistrarTareaEndpoint();
