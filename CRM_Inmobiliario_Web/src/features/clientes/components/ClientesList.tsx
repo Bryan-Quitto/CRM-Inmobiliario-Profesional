@@ -158,13 +158,21 @@ export const ClientesList = () => {
   return (
     <div className="bg-slate-50 min-h-screen relative font-sans antialiased">
       {notification && (
-        <div className={`fixed bottom-8 right-8 z-[200] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 animate-in slide-in-from-bottom-10 duration-300 ${
-          notification.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white'
-        }`}>
-          {notification.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+        <div 
+          role="alert"
+          aria-live="polite"
+          className={`fixed bottom-8 right-8 z-[200] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 animate-in slide-in-from-bottom-10 duration-300 ${
+            notification.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white'
+          }`}
+        >
+          {notification.type === 'success' ? <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> : <AlertCircle className="h-5 w-5" aria-hidden="true" />}
           <span className="font-bold text-sm tracking-tight">{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all cursor-pointer">
-            <X className="h-4 w-4" />
+          <button 
+            onClick={() => setNotification(null)} 
+            aria-label="Cerrar notificación"
+            className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all cursor-pointer"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -193,8 +201,10 @@ export const ClientesList = () => {
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 sm:min-w-[300px]">
-            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <label htmlFor="cliente-search" className="sr-only">Buscar prospectos por nombre o email</label>
+            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <input 
+              id="cliente-search"
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -202,8 +212,12 @@ export const ClientesList = () => {
               className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 cursor-pointer">
-                <X className="h-4 w-4" />
+              <button 
+                onClick={() => setSearchQuery('')} 
+                aria-label="Limpiar búsqueda"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 cursor-pointer"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -211,11 +225,13 @@ export const ClientesList = () => {
           <div className="relative" ref={openDropdownId === 'filter' ? dropdownRef : null}>
             <button 
               onClick={() => setOpenDropdownId(openDropdownId === 'filter' ? null : 'filter')}
+              aria-label={`Filtrar por etapa. Filtro actual: ${filterEtapa === 'Todas' ? 'Todas las etapas' : filterEtapa}`}
+              aria-expanded={openDropdownId === 'filter'}
               className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-sm cursor-pointer"
             >
-              <FilterIcon className="h-4 w-4 text-slate-400" />
+              <FilterIcon className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <span>{filterEtapa === 'Todas' ? 'Todas las etapas' : filterEtapa}</span>
-              <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
 
             {openDropdownId === 'filter' && (
@@ -241,9 +257,10 @@ export const ClientesList = () => {
 
           <button 
             onClick={() => setIsModalOpen(true)}
+            aria-label="Registrar nuevo prospecto"
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-5 w-5" aria-hidden="true" />
             <span className="hidden sm:inline">Nuevo Prospecto</span>
             <span className="sm:hidden">Nuevo</span>
           </button>
@@ -306,10 +323,12 @@ export const ClientesList = () => {
                           e.stopPropagation();
                           setOpenDropdownId(openDropdownId === cliente.id ? null : cliente.id);
                         }}
+                        aria-label={`Cambiar etapa de ${cliente.nombre}. Etapa actual: ${cliente.etapaEmbudo}`}
+                        aria-expanded={openDropdownId === cliente.id}
                         className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 group/btn ${getEtapaStyles(cliente.etapaEmbudo)}`}
                       >
                         {cliente.etapaEmbudo}
-                        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${openDropdownId === cliente.id ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${openDropdownId === cliente.id ? 'rotate-180' : ''}`} aria-hidden="true" />
                       </button>
 
                       {openDropdownId === cliente.id && (

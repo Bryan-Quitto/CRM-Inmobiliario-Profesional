@@ -146,9 +146,10 @@ export const AgendaPanel = () => {
         </div>
         <button 
           onClick={() => setView('create')}
+          aria-label="Crear nueva tarea"
           className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 cursor-pointer active:scale-95"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 
@@ -248,14 +249,16 @@ export const AgendaPanel = () => {
       <div className="mt-auto border-t border-slate-100 bg-slate-50/50">
         <button 
           onClick={() => setShowHistory(!showHistory)}
+          aria-label={showHistory ? "Ocultar historial de tareas" : "Mostrar historial de tareas"}
+          aria-expanded={showHistory}
           className="w-full p-4 flex items-center justify-between group hover:bg-slate-100 transition-colors cursor-pointer"
         >
           <div className="flex items-center gap-2">
-            <History className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+            <History className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" aria-hidden="true" />
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Historial</span>
           </div>
           <span className="bg-slate-200 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded-full">
-            {filteredHistorial.length}
+            <span className="sr-only">Tareas en historial: </span>{filteredHistorial.length}
           </span>
         </button>
 
@@ -263,8 +266,10 @@ export const AgendaPanel = () => {
           <div className="px-4 pb-4 animate-in slide-in-from-bottom-2 duration-300">
             {/* Buscador Historial */}
             <div className="relative mb-3">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+              <label htmlFor="history-search" className="sr-only">Buscar en historial de tareas</label>
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" aria-hidden="true" />
               <input 
+                id="history-search"
                 type="text"
                 placeholder="Buscar en historial..."
                 value={historySearch}
@@ -326,6 +331,10 @@ const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: {
   return (
     <div 
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      aria-label={`Tarea: ${tarea.titulo}. Tipo: ${tarea.tipoTarea}. Vence: ${formatDateTime(tarea.fechaVencimiento)}. ${expired ? '¡ATRASADA!' : ''}`}
       className={`group bg-white border border-slate-100 p-4 rounded-2xl transition-all duration-300 hover:shadow-xl hover:border-blue-50 relative overflow-hidden cursor-pointer ${
       tarea.estado === 'Completada' ? 'opacity-50 scale-95 translate-x-4 grayscale' : ''
     }`}>
@@ -337,14 +346,15 @@ const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: {
             onComplete(tarea.id);
           }}
           disabled={isCompleting}
+          aria-label={`Marcar como completada: ${tarea.titulo}`}
           className={`shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center cursor-pointer active:scale-90 ${
             isCompleting ? 'border-blue-200 bg-blue-50' : 'border-slate-200 hover:border-blue-500 hover:bg-blue-50'
           }`}
         >
           {isCompleting ? (
-            <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
+            <Loader2 className="h-3 w-3 animate-spin text-blue-600" aria-hidden="true" />
           ) : (
-            <Check className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Check className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
           )}
         </button>
 

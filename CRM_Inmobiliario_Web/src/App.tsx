@@ -1,8 +1,5 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ClientesList } from './features/clientes/components/ClientesList';
-import { PropiedadesList } from './features/propiedades/components/PropiedadesList';
-import { AgendaPanel } from './features/tareas/components/AgendaPanel';
 import { TareasProvider, useTareas } from './features/tareas/context/TareasContext';
 import { 
   Users, 
@@ -13,8 +10,27 @@ import {
   ChevronRight,
   LogOut,
   Bell,
-  Search
+  Search,
+  Loader2
 } from 'lucide-react';
+
+// Lazy Loading de Features
+const ClientesList = lazy(() => import('./features/clientes/components/ClientesList').then(m => ({ default: m.ClientesList })));
+const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
+const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
+
+const PageLoader = () => (
+  <div className="flex flex-col items-center justify-center h-[60vh] animate-in fade-in duration-500">
+    <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
+    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Cargando módulo...</p>
+  </div>
+);
+
+const SidebarLoader = () => (
+  <div className="w-80 bg-white border-l border-slate-200 h-full flex items-center justify-center">
+    <Loader2 className="h-6 w-6 text-slate-300 animate-spin" />
+  </div>
+);
 
 function AppContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -57,6 +73,7 @@ function AppContent() {
             <button
               key={item.id}
               onClick={() => navigate(item.path)}
+              aria-label={`Ir a ${item.label}`}
               className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative cursor-pointer ${
                 isActive(item.path)
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
@@ -76,11 +93,17 @@ function AppContent() {
         </nav>
 
         <div className="p-3 border-t border-slate-800/50 space-y-2">
-          <button className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition-all group relative cursor-pointer">
+          <button 
+            aria-label="Abrir Configuración"
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition-all group relative cursor-pointer"
+          >
             <Settings className="h-5 w-5 group-hover:rotate-45 transition-transform" />
             {isSidebarOpen && <span className="text-sm font-bold">Configuración</span>}
           </button>
-          <button className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-rose-500/10 hover:text-rose-400 transition-all group relative cursor-pointer">
+          <button 
+            aria-label="Cerrar Sesión"
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-rose-500/10 hover:text-rose-400 transition-all group relative cursor-pointer"
+          >
             <LogOut className="h-5 w-5" />
             {isSidebarOpen && <span className="text-sm font-bold">Cerrar Sesión</span>}
           </button>
@@ -88,9 +111,10 @@ function AppContent() {
 
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          aria-label={isSidebarOpen ? "Contraer menú lateral" : "Expandir menú lateral"}
           className="absolute -right-3 top-24 h-6 w-6 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all z-[110] cursor-pointer"
         >
-          {isSidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          {isSidebarOpen ? <ChevronLeft className="h-4 w-4" aria-hidden="true" /> : <ChevronRight className="h-4 w-4" aria-hidden="true" />}
         </button>
       </aside>
 
@@ -100,8 +124,10 @@ function AppContent() {
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
           <div className="flex items-center gap-4 flex-1">
             <div className="relative w-full max-w-md hidden md:block">
-              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <label htmlFor="global-search" className="sr-only">Búsqueda global</label>
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
               <input 
+                id="global-search"
                 type="text" 
                 placeholder="Búsqueda global..." 
                 className="w-full bg-slate-50 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-100 transition-all"
@@ -112,12 +138,13 @@ function AppContent() {
           <div className="flex items-center gap-6">
             <button 
               onClick={() => setIsAgendaOpen(!isAgendaOpen)}
+              aria-label={isAgendaOpen ? "Cerrar agenda y notificaciones" : "Abrir agenda y notificaciones"}
               className={`p-2 rounded-xl transition-all cursor-pointer relative ${isAgendaOpen ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
             >
-              <Bell className="h-5 w-5" />
+              <Bell className="h-5 w-5" aria-hidden="true" />
               {urgentesCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-5 w-5 bg-rose-500 text-white text-[10px] font-black rounded-full border-2 border-white flex items-center justify-center animate-in zoom-in duration-300">
-                  {urgentesCount}
+                  <span className="sr-only">Notificaciones urgentes: </span>{urgentesCount}
                 </span>
               )}
             </button>
@@ -136,22 +163,24 @@ function AppContent() {
 
         {/* Page Content */}
         <main className="p-8 w-full max-w-full">
-          <Routes>
-            <Route path="/prospectos" element={<ClientesList />} />
-            <Route path="/propiedades" element={<PropiedadesList />} />
-            <Route path="/kpis" element={
-              <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400">
-                <BarChart3 className="h-16 w-16 mb-4 opacity-20" />
-                <p className="text-xl font-bold">Módulo en Desarrollo</p>
-                <p className="text-sm">Esta funcionalidad estará disponible en la próxima actualización.</p>
-              </div>
-            } />
-            <Route path="/" element={<Navigate to="/prospectos" replace />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/prospectos" element={<ClientesList />} />
+              <Route path="/propiedades" element={<PropiedadesList />} />
+              <Route path="/kpis" element={
+                <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400">
+                  <BarChart3 className="h-16 w-16 mb-4 opacity-20" />
+                  <p className="text-xl font-bold">Módulo en Desarrollo</p>
+                  <p className="text-sm">Esta funcionalidad estará disponible en la próxima actualización.</p>
+                </div>
+              } />
+              <Route path="/" element={<Navigate to="/prospectos" replace />} />
+            </Routes>
+          </Suspense>
         </main>
 
         <footer className="p-8 border-t border-slate-100 mt-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-slate-400 text-[11px] font-bold uppercase tracking-widest">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-slate-500 text-[11px] font-bold uppercase tracking-widest">
             <p>© 2026 CRM Inmobiliario Profesional. v1.1.0-Elite</p>
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-2">
@@ -169,7 +198,9 @@ function AppContent() {
           isAgendaOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <AgendaPanel />
+        <Suspense fallback={<SidebarLoader />}>
+          <AgendaPanel />
+        </Suspense>
       </aside>
     </div>
   );
