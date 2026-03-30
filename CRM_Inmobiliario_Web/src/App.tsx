@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { TareasProvider, useTareas } from './features/tareas/context/TareasContext';
+import { UploadProvider } from './features/propiedades/context/UploadContext';
 import { 
   Users, 
   Home, 
@@ -209,7 +210,9 @@ function AppContent() {
 function App() {
   return (
     <TareasProvider>
-      <AppContent />
+      <UploadProvider>
+        <AppContent />
+      </UploadProvider>
     </TareasProvider>
   );
 }

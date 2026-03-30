@@ -102,15 +102,36 @@ export const ClienteDetalle = ({ id, onClose }: ClienteDetalleProps) => {
   };
 
   const handleVincular = async () => {
-    if (!propiedadSeleccionada) return;
+    if (!propiedadSeleccionada || !cliente) return;
+    
+    // Guardar estado previo para revertir si falla
+    const previousIntereses = [...(cliente.intereses || [])];
+    
+    // 1. Actualización Optimista
+    const nuevoInteres = {
+      propiedadId: propiedadSeleccionada.id,
+      titulo: propiedadSeleccionada.titulo,
+      precio: propiedadSeleccionada.precio,
+      estadoComercial: propiedadSeleccionada.estadoComercial,
+      nivelInteres: nivelInteres,
+      fechaRegistro: new Date().toISOString()
+    };
+
+    setCliente({
+      ...cliente,
+      intereses: [nuevoInteres, ...previousIntereses]
+    });
+
+    setShowVincularModal(false);
+
     try {
       setVinculando(true);
       await vincularPropiedad(id, propiedadSeleccionada.id, nivelInteres);
-      setShowVincularModal(false);
       setPropiedadSeleccionada(null);
-      fetchCliente();
     } catch (err) {
       console.error('Error al vincular propiedad:', err);
+      // Revertir si falla
+      setCliente({ ...cliente, intereses: previousIntereses });
     } finally {
       setVinculando(false);
     }
@@ -136,7 +157,25 @@ export const ClienteDetalle = ({ id, onClose }: ClienteDetalleProps) => {
   );
 
   const handleGuardarNota = async () => {
-    if (!nuevaNota.trim()) return;
+    if (!nuevaNota.trim() || !cliente) return;
+
+    const previousInteracciones = [...(cliente.interacciones || [])];
+    
+    // 1. Actualización Optimista
+    const nuevaInteraccion = {
+      id: crypto.randomUUID(),
+      tipoInteraccion: tipoNota,
+      notas: nuevaNota,
+      fechaInteraccion: new Date().toISOString()
+    };
+
+    setCliente({
+      ...cliente,
+      interacciones: [nuevaInteraccion, ...previousInteracciones]
+    });
+
+    setNuevaNota('');
+
     try {
       setSending(true);
       await registrarInteraccion({
@@ -144,11 +183,10 @@ export const ClienteDetalle = ({ id, onClose }: ClienteDetalleProps) => {
         tipoInteraccion: tipoNota,
         notas: nuevaNota
       });
-      setNuevaNota('');
-      // Recargar para ver la nueva nota en el timeline
-      fetchCliente();
     } catch (err) {
       console.error('Error al guardar nota:', err);
+      // Revertir si falla
+      setCliente({ ...cliente, interacciones: previousInteracciones });
     } finally {
       setSending(false);
     }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { 
   X, 
   Bed, 
@@ -20,14 +20,13 @@ import {
   FileDown
 } from 'lucide-react';
 import { toast } from 'sonner';
-import imageCompression from 'browser-image-compression';
 import JSZip from 'jszip';
 import { getPropiedadById } from '../api/getPropiedadById';
-import { uploadImagenPropiedad } from '../api/uploadImagenPropiedad';
 import { establecerImagenPrincipal } from '../api/establecerImagenPrincipal';
 import { deleteImagenPropiedad } from '../api/deleteImagenPropiedad';
 import { deleteTodasLasImagenes } from '../api/deleteTodasLasImagenes';
 import { deleteImagenesSeleccionadas } from '../api/deleteImagenesSeleccionadas';
+import { useUpload } from '../context/UploadContext';
 import type { Propiedad } from '../types';
 
 interface PropiedadDetalleProps {
@@ -68,6 +67,8 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
+  const { uploadFiles, isAnyUploading } = useUpload();
+
   useEffect(() => {
     const fetchDetalles = async () => {
       try {
@@ -85,63 +86,38 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     fetchDetalles();
   }, [id]);
 
+  const onImageUploaded = useCallback((result: any) => {
+    setPropiedad(prev => {
+      if (!prev || prev.id !== result.propiedadId) return prev;
+      // Evitar duplicados si se recarga el componente mientras se sube
+      if (prev.media?.some(m => m.id === result.id)) return prev;
+      
+      return {
+        ...prev,
+        media: [...(prev.media || []), result]
+      };
+    });
+  }, []);
+
   const handleFiles = async (files: FileList | File[]) => {
     if (!propiedad || files.length === 0) return;
     
     const filesArray = Array.from(files);
-    setIsUploading(true);
     
-    try {
-      // Procesamos cada archivo secuencialmente para no saturar el navegador con la compresión
-      for (const file of filesArray) {
-        // Validación de tamaño máximo (30 MB)
-        const MAX_SIZE_MB = 30;
-        if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-          toast.error(`${file.name}: Se permite una imagen de hasta máximo ${MAX_SIZE_MB} MB`);
-          continue;
-        }
-
-        // Opciones de compresión
-        const options = {
-          maxSizeMB: 0.8,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-          fileType: 'image/webp'
-        };
-
-        const compressedBlob = await imageCompression(file, options);
-        const fileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
-        const finalFile = new File([compressedBlob], fileName, {
-          type: 'image/webp',
-          lastModified: Date.now(),
-        });
-
-        const result = await uploadImagenPropiedad(propiedad.id, finalFile);
-        
-        // Actualizar el estado local agregando la imagen una por una
-        setPropiedad(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            media: [...(prev.media || []), {
-              id: result.id,
-              propiedadId: prev.id,
-              tipoMultimedia: 'Imagen',
-              urlPublica: result.urlPublica,
-              esPrincipal: result.esPrincipal,
-              orden: (prev.media?.length || 0) + 1
-            }]
-          };
-        });
+    // Filtrar archivos muy grandes antes de mandar a la cola
+    const MAX_SIZE_MB = 30;
+    const validFiles = filesArray.filter(file => {
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        toast.error(`${file.name}: Excede el máximo de ${MAX_SIZE_MB} MB`);
+        return false;
       }
-      toast.success('Todas las imágenes han sido procesadas y subidas');
-    } catch (err: any) {
-      console.error('Error al procesar imágenes:', err);
-      const errorMessage = err.response?.data?.detail || err.response?.data || 'Error al subir una o más imágenes.';
-      toast.error(errorMessage);
-    } finally {
-      setIsUploading(false);
-    }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    // Mandar a la cola global (Fire & Forget)
+    uploadFiles(propiedad.id, validFiles, onImageUploaded);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,7 +129,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!isUploading) setIsDragging(true);
+    if (!isAnyUploading) setIsDragging(true);
   };
 
   const handleDragLeave = () => {
@@ -163,7 +139,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    if (!isUploading && e.dataTransfer.files) {
+    if (!isAnyUploading && e.dataTransfer.files) {
       await handleFiles(e.dataTransfer.files);
     }
   };
@@ -554,7 +530,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                   onDrop={handleDrop}
                   className={`
                     relative border-4 border-dashed rounded-[40px] h-48 flex flex-col items-center justify-center gap-4 transition-all cursor-pointer overflow-hidden
-                    ${isUploading ? 'bg-slate-50 border-slate-200 cursor-not-allowed' : 
+                    ${isAnyUploading ? 'bg-slate-50 border-slate-200 cursor-not-allowed' : 
                       isDragging ? 'bg-blue-50 border-blue-500 scale-[1.02] shadow-2xl shadow-blue-200/50' : 
                       'border-slate-100 bg-slate-50/50 hover:bg-blue-50/30 hover:border-blue-400'}
                   `}
@@ -564,14 +540,14 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                     className="hidden" 
                     accept="image/jpeg,image/png,image/webp,image/jpg" 
                     onChange={handleFileUpload}
-                    disabled={isUploading}
+                    disabled={isAnyUploading}
                     multiple
                   />
                   
-                  {isUploading ? (
+                  {isAnyUploading ? (
                     <>
                       <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
-                      <p className="text-blue-600 font-black text-sm uppercase tracking-widest animate-pulse">Subiendo archivo...</p>
+                      <p className="text-blue-600 font-black text-sm uppercase tracking-widest animate-pulse">Procesando en segundo plano...</p>
                     </>
                   ) : (
                     <>
@@ -588,7 +564,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                   )}
                   
                   {/* Floating decorative dots */}
-                  {!isUploading && (
+                  {!isAnyUploading && (
                     <>
                       <div className="absolute top-6 left-6 h-2 w-2 bg-slate-200 rounded-full"></div>
                       <div className="absolute bottom-6 right-6 h-3 w-3 bg-blue-100 rounded-full"></div>
@@ -679,7 +655,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                   ))}
                 </div>
               ) : (
-                !isUploading && (
+                !isAnyUploading && (
                   <div className="flex flex-col items-center justify-center py-16 text-slate-300 border-2 border-slate-50 rounded-[40px] bg-slate-50/20">
                     <ImageIcon className="h-20 w-20 mb-4 opacity-10" />
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Sin contenido visual</p>
