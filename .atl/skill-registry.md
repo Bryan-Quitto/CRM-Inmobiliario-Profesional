@@ -17,6 +17,14 @@
 - **Styles**: **STRICT PROHIBITION** of inline styles. Use exclusively Tailwind CSS utility classes. No separate `.css` files for components.
 - **Data**: No base64 images in DB. Use Object Storage URLs.
 
+### World-Class Performance & UX (Rules)
+- **Backend**: Minimize DB round-trips (use single `Select`). Use `ExecuteUpdateAsync` / `ExecuteDeleteAsync` for direct DB operations.
+- **Instant Loading**: Mandatory SWR Cache via `localStorage` for lists and details (cache by ID).
+- **Optimistic UI**: Simple updates (status, tags) must be instant (<100ms). NO blocking loaders for simple changes.
+- **Undo Pattern**: Deletions MUST be optimistic with a 5-6s "Undo" toast before server execution.
+- **Transitions**: Successful saves must show a "Satisfy" transition (e.g. green check button) for ~800ms.
+- **Background**: Files and heavy tasks must run in background queues (Fire & Forget).
+
 ### Technical Stack
 - **Backend**: .NET 10 (C#) + Entity Framework Core.
 - **Frontend**: React 19 (Vite) + TypeScript.

@@ -17,6 +17,7 @@ import {
 
 // Lazy Loading de Features
 const ClientesList = lazy(() => import('./features/clientes/components/ClientesList').then(m => ({ default: m.ClientesList })));
+const ClienteDetalle = lazy(() => import('./features/clientes/components/ClienteDetalle').then(m => ({ default: m.ClienteDetalle })));
 const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
 const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
 
@@ -49,7 +50,7 @@ function AppContent() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900 overflow-x-hidden">
+    <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
       {/* Sidebar (Izquierdo) */}
       <aside 
         className={`fixed left-0 top-0 h-full bg-slate-900 text-slate-400 transition-all duration-300 z-[100] shadow-2xl flex flex-col ${
@@ -167,6 +168,7 @@ function AppContent() {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/prospectos" element={<ClientesList />} />
+              <Route path="/prospectos/:id" element={<ClienteDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
               <Route path="/kpis" element={
                 <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400">

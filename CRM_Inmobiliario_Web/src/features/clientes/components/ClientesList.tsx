@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock } from 'lucide-react';
 import { getClientes } from '../api/getClientes';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { CrearClienteForm } from './CrearClienteForm';
-import { ClienteDetalle } from './ClienteDetalle';
 import type { Cliente } from '../types';
 
 const ETAPAS = [
@@ -71,6 +71,7 @@ const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: numbe
 const CLIENTES_CACHE_KEY = 'crm_clientes_cache';
 
 export const ClientesList = () => {
+  const navigate = useNavigate();
   // 1. Carga inicial desde Cache (Instantánea)
   const [clientes, setClientes] = useState<Cliente[]>(() => {
     const saved = localStorage.getItem(CLIENTES_CACHE_KEY);
@@ -81,7 +82,6 @@ export const ClientesList = () => {
   const [loading, setLoading] = useState(clientes.length === 0);
   const [, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de cliente
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -207,13 +207,6 @@ export const ClientesList = () => {
         </div>
       )}
 
-      {selectedClienteId && (
-        <ClienteDetalle 
-          id={selectedClienteId} 
-          onClose={() => setSelectedClienteId(null)} 
-        />
-      )}
-
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
         <div>
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Cartera de Clientes</h2>
@@ -323,7 +316,7 @@ export const ClientesList = () => {
           {filteredClientes.map((cliente) => (
             <div 
               key={cliente.id} 
-              onClick={() => setSelectedClienteId(cliente.id)}
+              onClick={() => navigate(`/prospectos/${cliente.id}`)}
               className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer"
             >
               <div className="flex justify-between items-start mb-5">

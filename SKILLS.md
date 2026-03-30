@@ -38,6 +38,20 @@ This file defines the strict technical standards and architectural rules for the
 - **Standard:** Generate SQL scripts using `dotnet ef migrations script` and apply them manually in the **Supabase SQL Editor**.
 - **Reason:** Ensuring environmental consistency and avoiding connection/permission conflicts with Supabase direct access.
 
+## World-Class Performance & UX Standards
+All new features and refactors MUST implement these zero-latency patterns:
+
+### Backend Optimization
+- **Rule:** Minimize database round-trips. Group multiple checks into a single `Select` using EF Core.
+- **Rule:** Use `ExecuteUpdateAsync` or `ExecuteDeleteAsync` for direct updates/deletes to bypass object loading and change tracking whenever possible.
+
+### Frontend Velocity (The "Zero Wait" Policy)
+- **Instant Loading (SWR Cache):** Use `localStorage` to cache lists and individual records (by ID). Show cached data immediately while syncing with the server in the background.
+- **Optimistic UI:** Updates to status, stages, or simple fields must reflect in the UI in <100ms. Do not show loaders for simple updates.
+- **Undo Pattern:** Destructive actions (like deletions) must be optimistic and reversible. Remove the item immediately and show a "Undo" toast for 5-6 seconds before sending the real request to the server.
+- **Satisfy Transitions:** Successful saves must show a clear visual confirmation (e.g., button turning green with a checkmark) for ~800ms before closing modals to ensure user satisfaction.
+- **Background Operations:** Heavy tasks (file uploads, complex processing) must run in global background queues (e.g., `UploadContext`) to allow continued navigation.
+
 ## Agent Behavior
 - **Role:** Senior Software Architect and Tech Lead.
 - **Guidance:** Prioritize surgical updates, ensure full type safety, and maintain strict consistency with these standards.
