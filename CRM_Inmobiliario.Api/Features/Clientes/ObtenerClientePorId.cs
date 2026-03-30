@@ -18,13 +18,22 @@ public static class ObtenerClientePorIdFeature
         string EtapaEmbudo,
         string? Notas,
         DateTimeOffset FechaCreacion,
-        List<InteraccionResponse> Interacciones);
+        List<InteraccionResponse> Interacciones,
+        List<InteresResponse> Intereses);
 
     public record InteraccionResponse(
         Guid Id,
         string TipoInteraccion,
         string Notas,
         DateTimeOffset FechaInteraccion);
+
+    public record InteresResponse(
+        Guid PropiedadId,
+        string Titulo,
+        decimal Precio,
+        string EstadoComercial,
+        string NivelInteres,
+        DateTimeOffset FechaRegistro);
 
     public static void MapObtenerClientePorIdEndpoint(this IEndpointRouteBuilder app)
     {
@@ -49,6 +58,16 @@ public static class ObtenerClientePorIdFeature
                             i.TipoInteraccion,
                             i.Notas,
                             i.FechaInteraccion))
+                        .ToList(),
+                    c.PropertyInterests
+                        .OrderByDescending(i => i.FechaRegistro)
+                        .Select(i => new InteresResponse(
+                            i.PropiedadId,
+                            i.Propiedad!.Titulo,
+                            i.Propiedad.Precio,
+                            i.Propiedad.EstadoComercial,
+                            i.NivelInteres,
+                            i.FechaRegistro))
                         .ToList()))
                 .FirstOrDefaultAsync();
 
