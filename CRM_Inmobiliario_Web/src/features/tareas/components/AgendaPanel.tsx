@@ -274,7 +274,7 @@ export const AgendaPanel = () => {
                 placeholder="Buscar en historial..."
                 value={historySearch}
                 onChange={(e) => setHistorySearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-medium focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-medium outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
               />
             </div>
 

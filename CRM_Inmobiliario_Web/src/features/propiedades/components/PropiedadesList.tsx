@@ -61,7 +61,7 @@ const SkeletonPropertyCard = () => (
 
 const PropertyStats = ({ total, venta, alquiler }: { total: number, venta: number, alquiler: number }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-100 transition-all">
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-100 transition-all cursor-default">
       <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-all">
         <Building2 className="h-6 w-6" />
       </div>
@@ -70,7 +70,7 @@ const PropertyStats = ({ total, venta, alquiler }: { total: number, venta: numbe
         <p className="text-2xl font-black text-slate-900">{total}</p>
       </div>
     </div>
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-emerald-100 transition-all">
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-emerald-100 transition-all cursor-default">
       <div className="h-12 w-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-all">
         <TrendingUp className="h-6 w-6" />
       </div>
@@ -79,7 +79,7 @@ const PropertyStats = ({ total, venta, alquiler }: { total: number, venta: numbe
         <p className="text-2xl font-black text-slate-900">{venta}</p>
       </div>
     </div>
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-amber-100 transition-all">
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-amber-100 transition-all cursor-default">
       <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-all">
         <Tag className="h-6 w-6" />
       </div>
@@ -231,7 +231,7 @@ export const PropiedadesList = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por título, sector o ciudad..." 
-              className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
+              className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
             />
             {searchQuery && (
               <button 

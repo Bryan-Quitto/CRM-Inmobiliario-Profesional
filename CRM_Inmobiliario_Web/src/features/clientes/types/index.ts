@@ -5,6 +5,15 @@ export interface Interaccion {
   fechaInteraccion: string;
 }
 
+export interface Interes {
+  propiedadId: string;
+  titulo: string;
+  precio: number;
+  estadoComercial: string;
+  nivelInteres: string;
+  fechaRegistro: string;
+}
+
 export interface Cliente {
   id: string;
   nombre: string;
@@ -16,6 +25,7 @@ export interface Cliente {
   notas?: string;
   fechaCreacion: string;
   interacciones?: Interaccion[];
+  intereses?: Interes[];
 }
 
 export interface RegistrarInteraccionDTO {

@@ -1,3 +1,4 @@
+using CRM_Inmobiliario.Api.Features.Intereses;
 using CRM_Inmobiliario.Api.Features.Clientes;
 using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Features.Tareas;
@@ -61,6 +62,7 @@ app.MapRegistrarClienteEndpoint();
 app.MapListarClientesEndpoint();
 app.MapObtenerClientePorIdEndpoint();
 app.MapCambiarEtapaClienteEndpoint();
+app.MapVincularPropiedadEndpoint();
 
 // Propiedades
 app.MapRegistrarPropiedadEndpoint();

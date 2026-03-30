@@ -38,7 +38,7 @@ const SkeletonCard = () => (
 
 const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: number, negociacion: number }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-100 transition-all">
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-100 transition-all cursor-default">
       <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-all">
         <CheckCircle2 className="h-6 w-6" />
       </div>
@@ -47,7 +47,7 @@ const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: numbe
         <p className="text-2xl font-black text-slate-900">{total}</p>
       </div>
     </div>
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-amber-100 transition-all">
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-amber-100 transition-all cursor-default">
       <div className="h-12 w-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-all">
         <Plus className="h-6 w-6" />
       </div>
@@ -56,7 +56,7 @@ const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: numbe
         <p className="text-2xl font-black text-slate-900">{nuevos}</p>
       </div>
     </div>
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-indigo-100 transition-all">
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-indigo-100 transition-all cursor-default">
       <div className="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white transition-all">
         <AlertCircle className="h-6 w-6" />
       </div>
@@ -209,7 +209,7 @@ export const ClientesList = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por nombre o email..." 
-              className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
+              className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
             />
             {searchQuery && (
               <button 
@@ -243,7 +243,7 @@ export const ClientesList = () => {
                   <button
                     key={option.value}
                     onClick={() => { setFilterEtapa(option.value); setOpenDropdownId(null); }}
-                    className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                    className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 cursor-pointer ${
                       filterEtapa === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
                     }`}
                   >
