@@ -161,10 +161,10 @@ export const ClientesList = () => {
       setUpdatingId(id);
       await actualizarEtapaCliente(id, nuevaEtapa);
       // Éxito: no hacemos nada más porque la UI ya se actualizó
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 2. Revertir en caso de error
       setClientes(prev => prev.map(c => c.id === id ? { ...c, etapaEmbudo: etapaAnterior } : c));
-      const msg = err.response?.data?.Message || 'No se pudo actualizar el estado. Intente nuevamente.';
+      const msg = (err as { response?: { data?: { Message?: string } } }).response?.data?.Message || 'No se pudo actualizar el estado. Intente nuevamente.';
       setNotification({ type: 'error', message: msg });
     } finally {
       setUpdatingId(null);

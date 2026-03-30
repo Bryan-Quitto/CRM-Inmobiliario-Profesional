@@ -174,7 +174,7 @@ export const PropiedadesList = () => {
         setUpdatingId(id);
         await actualizarEstadoPropiedad(id, nuevoEstado);
         toast.success(`Inmueble marcado como ${nuevoEstado}`);
-      } catch (err) {
+      } catch {
         setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: estadoAnterior } : p));
         toast.error('No se pudo actualizar el estado.');
       } finally {
@@ -207,7 +207,7 @@ export const PropiedadesList = () => {
           await actualizarEstadoPropiedad(id, nuevoEstado);
           await limpiarImagenesPropiedad(id);
           toast.success(`Propiedad "${propiedad.titulo}" actualizada y depurada.`);
-        } catch (err) {
+        } catch {
           setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: estadoAnterior } : p));
           toast.error("Error al procesar el cambio de estado masivo.");
         } finally {

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   X, 
@@ -84,7 +84,7 @@ export const ClienteDetalle = () => {
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isInteresesOpen, setIsInteresesOpen] = useState(true);
 
-  const fetchCliente = async () => {
+  const fetchCliente = useCallback(async () => {
     if (!id) return;
     try {
       if (!cliente) setLoading(true);
@@ -96,9 +96,9 @@ export const ClienteDetalle = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, cliente]);
 
-  useEffect(() => { fetchCliente(); }, [id]);
+  useEffect(() => { if (id) fetchCliente(); }, [id, fetchCliente]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -118,7 +118,7 @@ export const ClienteDetalle = () => {
     try {
       setUpdatingEtapa(true);
       await actualizarEtapaCliente(id, nuevaEtapa);
-    } catch (err) {
+    } catch {
       setCliente({ ...cliente, etapaEmbudo: etapaAnterior });
     } finally {
       setUpdatingEtapa(false);
@@ -153,7 +153,7 @@ export const ClienteDetalle = () => {
     try {
       setVinculando(true);
       await vincularPropiedad(id, propiedadSeleccionada.id, nivelInteres);
-    } catch (err) {
+    } catch {
       setCliente({ ...cliente, intereses: previousIntereses });
     } finally {
       setVinculando(false);
@@ -199,7 +199,7 @@ export const ClienteDetalle = () => {
         tipoInteraccion: tipoNota,
         notas: nuevaNota
       });
-    } catch (err) {
+    } catch {
       setCliente({ ...cliente, interacciones: previousInteracciones });
     } finally {
       setSending(false);

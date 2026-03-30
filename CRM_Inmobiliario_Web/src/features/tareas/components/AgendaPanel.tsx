@@ -15,7 +15,7 @@ import {
   Search
 } from 'lucide-react';
 import { completarTarea } from '../api/completarTarea';
-import { useTareas } from '../context/TareasContext';
+import { useTareas } from '../context/useTareas';
 import type { Tarea } from '../types';
 import { CrearTareaForm } from './CrearTareaForm';
 import { EditarTareaForm } from './EditarTareaForm';

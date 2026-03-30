@@ -30,7 +30,7 @@ import { establecerImagenPrincipal } from '../api/establecerImagenPrincipal';
 import { deleteImagenPropiedad } from '../api/deleteImagenPropiedad';
 import { deleteTodasLasImagenes } from '../api/deleteTodasLasImagenes';
 import { deleteImagenesSeleccionadas } from '../api/deleteImagenesSeleccionadas';
-import { useUpload } from '../context/UploadContext';
+import { useUpload } from '../context/useUpload';
 import type { Propiedad } from '../types';
 
 interface PropiedadDetalleProps {
@@ -90,7 +90,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [isCleaningGallery, setIsCleaningGallery] = useState(false);
   const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
 
-  const { uploadFiles, isAnyUploading } = useUpload();
+  const { uploadFiles, isUploading } = useUpload();
 
   useEffect(() => {
     const fetchDetalles = async () => {
@@ -110,9 +110,9 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     };
 
     fetchDetalles();
-  }, [id]);
+  }, [id, propiedad]);
 
-  const onImageUploaded = useCallback((result: any) => {
+  const onImageUploaded = useCallback((result: { id: string; propiedadId: string; tipoMultimedia: string; urlPublica: string; esPrincipal: boolean; orden: number }) => {
     setPropiedad(prev => {
       if (!prev || prev.id !== result.propiedadId) return prev;
       // Evitar duplicados si se recarga el componente mientras se sube
@@ -148,7 +148,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             setIsUpdatingStatus(true);
             await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
             toast.success(`Propiedad marcada como ${nuevoEstado}`);
-        } catch (err) {
+        } catch {
             setPropiedad({ ...propiedad, estadoComercial: estadoAnterior });
             toast.error('Error al actualizar el estado comercial.');
         } finally {
@@ -219,7 +219,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     if (validFiles.length === 0) return;
 
     // Mandar a la cola global (Fire & Forget)
-    uploadFiles(propiedad.id, validFiles, onImageUploaded);
+    uploadFiles(propiedad.id, propiedad.titulo, validFiles, onImageUploaded);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,7 +231,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!isAnyUploading) setIsDragging(true);
+    if (!isUploading(id)) setIsDragging(true);
   };
 
   const handleDragLeave = () => {
@@ -241,7 +241,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    if (!isAnyUploading && e.dataTransfer.files) {
+    if (!isUploading(id) && e.dataTransfer.files) {
       await handleFiles(e.dataTransfer.files);
     }
   };
@@ -272,9 +272,9 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       }
 
       toast.success('Imagen de portada actualizada');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error al establecer portada:', err);
-      const msg = err.response?.data?.detail || err.message || 'Error desconocido';
+      const msg = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail || (err as Error).message || 'Error desconocido';
       toast.error(`No se pudo actualizar la portada: ${msg}`);
     } finally {
       setIsUpdatingCover(null);
@@ -321,7 +321,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           if (imagenABorrar.esPrincipal && onCoverUpdated) {
             onCoverUpdated('');
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error('Error al eliminar imagen:', err);
           // Revertir en caso de error real del servidor
           setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
@@ -374,7 +374,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           setIsDeletingAll(true);
           await deleteTodasLasImagenes(propiedad.id);
           if (onCoverUpdated) onCoverUpdated('');
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error('Error al eliminar todas las imágenes:', err);
           setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
           toast.error("Error al vaciar la galería en el servidor");
@@ -429,7 +429,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           if (algunaPrincipal && onCoverUpdated) {
             onCoverUpdated('');
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error('Error al eliminar selección:', err);
           setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
           toast.error("No se pudo completar la eliminación masiva");
@@ -463,7 +463,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     }
   };
 
-  const handleBulkDownload = async (mediaToDownload: any[], zipName: string) => {
+  const handleBulkDownload = async (mediaToDownload: { urlPublica: string }[], zipName: string) => {
     if (mediaToDownload.length === 0) return;
     
     try {
@@ -724,7 +724,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                   onDrop={handleDrop}
                   className={`
                     relative border-4 border-dashed rounded-[40px] h-48 flex flex-col items-center justify-center gap-4 transition-all cursor-pointer overflow-hidden
-                    ${isAnyUploading ? 'bg-slate-50 border-slate-200 cursor-not-allowed' : 
+                    ${isUploading(id) ? 'bg-slate-50 border-slate-200 cursor-not-allowed' : 
                       isDragging ? 'bg-blue-50 border-blue-500 scale-[1.02] shadow-2xl shadow-blue-200/50' : 
                       'border-slate-100 bg-slate-50/50 hover:bg-blue-50/30 hover:border-blue-400'}
                   `}
@@ -734,11 +734,11 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                     className="hidden" 
                     accept="image/jpeg,image/png,image/webp,image/jpg" 
                     onChange={handleFileUpload}
-                    disabled={isAnyUploading}
+                    disabled={isUploading(id)}
                     multiple
                   />
                   
-                  {isAnyUploading ? (
+                  {isUploading(id) ? (
                     <>
                       <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
                       <p className="text-blue-600 font-black text-sm uppercase tracking-widest animate-pulse">Procesando en segundo plano...</p>
@@ -758,7 +758,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                   )}
                   
                   {/* Floating decorative dots */}
-                  {!isAnyUploading && (
+                  {!isUploading(id) && (
                     <>
                       <div className="absolute top-6 left-6 h-2 w-2 bg-slate-200 rounded-full"></div>
                       <div className="absolute bottom-6 right-6 h-3 w-3 bg-blue-100 rounded-full"></div>
@@ -849,7 +849,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                   ))}
                 </div>
               ) : (
-                !isAnyUploading && (
+                !isUploading(id) && (
                   <div className="flex flex-col items-center justify-center py-16 text-slate-300 border-2 border-slate-50 rounded-[40px] bg-slate-50/20">
                     <ImageIcon className="h-20 w-20 mb-4 opacity-10" />
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Sin contenido visual</p>

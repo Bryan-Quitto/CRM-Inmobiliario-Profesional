@@ -38,16 +38,25 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
     return {};
   };
 
-  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<CrearClienteDTO>({
+  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue, getValues } = useForm<CrearClienteDTO>({
     defaultValues: getInitialValues() as CrearClienteDTO
   });
 
-  const formData = watch();
-  const hasData = Object.values(formData).some(v => v);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
-  }, [formData]);
+    // Sincronización inicial y suscripción optimizada para borrador
+    const currentValues = getValues();
+    setHasData(Object.values(currentValues).some(v => v));
+
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const subscription = watch((value) => {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(value));
+      const isNowDirty = Object.values(value).some(v => v);
+      if (isNowDirty !== hasData) setHasData(isNowDirty);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, getValues, hasData]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
