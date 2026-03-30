@@ -53,10 +53,15 @@ const formatDate = (dateString: string) => {
 };
 
 export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetalleProps) => {
-  const [propiedad, setPropiedad] = useState<Propiedad | null>(null);
-  const [loading, setLoading] = useState(true);
+  // 1. Carga inicial desde Cache
+  const [propiedad, setPropiedad] = useState<Propiedad | null>(() => {
+    const saved = localStorage.getItem(`crm_propiedad_cache_${id}`);
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  // Si tenemos cache, empezamos sin loading visible
+  const [loading, setLoading] = useState(!propiedad);
   const [error, setError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [isUpdatingCover, setIsUpdatingCover] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -72,12 +77,15 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   useEffect(() => {
     const fetchDetalles = async () => {
       try {
-        setLoading(true);
+        if (!propiedad) setLoading(true);
         const data = await getPropiedadById(id);
+        
+        // 2. Actualizar estado y persistir
         setPropiedad(data);
+        localStorage.setItem(`crm_propiedad_cache_${id}`, JSON.stringify(data));
       } catch (err) {
         console.error('Error al cargar detalles de la propiedad:', err);
-        setError('No se pudo cargar la información de la propiedad.');
+        if (!propiedad) setError('No se pudo cargar la información de la propiedad.');
       } finally {
         setLoading(false);
       }
@@ -182,32 +190,53 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const handleDeleteImage = async (imagenId: string) => {
     if (!propiedad) return;
     
-    try {
-      setIsDeleting(imagenId);
-      await deleteImagenPropiedad(propiedad.id, imagenId);
-      
-      // Actualizar estado local eliminando la imagen
-      const mediaActualizada = propiedad.media?.filter(m => m.id !== imagenId);
-      setPropiedad({
-        ...propiedad,
-        media: mediaActualizada
-      });
+    // 1. Guardar estado previo y la imagen a borrar
+    const imagenABorrar = propiedad.media?.find(m => m.id === imagenId);
+    if (!imagenABorrar) return;
+    const previousMedia = [...(propiedad.media || [])];
 
-      // Si la imagen borrada era la principal, notificar al padre para limpiar la portada en la lista
-      const imagenBorrada = propiedad.media?.find(m => m.id === imagenId);
-      if (imagenBorrada?.esPrincipal && onCoverUpdated) {
-        onCoverUpdated(''); // O una URL por defecto
+    // 2. Actualización Optimista (Desaparece ya)
+    setPropiedad({
+      ...propiedad,
+      media: previousMedia.filter(m => m.id !== imagenId)
+    });
+    setConfirmDelete(null);
+
+    // 3. Mostrar Toast con opción de Deshacer
+    let isCancelled = false;
+    
+    toast.warning("Imagen eliminada", {
+      description: "Tienes unos segundos para deshacer esta acción.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
+          toast.success("Eliminación cancelada");
+        },
+      },
+      duration: 5000,
+      onAutoClose: async () => {
+        if (isCancelled) return;
+
+        try {
+          setIsDeleting(imagenId);
+          await deleteImagenPropiedad(propiedad.id, imagenId);
+          
+          // Si era la principal, actualizar portada en la lista
+          if (imagenABorrar.esPrincipal && onCoverUpdated) {
+            onCoverUpdated('');
+          }
+        } catch (err: any) {
+          console.error('Error al eliminar imagen:', err);
+          // Revertir en caso de error real del servidor
+          setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
+          toast.error("No se pudo eliminar la imagen del servidor");
+        } finally {
+          setIsDeleting(null);
+        }
       }
-
-      toast.success('Imagen eliminada correctamente');
-    } catch (err: any) {
-      console.error('Error al eliminar imagen:', err);
-      const msg = err.response?.data?.detail || err.message || 'Error desconocido';
-      toast.error(`No se pudo eliminar la imagen: ${msg}`);
-    } finally {
-      setIsDeleting(null);
-      setConfirmDelete(null);
-    }
+    });
   };
 
   const handleToggleSelection = (imagenId: string) => {
@@ -221,66 +250,100 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   };
 
   const handleDeleteAll = async () => {
-    if (!propiedad) return;
+    if (!propiedad || !propiedad.media || propiedad.media.length === 0) return;
     
-    try {
-      setIsDeletingAll(true);
-      await deleteTodasLasImagenes(propiedad.id);
-      
-      // Vaciar galería localmente
-      setPropiedad({
-        ...propiedad,
-        media: []
-      });
+    // 1. Guardar estado previo
+    const previousMedia = [...propiedad.media];
+    
+    // 2. Actualización Optimista
+    setPropiedad({ ...propiedad, media: [] });
+    setConfirmDeleteAll(false);
 
-      // Notificar al padre para limpiar la portada en la lista
-      if (onCoverUpdated) {
-        onCoverUpdated('');
+    // 3. Toast con Deshacer
+    let isCancelled = false;
+
+    toast.warning(`Eliminando ${previousMedia.length} imágenes`, {
+      description: "Puedes deshacer esta acción ahora mismo.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
+          toast.success("Eliminación masiva cancelada");
+        },
+      },
+      duration: 6000,
+      onAutoClose: async () => {
+        if (isCancelled) return;
+
+        try {
+          setIsDeletingAll(true);
+          await deleteTodasLasImagenes(propiedad.id);
+          if (onCoverUpdated) onCoverUpdated('');
+        } catch (err: any) {
+          console.error('Error al eliminar todas las imágenes:', err);
+          setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
+          toast.error("Error al vaciar la galería en el servidor");
+        } finally {
+          setIsDeletingAll(false);
+        }
       }
-
-      toast.success('Todas las imágenes han sido eliminadas');
-    } catch (err: any) {
-      console.error('Error al eliminar todas las imágenes:', err);
-      const msg = err.response?.data?.detail || err.message || 'Error desconocido';
-      toast.error(`No se pudieron eliminar las imágenes: ${msg}`);
-    } finally {
-      setIsDeletingAll(false);
-      setConfirmDeleteAll(false);
-      setSelectedMediaIds(new Set());
-    }
+    });
   };
 
   const handleDeleteSelected = async () => {
     if (!propiedad || selectedMediaIds.size === 0) return;
     
-    try {
-      setIsDeletingAll(true); // Reutilizamos el estado de carga masiva
-      const idsArray = Array.from(selectedMediaIds);
-      await deleteImagenesSeleccionadas(propiedad.id, idsArray);
-      
-      // Actualizar galería localmente filtrando los IDs borrados
-      const mediaActualizada = propiedad.media?.filter(m => !selectedMediaIds.has(m.id));
-      setPropiedad({
-        ...propiedad,
-        media: mediaActualizada
-      });
+    // 1. Guardar estado previo
+    const previousMedia = [...(propiedad.media || [])];
+    const selectedIdsArray = Array.from(selectedMediaIds);
+    const count = selectedMediaIds.size;
 
-      // Si alguna de las borradas era la principal, limpiar portada
-      const algunaPrincipal = propiedad.media?.some(m => selectedMediaIds.has(m.id) && m.esPrincipal);
-      if (algunaPrincipal && onCoverUpdated) {
-        onCoverUpdated('');
+    // 2. Actualización Optimista
+    setPropiedad({
+      ...propiedad,
+      media: previousMedia.filter(m => !selectedMediaIds.has(m.id))
+    });
+    
+    const tempSelected = new Set(selectedMediaIds);
+    setSelectedMediaIds(new Set());
+    setConfirmDeleteSelected(false);
+
+    // 3. Toast con Deshacer
+    let isCancelled = false;
+
+    toast.warning(`${count} imágenes eliminadas`, {
+      description: "¿Te equivocaste? Puedes restaurarlas ahora.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
+          setSelectedMediaIds(tempSelected);
+          toast.success("Restauración completada");
+        },
+      },
+      duration: 5000,
+      onAutoClose: async () => {
+        if (isCancelled) return;
+
+        try {
+          setIsDeletingAll(true);
+          await deleteImagenesSeleccionadas(propiedad.id, selectedIdsArray);
+          
+          const algunaPrincipal = previousMedia.some(m => tempSelected.has(m.id) && m.esPrincipal);
+          if (algunaPrincipal && onCoverUpdated) {
+            onCoverUpdated('');
+          }
+        } catch (err: any) {
+          console.error('Error al eliminar selección:', err);
+          setPropiedad(prev => prev ? { ...prev, media: previousMedia } : prev);
+          toast.error("No se pudo completar la eliminación masiva");
+        } finally {
+          setIsDeletingAll(false);
+        }
       }
-
-      toast.success(`${selectedMediaIds.size} imágenes eliminadas correctamente`);
-    } catch (err: any) {
-      console.error('Error al eliminar selección:', err);
-      const msg = err.response?.data?.detail || err.message || 'Error desconocido';
-      toast.error(`No se pudieron eliminar las imágenes: ${msg}`);
-    } finally {
-      setIsDeletingAll(false);
-      setConfirmDeleteSelected(false);
-      setSelectedMediaIds(new Set());
-    }
+    });
   };
 
   const downloadBlob = (blob: Blob, filename: string) => {

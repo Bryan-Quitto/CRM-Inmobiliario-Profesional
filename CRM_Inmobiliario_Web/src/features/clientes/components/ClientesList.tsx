@@ -68,9 +68,17 @@ const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: numbe
   </div>
 );
 
+const CLIENTES_CACHE_KEY = 'crm_clientes_cache';
+
 export const ClientesList = () => {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 1. Carga inicial desde Cache (Instantánea)
+  const [clientes, setClientes] = useState<Cliente[]>(() => {
+    const saved = localStorage.getItem(CLIENTES_CACHE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // Si tenemos cache, no mostramos loading inicial
+  const [loading, setLoading] = useState(clientes.length === 0);
   const [, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
@@ -84,17 +92,22 @@ export const ClientesList = () => {
 
   const fetchClientes = useCallback(async () => {
     try {
-      setLoading(true);
+      // Si no hay datos, mostramos loading. Si hay cache, el sync es silencioso.
+      if (clientes.length === 0) setLoading(true);
+      
       const data = await getClientes();
+      
+      // 2. Actualizar estado y Cache simultáneamente
       setClientes(data);
+      localStorage.setItem(CLIENTES_CACHE_KEY, JSON.stringify(data));
       setError(null);
     } catch (err) {
       console.error('Error al cargar clientes:', err);
       setError('No se pudo establecer conexión con el CRM.');
     } finally {
-      setTimeout(() => setLoading(false), 600);
+      setLoading(false);
     }
-  }, []);
+  }, [clientes.length]);
 
   useEffect(() => {
     fetchClientes();
@@ -135,15 +148,23 @@ export const ClientesList = () => {
 
   const handleStageChange = async (id: string, nuevaEtapa: string) => {
     setOpenDropdownId(null);
-    if (clientes.find(c => c.id === id)?.etapaEmbudo === nuevaEtapa) return;
+    const cliente = clientes.find(c => c.id === id);
+    if (!cliente || cliente.etapaEmbudo === nuevaEtapa) return;
+
+    // Guardar estado previo para revertir si falla
+    const etapaAnterior = cliente.etapaEmbudo;
+
+    // 1. Actualización Optimista
+    setClientes(prev => prev.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c));
 
     try {
       setUpdatingId(id);
       await actualizarEtapaCliente(id, nuevaEtapa);
-      setClientes(prev => prev.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c));
-      setNotification({ type: 'success', message: 'Etapa actualizada correctamente.' });
+      // Éxito: no hacemos nada más porque la UI ya se actualizó
     } catch (err: any) {
-      const msg = err.response?.data?.Message || 'No se pudo actualizar el estado.';
+      // 2. Revertir en caso de error
+      setClientes(prev => prev.map(c => c.id === id ? { ...c, etapaEmbudo: etapaAnterior } : c));
+      const msg = err.response?.data?.Message || 'No se pudo actualizar el estado. Intente nuevamente.';
       setNotification({ type: 'error', message: msg });
     } finally {
       setUpdatingId(null);

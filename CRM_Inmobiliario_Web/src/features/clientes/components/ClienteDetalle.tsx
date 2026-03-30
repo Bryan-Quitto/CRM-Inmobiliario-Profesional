@@ -46,8 +46,14 @@ const formatCurrency = (value: number) => {
 };
 
 export const ClienteDetalle = ({ id, onClose }: ClienteDetalleProps) => {
-  const [cliente, setCliente] = useState<Cliente | null>(null);
-  const [loading, setLoading] = useState(true);
+  // 1. Carga inicial desde Cache
+  const [cliente, setCliente] = useState<Cliente | null>(() => {
+    const saved = localStorage.getItem(`crm_cliente_cache_${id}`);
+    return saved ? JSON.parse(saved) : null;
+  });
+  
+  // Si tenemos cache, el loading inicial es false
+  const [loading, setLoading] = useState(!cliente);
   const [sending, setSending] = useState(false);
   const [nuevaNota, setNuevaNota] = useState('');
   const [tipoNota, setTipoNota] = useState('Nota');
@@ -71,9 +77,12 @@ export const ClienteDetalle = ({ id, onClose }: ClienteDetalleProps) => {
 
   const fetchCliente = async () => {
     try {
-      setLoading(true);
+      if (!cliente) setLoading(true);
       const data = await getClienteById(id);
+      
+      // 2. Actualizar estado y persistir en cache
       setCliente(data);
+      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(data));
     } catch (err) {
       console.error('Error al cargar detalles del cliente:', err);
     } finally {

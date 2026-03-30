@@ -91,9 +91,17 @@ const PropertyStats = ({ total, venta, alquiler }: { total: number, venta: numbe
   </div>
 );
 
+const PROPIEDADES_CACHE_KEY = 'crm_propiedades_cache';
+
 export const PropiedadesList = () => {
-  const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 1. Carga inicial desde Cache
+  const [propiedades, setPropiedades] = useState<Propiedad[]>(() => {
+    const saved = localStorage.getItem(PROPIEDADES_CACHE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Si hay cache, evitamos el skeleton inicial
+  const [loading, setLoading] = useState(propiedades.length === 0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -106,15 +114,18 @@ export const PropiedadesList = () => {
 
   const fetchPropiedades = useCallback(async () => {
     try {
-      setLoading(true);
+      if (propiedades.length === 0) setLoading(true);
       const data = await getPropiedades();
+      
+      // 2. Sync de Cache
       setPropiedades(data);
+      localStorage.setItem(PROPIEDADES_CACHE_KEY, JSON.stringify(data));
     } catch (err) {
       console.error('Error al cargar propiedades:', err);
     } finally {
-      setTimeout(() => setLoading(false), 600);
+      setLoading(false);
     }
-  }, []);
+  }, [propiedades.length]);
 
   useEffect(() => {
     fetchPropiedades();
@@ -139,15 +150,23 @@ export const PropiedadesList = () => {
 
   const handleStatusChange = async (id: string, nuevoEstado: string) => {
     setOpenDropdownId(null);
-    if (propiedades.find(p => p.id === id)?.estadoComercial === nuevoEstado) return;
+    const propiedad = propiedades.find(p => p.id === id);
+    if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
 
+    // Guardar estado previo para revertir si falla
+    const estadoAnterior = propiedad.estadoComercial;
+
+    // 1. Actualización Optimista
+    setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: nuevoEstado } : p));
+    
     try {
       setUpdatingId(id);
       await actualizarEstadoPropiedad(id, nuevoEstado);
-      setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: nuevoEstado } : p));
-      setNotification({ type: 'success', message: 'Estado actualizado correctamente.' });
+      // No necesitamos volver a setear el estado si tuvo éxito porque ya lo hicimos optimísticamente
     } catch (err: any) {
-      setNotification({ type: 'error', message: 'Error al actualizar el estado.' });
+      // 2. Revertir en caso de error
+      setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: estadoAnterior } : p));
+      setNotification({ type: 'error', message: 'No se pudo actualizar el estado. Intente nuevamente.' });
     } finally {
       setUpdatingId(null);
     }

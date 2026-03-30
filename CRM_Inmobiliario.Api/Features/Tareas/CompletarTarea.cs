@@ -12,13 +12,11 @@ public static class CompletarTareaFeature
     {
         app.MapPatch("/api/tareas/{id:guid}/completar", async (Guid id, CrmDbContext context) =>
         {
-            var tarea = await context.Tasks.FindAsync(id);
-            if (tarea is null) return Results.NotFound();
+            var rowsAffected = await context.Tasks
+                .Where(t => t.Id == id)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(t => t.Estado, "Completada"));
 
-            tarea.Estado = "Completada";
-            await context.SaveChangesAsync();
-
-            return Results.NoContent();
+            return rowsAffected > 0 ? Results.NoContent() : Results.NotFound();
         })
         .WithTags("Tareas")
         .WithName("CompletarTarea");

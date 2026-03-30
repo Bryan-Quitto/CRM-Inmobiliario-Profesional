@@ -14,28 +14,19 @@ public static class CambiarEstadoPropiedadFeature
     {
         app.MapPatch("/api/propiedades/{id:guid}/estado", async (Guid id, Command command, CrmDbContext context) =>
         {
-            var propiedad = await context.Properties.FindAsync(id);
+            var fechaCierre = command.NuevoEstado is "Vendida" or "Alquilada" 
+                ? (DateTimeOffset?)DateTimeOffset.UtcNow 
+                : null;
 
-            if (propiedad is null)
-            {
-                return Results.NotFound(new { Message = "La propiedad no existe." });
-            }
+            var rowsAffected = await context.Properties
+                .Where(p => p.Id == id)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(p => p.EstadoComercial, command.NuevoEstado)
+                    .SetProperty(p => p.FechaCierre, fechaCierre));
 
-            propiedad.EstadoComercial = command.NuevoEstado;
-
-            // Si el estado es "Vendida" o "Alquilada", podríamos registrar la fecha de cierre
-            if (command.NuevoEstado is "Vendida" or "Alquilada")
-            {
-                propiedad.FechaCierre = DateTimeOffset.UtcNow;
-            }
-            else
-            {
-                propiedad.FechaCierre = null;
-            }
-
-            await context.SaveChangesAsync();
-
-            return Results.NoContent();
+            return rowsAffected > 0 
+                ? Results.NoContent() 
+                : Results.NotFound(new { Message = "La propiedad no existe." });
         })
         .WithTags("Propiedades")
         .WithName("CambiarEstadoPropiedad");

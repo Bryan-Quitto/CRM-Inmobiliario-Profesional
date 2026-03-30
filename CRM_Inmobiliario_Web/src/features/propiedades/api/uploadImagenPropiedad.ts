@@ -4,6 +4,7 @@ export interface UploadResponse {
   id: string;
   urlPublica: string;
   esPrincipal: boolean;
+  orden: number;
 }
 
 export const uploadImagenPropiedad = async (id: string, file: File): Promise<UploadResponse> => {
