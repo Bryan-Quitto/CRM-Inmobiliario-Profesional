@@ -21,6 +21,7 @@ const DRAFT_STORAGE_KEY = 'crm_prospecto_draft';
 export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -75,13 +76,18 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
       setIsSubmitting(true);
       setError(null);
       await crearCliente(data);
+      
+      // Transición Satisfy
+      setIsSuccess(true);
       localStorage.removeItem(DRAFT_STORAGE_KEY);
-      reset(); 
-      onSuccess();
+      
+      setTimeout(() => {
+        reset(); 
+        onSuccess();
+      }, 800);
     } catch (err) {
       console.error('Error al crear cliente:', err);
       setError('No se pudo registrar al prospecto. Verifica la conexión.');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -91,7 +97,8 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
       {/* Botón de cierre */}
       <button 
         onClick={onCancel}
-        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+        disabled={isSuccess}
+        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer disabled:opacity-0"
       >
         <X className="h-5 w-5" />
       </button>
@@ -101,7 +108,7 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
         <div className="flex flex-wrap items-center gap-2 mt-1 min-h-[24px]">
           <p className="text-slate-500 font-medium text-sm">Completa los datos para iniciar el seguimiento.</p>
           
-          {hasData && (
+          {hasData && !isSuccess && (
             <div className="flex items-center gap-1.5 animate-in slide-in-from-left-2 duration-300">
               {!isConfirmingClear ? (
                 <button 
@@ -153,8 +160,9 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
               <input 
                 {...register('nombre', { required: 'El nombre es obligatorio' })}
                 type="text" 
+                disabled={isSuccess}
                 placeholder="Ej. Juan"
-                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none`}
+                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
               />
             </div>
             {errors.nombre && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.nombre.message}</p>}
@@ -165,8 +173,9 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
             <input 
               {...register('apellido')}
               type="text" 
+              disabled={isSuccess}
               placeholder="Ej. Pérez"
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
             />
           </div>
         </div>
@@ -180,8 +189,9 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
                 pattern: { value: /^\S+@\S+$/i, message: 'Email inválido' }
               })}
               type="email" 
+              disabled={isSuccess}
               placeholder="juan.perez@ejemplo.com"
-              className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none`}
+              className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
             />
           </div>
           {errors.email && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.email.message}</p>}
@@ -194,8 +204,9 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
             <input 
               {...register('telefono', { required: 'El teléfono es obligatorio' })}
               type="tel" 
+              disabled={isSuccess}
               placeholder="+593 98 765 4321"
-              className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.telefono ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none`}
+              className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.telefono ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
             />
           </div>
           {errors.telefono && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.telefono.message}</p>}
@@ -213,8 +224,9 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
                 <>
                   <button
                     type="button"
+                    disabled={isSuccess}
                     onClick={() => setIsSelectOpen(!isSelectOpen)}
-                    className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.origen ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer`}
+                    className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.origen ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50`}
                   >
                     <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
                       {field.value || 'Selecciona origen...'}
@@ -253,16 +265,26 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
           <button 
             type="button"
             onClick={onCancel}
-            className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors cursor-pointer"
+            disabled={isSubmitting || isSuccess}
+            className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors cursor-pointer disabled:opacity-0"
           >
             Cancelar
           </button>
           <button 
             type="submit"
-            disabled={isSubmitting}
-            className="flex-[2] py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] disabled:bg-slate-300 flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed"
+            disabled={isSubmitting || isSuccess}
+            className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed ${
+              isSuccess 
+                ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+                : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700 disabled:bg-slate-300'
+            }`}
           >
-            {isSubmitting ? (
+            {isSuccess ? (
+              <div className="flex items-center gap-2 animate-in zoom-in duration-300">
+                <Check className="h-5 w-5 stroke-[4px]" />
+                <span>¡Registrado!</span>
+              </div>
+            ) : isSubmitting ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 Registrando...

@@ -6,26 +6,56 @@ interface TareasContextType {
   tareas: Tarea[];
   loading: boolean;
   refreshTareas: () => Promise<void>;
+  updateTareaEstado: (id: string, nuevoEstado: 'Pendiente' | 'Completada' | 'Cancelada') => Promise<void>;
   urgentesCount: number;
 }
 
 const TareasContext = createContext<TareasContextType | undefined>(undefined);
 
+const TAREAS_CACHE_KEY = 'crm_tareas_cache';
+
 export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tareas, setTareas] = useState<Tarea[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 1. Carga inicial desde Cache
+  const [tareas, setTareas] = useState<Tarea[]>(() => {
+    const saved = localStorage.getItem(TAREAS_CACHE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // Si tenemos cache, empezamos sin loading para una UX instantánea
+  const [loading, setLoading] = useState(tareas.length === 0);
 
   const refreshTareas = useCallback(async () => {
     try {
-      setLoading(true);
+      if (tareas.length === 0) setLoading(true);
       const data = await getTareas();
+      
+      // 2. Actualizar estado y persistir
       setTareas(data);
+      localStorage.setItem(TAREAS_CACHE_KEY, JSON.stringify(data));
     } catch (err) {
       console.error('Error al sincronizar tareas globalmente:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tareas.length]);
+
+  const updateTareaEstado = useCallback(async (id: string, nuevoEstado: 'Pendiente' | 'Completada' | 'Cancelada') => {
+    const tarea = tareas.find(t => t.id === id);
+    if (!tarea || tarea.estado === nuevoEstado) return;
+
+    const estadoAnterior = tarea.estado;
+
+    // 1. Actualización Optimista
+    setTareas(prev => prev.map(t => t.id === id ? { ...t, estado: nuevoEstado } : t));
+
+    try {
+      // Nota: Esta función asume que el que la llama maneja la llamada al API específica
+      // O podríamos inyectar la llamada al API aquí. Por ahora, el contexto solo maneja el estado.
+    } catch (err) {
+      setTareas(prev => prev.map(t => t.id === id ? { ...t, estado: estadoAnterior } : t));
+      throw err;
+    }
+  }, [tareas]);
 
   // Carga inicial
   useEffect(() => {
@@ -47,6 +77,7 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     tareas,
     loading,
     refreshTareas,
+    updateTareaEstado,
     urgentesCount
   };
 

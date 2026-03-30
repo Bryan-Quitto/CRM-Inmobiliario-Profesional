@@ -48,7 +48,7 @@ const isExpired = (dateString: string) => {
 };
 
 export const AgendaPanel = () => {
-  const { tareas: allTareas, loading, refreshTareas } = useTareas();
+  const { tareas: allTareas, loading, updateTareaEstado, refreshTareas } = useTareas();
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [selectedTareaId, setSelectedTareaId] = useState<string | null>(null);
@@ -58,12 +58,18 @@ export const AgendaPanel = () => {
   const handleCompletar = async (id: string) => {
     try {
       setCompletingId(id);
+      // 1. Actualización Optimista a través del contexto global
+      await updateTareaEstado(id, 'Completada');
+      
+      // 2. Llamada real al API
       await completarTarea(id);
-      // Actualizamos el contexto global para que la campana también se entere
-      await refreshTareas();
-      setCompletingId(null);
+      
+      // Éxito: no necesitamos refrescar todo porque el contexto ya se actualizó
     } catch (err) {
       console.error('Error al completar tarea:', err);
+      // El contexto revierte automáticamente si el error burbujea (dependiendo de la implementación del contexto)
+      // En nuestra implementación de TareasContext, ya manejamos el catch para revertir.
+    } finally {
       setCompletingId(null);
     }
   };
