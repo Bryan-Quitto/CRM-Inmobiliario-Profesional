@@ -16,8 +16,10 @@ import {
   ChevronDown,
   Check
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { getPropiedades } from '../api/getPropiedades';
 import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
+import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import { CrearPropiedadForm } from './CrearPropiedadForm';
 import { PropiedadDetalle } from './PropiedadDetalle';
 import type { Propiedad } from '../types';
@@ -106,6 +108,7 @@ export const PropiedadesList = () => {
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de propiedad
+  const [statusConfirmation, setStatusConfirmation] = useState<{ id: string; nuevoEstado: string } | null>(null);
   const [selectedPropiedadId, setSelectedPropiedadId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -148,28 +151,70 @@ export const PropiedadesList = () => {
     }
   }, [notification]);
 
-  const handleStatusChange = async (id: string, nuevoEstado: string) => {
+  const handleStatusChange = async (id: string, nuevoEstado: string, confirmed = false) => {
     setOpenDropdownId(null);
     const propiedad = propiedades.find(p => p.id === id);
     if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
 
-    // Guardar estado previo para revertir si falla
+    // Si el estado es Vendida o Inactiva y no ha confirmado, mostrar modal
+    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva') && !confirmed) {
+      setStatusConfirmation({ id, nuevoEstado });
+      return;
+    }
+
+    // Si ya confirmó, cerramos el modal inmediatamente
+    setStatusConfirmation(null);
+
     const estadoAnterior = propiedad.estadoComercial;
 
-    // 1. Actualización Optimista
+    // CASO 1: Cambio normal (sin limpieza)
+    if (!confirmed) {
+      setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: nuevoEstado } : p));
+      try {
+        setUpdatingId(id);
+        await actualizarEstadoPropiedad(id, nuevoEstado);
+        toast.success(`Inmueble marcado como ${nuevoEstado}`);
+      } catch (err) {
+        setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: estadoAnterior } : p));
+        toast.error('No se pudo actualizar el estado.');
+      } finally {
+        setUpdatingId(null);
+      }
+      return;
+    }
+
+    // CASO 2: Cambio con limpieza (Vendida/Inactiva) - Usar Deshacer
     setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: nuevoEstado } : p));
     
-    try {
-      setUpdatingId(id);
-      await actualizarEstadoPropiedad(id, nuevoEstado);
-      // No necesitamos volver a setear el estado si tuvo éxito porque ya lo hicimos optimísticamente
-    } catch (err: any) {
-      // 2. Revertir en caso de error
-      setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: estadoAnterior } : p));
-      setNotification({ type: 'error', message: 'No se pudo actualizar el estado. Intente nuevamente.' });
-    } finally {
-      setUpdatingId(null);
-    }
+    let isCancelled = false;
+
+    toast.warning(`Estado: ${nuevoEstado}`, {
+      description: "La galería ha sido depurada. Puedes deshacer esta acción.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: estadoAnterior } : p));
+          toast.success("Cambio de estado cancelado");
+        },
+      },
+      duration: 6000,
+      onAutoClose: async () => {
+        if (isCancelled) return;
+
+        try {
+          setUpdatingId(id);
+          await actualizarEstadoPropiedad(id, nuevoEstado);
+          await limpiarImagenesPropiedad(id);
+          toast.success(`Propiedad "${propiedad.titulo}" actualizada y depurada.`);
+        } catch (err) {
+          setPropiedades(prev => prev.map(p => p.id === id ? { ...p, estadoComercial: estadoAnterior } : p));
+          toast.error("Error al procesar el cambio de estado masivo.");
+        } finally {
+          setUpdatingId(null);
+        }
+      }
+    });
   };
 
   const handleCoverUpdate = (propiedadId: string, newUrl: string) => {
@@ -452,6 +497,43 @@ export const PropiedadesList = () => {
           onClose={() => setSelectedPropiedadId(null)} 
           onCoverUpdated={(url) => handleCoverUpdate(selectedPropiedadId, url)}
         />
+      )}
+
+      {/* Modal de Confirmación para Cambio de Estado (Vendida/Inactiva) */}
+      {statusConfirmation && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 text-center">
+              <div className="h-20 w-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="h-10 w-10 text-rose-600" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">
+                ¿Confirmar estado {statusConfirmation.nuevoEstado}?
+              </h3>
+              <p className="text-slate-500 font-medium leading-relaxed mb-8">
+                Al marcar esta propiedad como <span className="font-bold text-slate-900">{statusConfirmation.nuevoEstado}</span>, todas las imágenes de la galería serán eliminadas permanentemente para optimizar el almacenamiento, <span className="text-rose-600 font-bold">excepto la foto de portada</span>.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setStatusConfirmation(null)}
+                  className="flex-1 px-6 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl hover:bg-slate-100 transition-all active:scale-95 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleStatusChange(statusConfirmation.id, statusConfirmation.nuevoEstado, true)}
+                  className="flex-1 px-6 py-4 bg-rose-600 text-white font-bold rounded-2xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-600/20 active:scale-95 cursor-pointer"
+                >
+                  Sí, confirmar
+                </button>
+              </div>
+            </div>
+            <div className="bg-slate-50 p-4 border-t border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Esta acción es irreversible</p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

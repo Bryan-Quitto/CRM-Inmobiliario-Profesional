@@ -74,6 +74,7 @@ app.MapEstablecerImagenPrincipalEndpoint();
 app.MapEliminarImagenPropiedadEndpoint();
 app.MapEliminarTodasLasImagenesEndpoint();
 app.MapEliminarImagenesSeleccionadasEndpoint();
+app.MapLimpiarImagenesPropiedadEndpoint();
 
 // Tareas
 app.MapRegistrarTareaEndpoint();

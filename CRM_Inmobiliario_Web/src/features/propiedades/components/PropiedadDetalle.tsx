@@ -17,11 +17,15 @@ import {
   Check,
   Library,
   Download,
-  FileDown
+  FileDown,
+  ChevronDown,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { getPropiedadById } from '../api/getPropiedadById';
+import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
+import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import { establecerImagenPrincipal } from '../api/establecerImagenPrincipal';
 import { deleteImagenPropiedad } from '../api/deleteImagenPropiedad';
 import { deleteTodasLasImagenes } from '../api/deleteTodasLasImagenes';
@@ -52,6 +56,14 @@ const formatDate = (dateString: string) => {
   }).format(new Date(dateString));
 };
 
+const ESTADOS = [
+  { label: 'Disponible', value: 'Disponible', color: 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600' },
+  { label: 'Reservada', value: 'Reservada', color: 'bg-amber-500 border-amber-400 text-white hover:bg-amber-600' },
+  { label: 'Vendida', value: 'Vendida', color: 'bg-slate-700 border-slate-600 text-white hover:bg-slate-800' },
+  { label: 'Alquilada', value: 'Alquilada', color: 'bg-blue-600 border-blue-500 text-white hover:bg-blue-700' },
+  { label: 'Inactiva', value: 'Inactiva', color: 'bg-rose-500 border-rose-400 text-white hover:bg-rose-600' },
+];
+
 export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetalleProps) => {
   // 1. Carga inicial desde Cache
   const [propiedad, setPropiedad] = useState<Propiedad | null>(() => {
@@ -71,6 +83,12 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Estados para Cambio de Estatus
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isCleaningGallery, setIsCleaningGallery] = useState(false);
+  const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
 
   const { uploadFiles, isAnyUploading } = useUpload();
 
@@ -106,6 +124,82 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       };
     });
   }, []);
+
+  const handleStatusChange = async (nuevoEstado: string, confirmed = false) => {
+    if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
+    setIsStatusDropdownOpen(false);
+
+    // Si el estado es Vendida o Inactiva y no ha confirmado, mostrar modal
+    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva') && !confirmed) {
+      setStatusConfirmation(nuevoEstado);
+      return;
+    }
+
+    // Cerrar modal inmediatamente para fluidez
+    setStatusConfirmation(null);
+
+    const estadoAnterior = propiedad.estadoComercial;
+    const mediaAnterior = propiedad.media ? [...propiedad.media] : [];
+
+    // CASO 1: Cambio de estado SIN limpieza (Disponible, Reservada, Alquilada)
+    if (!confirmed) {
+        setPropiedad({ ...propiedad, estadoComercial: nuevoEstado });
+        try {
+            setIsUpdatingStatus(true);
+            await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
+            toast.success(`Propiedad marcada como ${nuevoEstado}`);
+        } catch (err) {
+            setPropiedad({ ...propiedad, estadoComercial: estadoAnterior });
+            toast.error('Error al actualizar el estado comercial.');
+        } finally {
+            setIsUpdatingStatus(false);
+        }
+        return;
+    }
+
+    // CASO 2: Cambio de estado CON limpieza (Vendida, Inactiva) - Usar patrón de Deshacer
+    // 1. Actualización Optimista
+    setPropiedad({ 
+      ...propiedad, 
+      estadoComercial: nuevoEstado,
+      media: propiedad.media?.filter(m => m.esPrincipal) || []
+    });
+
+    let isCancelled = false;
+
+    toast.warning(`Estado: ${nuevoEstado}`, {
+      description: "La galería ha sido depurada. Puedes deshacer esta acción.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          setPropiedad(prev => prev ? { ...prev, estadoComercial: estadoAnterior, media: mediaAnterior } : prev);
+          toast.success("Cambio de estado cancelado");
+        },
+      },
+      duration: 6000,
+      onAutoClose: async () => {
+        if (isCancelled) return;
+
+        try {
+          setIsUpdatingStatus(true);
+          setIsCleaningGallery(true);
+          
+          await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
+          await limpiarImagenesPropiedad(propiedad.id);
+          
+          toast.success(`Propiedad actualizada a ${nuevoEstado} con éxito.`);
+        } catch (err) {
+          console.error('Error en cambio de estado masivo:', err);
+          setPropiedad(prev => prev ? { ...prev, estadoComercial: estadoAnterior, media: mediaAnterior } : prev);
+          toast.error("Error al procesar el cambio de estado masivo.");
+        } finally {
+          setIsUpdatingStatus(false);
+          setIsCleaningGallery(false);
+        }
+      }
+    });
+  };
 
   const handleFiles = async (files: FileList | File[]) => {
     if (!propiedad || files.length === 0) return;
@@ -439,9 +533,40 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           <div className="flex gap-2">
             {propiedad && (
               <>
-                <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm ${getStatusBadgeStyles(propiedad.estadoComercial)}`}>
-                  {propiedad.estadoComercial}
-                </span>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                    disabled={isUpdatingStatus}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition-all cursor-pointer hover:scale-105 active:scale-95 disabled:opacity-50 ${getStatusBadgeStyles(propiedad.estadoComercial)}`}
+                  >
+                    {isUpdatingStatus ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      propiedad.estadoComercial
+                    )}
+                    <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isStatusDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[100] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
+                      <div className="px-4 py-1.5 border-b border-slate-50 mb-1">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cambiar Estado</span>
+                      </div>
+                      {ESTADOS.map((estado) => (
+                        <button
+                          key={estado.value}
+                          onClick={() => handleStatusChange(estado.value)}
+                          className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
+                            propiedad.estadoComercial === estado.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                          }`}
+                        >
+                          {estado.label}
+                          {propiedad.estadoComercial === estado.value && <Check className="h-3.5 w-3.5" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <span className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
                   {propiedad.operacion}
                 </span>
@@ -543,8 +668,14 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                 </div>
                 
                 <div className="flex items-center gap-3">
+                  {isCleaningGallery && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg animate-pulse border border-rose-100 shadow-sm z-[60]">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">Limpiando Galería...</span>
+                    </div>
+                  )}
                   {propiedad.media && propiedad.media.length > 0 && (
-                    <>
+                    <div className="flex items-center gap-3">
                       {/* Botón Contextual de Descarga */}
                       <button
                         disabled={isDownloading}
@@ -570,7 +701,7 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                         <Trash2 className="h-3.5 w-3.5" />
                         {selectedMediaIds.size > 0 ? `Eliminar Selección (${selectedMediaIds.size})` : 'Eliminar Todas'}
                       </button>
-                    </>
+                    </div>
                   )}
 
                   {selectedMediaIds.size > 0 && (
@@ -854,6 +985,43 @@ export const PropiedadDetalle = ({ id, onClose, onCoverUpdated }: PropiedadDetal
               >
                 No, mantener imágenes
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación para Cambio de Estado (Vendida/Inactiva) */}
+      {statusConfirmation && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 text-center">
+              <div className="h-20 w-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="h-10 w-10 text-rose-600" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">
+                ¿Confirmar estado {statusConfirmation}?
+              </h3>
+              <p className="text-slate-500 font-medium leading-relaxed mb-8">
+                Al marcar esta propiedad como <span className="font-bold text-slate-900">{statusConfirmation}</span>, todas las imágenes de la galería serán eliminadas permanentemente, <span className="text-rose-600 font-bold">excepto la foto de portada</span>.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setStatusConfirmation(null)}
+                  className="flex-1 px-6 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl hover:bg-slate-100 transition-all active:scale-95 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleStatusChange(statusConfirmation, true)}
+                  className="flex-1 px-6 py-4 bg-rose-600 text-white font-bold rounded-2xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-600/20 active:scale-95 cursor-pointer"
+                >
+                  Sí, confirmar
+                </button>
+              </div>
+            </div>
+            <div className="bg-slate-50 p-4 border-t border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Acción permanente de limpieza</p>
             </div>
           </div>
         </div>

@@ -16,8 +16,6 @@ import {
   Search,
   ChevronLeft,
   Check,
-  Calendar,
-  Tag,
   Hash
 } from 'lucide-react';
 import { getClienteById } from '../api/getClienteById';
