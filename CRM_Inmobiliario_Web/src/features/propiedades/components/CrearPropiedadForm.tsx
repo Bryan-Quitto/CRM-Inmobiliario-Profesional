@@ -65,16 +65,26 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
     };
   };
 
-  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<CrearPropiedadDTO>({
+  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue, getValues } = useForm<CrearPropiedadDTO>({
     defaultValues: getInitialValues() as CrearPropiedadDTO
   });
 
-  const formData = watch();
-  const hasData = Object.values(formData).some(v => v && v !== '' && v !== 0);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
-  }, [formData]);
+    // Sincronización inicial y suscripción optimizada para borrador
+    const currentValues = getValues();
+    const checkHasData = (vals: Record<string, unknown>) => Object.values(vals).some(v => v && v !== '' && v !== 0);
+    setHasData(checkHasData(currentValues as unknown as Record<string, unknown>));
+
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const subscription = watch((value) => {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(value));
+      const isNowDirty = checkHasData(value as unknown as Record<string, unknown>);
+      if (isNowDirty !== hasData) setHasData(isNowDirty);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, getValues, hasData]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

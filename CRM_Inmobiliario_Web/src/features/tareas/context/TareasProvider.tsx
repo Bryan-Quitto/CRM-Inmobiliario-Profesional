@@ -1,16 +1,8 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { getTareas } from '../api/getTareas';
 import type { Tarea } from '../types';
-
-interface TareasContextType {
-  tareas: Tarea[];
-  loading: boolean;
-  refreshTareas: () => Promise<void>;
-  updateTareaEstado: (id: string, nuevoEstado: 'Pendiente' | 'Completada' | 'Cancelada') => Promise<void>;
-  urgentesCount: number;
-}
-
-const TareasContext = createContext<TareasContextType | undefined>(undefined);
+import { TareasContext } from './TareasContext';
+import type { TareasContextType } from './TareasContext';
 
 const TAREAS_CACHE_KEY = 'crm_tareas_cache';
 
@@ -50,10 +42,8 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     try {
       // Nota: Esta función asume que el que la llama maneja la llamada al API específica
-      // O podríamos inyectar la llamada al API aquí. Por ahora, el contexto solo maneja el estado.
-    } catch (err) {
+    } catch {
       setTareas(prev => prev.map(t => t.id === id ? { ...t, estado: estadoAnterior } : t));
-      throw err;
     }
   }, [tareas]);
 
@@ -73,7 +63,7 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     ).length;
   }, [tareas]);
 
-  const value = {
+  const value: TareasContextType = {
     tareas,
     loading,
     refreshTareas,
@@ -82,12 +72,4 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return <TareasContext.Provider value={value}>{children}</TareasContext.Provider>;
-};
-
-export const useTareas = () => {
-  const context = useContext(TareasContext);
-  if (context === undefined) {
-    throw new Error('useTareas debe usarse dentro de un TareasProvider');
-  }
-  return context;
 };

@@ -1,7 +1,8 @@
 import { useState, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { TareasProvider, useTareas } from './features/tareas/context/TareasContext';
-import { UploadProvider } from './features/propiedades/context/UploadContext';
+import { TareasProvider } from './features/tareas/context/TareasProvider';
+import { useTareas } from './features/tareas/context/useTareas';
+import { UploadProvider } from './features/propiedades/context/UploadProvider';
 import { 
   Users, 
   Home, 
