@@ -15,29 +15,33 @@ public static class VincularPropiedadFeature
     {
         app.MapPost("/api/clientes/{clienteId:guid}/intereses", async (Guid clienteId, Request request, CrmDbContext context) =>
         {
-            // 1. Verificar existencia del cliente
-            var clienteExiste = await context.Leads.AnyAsync(c => c.Id == clienteId);
-            if (!clienteExiste) return Results.NotFound("Cliente no encontrado.");
+            // 1. Obtener toda la información necesaria en UN SOLO round-trip
+            var data = await context.Leads
+                .Where(l => l.Id == clienteId)
+                .Select(l => new
+                {
+                    ClienteExiste = true,
+                    PropiedadExiste = context.Properties.Any(p => p.Id == request.PropiedadId),
+                    InteresExistente = context.LeadPropertyInterests
+                        .FirstOrDefault(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId)
+                })
+                .FirstOrDefaultAsync();
 
-            // 2. Verificar existencia de la propiedad
-            var propiedadExiste = await context.Properties.AnyAsync(p => p.Id == request.PropiedadId);
-            if (!propiedadExiste) return Results.NotFound("Propiedad no encontrada.");
+            if (data is null) return Results.NotFound("Cliente no encontrado.");
+            if (!data.PropiedadExiste) return Results.NotFound("Propiedad no encontrada.");
 
-            // 3. Validar nivel de interés
+            // 2. Validar nivel de interés
             var nivelesValidos = new[] { "Alto", "Medio", "Bajo", "Descartada" };
             if (!nivelesValidos.Contains(request.NivelInteres))
             {
                 return Results.BadRequest($"Nivel de interés no válido. Debe ser uno de: {string.Join(", ", nivelesValidos)}");
             }
 
-            // 4. Buscar si ya existe el vínculo (Upsert)
-            var interesExistente = await context.LeadPropertyInterests
-                .FirstOrDefaultAsync(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId);
-
-            if (interesExistente is not null)
+            // 3. Aplicar cambios (Upsert)
+            if (data.InteresExistente is not null)
             {
-                interesExistente.NivelInteres = request.NivelInteres;
-                interesExistente.FechaRegistro = DateTimeOffset.UtcNow;
+                data.InteresExistente.NivelInteres = request.NivelInteres;
+                data.InteresExistente.FechaRegistro = DateTimeOffset.UtcNow;
             }
             else
             {
