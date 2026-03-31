@@ -11,19 +11,23 @@ import {
   Info,
   Plus,
   Building,
-  DollarSign,
   ChevronDown,
   Search,
   ChevronLeft,
   Check,
-  Hash
+  Hash,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { getClienteById } from '../api/getClienteById';
 import { registrarInteraccion } from '../api/registrarInteraccion';
 import { vincularPropiedad } from '../api/vincularPropiedad';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
-import type { Cliente } from '../types';
+import { desvincularPropiedad } from '../api/desvincularPropiedad';
+import { actualizarInteraccion } from '../api/actualizarInteraccion';
+import { eliminarInteraccion } from '../api/eliminarInteraccion';
+import type { Cliente, Interaccion, Interes } from '../types';
 import type { Propiedad } from '../../propiedades/types';
 
 const ETAPAS = [
@@ -67,10 +71,14 @@ export const ClienteDetalle = () => {
   const [sending, setSending] = useState(false);
   const [nuevaNota, setNuevaNota] = useState('');
   const [tipoNota, setTipoNota] = useState('Nota');
+  const [notaEnEdicion, setNotaEnEdicion] = useState<string | null>(null);
   const [updatingEtapa, setUpdatingEtapa] = useState(false);
   const [showEtapaDropdown, setShowEtapaDropdown] = useState(false);
+  const [idInteraccionABorrar, setIdInteraccionABorrar] = useState<string | null>(null);
+  const [idInteresABorrar, setIdInteresABorrar] = useState<string | null>(null);
 
   const [showVincularModal, setShowVincularModal] = useState(false);
+  const [isEditingInteres, setIsEditingInteres] = useState(false);
   const [propiedadesDisponibles, setPropiedadesDisponibles] = useState<Propiedad[]>([]);
   const [filtroPropiedad, setFiltroPropiedad] = useState('');
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState<Propiedad | null>(null);
@@ -84,10 +92,17 @@ export const ClienteDetalle = () => {
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isInteresesOpen, setIsInteresesOpen] = useState(true);
 
-  const fetchCliente = useCallback(async () => {
+  const fetchCliente = useCallback(async (isInitial = false) => {
     if (!id) return;
     try {
-      if (!cliente) setLoading(true);
+      // Usamos el estado actual de forma segura para el loader
+      if (isInitial) {
+        setLoading(prev => {
+          const cached = localStorage.getItem(`crm_cliente_cache_${id}`);
+          return !cached && !prev;
+        });
+      }
+      
       const data = await getClienteById(id);
       setCliente(data);
       localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(data));
@@ -96,9 +111,11 @@ export const ClienteDetalle = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, cliente]);
+  }, [id]);
 
-  useEffect(() => { if (id) fetchCliente(); }, [id, fetchCliente]);
+  useEffect(() => { 
+    if (id) fetchCliente(true); 
+  }, [id, fetchCliente]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -125,13 +142,38 @@ export const ClienteDetalle = () => {
     }
   };
 
-  const handleOpenVincular = async () => {
+  const handleOpenVincular = async (interes?: Interes) => {
     setShowVincularModal(true);
-    setFiltroPropiedad('');
-    setPropiedadSeleccionada(null);
+    if (interes) {
+      setIsEditingInteres(true);
+      setPropiedadSeleccionada({ 
+        id: interes.propiedadId, 
+        titulo: interes.titulo, 
+        precio: interes.precio, 
+        estadoComercial: interes.estadoComercial,
+        codigo: '', // Campos requeridos por el tipo Propiedad pero no críticos aquí
+        tipoInmueble: '',
+        ubicacion: '',
+        area: 0,
+        habitaciones: 0,
+        banos: 0,
+        parqueaderos: 0,
+        descripcion: '',
+        caracteristicas: [],
+        imagenes: []
+      } as unknown as Propiedad);
+      setFiltroPropiedad(interes.titulo);
+      setNivelInteres(interes.nivelInteres);
+    } else {
+      setIsEditingInteres(false);
+      setFiltroPropiedad('');
+      setPropiedadSeleccionada(null);
+      setNivelInteres('Medio');
+    }
+    
     try {
       const data = await getPropiedades();
-      setPropiedadesDisponibles(data.filter(p => p.estadoComercial === 'Disponible'));
+      setPropiedadesDisponibles(data.filter(p => p.estadoComercial === 'Disponible' || (interes && p.id === interes.propiedadId)));
     } catch (err) {
       console.error('Error al cargar propiedades:', err);
     }
@@ -140,6 +182,7 @@ export const ClienteDetalle = () => {
   const handleVincular = async () => {
     if (!propiedadSeleccionada || !cliente || !id) return;
     const previousIntereses = [...(cliente.intereses || [])];
+    
     const nuevoInteres = {
       propiedadId: propiedadSeleccionada.id,
       titulo: propiedadSeleccionada.titulo,
@@ -148,13 +191,31 @@ export const ClienteDetalle = () => {
       nivelInteres: nivelInteres,
       fechaRegistro: new Date().toISOString()
     };
-    setCliente({ ...cliente, intereses: [nuevoInteres, ...previousIntereses] });
+
+    let nuevosIntereses;
+    if (isEditingInteres) {
+      nuevosIntereses = previousIntereses.map(i => i.propiedadId === propiedadSeleccionada.id ? { ...i, nivelInteres } : i);
+    } else {
+      // Upsert local logic
+      const existe = previousIntereses.find(i => i.propiedadId === propiedadSeleccionada.id);
+      if (existe) {
+        nuevosIntereses = previousIntereses.map(i => i.propiedadId === propiedadSeleccionada.id ? { ...i, nivelInteres, fechaRegistro: nuevoInteres.fechaRegistro } : i);
+      } else {
+        nuevosIntereses = [nuevoInteres, ...previousIntereses];
+      }
+    }
+
+    const nuevoEstado = { ...cliente, intereses: nuevosIntereses };
+    setCliente(nuevoEstado);
+    localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
+    
     setShowVincularModal(false);
     try {
       setVinculando(true);
       await vincularPropiedad(id, propiedadSeleccionada.id, nivelInteres);
     } catch {
       setCliente({ ...cliente, intereses: previousIntereses });
+      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
     } finally {
       setVinculando(false);
     }
@@ -184,13 +245,40 @@ export const ClienteDetalle = () => {
   const handleGuardarNota = async () => {
     if (!nuevaNota.trim() || !cliente || !id) return;
     const previousInteracciones = [...(cliente.interacciones || [])];
+
+    if (notaEnEdicion) {
+      // Flujo de Actualización (PUT)
+      const nuevasInteracciones = previousInteracciones.map(i => i.id === notaEnEdicion ? { ...i, notas: nuevaNota, tipoInteraccion: tipoNota } : i);
+      const nuevoEstado = { ...cliente, interacciones: nuevasInteracciones };
+      setCliente(nuevoEstado);
+      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
+      
+      const idNota = notaEnEdicion;
+      const tipoParaActualizar = tipoNota;
+      setNotaEnEdicion(null);
+      setNuevaNota('');
+      try {
+        setSending(true);
+        await actualizarInteraccion(idNota, nuevaNota, tipoParaActualizar);
+      } catch {
+        setCliente({ ...cliente, interacciones: previousInteracciones });
+        localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+
     const nuevaInteraccion = {
       id: crypto.randomUUID(),
       tipoInteraccion: tipoNota,
       notas: nuevaNota,
       fechaInteraccion: new Date().toISOString()
     };
-    setCliente({ ...cliente, interacciones: [nuevaInteraccion, ...previousInteracciones] });
+    const nuevoEstado = { ...cliente, interacciones: [nuevaInteraccion, ...previousInteracciones] };
+    setCliente(nuevoEstado);
+    localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
+    
     setNuevaNota('');
     try {
       setSending(true);
@@ -201,8 +289,51 @@ export const ClienteDetalle = () => {
       });
     } catch {
       setCliente({ ...cliente, interacciones: previousInteracciones });
+      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleEditarNota = (interaccion: Interaccion) => {
+    setNotaEnEdicion(interaccion.id);
+    setTipoNota(interaccion.tipoInteraccion);
+    setNuevaNota(interaccion.notas);
+  };
+
+  const handleEliminarNota = async (interaccionId: string) => {
+    if (!cliente || !id) return;
+    const previousInteracciones = [...(cliente.interacciones || [])];
+    const nuevoEstado = {
+      ...cliente,
+      interacciones: previousInteracciones.filter(i => i.id !== interaccionId)
+    };
+    setCliente(nuevoEstado);
+    localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
+
+    try {
+      await eliminarInteraccion(interaccionId);
+    } catch {
+      setCliente({ ...cliente, interacciones: previousInteracciones });
+      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
+    }
+  };
+
+  const handleDesvincularInteres = async (propiedadId: string) => {
+    if (!cliente || !id) return;
+    const previousIntereses = [...(cliente.intereses || [])];
+    const nuevoEstado = {
+      ...cliente,
+      intereses: previousIntereses.filter(i => i.propiedadId !== propiedadId)
+    };
+    setCliente(nuevoEstado);
+    localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
+
+    try {
+      await desvincularPropiedad(id, propiedadId);
+    } catch {
+      setCliente({ ...cliente, intereses: previousIntereses });
+      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
     }
   };
 
@@ -248,18 +379,33 @@ export const ClienteDetalle = () => {
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-all duration-500" onClick={() => setShowVincularModal(false)} />
           <div className="relative bg-white w-full max-w-md rounded-[40px] p-10 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Sugerir Propiedad</h3>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">{isEditingInteres ? 'Modificar Interés' : 'Sugerir Propiedad'}</h3>
               <button onClick={() => setShowVincularModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 cursor-pointer transition-colors"><X className="h-5 w-5" /></button>
             </div>
             <div className="space-y-8">
               <div className="space-y-3 relative">
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Seleccionar Propiedad</label>
                 <div className="relative">
-                  <div className={`flex items-center gap-3 bg-slate-50 border-2 transition-all duration-300 rounded-2xl px-5 py-4 ${showPropiedadDropdown ? 'border-blue-500 ring-4 ring-blue-50' : 'border-slate-100 hover:border-slate-200'}`}>
-                    <Building className={`h-5 w-5 ${showPropiedadDropdown ? 'text-blue-500' : 'text-slate-400'}`} />
-                    <input type="text" className="w-full bg-transparent border-none focus:ring-0 outline-none font-bold text-slate-700 placeholder:text-slate-300" placeholder="Buscar por título..." value={filtroPropiedad} onChange={(e) => { setFiltroPropiedad(e.target.value); setShowPropiedadDropdown(true); setPropiedadSeleccionada(null); }} onFocus={() => setShowPropiedadDropdown(true)} />
+                  <div className={`flex items-center gap-3 bg-slate-50 border-2 transition-all duration-300 rounded-2xl px-5 py-4 ${isEditingInteres ? 'opacity-60 cursor-not-allowed border-slate-100' : showPropiedadDropdown ? 'border-blue-500 ring-4 ring-blue-50' : 'border-slate-100 hover:border-slate-200'}`}>
+                    <Building className={`h-5 w-5 ${isEditingInteres ? 'text-slate-300' : showPropiedadDropdown ? 'text-blue-500' : 'text-slate-400'}`} />
+                    <input 
+                      type="text" 
+                      className={`w-full bg-transparent border-none focus:ring-0 outline-none font-bold text-slate-700 placeholder:text-slate-300 ${isEditingInteres ? 'cursor-not-allowed' : ''}`} 
+                      placeholder="Buscar por título..." 
+                      value={filtroPropiedad} 
+                      onChange={(e) => { 
+                        if (isEditingInteres) return;
+                        setFiltroPropiedad(e.target.value); 
+                        setShowPropiedadDropdown(true); 
+                        setPropiedadSeleccionada(null); 
+                      }} 
+                      onFocus={() => {
+                        if (!isEditingInteres) setShowPropiedadDropdown(true);
+                      }}
+                      readOnly={isEditingInteres}
+                    />
                   </div>
-                  {showPropiedadDropdown && (
+                  {showPropiedadDropdown && !isEditingInteres && (
                     <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-100 rounded-3xl shadow-2xl z-[510] animate-in slide-in-from-top-2 duration-200">
                       <div className="max-h-60 overflow-y-auto p-2">
                         {propiedadesFiltradas.length === 0 ? <div className="p-4 text-center"><p className="text-xs font-bold text-slate-400 italic">No se encontraron propiedades disponibles</p></div> : 
@@ -363,7 +509,26 @@ export const ClienteDetalle = () => {
                           {interaccion.tipoInteraccion === 'Llamada' ? <Phone className="h-3.5 w-3.5 text-blue-500" /> : interaccion.tipoInteraccion === 'WhatsApp' ? <MessageSquare className="h-3.5 w-3.5 text-emerald-500" /> : <Clock className="h-3.5 w-3.5 text-slate-400" />}
                         </div>
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2 px-1"><span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">{interaccion.tipoInteraccion}</span><div className="h-1 w-1 bg-slate-300 rounded-full"></div><span className="text-[9px] font-bold text-slate-400 uppercase">{formatDate(interaccion.fechaInteraccion)}</span></div>
+                          <div className="flex items-center justify-between px-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">{interaccion.tipoInteraccion}</span>
+                              <div className="h-1 w-1 bg-slate-300 rounded-full"></div>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase">{formatDate(interaccion.fechaInteraccion)}</span>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {idInteraccionABorrar === interaccion.id ? (
+                                <div className="flex items-center gap-1 bg-rose-50 p-0.5 rounded-lg border border-rose-100 shadow-sm animate-in zoom-in duration-200">
+                                  <button onClick={() => { handleEliminarNota(interaccion.id); setIdInteraccionABorrar(null); }} className="p-1 text-rose-600 hover:bg-rose-100 rounded-md transition-all cursor-pointer"><Check className="h-3 w-3" /></button>
+                                  <button onClick={() => setIdInteraccionABorrar(null)} className="p-1 text-slate-400 hover:bg-slate-100 rounded-md transition-all cursor-pointer"><X className="h-3 w-3" /></button>
+                                </div>
+                              ) : (
+                                <>
+                                  <button onClick={() => handleEditarNota(interaccion)} className="p-1.5 hover:bg-blue-50 text-slate-300 hover:text-blue-600 rounded-lg transition-all cursor-pointer"><Pencil className="h-3 w-3" /></button>
+                                  <button onClick={() => setIdInteraccionABorrar(interaccion.id)} className="p-1.5 hover:bg-rose-50 text-slate-300 hover:text-rose-600 rounded-lg transition-all cursor-pointer"><Trash2 className="h-3 w-3" /></button>
+                                </>
+                              )}
+                            </div>
+                          </div>
                           <div className="bg-slate-50/50 p-6 rounded-[32px] border border-slate-100 hover:bg-white hover:shadow-xl hover:border-blue-100 transition-all duration-500 italic text-sm font-medium text-slate-600 leading-relaxed">"{interaccion.notas}"</div>
                         </div>
                       </div>
@@ -381,6 +546,12 @@ export const ClienteDetalle = () => {
             <div className="bg-slate-900 rounded-[40px] p-8 shadow-2xl relative overflow-hidden group border-2 border-slate-800">
               <div className="absolute top-0 right-0 p-4"><div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 group-hover:text-blue-500 transition-colors"><Send className="h-6 w-6" /></div></div>
               <h3 className="text-xl font-black text-white tracking-tight mb-8 uppercase">Notas Rápidas</h3>
+              {notaEnEdicion && (
+                <div className="mb-4 p-3 bg-blue-500/20 border border-blue-500/40 rounded-xl flex items-center justify-between animate-in slide-in-from-top-2">
+                  <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Editando nota...</span>
+                  <button onClick={() => { setNotaEnEdicion(null); setNuevaNota(''); }} className="text-white/40 hover:text-white transition-colors cursor-pointer"><X className="h-4 w-4" /></button>
+                </div>
+              )}
               <div className="space-y-6">
                 <div className="flex flex-wrap gap-2">
                   {['Nota', 'Llamada', 'WhatsApp'].map((tipo) => (
@@ -388,7 +559,7 @@ export const ClienteDetalle = () => {
                   ))}
                 </div>
                 <textarea value={nuevaNota} onChange={(e) => setNuevaNota(e.target.value)} placeholder={`Resumen de la ${tipoNota.toLowerCase()}...`} className="w-full h-40 bg-white/5 border border-white/10 rounded-[28px] p-5 text-white text-xs font-bold outline-none focus:ring-4 focus:ring-blue-500/20 transition-all resize-none" />
-                <button onClick={handleGuardarNota} disabled={sending || !nuevaNota.trim()} className="w-full py-4 bg-blue-600 text-white rounded-[24px] text-xs font-black hover:bg-blue-700 shadow-xl disabled:opacity-50 cursor-pointer flex items-center justify-center gap-3">{sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}Guardar</button>
+                <button onClick={handleGuardarNota} disabled={sending || !nuevaNota.trim()} className="w-full py-4 bg-blue-600 text-white rounded-[24px] text-xs font-black hover:bg-blue-700 shadow-xl disabled:opacity-50 cursor-pointer flex items-center justify-center gap-3">{sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}{notaEnEdicion ? 'Actualizar Nota' : 'Guardar'}</button>
               </div>
             </div>
 
@@ -402,12 +573,43 @@ export const ClienteDetalle = () => {
                   <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-300" /><input type="text" placeholder="Filtrar..." value={searchIntereses} onChange={(e) => setSearchIntereses(e.target.value)} className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-sm" /></div>
                   <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
                     {interesesFiltrados.length === 0 ? <div className="py-10 text-center border-2 border-dashed border-slate-50 rounded-[32px]"><p className="text-[10px] font-black text-slate-300 uppercase">Sin vínculos</p></div> : 
-                      interesesFiltrados.map((interes) => (
-                        <div key={interes.propiedadId} className="bg-slate-50 p-5 rounded-[28px] border border-slate-100 hover:bg-white hover:shadow-xl transition-all group/prop cursor-pointer">
-                          <h4 className="text-[11px] font-black text-slate-900 line-clamp-2 leading-tight mb-3 group-hover/prop:text-blue-600">{interes.titulo}</h4>
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-200/50"><span className="text-blue-600 font-black text-[10px] flex items-center gap-1"><DollarSign className="h-3 w-3" />{formatCurrency(interes.precio)}</span><span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider border ${getNivelInteresStyles(interes.nivelInteres)}`}>{interes.nivelInteres}</span></div>
-                        </div>
-                      ))
+                      interesesFiltrados.map((interes) => {
+                        const date = new Date(interes.fechaRegistro);
+                        const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)}`;
+                        
+                        return (
+                          <div key={interes.propiedadId} className="bg-slate-50 p-5 rounded-[28px] border border-slate-100 hover:bg-white hover:shadow-xl transition-all group/prop cursor-pointer relative">
+                            <div className="absolute top-4 right-4 flex items-center gap-2">
+                              <span className="text-[8px] font-black text-slate-900 uppercase tracking-tighter group-hover/prop:opacity-0 transition-opacity">
+                                {formattedDate}
+                              </span>
+                              <div className="flex items-center gap-1 opacity-0 group-hover/prop:opacity-100 transition-all absolute right-0">
+                                {idInteresABorrar === interes.propiedadId ? (
+                                  <div className="flex items-center gap-1 bg-rose-50 p-0.5 rounded-lg border border-rose-100 shadow-sm animate-in zoom-in duration-200">
+                                    <button onClick={(e) => { e.stopPropagation(); handleDesvincularInteres(interes.propiedadId); setIdInteresABorrar(null); }} className="p-1 text-rose-600 hover:bg-rose-100 rounded-md transition-all cursor-pointer"><Check className="h-3 w-3" /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); setIdInteresABorrar(null); }} className="p-1 text-slate-400 hover:bg-slate-100 rounded-md transition-all cursor-pointer"><X className="h-3 w-3" /></button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenVincular(interes); }} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all cursor-pointer"><Pencil className="h-3 w-3" /></button>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); setIdInteresABorrar(interes.propiedadId); }}
+                                      className="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all cursor-pointer"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <h4 className="text-[11px] font-black text-slate-900 line-clamp-2 leading-tight mb-3 group-hover/prop:text-blue-600 pr-16">{interes.titulo}</h4>
+                            <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
+                              <span className="text-blue-600 font-black text-[10px] flex items-center gap-1">{formatCurrency(interes.precio)}</span>
+                              <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider border ${getNivelInteresStyles(interes.nivelInteres)}`}>{interes.nivelInteres}</span>
+                            </div>
+                          </div>
+                        );
+                      })
                     }
                   </div>
                 </div>

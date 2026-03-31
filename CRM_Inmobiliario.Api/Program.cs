@@ -63,6 +63,7 @@ app.MapListarClientesEndpoint();
 app.MapObtenerClientePorIdEndpoint();
 app.MapCambiarEtapaClienteEndpoint();
 app.MapVincularPropiedadEndpoint();
+app.MapDesvincularPropiedadEndpoint();
 
 // Propiedades
 app.MapRegistrarPropiedadEndpoint();
@@ -86,5 +87,7 @@ app.MapCancelarTareaEndpoint();
 
 // Interacciones
 app.MapRegistrarInteraccionEndpoint();
+app.MapActualizarInteraccionEndpoint();
+app.MapEliminarInteraccionEndpoint();
 
 app.Run();
