@@ -38,10 +38,13 @@ public static class VincularPropiedadFeature
             }
 
             // 3. Aplicar cambios (Upsert)
-            if (data.InteresExistente is not null)
+            var interesExistente = await context.LeadPropertyInterests
+                .FirstOrDefaultAsync(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId);
+
+            if (interesExistente is not null)
             {
-                data.InteresExistente.NivelInteres = request.NivelInteres;
-                data.InteresExistente.FechaRegistro = DateTimeOffset.UtcNow;
+                interesExistente.NivelInteres = request.NivelInteres;
+                interesExistente.FechaRegistro = DateTimeOffset.UtcNow;
             }
             else
             {
