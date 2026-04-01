@@ -122,7 +122,7 @@ function AppContent() {
       </aside>
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} ${isAgendaOpen ? 'mr-80' : 'mr-0'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} ${isAgendaOpen ? 'mr-80' : 'mr-0'}`}>
         {/* Header Superior */}
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
           <div className="flex items-center gap-4 flex-1">
@@ -203,7 +203,7 @@ function AppContent() {
         }`}
       >
         <Suspense fallback={<SidebarLoader />}>
-          <AgendaPanel />
+          <AgendaPanel onClose={() => setIsAgendaOpen(false)} />
         </Suspense>
       </aside>
     </div>

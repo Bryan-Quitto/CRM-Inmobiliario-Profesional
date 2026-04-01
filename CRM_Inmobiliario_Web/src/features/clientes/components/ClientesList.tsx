@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock } from 'lucide-react';
+import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock, LayoutGrid, List } from 'lucide-react';
 import { getClientes } from '../api/getClientes';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { CrearClienteForm } from './CrearClienteForm';
+import { ClientesKanban } from './ClientesKanban';
 import type { Cliente } from '../types';
 
 const ETAPAS = [
@@ -69,6 +70,7 @@ const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: numbe
 );
 
 const CLIENTES_CACHE_KEY = 'crm_clientes_cache';
+const VIEW_MODE_KEY = 'crm_clientes_view_mode';
 
 export const ClientesList = () => {
   const navigate = useNavigate();
@@ -89,6 +91,14 @@ export const ClientesList = () => {
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterEtapa, setFilterEtapa] = useState('Todas');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>(() => {
+    const saved = localStorage.getItem(VIEW_MODE_KEY);
+    return (saved as 'list' | 'kanban') || 'list';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(VIEW_MODE_KEY, viewMode);
+  }, [viewMode]);
 
   const fetchClientes = useCallback(async () => {
     try {
@@ -135,6 +145,7 @@ export const ClientesList = () => {
       const fullName = `${cliente.nombre} ${cliente.apellido || ''}`.toLowerCase();
       const matchesSearch = fullName.includes(searchQuery.toLowerCase()) || 
                            cliente.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      // En vista Kanban mostramos todas las etapas, pero aplicamos el filtro si existe
       const matchesEtapa = filterEtapa === 'Todas' || cliente.etapaEmbudo === filterEtapa;
       return matchesSearch && matchesEtapa;
     });
@@ -214,7 +225,29 @@ export const ClientesList = () => {
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 sm:min-w-[300px]">
+          {/* Toggle de Vista */}
+          <div className="flex bg-white p-1 border border-slate-200 rounded-xl shadow-sm mr-2">
+            <button 
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === 'list' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <List className="h-4 w-4" />
+              Lista
+            </button>
+            <button 
+              onClick={() => setViewMode('kanban')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === 'kanban' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              Tablero
+            </button>
+          </div>
+
+          <div className="relative flex-1 sm:min-w-[250px]">
             <label htmlFor="cliente-search" className="sr-only">Buscar prospectos por nombre o email</label>
             <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <input 
@@ -244,7 +277,7 @@ export const ClientesList = () => {
               className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-sm cursor-pointer"
             >
               <FilterIcon className="h-4 w-4 text-slate-500" aria-hidden="true" />
-              <span>{filterEtapa === 'Todas' ? 'Todas las etapas' : filterEtapa}</span>
+              <span className="hidden sm:inline">{filterEtapa === 'Todas' ? 'Todas las etapas' : filterEtapa}</span>
               <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
 
@@ -311,6 +344,12 @@ export const ClientesList = () => {
             </button>
           </div>
         </div>
+      ) : viewMode === 'kanban' ? (
+        <ClientesKanban 
+          clientes={filteredClientes} 
+          onStageChange={handleStageChange}
+          onNavigate={(id) => navigate(`/prospectos/${id}`)}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
           {filteredClientes.map((cliente) => (
