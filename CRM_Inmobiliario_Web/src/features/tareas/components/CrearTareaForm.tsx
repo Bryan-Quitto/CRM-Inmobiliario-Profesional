@@ -103,7 +103,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel }: Props) => {
       onSuccess();
     } catch (err) {
       console.error('Error al crear tarea:', err);
-      setError('No se pudo programar la tarea. Verifica los datos.');
+      setError('No se pudo programar la tarea. Verifica los datos o su conexión.');
     } finally {
       setIsSubmitting(false);
     }
