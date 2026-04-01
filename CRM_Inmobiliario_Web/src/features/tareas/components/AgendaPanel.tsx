@@ -47,7 +47,11 @@ const isExpired = (dateString: string) => {
   return new Date(dateString) < new Date();
 };
 
-export const AgendaPanel = () => {
+interface AgendaPanelProps {
+  onClose?: () => void;
+}
+
+export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   const { tareas: allTareas, loading, updateTareaEstado, refreshTareas } = useTareas();
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
@@ -150,13 +154,24 @@ export const AgendaPanel = () => {
             {tareasPendientes.length} Tareas Pendientes
           </p>
         </div>
-        <button 
-          onClick={() => setView('create')}
-          aria-label="Crear nueva tarea"
-          className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 cursor-pointer active:scale-95"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setView('create')}
+            aria-label="Crear nueva tarea"
+            className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 cursor-pointer active:scale-95"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+          </button>
+          {onClose && (
+            <button 
+              onClick={onClose}
+              aria-label="Cerrar panel de agenda"
+              className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer active:scale-95 border border-slate-100"
+            >
+              <XCircle className="h-5 w-5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tareas List */}
