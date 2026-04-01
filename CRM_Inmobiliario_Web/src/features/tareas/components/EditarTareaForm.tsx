@@ -97,7 +97,7 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
       onSuccess();
     } catch (err) {
       console.error('Error al actualizar tarea:', err);
-      setError('No se pudo actualizar la tarea. Verifica los datos.');
+      setError('No se pudo actualizar la tarea. Verifica los datos o su conexión.');
     } finally {
       setIsSubmitting(false);
     }

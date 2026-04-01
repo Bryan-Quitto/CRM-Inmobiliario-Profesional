@@ -3,6 +3,8 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { TareasProvider } from './features/tareas/context/TareasProvider';
 import { useTareas } from './features/tareas/context/useTareas';
 import { UploadProvider } from './features/propiedades/context/UploadProvider';
+import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
+import { NetworkStatusListener } from './components/NetworkStatusListener';
 import { 
   Users, 
   Home, 
@@ -212,11 +214,14 @@ function AppContent() {
 
 function App() {
   return (
-    <TareasProvider>
-      <UploadProvider>
-        <AppContent />
-      </UploadProvider>
-    </TareasProvider>
+    <GlobalErrorBoundary>
+      <NetworkStatusListener />
+      <TareasProvider>
+        <UploadProvider>
+          <AppContent />
+        </UploadProvider>
+      </TareasProvider>
+    </GlobalErrorBoundary>
   );
 }
 
