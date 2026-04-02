@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { TareasProvider } from './features/tareas/context/TareasProvider';
 import { useTareas } from './features/tareas/context/useTareas';
 import { UploadProvider } from './features/propiedades/context/UploadProvider';
@@ -15,10 +15,12 @@ import {
   LogOut,
   Bell,
   Search,
-  Loader2
+  Loader2,
+  LayoutDashboard
 } from 'lucide-react';
 
 // Lazy Loading de Features
+const DashboardPrincipal = lazy(() => import('./features/dashboard/components/DashboardPrincipal').then(m => ({ default: m.DashboardPrincipal })));
 const ClientesList = lazy(() => import('./features/clientes/components/ClientesList').then(m => ({ default: m.ClientesList })));
 const ClienteDetalle = lazy(() => import('./features/clientes/components/ClienteDetalle').then(m => ({ default: m.ClienteDetalle })));
 const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
@@ -45,6 +47,7 @@ function AppContent() {
   const navigate = useNavigate();
 
   const menuItems = [
+    { id: 'dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Dashboard' },
     { id: 'prospectos', path: '/prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
     { id: 'propiedades', path: '/propiedades', icon: <Home className="h-5 w-5" />, label: 'Propiedades' },
     { id: 'kpis', path: '/kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
@@ -167,9 +170,10 @@ function AppContent() {
         </header>
 
         {/* Page Content */}
-        <main className="p-8 w-full max-w-full">
+        <main className="p-8 w-full max-full">
           <Suspense fallback={<PageLoader />}>
             <Routes>
+              <Route path="/" element={<DashboardPrincipal />} />
               <Route path="/prospectos" element={<ClientesList />} />
               <Route path="/prospectos/:id" element={<ClienteDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
@@ -180,7 +184,6 @@ function AppContent() {
                   <p className="text-sm">Esta funcionalidad estará disponible en la próxima actualización.</p>
                 </div>
               } />
-              <Route path="/" element={<Navigate to="/prospectos" replace />} />
             </Routes>
           </Suspense>
         </main>
