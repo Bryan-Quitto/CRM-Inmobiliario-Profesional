@@ -3,6 +3,7 @@ using CRM_Inmobiliario.Api.Features.Clientes;
 using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Features.Interacciones;
+using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Supabase;
@@ -89,5 +90,8 @@ app.MapCancelarTareaEndpoint();
 app.MapRegistrarInteraccionEndpoint();
 app.MapActualizarInteraccionEndpoint();
 app.MapEliminarInteraccionEndpoint();
+
+// Dashboard
+app.MapObtenerKpisEndpoint();
 
 app.Run();
