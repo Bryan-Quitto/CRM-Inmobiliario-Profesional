@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toast } from 'sonner';
+import { supabase } from './supabase';
 
 export const api = axios.create({
   baseURL: 'http://localhost:5164/api',
@@ -7,6 +8,21 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 15000, // 15 segundos de timeout
+});
+
+// Interceptor para inyectar el token JWT de Supabase
+api.interceptors.request.use(async (config) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session?.access_token) {
+      config.headers.Authorization = `Bearer ${session.access_token}`;
+    }
+  } catch (error) {
+    console.error('Error al obtener la sesión de Supabase:', error);
+  }
+  
+  return config;
 });
 
 api.interceptors.response.use(

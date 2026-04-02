@@ -1,10 +1,14 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { TareasProvider } from './features/tareas/context/TareasProvider';
 import { useTareas } from './features/tareas/context/useTareas';
 import { UploadProvider } from './features/propiedades/context/UploadProvider';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { NetworkStatusListener } from './components/NetworkStatusListener';
+import { supabase } from './lib/supabase';
+import { LoginForm } from './features/auth/components/LoginForm';
+import { toast } from 'sonner';
+import type { Session } from '@supabase/supabase-js';
 import { 
   Users, 
   Home, 
@@ -39,7 +43,7 @@ const SidebarLoader = () => (
   </div>
 );
 
-function AppContent() {
+function AppContent({ session }: { session: Session | null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAgendaOpen, setIsAgendaOpen] = useState(true);
   const { urgentesCount } = useTareas();
@@ -47,13 +51,25 @@ function AppContent() {
   const navigate = useNavigate();
 
   const menuItems = [
-    { id: 'dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Dashboard' },
+    { id: 'dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Inicio' },
     { id: 'prospectos', path: '/prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
     { id: 'propiedades', path: '/propiedades', icon: <Home className="h-5 w-5" />, label: 'Propiedades' },
     { id: 'kpis', path: '/kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success('Sesión cerrada correctamente');
+    } catch {
+      toast.error('Error al cerrar sesión');
+    }
+  };
+
+  const userEmail = session?.user?.email || 'Agente Demo';
+  const userInitial = userEmail.substring(0, 1).toUpperCase();
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
@@ -109,6 +125,7 @@ function AppContent() {
             {isSidebarOpen && <span className="text-sm font-bold">Configuración</span>}
           </button>
           <button 
+            onClick={handleLogout}
             aria-label="Cerrar Sesión"
             className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-rose-500/10 hover:text-rose-400 transition-all group relative cursor-pointer"
           >
@@ -159,11 +176,11 @@ function AppContent() {
             <div className="h-8 w-px bg-slate-200"></div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-black text-slate-900">Agente Demo</p>
-                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Admin Global</p>
+                <p className="text-sm font-black text-slate-900">{userEmail.split('@')[0]}</p>
+                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Agente Activo</p>
               </div>
-              <div className="h-10 w-10 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm">
-                AD
+              <div className="h-10 w-10 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm uppercase">
+                {userInitial}
               </div>
             </div>
           </div>
@@ -216,12 +233,48 @@ function AppContent() {
 }
 
 function App() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Obtener sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    // Escuchar cambios en la autenticación
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <GlobalErrorBoundary>
+        <LoginForm />
+      </GlobalErrorBoundary>
+    );
+  }
+
   return (
     <GlobalErrorBoundary>
       <NetworkStatusListener />
       <TareasProvider>
         <UploadProvider>
-          <AppContent />
+          <AppContent session={session} />
         </UploadProvider>
       </TareasProvider>
     </GlobalErrorBoundary>
