@@ -12,7 +12,7 @@ public static class CambiarEtapaClienteFeature
 
     public static void MapCambiarEtapaClienteEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPatch("/api/clientes/{id:guid}/etapa", async (Guid id, Command command, CrmDbContext context) =>
+        app.MapPatch("/clientes/{id:guid}/etapa", async (Guid id, Command command, CrmDbContext context) =>
         {
             // Validación básica de etapa permitida
             var etapasPermitidas = new[] { "Nuevo", "Contactado", "En Negociación", "Cerrado", "Perdido" };

@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -37,10 +39,12 @@ public static class ObtenerClientePorIdFeature
 
     public static void MapObtenerClientePorIdEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/clientes/{id:guid}", async (Guid id, CrmDbContext context) =>
+        app.MapGet("/clientes/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
         {
+            var agenteId = user.GetRequiredUserId();
+
             var cliente = await context.Leads
-                .Where(c => c.Id == id)
+                .Where(c => c.Id == id && c.AgenteId == agenteId)
                 .Select(c => new Response(
                     c.Id,
                     c.Nombre,

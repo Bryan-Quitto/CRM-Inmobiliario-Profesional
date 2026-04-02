@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -11,18 +13,27 @@ public static class LimpiarImagenesPropiedadFeature
 {
     public static void MapLimpiarImagenesPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/propiedades/{propiedadId}/imagenes/limpiar", async (
+        app.MapDelete("/propiedades/{propiedadId}/imagenes/limpiar", async (
             [FromRoute] Guid propiedadId,
+            ClaimsPrincipal user,
             CrmDbContext context,
             Supabase.Client supabase,
             CancellationToken ct,
             ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("LimpiarImagenesPropiedad");
+            var agenteId = user.GetRequiredUserId();
             logger.LogInformation("Iniciando limpieza de imágenes no principales para la propiedad {PropiedadId}", propiedadId);
 
             try
             {
+                // 0. Verificar que la propiedad pertenece al agente
+                var propiedadExists = await context.Properties
+                    .AnyAsync(p => p.Id == propiedadId && p.AgenteId == agenteId, ct);
+
+                if (!propiedadExists)
+                    return Results.NotFound("La propiedad no existe o no pertenece a este agente.");
+
                 // 1. Obtener las rutas de almacenamiento de las imágenes que NO son principales
                 var storagePaths = await context.PropertyMedia
                     .Where(m => m.PropiedadId == propiedadId && !m.EsPrincipal && !string.IsNullOrEmpty(m.StoragePath))

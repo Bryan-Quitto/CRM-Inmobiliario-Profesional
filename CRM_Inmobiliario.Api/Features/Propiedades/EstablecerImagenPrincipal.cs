@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -11,13 +13,23 @@ public static class EstablecerImagenPrincipalFeature
 {
     public static void MapEstablecerImagenPrincipalEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPatch("/api/propiedades/{propiedadId:guid}/imagenes/{imagenId:guid}/principal", async (
+        app.MapPatch("/propiedades/{propiedadId:guid}/imagenes/{imagenId:guid}/principal", async (
             [FromRoute] Guid propiedadId,
             [FromRoute] Guid imagenId,
+            ClaimsPrincipal user,
             CrmDbContext context) =>
         {
+            var agenteId = user.GetRequiredUserId();
+
             try 
             {
+                // Verificar que la propiedad pertenezca al agente
+                var propiedadExiste = await context.Properties
+                    .AnyAsync(p => p.Id == propiedadId && p.AgenteId == agenteId);
+
+                if (!propiedadExiste)
+                    return Results.NotFound("Propiedad no encontrada o no tiene permisos.");
+
                 // Realizamos TODA la actualización en una sola sentencia SQL atómica.
                 // Ponemos EsPrincipal = true si el ID coincide, y false si no coincide.
                 var filasAfectadas = await context.PropertyMedia
@@ -25,7 +37,7 @@ public static class EstablecerImagenPrincipalFeature
                     .ExecuteUpdateAsync(s => s.SetProperty(m => m.EsPrincipal, m => m.Id == imagenId));
 
                 if (filasAfectadas == 0)
-                    return Results.NotFound("No se encontraron imágenes para esta propiedad.");
+                    return Results.NotFound("No se encontró la imagen especificada.");
 
                 return Results.Ok(new { Message = "Imagen de portada actualizada correctamente." });
             }

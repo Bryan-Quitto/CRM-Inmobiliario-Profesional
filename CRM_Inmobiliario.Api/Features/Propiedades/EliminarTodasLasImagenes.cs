@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -11,18 +13,27 @@ public static class EliminarTodasLasImagenesFeature
 {
     public static void MapEliminarTodasLasImagenesEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/propiedades/{propiedadId}/imagenes", async (
+        app.MapDelete("/propiedades/{propiedadId}/imagenes", async (
             [FromRoute] Guid propiedadId,
+            ClaimsPrincipal user,
             CrmDbContext context,
             Supabase.Client supabase,
             CancellationToken ct,
             ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("EliminarTodasLasImagenes");
+            var agenteId = user.GetRequiredUserId();
             logger.LogInformation("Iniciando eliminación de todas las imágenes para la propiedad {PropiedadId}", propiedadId);
 
             try
             {
+                // 0. Verificar que la propiedad pertenece al agente
+                var propiedad = await context.Properties
+                    .FirstOrDefaultAsync(p => p.Id == propiedadId && p.AgenteId == agenteId, ct);
+                
+                if (propiedad == null)
+                    return Results.NotFound("La propiedad no existe o no pertenece a este agente.");
+
                 // 1. Obtener primero las rutas de almacenamiento para poder borrar del Storage después
                 var storagePaths = await context.PropertyMedia
                     .Where(m => m.PropiedadId == propiedadId && !string.IsNullOrEmpty(m.StoragePath))
