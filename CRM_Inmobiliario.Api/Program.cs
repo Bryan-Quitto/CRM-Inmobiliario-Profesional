@@ -8,6 +8,8 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Supabase;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 // Cargar variables de entorno desde el archivo .env en la raíz del proyecto
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
@@ -30,6 +32,30 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
 
     return new Supabase.Client(url, key, new SupabaseOptions { AutoConnectRealtime = true });
 });
+// Configuración de Autenticación JWT (Supabase con llaves rotativas)
+var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? builder.Configuration["Supabase:Url"]!;
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    // Con Authority, .NET descarga automáticamente el JWKS desde {supabaseUrl}/auth/v1/.well-known/jwks.json
+    options.Authority = $"{supabaseUrl}/auth/v1";
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = $"{supabaseUrl}/auth/v1",
+        ValidateAudience = true,
+        ValidAudience = "authenticated",
+        ValidateLifetime = true,
+        // Al usar Authority/JWKS, .NET gestiona la rotación de llaves automáticamente
+    };
+});
+
+
+builder.Services.AddAuthorization();
 
 // Configuración de CORS para el Frontend (Vite default: http://localhost:5173)
 builder.Services.AddCors(options =>
@@ -58,40 +84,46 @@ app.UseHttpsRedirection();
 
 app.UseCors("FrontendPolicy");
 
-// Registro de Features (Vertical Slice)
-app.MapRegistrarClienteEndpoint();
-app.MapListarClientesEndpoint();
-app.MapObtenerClientePorIdEndpoint();
-app.MapCambiarEtapaClienteEndpoint();
-app.MapVincularPropiedadEndpoint();
-app.MapDesvincularPropiedadEndpoint();
+// Middlewares de Autenticación y Autorización
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Registro de Features (Vertical Slice) con protección global
+var apiGroup = app.MapGroup("/api").RequireAuthorization();
+
+apiGroup.MapRegistrarClienteEndpoint();
+apiGroup.MapListarClientesEndpoint();
+apiGroup.MapObtenerClientePorIdEndpoint();
+apiGroup.MapCambiarEtapaClienteEndpoint();
+apiGroup.MapVincularPropiedadEndpoint();
+apiGroup.MapDesvincularPropiedadEndpoint();
 
 // Propiedades
-app.MapRegistrarPropiedadEndpoint();
-app.MapListarPropiedadesEndpoint();
-app.MapObtenerPropiedadPorIdEndpoint();
-app.MapCambiarEstadoPropiedadEndpoint();
-app.MapSubirImagenPropiedadEndpoint();
-app.MapEstablecerImagenPrincipalEndpoint();
-app.MapEliminarImagenPropiedadEndpoint();
-app.MapEliminarTodasLasImagenesEndpoint();
-app.MapEliminarImagenesSeleccionadasEndpoint();
-app.MapLimpiarImagenesPropiedadEndpoint();
+apiGroup.MapRegistrarPropiedadEndpoint();
+apiGroup.MapListarPropiedadesEndpoint();
+apiGroup.MapObtenerPropiedadPorIdEndpoint();
+apiGroup.MapCambiarEstadoPropiedadEndpoint();
+apiGroup.MapSubirImagenPropiedadEndpoint();
+apiGroup.MapEstablecerImagenPrincipalEndpoint();
+apiGroup.MapEliminarImagenPropiedadEndpoint();
+apiGroup.MapEliminarTodasLasImagenesEndpoint();
+apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
+apiGroup.MapLimpiarImagenesPropiedadEndpoint();
 
 // Tareas
-app.MapRegistrarTareaEndpoint();
-app.MapListarTareasEndpoint();
-app.MapCompletarTareaEndpoint();
-app.MapObtenerTareaPorIdEndpoint();
-app.MapActualizarTareaEndpoint();
-app.MapCancelarTareaEndpoint();
+apiGroup.MapRegistrarTareaEndpoint();
+apiGroup.MapListarTareasEndpoint();
+apiGroup.MapCompletarTareaEndpoint();
+apiGroup.MapObtenerTareaPorIdEndpoint();
+apiGroup.MapActualizarTareaEndpoint();
+apiGroup.MapCancelarTareaEndpoint();
 
 // Interacciones
-app.MapRegistrarInteraccionEndpoint();
-app.MapActualizarInteraccionEndpoint();
-app.MapEliminarInteraccionEndpoint();
+apiGroup.MapRegistrarInteraccionEndpoint();
+apiGroup.MapActualizarInteraccionEndpoint();
+apiGroup.MapEliminarInteraccionEndpoint();
 
 // Dashboard
-app.MapObtenerKpisEndpoint();
+apiGroup.MapObtenerKpisEndpoint();
 
 app.Run();

@@ -78,6 +78,7 @@ secrets.json
 *.sqlite3
 
 # --- [ Miscellaneous ] ---
+.gemini/
 *.log
 *.tmp
 *.bak
