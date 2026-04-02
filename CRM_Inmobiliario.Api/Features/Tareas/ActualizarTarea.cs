@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -18,23 +20,29 @@ public static class ActualizarTareaFeature
 
     public static void MapActualizarTareaEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/tareas/{id:guid}", async (Guid id, Command command, CrmDbContext context) =>
+        app.MapPut("/tareas/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            var tarea = await context.Tasks.FindAsync(id);
+            var agenteId = user.GetRequiredUserId();
+
+            var tarea = await context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id && t.AgenteId == agenteId);
+            
             if (tarea is null) return Results.NotFound();
 
-            // Validar existencia de cliente si se provee
+            // Validar existencia de cliente si se provee y que pertenezca al agente
             if (command.ClienteId.HasValue)
             {
-                var cliente = await context.Leads.FindAsync(command.ClienteId.Value);
-                if (cliente is null) return Results.BadRequest("El cliente especificado no existe.");
+                var cliente = await context.Leads
+                    .AnyAsync(l => l.Id == command.ClienteId.Value && l.AgenteId == agenteId);
+                if (!cliente) return Results.BadRequest("El cliente especificado no existe o no te pertenece.");
             }
 
-            // Validar existencia de propiedad si se provee
+            // Validar existencia de propiedad si se provee y que pertenezca al agente
             if (command.PropiedadId.HasValue)
             {
-                var propiedad = await context.Properties.FindAsync(command.PropiedadId.Value);
-                if (propiedad is null) return Results.BadRequest("La propiedad especificada no existe.");
+                var propiedad = await context.Properties
+                    .AnyAsync(p => p.Id == command.PropiedadId.Value && p.AgenteId == agenteId);
+                if (!propiedad) return Results.BadRequest("La propiedad especificada no existe o no te pertenece.");
             }
 
             tarea.Titulo = command.Titulo;

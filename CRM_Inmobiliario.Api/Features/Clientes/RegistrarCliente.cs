@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -12,8 +14,10 @@ public static class RegistrarClienteFeature
 
     public static void MapRegistrarClienteEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/clientes", async (Command command, CrmDbContext context) =>
+        app.MapPost("/clientes", async (Command command, ClaimsPrincipal user, CrmDbContext context) =>
         {
+            var agenteId = user.GetRequiredUserId();
+
             var lead = new Lead
             {
                 Id = Guid.NewGuid(),
@@ -23,13 +27,14 @@ public static class RegistrarClienteFeature
                 Telefono = command.Telefono,
                 Origen = command.Origen,
                 EtapaEmbudo = "Nuevo", // Valor por defecto según requerimiento
+                AgenteId = agenteId,
                 FechaCreacion = DateTimeOffset.UtcNow
             };
 
             context.Leads.Add(lead);
             await context.SaveChangesAsync();
 
-            return Results.Created($"/api/clientes/{lead.Id}", lead);
+            return Results.Created($"/clientes/{lead.Id}", lead);
         })
         .WithTags("Clientes")
         .WithName("RegistrarCliente");

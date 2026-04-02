@@ -1,8 +1,11 @@
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Interacciones;
 
@@ -22,10 +25,14 @@ public static class RegistrarInteraccionFeature
 
     public static void MapRegistrarInteraccionEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/interacciones", async (Command command, CrmDbContext context) =>
+        app.MapPost("/interacciones", async (Command command, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            var cliente = await context.Leads.FindAsync(command.ClienteId);
-            if (cliente is null) return Results.BadRequest("El cliente especificado no existe.");
+            var agenteId = user.GetRequiredUserId();
+
+            var cliente = await context.Leads
+                .FirstOrDefaultAsync(l => l.Id == command.ClienteId && l.AgenteId == agenteId);
+
+            if (cliente is null) return Results.BadRequest("El cliente especificado no existe o no te pertenece.");
 
             var interaccion = new Interaction
             {
@@ -34,7 +41,7 @@ public static class RegistrarInteraccionFeature
                 TipoInteraccion = command.TipoInteraccion,
                 Notas = command.Notas,
                 FechaInteraccion = DateTimeOffset.UtcNow,
-                AgenteId = null // Asumido para MVP por ahora
+                AgenteId = agenteId
             };
 
             context.Interactions.Add(interaccion);
@@ -47,7 +54,7 @@ public static class RegistrarInteraccionFeature
                 interaccion.Notas,
                 interaccion.FechaInteraccion);
 
-            return Results.Created($"/api/interacciones/{interaccion.Id}", response);
+            return Results.Created($"/interacciones/{interaccion.Id}", response);
         })
         .WithTags("Interacciones")
         .WithName("RegistrarInteraccion");

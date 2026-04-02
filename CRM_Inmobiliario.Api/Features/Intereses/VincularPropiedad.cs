@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -13,22 +15,24 @@ public static class VincularPropiedadFeature
 
     public static void MapVincularPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/clientes/{clienteId:guid}/intereses", async (Guid clienteId, Request request, CrmDbContext context) =>
+        app.MapPost("/clientes/{clienteId:guid}/intereses", async (Guid clienteId, Request request, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            // 1. Obtener toda la información necesaria en UN SOLO round-trip
+            var agenteId = user.GetRequiredUserId();
+
+            // 1. Obtener toda la información necesaria en UN SOLO round-trip y validar pertenencia
             var data = await context.Leads
-                .Where(l => l.Id == clienteId)
+                .Where(l => l.Id == clienteId && l.AgenteId == agenteId)
                 .Select(l => new
                 {
                     ClienteExiste = true,
-                    PropiedadExiste = context.Properties.Any(p => p.Id == request.PropiedadId),
+                    PropiedadExiste = context.Properties.Any(p => p.Id == request.PropiedadId && p.AgenteId == agenteId),
                     InteresExistente = context.LeadPropertyInterests
                         .FirstOrDefault(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId)
                 })
                 .FirstOrDefaultAsync();
 
-            if (data is null) return Results.NotFound("Cliente no encontrado.");
-            if (!data.PropiedadExiste) return Results.NotFound("Propiedad no encontrada.");
+            if (data is null) return Results.NotFound("Cliente no encontrado o no te pertenece.");
+            if (!data.PropiedadExiste) return Results.NotFound("Propiedad no encontrada o no te pertenece.");
 
             // 2. Validar nivel de interés
             var nivelesValidos = new[] { "Alto", "Medio", "Bajo", "Descartada" };

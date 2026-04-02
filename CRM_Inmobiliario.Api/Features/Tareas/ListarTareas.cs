@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -20,11 +22,14 @@ public static class ListarTareasFeature
 
     public static void MapListarTareasEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/tareas", async (CrmDbContext context) =>
+        app.MapGet("/tareas", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
+            var agenteId = user.GetRequiredUserId();
+
             var tareas = await context.Tasks
                 .Include(t => t.Cliente)
                 .Include(t => t.Propiedad)
+                .Where(t => t.AgenteId == agenteId)
                 .OrderBy(t => t.FechaVencimiento)
                 .Select(t => new Response(
                     t.Id,

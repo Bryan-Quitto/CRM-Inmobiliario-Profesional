@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -12,22 +14,25 @@ public static class SubirImagenPropiedadFeature
 {
     public static void MapSubirImagenPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/propiedades/{id}/imagenes", async (
+        app.MapPost("/propiedades/{id}/imagenes", async (
             [FromRoute] Guid id,
             IFormFile file,
+            ClaimsPrincipal user,
             CrmDbContext context,
             Supabase.Client supabase) =>
         {
+            var agenteId = user.GetRequiredUserId();
+
             if (file == null || file.Length == 0)
                 return Results.BadRequest("No se proporcionó ningún archivo.");
 
-            // 1. Verificar si la propiedad existe
+            // 1. Verificar si la propiedad existe y pertenece al agente
             var propiedad = await context.Properties
                 .Include(p => p.Media)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id && p.AgenteId == agenteId);
 
             if (propiedad == null)
-                return Results.NotFound("Propiedad no encontrada.");
+                return Results.NotFound("Propiedad no encontrada o no tiene permisos.");
 
             // 2. Validar extensión de imagen
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();

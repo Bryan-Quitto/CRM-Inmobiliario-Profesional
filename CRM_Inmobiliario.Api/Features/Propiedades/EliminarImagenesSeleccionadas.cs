@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -11,15 +13,17 @@ public static class EliminarImagenesSeleccionadasFeature
 {
     public static void MapEliminarImagenesSeleccionadasEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/propiedades/{propiedadId}/imagenes/seleccion", async (
+        app.MapDelete("/propiedades/{propiedadId}/imagenes/seleccion", async (
             [FromRoute] Guid propiedadId,
             [FromBody] List<Guid> ids,
+            ClaimsPrincipal user,
             CrmDbContext context,
             Supabase.Client supabase,
             CancellationToken ct,
             ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("EliminarImagenesSeleccionadas");
+            var agenteId = user.GetRequiredUserId();
             
             if (ids == null || ids.Count == 0)
                 return Results.BadRequest("Debe proporcionar al menos un ID de imagen.");
@@ -28,6 +32,13 @@ public static class EliminarImagenesSeleccionadasFeature
 
             try
             {
+                // 0. Verificar que la propiedad pertenece al agente
+                var propiedad = await context.Properties
+                    .FirstOrDefaultAsync(p => p.Id == propiedadId && p.AgenteId == agenteId, ct);
+
+                if (propiedad == null)
+                    return Results.NotFound("La propiedad no existe o no pertenece a este agente.");
+
                 // 1. Obtener las rutas de almacenamiento de las imágenes seleccionadas
                 var storagePaths = await context.PropertyMedia
                     .Where(m => m.PropiedadId == propiedadId && ids.Contains(m.Id) && !string.IsNullOrEmpty(m.StoragePath))

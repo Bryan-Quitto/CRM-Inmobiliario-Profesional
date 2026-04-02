@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -11,18 +13,22 @@ public static class EliminarImagenPropiedadFeature
 {
     public static void MapEliminarImagenPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/propiedades/{propiedadId}/imagenes/{imagenId}", async (
+        app.MapDelete("/propiedades/{propiedadId}/imagenes/{imagenId}", async (
             [FromRoute] Guid propiedadId,
             [FromRoute] Guid imagenId,
+            ClaimsPrincipal user,
             CrmDbContext context,
             Supabase.Client supabase) =>
         {
-            // 1. Buscar el registro de la imagen en la base de datos
+            var agenteId = user.GetRequiredUserId();
+
+            // 1. Buscar el registro de la imagen y verificar pertenencia de la propiedad al agente
             var media = await context.PropertyMedia
-                .FirstOrDefaultAsync(m => m.Id == imagenId && m.PropiedadId == propiedadId);
+                .Include(m => m.Propiedad)
+                .FirstOrDefaultAsync(m => m.Id == imagenId && m.PropiedadId == propiedadId && m.Propiedad!.AgenteId == agenteId);
 
             if (media == null)
-                return Results.NotFound("La imagen no existe o no pertenece a esta propiedad.");
+                return Results.NotFound("La imagen no existe o la propiedad no pertenece a este agente.");
 
             try
             {

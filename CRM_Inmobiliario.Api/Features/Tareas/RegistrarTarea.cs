@@ -1,8 +1,11 @@
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Tareas;
 
@@ -18,20 +21,26 @@ public static class RegistrarTareaFeature
 
     public static void MapRegistrarTareaEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/tareas", async (Command command, CrmDbContext context) =>
+        app.MapPost("/tareas", async (Command command, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            // Validar existencia de cliente si se provee
+            var agenteId = user.GetRequiredUserId();
+
+            // Validar existencia de cliente si se provee y que pertenezca al agente
             if (command.ClienteId.HasValue)
             {
-                var cliente = await context.Leads.FindAsync(command.ClienteId.Value);
-                if (cliente is null) return Results.BadRequest("El cliente especificado no existe.");
+                var cliente = await context.Leads
+                    .FirstOrDefaultAsync(l => l.Id == command.ClienteId.Value && l.AgenteId == agenteId);
+                
+                if (cliente is null) return Results.BadRequest("El cliente especificado no existe o no te pertenece.");
             }
 
-            // Validar existencia de propiedad si se provee
+            // Validar existencia de propiedad si se provee y que pertenezca al agente
             if (command.PropiedadId.HasValue)
             {
-                var propiedad = await context.Properties.FindAsync(command.PropiedadId.Value);
-                if (propiedad is null) return Results.BadRequest("La propiedad especificada no existe.");
+                var propiedad = await context.Properties
+                    .FirstOrDefaultAsync(p => p.Id == command.PropiedadId.Value && p.AgenteId == agenteId);
+
+                if (propiedad is null) return Results.BadRequest("La propiedad especificada no existe o no te pertenece.");
             }
 
             // Crear tarea
@@ -45,15 +54,13 @@ public static class RegistrarTareaFeature
                 ClienteId = command.ClienteId,
                 PropiedadId = command.PropiedadId,
                 Estado = "Pendiente",
-                // Por ahora asignamos null para AgenteId ya que el modelo ahora es opcional
-                // Para este MVP, asumiremos que el agente se manejará después de la autenticación
-                AgenteId = null 
+                AgenteId = agenteId
             };
 
             context.Tasks.Add(tarea);
             await context.SaveChangesAsync();
 
-            return Results.Created($"/api/tareas/{tarea.Id}", tarea);
+            return Results.Created($"/tareas/{tarea.Id}", tarea);
         })
         .WithTags("Tareas")
         .WithName("RegistrarTarea");

@@ -16,9 +16,15 @@ Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de servicios base
+// ConfiguraciÃ³n de servicios base
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpsRedirection(options =>
+{
+    // Usamos el puerto configurado en launchSettings.json (7046) o 443 por defecto
+    options.HttpsPort = 7046;
+});
+
 
 // Configuración de Supabase Client usando variables de entorno
 builder.Services.AddScoped<Supabase.Client>(_ => 
@@ -62,9 +68,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -75,14 +82,14 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
 var app = builder.Build();
 
 // Pipeline de middleware
+app.UseCors("FrontendPolicy");
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("FrontendPolicy");
 
 // Middlewares de Autenticación y Autorización
 app.UseAuthentication();

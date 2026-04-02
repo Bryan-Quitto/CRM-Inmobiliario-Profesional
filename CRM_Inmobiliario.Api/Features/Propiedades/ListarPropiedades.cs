@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -21,9 +23,12 @@ public static class ListarPropiedadesFeature
 
     public static void MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/propiedades", async (CrmDbContext context) =>
+        app.MapGet("/propiedades", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
+            var agenteId = user.GetRequiredUserId();
+
             var propiedades = await context.Properties
+                .Where(p => p.AgenteId == agenteId)
                 .OrderByDescending(p => p.FechaIngreso)
                 .Select(p => new Response(
                     p.Id,

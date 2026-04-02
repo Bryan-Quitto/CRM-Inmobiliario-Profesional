@@ -9,7 +9,8 @@ public sealed class TaskItem
 {
     public Guid Id { get; set; }
 
-    public Guid? AgenteId { get; set; }
+    [Required]
+    public Guid AgenteId { get; set; }
     public Agent? Agente { get; set; }
 
     public Guid? ClienteId { get; set; }

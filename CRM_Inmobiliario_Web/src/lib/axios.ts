@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { supabase } from './supabase';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:5164/api',
+  baseURL: 'https://localhost:7046/api',
   headers: {
     'Content-Type': 'application/json',
   },

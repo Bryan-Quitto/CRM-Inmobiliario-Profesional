@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -21,10 +23,13 @@ public static class ListarClientesFeature
 
     public static void MapListarClientesEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/clientes", async (CrmDbContext context) =>
+        app.MapGet("/clientes", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
+            var agenteId = user.GetRequiredUserId();
+
             var clientes = await context.Leads
                 .AsNoTracking()
+                .Where(l => l.AgenteId == agenteId)
                 .OrderByDescending(l => l.FechaCreacion)
                 .Select(l => new ClienteResponse(
                     l.Id,
