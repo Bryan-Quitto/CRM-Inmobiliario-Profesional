@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { 
   CheckCircle2, 
   Handshake, 
@@ -8,7 +8,8 @@ import {
   TrendingUp,
   Calendar,
   ChevronDown,
-  Check
+  Check,
+  Target
 } from 'lucide-react';
 import { 
   XAxis, 
@@ -41,8 +42,10 @@ export const AnaliticaView: React.FC = () => {
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  // Helper para generar una llave de cache única por periodo
-  const getCacheKey = () => `${ANALITICA_CACHE_BASE}${anioSeleccionado}_${mesSeleccionado}_${semanaSeleccionada}`;
+  // Helper para generar una llave de cache única por periodo (Memoizado para evitar warnings de lint)
+  const getCacheKey = useCallback(() => {
+    return `${ANALITICA_CACHE_BASE}${anioSeleccionado}_${mesSeleccionado}_${semanaSeleccionada}`;
+  }, [anioSeleccionado, mesSeleccionado, semanaSeleccionada]);
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
@@ -118,7 +121,7 @@ export const AnaliticaView: React.FC = () => {
     };
 
     fetchData();
-  }, [mesSeleccionado, semanaSeleccionada, anioSeleccionado]);
+  }, [mesSeleccionado, semanaSeleccionada, anioSeleccionado, getCacheKey]);
 
   if (loading && !actividad) {
     return (
@@ -152,6 +155,13 @@ export const AnaliticaView: React.FC = () => {
       description: 'En negociación activa'
     },
     {
+      title: 'Captaciones Propias',
+      value: actividad?.captacionesPropias ?? 0,
+      icon: <Target className="h-6 w-6" />,
+      color: 'bg-amber-50 text-amber-600',
+      description: 'Inventario directo'
+    },
+    {
       title: 'Seguimiento Crítico',
       value: seguimiento?.seguimientoRequerido ?? 0,
       icon: <Users className="h-6 w-6" />,
@@ -161,10 +171,10 @@ export const AnaliticaView: React.FC = () => {
   ];
 
   const dataGrafico = [
-    { name: 'S1', visitas: 4, cierres: 1 },
-    { name: 'S2', visitas: 7, cierres: 2 },
-    { name: 'S3', visitas: 5, cierres: actividad?.cierresRealizados ?? 0 },
-    { name: 'S4', visitas: actividad?.visitasCompletadas ?? 0, cierres: 1 },
+    { name: 'S1', visitas: 4, cierres: 1, captaciones: 2 },
+    { name: 'S2', visitas: 7, cierres: 2, captaciones: 1 },
+    { name: 'S3', visitas: 5, cierres: actividad?.cierresRealizados ?? 0, captaciones: actividad?.captacionesPropias ?? 0 },
+    { name: 'S4', visitas: actividad?.visitasCompletadas ?? 0, cierres: 1, captaciones: 3 },
   ];
 
   return (
@@ -249,7 +259,7 @@ export const AnaliticaView: React.FC = () => {
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {kpis.map((kpi, idx) => (
           <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
             <div className={`p-3 rounded-2xl ${kpi.color} w-fit mb-4 group-hover:scale-110 transition-transform`}>
@@ -272,7 +282,7 @@ export const AnaliticaView: React.FC = () => {
               <TrendingUp className="h-5 w-5 text-blue-600" />
               Tendencia de Actividad
             </h3>
-            <p className="text-sm font-medium text-slate-500">Comparativa de visitas vs cierres en el tiempo</p>
+            <p className="text-sm font-medium text-slate-500">Comparativa de visitas vs cierres vs captaciones en el tiempo</p>
           </div>
           <div className="hidden sm:flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -282,6 +292,10 @@ export const AnaliticaView: React.FC = () => {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500"></div>
               <span className="text-[10px] font-bold text-slate-500 uppercase">Cierres</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase">Captaciones</span>
             </div>
           </div>
         </div>
@@ -297,6 +311,10 @@ export const AnaliticaView: React.FC = () => {
                 <linearGradient id="colorCierres" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorCaptaciones" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -333,6 +351,14 @@ export const AnaliticaView: React.FC = () => {
                 strokeWidth={3}
                 fillOpacity={1} 
                 fill="url(#colorCierres)" 
+              />
+              <Area 
+                type="monotone" 
+                dataKey="captaciones" 
+                stroke="#f59e0b" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorCaptaciones)" 
               />
             </AreaChart>
           </ResponsiveContainer>

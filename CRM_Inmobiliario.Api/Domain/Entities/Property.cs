@@ -51,6 +51,9 @@ public sealed class Property
     public string EstadoComercial { get; set; } = "Disponible";
 
     [Required]
+    public bool EsCaptacionPropia { get; set; } = true;
+
+    [Required]
     public Guid AgenteId { get; set; }
     public Agent? Agente { get; set; }
 

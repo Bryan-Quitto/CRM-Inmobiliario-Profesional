@@ -420,6 +420,25 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
               />
             </div>
           </div>
+
+          {/* Captación Propia Toggle - Full Width */}
+          <div className="md:col-span-6">
+            <label className="flex items-center gap-3 p-4 bg-blue-50/50 border-2 border-blue-100/50 rounded-[24px] cursor-pointer hover:bg-blue-50 transition-all group">
+              <div className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  {...register('esCaptacionPropia')} 
+                  className="sr-only peer"
+                  defaultChecked={true}
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
+              </div>
+              <div>
+                <span className="text-xs font-black text-slate-900 uppercase tracking-tight block">¿Es una captación propia?</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block opacity-70">Marca esta opción si tú gestionaste el ingreso directo del inmueble</span>
+              </div>
+            </label>
+          </div>
         </div>
 
         <div className="pt-8 flex items-center gap-3">

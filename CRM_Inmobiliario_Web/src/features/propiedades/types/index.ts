@@ -21,6 +21,7 @@ export interface Propiedad {
   banos: number;
   areaTotal: number;
   estadoComercial: string;
+  esCaptacionPropia: boolean;
   fechaIngreso: string;
   media?: MultimediaPropiedad[];
   imagenPortadaUrl?: string;

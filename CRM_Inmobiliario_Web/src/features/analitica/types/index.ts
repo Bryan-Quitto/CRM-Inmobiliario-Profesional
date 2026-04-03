@@ -2,6 +2,7 @@ export interface ActividadAnalitica {
   visitasCompletadas: number;
   cierresRealizados: number;
   ofertasGeneradas: number;
+  captacionesPropias: number;
 }
 
 export interface SeguimientoAnalitica {

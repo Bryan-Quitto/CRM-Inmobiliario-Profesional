@@ -11,7 +11,8 @@ namespace CRM_Inmobiliario.Api.Features.Analitica;
 public record ActividadResponse(
     int VisitasCompletadas,
     int CierresRealizados,
-    int OfertasGeneradas
+    int OfertasGeneradas,
+    int CaptacionesPropias
 );
 
 public static class ObtenerActividadEndpoint
@@ -34,7 +35,6 @@ public static class ObtenerActividadEndpoint
                                  t.FechaInicio >= inicio && t.FechaInicio <= fin);
 
             // B. Cierres Realizados: Leads en etapa "Cerrado" o "Ganado"
-            // Nota: Usamos FechaCierre si está disponible, sino FechaCreacion (como fallback temporal)
             var cierres = await context.Leads
                 .CountAsync(l => l.AgenteId == agenteId && 
                                  (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && 
@@ -47,7 +47,13 @@ public static class ObtenerActividadEndpoint
                                  l.EtapaEmbudo == "En Negociación" && 
                                  l.FechaCreacion >= inicio && l.FechaCreacion <= fin);
 
-            return Results.Ok(new ActividadResponse(visitas, cierres, ofertas));
+            // E. Captaciones Propias: Propiedades del Agente marcadas como propias en el rango
+            var captaciones = await context.Properties
+                .CountAsync(p => p.AgenteId == agenteId && 
+                                 p.EsCaptacionPropia && 
+                                 p.FechaIngreso >= inicio && p.FechaIngreso <= fin);
+
+            return Results.Ok(new ActividadResponse(visitas, cierres, ofertas, captaciones));
         })
         .WithTags("Analitica")
         .WithName("ObtenerActividad");
