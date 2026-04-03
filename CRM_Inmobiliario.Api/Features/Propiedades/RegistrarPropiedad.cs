@@ -21,7 +21,8 @@ public static class RegistrarPropiedadFeature
         string Ciudad,
         int Habitaciones,
         decimal Banos,
-        decimal AreaTotal);
+        decimal AreaTotal,
+        bool EsCaptacionPropia = true);
 
     public static void MapRegistrarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -44,6 +45,7 @@ public static class RegistrarPropiedadFeature
                 Banos = command.Banos,
                 AreaTotal = command.AreaTotal,
                 EstadoComercial = "Disponible",
+                EsCaptacionPropia = command.EsCaptacionPropia,
                 AgenteId = agenteId,
                 FechaIngreso = DateTimeOffset.UtcNow
             };
