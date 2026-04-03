@@ -5,10 +5,35 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { toast } from 'sonner';
 import type { CalendarEvent } from '../types';
+import type { Tarea } from '../../tareas/types';
 import { getEventos } from '../api/getEventos';
 import { reprogramarEvento } from '../api/reprogramarEvento';
-import { Calendar, Loader2, Plus, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
-import type { DatesSetArg, EventChangeArg, EventClickArg, EventMountArg } from '@fullcalendar/core';
+import { 
+  Calendar, 
+  Loader2, 
+  Plus, 
+  ChevronLeft, 
+  ChevronRight, 
+  Maximize2, 
+  Minimize2,
+  Phone,
+  MapPin,
+  Users,
+  Briefcase,
+  CheckCircle2,
+  Clock,
+  XCircle
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import type { DatesSetArg, EventChangeArg, EventClickArg, EventContentArg, EventMountArg } from '@fullcalendar/core';
+
+// Mapeo de iconos por tipo de tarea con tipado fuerte
+const TIPO_ICONS: Record<string, LucideIcon> = {
+  'Llamada': Phone,
+  'Visita': MapPin,
+  'Reunión': Users,
+  'Trámite': Briefcase,
+};
 
 // Carga perezosa de los formularios de tareas para no penalizar el calendario
 const CrearTareaForm = React.lazy(() => import('../../tareas/components/CrearTareaForm').then(m => ({ default: m.CrearTareaForm })));
@@ -121,17 +146,70 @@ const CalendarioView: React.FC = () => {
     title: e.titulo,
     start: e.fechaInicio,
     end: new Date(new Date(e.fechaInicio).getTime() + (e.duracionMinutos * 60000)).toISOString(),
-    backgroundColor: e.estado === 'Completada' ? '#94a3b8' : (e.colorHex || '#3b82f6'),
-    borderColor: e.estado === 'Completada' ? '#94a3b8' : (e.colorHex || '#3b82f6'),
-    editable: e.estado === 'Pendiente', // Solo tareas pendientes son editables/movibles
+    // Usamos el color original para el borde y un tono muy suave para el fondo
+    backgroundColor: e.estado === 'Completada' ? '#f1f5f9' : `${e.colorHex || '#3b82f6'}15`,
+    borderColor: e.estado === 'Completada' ? '#cbd5e1' : (e.colorHex || '#3b82f6'),
+    textColor: '#0f172a', // Slate-900 para máximo contraste
+    editable: e.estado === 'Pendiente',
     classNames: [
-      'rounded-lg border-none px-2 py-1 text-[11px] font-bold shadow-sm transition-all cursor-pointer',
-      e.estado !== 'Pendiente' ? 'opacity-60 grayscale-[0.3]' : 'hover:scale-[1.02] hover:shadow-md'
+      'rounded-md border-l-4 shadow-sm transition-all cursor-pointer !border-y-0 !border-r-0',
+      e.estado !== 'Pendiente' ? 'opacity-70' : 'hover:shadow-md hover:bg-opacity-100'
     ],
     extendedProps: { ...e },
-    // Tooltip nativo para legibilidad rápida
     description: e.titulo 
   }));
+
+  // Renderizado personalizado del contenido del evento
+  const renderEventContent = (eventInfo: EventContentArg) => {
+    const props = eventInfo.event.extendedProps as CalendarEvent;
+    const isCompleted = props.estado === 'Completada';
+    const isCancelled = props.estado === 'Cancelada';
+    const isOverdue = !isCompleted && !isCancelled && new Date(props.fechaInicio) < new Date();
+    
+    // El color de los iconos y texto importante será el color de la tarea (o slate si es completada)
+    const activeColor = isCompleted ? '#64748b' : (props.colorHex || '#3b82f6');
+    
+    // Selección de icono principal
+    let StatusIcon = TIPO_ICONS[props.tipoTarea] || Clock;
+    if (isCompleted) StatusIcon = CheckCircle2;
+    if (isCancelled) StatusIcon = XCircle;
+
+    return (
+      <div className={`flex flex-col w-full h-full p-1.5 gap-0.5 overflow-hidden ${isCompleted ? 'line-through decoration-slate-400' : ''}`}>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <StatusIcon size={12} style={{ color: activeColor }} className="shrink-0" />
+          <span className="truncate leading-none uppercase tracking-tight font-black text-slate-900 text-[10px]">
+            {eventInfo.event.title}
+          </span>
+        </div>
+        
+        {/* Info extra optimizada para contraste */}
+        {(eventInfo.view.type !== 'dayGridMonth' || props.duracionMinutos > 45) && (
+          <div className="flex flex-col gap-0.5 mt-0.5 font-bold overflow-hidden opacity-80">
+            {props.clienteNombre && (
+              <div className="flex items-center gap-1 truncate text-[9px] text-slate-600">
+                <Users size={10} className="shrink-0" />
+                <span className="truncate">{props.clienteNombre}</span>
+              </div>
+            )}
+            {props.propiedadTitulo && (
+              <div className="flex items-center gap-1 truncate text-[9px] text-slate-600">
+                <MapPin size={10} className="shrink-0" />
+                <span className="truncate">{props.propiedadTitulo}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Alerta de vencido simplificada */}
+        {isOverdue && (
+          <div className="absolute top-1 right-1 flex h-1.5 w-1.5">
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Manejador de renderizado de evento para añadir el tooltip
   const handleEventDidMount = (info: EventMountArg) => {
@@ -141,10 +219,8 @@ const CalendarioView: React.FC = () => {
   // Manejador de clic en un evento
   const handleEventClick = (arg: EventClickArg) => {
     const { event } = arg;
-    if (event.extendedProps.estado !== 'Pendiente') {
-      toast.info('Este evento ya está finalizado y es de solo lectura.');
-      return;
-    }
+    // Permitimos abrir el formulario para todas las tareas, 
+    // EditarTareaForm ya gestiona el estado isReadOnly internamente.
     setEditingTareaId(event.id);
   };
 
@@ -297,6 +373,7 @@ const CalendarioView: React.FC = () => {
             eventResize={handleEventChange}
             eventClick={handleEventClick}
             dayCellContent={renderDayCell}
+            eventContent={renderEventContent}
             eventDidMount={handleEventDidMount}
             select={handleSelect}
             timeZone="local"
@@ -327,6 +404,7 @@ const CalendarioView: React.FC = () => {
               {editingTareaId && (
                 <EditarTareaForm 
                   tareaId={editingTareaId} 
+                  initialData={eventos.find(e => e.id === editingTareaId) as unknown as Tarea}
                   onSuccess={() => { setEditingTareaId(null); refreshActualRange(); }} 
                   onCancel={() => { setEditingTareaId(null); }} 
                 />
@@ -342,8 +420,33 @@ const CalendarioView: React.FC = () => {
         .fc .fc-button-primary { background-color: #3b82f6; border: none; font-weight: 700; border-radius: 0.75rem; }
         .fc .fc-col-header-cell-cushion { padding: 8px 4px; }
         .fc-theme-standard td, .fc-theme-standard th { border-color: #cbd5e1; border-width: 1px; }
-        .fc-event-main { color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .fc-daygrid-event { overflow: hidden; cursor: pointer; }
+        
+        /* Ajustes para visibilidad de eventos personalizados */
+        .fc-event-main { 
+          color: white; 
+          padding: 0 !important; /* El padding se maneja en el renderEventContent */
+          height: 100%;
+          width: 100%;
+        }
+        
+        /* Contenedor del evento en vistas de tiempo */
+        .fc-timegrid-event {
+          min-height: 48px !important; /* Aumentado para asegurar visibilidad de cliente/propiedad */
+          border-radius: 8px !important;
+          margin-bottom: 2px !important;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+        }
+
+        /* En la vista de mes, mantenemos una altura mínima razonable */
+        .fc-daygrid-event {
+          min-height: 24px !important;
+          margin-top: 2px !important;
+        }
+        
+        .fc-timegrid-event .fc-event-main-frame {
+          height: 100%;
+        }
+
         .fc-day-today { background-color: #eff6ff !important; }
         .fc .fc-toolbar-title { font-size: 1.125rem; font-weight: 800; color: #0f172a; }
         .fc-more-link { font-size: 10px; font-weight: 800; color: #3b82f6; padding: 2px 8px; cursor: pointer; }

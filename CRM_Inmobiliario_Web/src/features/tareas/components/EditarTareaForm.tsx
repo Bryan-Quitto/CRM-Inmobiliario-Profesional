@@ -12,16 +12,18 @@ import {
   Users,
   Briefcase,
   ChevronLeft,
-  XCircle
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
 import { getTareaById } from '../api/getTareaById';
 import { actualizarTarea } from '../api/actualizarTarea';
 import { cancelarTarea } from '../api/cancelarTarea';
 import { useState, useEffect, useRef } from 'react';
-import type { CrearTareaDTO } from '../types';
+import type { CrearTareaDTO, Tarea } from '../types';
 
 interface Props {
   tareaId: string;
+  initialData?: Tarea; // Para carga instantánea (Zero Wait Policy)
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -33,21 +35,35 @@ const TIPOS_TAREA = [
   { label: 'Trámite', value: 'Trámite', icon: Briefcase, color: 'text-amber-600 bg-amber-50' },
 ];
 
-export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
-  const [isLoading, setIsLoading] = useState(true);
+export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel }: Props) => {
+  // Si tenemos initialData, empezamos con isLoading en false para carga instantánea
+  const [isLoading, setIsLoading] = useState(!initialData);
+  const [isSyncing, setIsSyncing] = useState(!!initialData); // Indica si estamos validando con el servidor
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
-  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(initialData ? initialData.estado !== 'Pendiente' : false);
   const selectRef = useRef<HTMLDivElement>(null);
 
-  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<CrearTareaDTO>();
+  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<CrearTareaDTO>({
+    defaultValues: initialData ? {
+      titulo: initialData.titulo,
+      descripcion: initialData.descripcion || '',
+      tipoTarea: initialData.tipoTarea,
+      fechaInicio: new Date(initialData.fechaInicio).toISOString().slice(0, 16),
+      clienteId: initialData.clienteId,
+      propiedadId: initialData.propiedadId
+    } : undefined
+  });
 
   useEffect(() => {
     const fetchTarea = async () => {
       try {
-        setIsLoading(true);
+        // Solo mostramos loader si NO tenemos datos iniciales
+        if (!initialData) setIsLoading(true);
+        else setIsSyncing(true);
+
         const data = await getTareaById(tareaId);
         const fechaLocal = new Date(data.fechaInicio).toISOString().slice(0, 16);
         
@@ -56,21 +72,27 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
         reset({
           titulo: data.titulo,
           descripcion: data.descripcion || '',
-          tipoTarea: data.tipoTarea,
+          tipoTarea: data.tipoTarea as Tarea['tipoTarea'],
           fechaInicio: fechaLocal,
           clienteId: data.clienteId,
           propiedadId: data.propiedadId
         });
+        
+        // Guardar en cache local para futuras aperturas rápidas
+        localStorage.setItem(`tarea_cache_${tareaId}`, JSON.stringify(data));
+        
       } catch (err) {
         console.error('Error al cargar tarea:', err);
-        setError('No se pudo cargar la información de la tarea.');
+        // Solo mostramos error si no pudimos cargar ni los datos iniciales
+        if (!initialData) setError('No se pudo cargar la información de la tarea.');
       } finally {
         setIsLoading(false);
+        setIsSyncing(false);
       }
     };
 
     fetchTarea();
-  }, [tareaId, reset]);
+  }, [tareaId, reset, initialData]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -94,6 +116,8 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
       };
 
       await actualizarTarea(tareaId, payload);
+      // Limpiar cache al actualizar
+      localStorage.removeItem(`tarea_cache_${tareaId}`);
       onSuccess();
     } catch (err) {
       console.error('Error al actualizar tarea:', err);
@@ -109,6 +133,7 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
       setIsCancelling(true);
       setError(null);
       await cancelarTarea(tareaId);
+      localStorage.removeItem(`tarea_cache_${tareaId}`);
       onSuccess();
     } catch (err) {
       console.error('Error al cancelar tarea:', err);
@@ -133,21 +158,29 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
   return (
     <div className="flex flex-col h-full bg-white animate-in slide-in-from-right duration-300">
       {/* Header Inline */}
-      <div className="p-6 border-b border-slate-50 flex items-center gap-4 bg-white sticky top-0 z-10">
-        <button 
-          onClick={onCancel}
-          className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <div>
-          <h2 className="text-lg font-black text-slate-900 tracking-tight">
-            {isReadOnly ? 'Detalle de Tarea' : 'Editar Tarea'}
-          </h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-            {isReadOnly ? 'Vista de solo lectura' : 'Modificar seguimiento'}
-          </p>
+      <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white sticky top-0 z-10">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onCancel}
+            className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <h2 className="text-lg font-black text-slate-900 tracking-tight">
+              {isReadOnly ? 'Detalle de Tarea' : 'Editar Tarea'}
+            </h2>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+              {isReadOnly ? 'Vista de solo lectura' : 'Modificar seguimiento'}
+            </p>
+          </div>
         </div>
+        {isSyncing && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 text-slate-400 rounded-full animate-pulse">
+            <RefreshCw className="h-3 w-3 animate-spin" />
+            <span className="text-[9px] font-bold uppercase tracking-tighter">Sincronizando...</span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
@@ -292,3 +325,4 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
     </div>
   );
 };
+
