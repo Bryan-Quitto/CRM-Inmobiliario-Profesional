@@ -5,6 +5,7 @@ using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Features.Interacciones;
 using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Features.Calendario;
+using CRM_Inmobiliario.Api.Features.Analitica;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Supabase;
@@ -137,5 +138,9 @@ apiGroup.MapObtenerKpisEndpoint();
 // Calendario
 apiGroup.MapListarEventosEndpoint();
 apiGroup.MapReprogramarEventoEndpoint();
+
+// Analítica
+apiGroup.MapObtenerActividadEndpoint();
+apiGroup.MapObtenerSeguimientoEndpoint();
 
 app.Run();

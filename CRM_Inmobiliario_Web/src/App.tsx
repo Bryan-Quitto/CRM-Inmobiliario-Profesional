@@ -30,6 +30,7 @@ const CalendarioView = lazy(() => import('./features/calendario/components/Calen
 const ClientesList = lazy(() => import('./features/clientes/components/ClientesList').then(m => ({ default: m.ClientesList })));
 const ClienteDetalle = lazy(() => import('./features/clientes/components/ClienteDetalle').then(m => ({ default: m.ClienteDetalle })));
 const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
+const AnaliticaView = lazy(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView })));
 const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
 
 const PageLoader = () => (
@@ -198,13 +199,7 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/prospectos" element={<ClientesList />} />
               <Route path="/prospectos/:id" element={<ClienteDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
-              <Route path="/kpis" element={
-                <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400">
-                  <BarChart3 className="h-16 w-16 mb-4 opacity-20" />
-                  <p className="text-xl font-bold">Módulo en Desarrollo</p>
-                  <p className="text-sm">Esta funcionalidad estará disponible en la próxima actualización.</p>
-                </div>
-              } />
+              <Route path="/kpis" element={<AnaliticaView />} />
             </Routes>
           </Suspense>
         </main>

@@ -40,6 +40,8 @@ public sealed class Lead
 
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 
+    public DateTimeOffset? FechaCierre { get; set; }
+
     // Relaciones de navegación
     public ICollection<Property> PropertiesOwned { get; set; } = new List<Property>();
     public ICollection<LeadPropertyInterest> PropertyInterests { get; set; } = new List<LeadPropertyInterest>();

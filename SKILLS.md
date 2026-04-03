@@ -40,7 +40,8 @@ This file defines the strict technical standards and architectural rules for the
 
 ### Database & Migrations (Supabase)
 - **CRITICAL RULE:** Do NOT use `dotnet ef database update`. It is strictly forbidden to apply migrations directly from the CLI.
-- **Standard:** Generate SQL scripts using `dotnet ef migrations script` and apply them manually in the **Supabase SQL Editor**.
+- **AI Direct Access:** The AI now has direct interaction capabilities with the Supabase project (via MCP). This power must be used with **EXTREME CAUTION**.
+- **Standard:** Generate SQL scripts using `dotnet ef migrations script` and apply them manually in the **Supabase SQL Editor** (unless a surgical SQL fix is explicitly requested and reviewed).
 - **Reason:** Ensuring environmental consistency and avoiding connection/permission conflicts with Supabase direct access.
 
 ## World-Class Performance & UX Standards
