@@ -59,7 +59,7 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const ahora = new Date();
     return tareas.filter(t => 
       t.estado === 'Pendiente' && 
-      new Date(t.fechaVencimiento) <= ahora
+      new Date(t.fechaInicio) <= ahora
     ).length;
   }, [tareas]);
 

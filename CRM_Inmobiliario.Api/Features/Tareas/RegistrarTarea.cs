@@ -15,7 +15,7 @@ public static class RegistrarTareaFeature
         string Titulo,
         string? Descripcion,
         string TipoTarea,
-        DateTimeOffset FechaVencimiento,
+        DateTimeOffset FechaInicio,
         Guid? ClienteId,
         Guid? PropiedadId);
 
@@ -24,6 +24,9 @@ public static class RegistrarTareaFeature
         app.MapPost("/tareas", async (Command command, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
+
+            // LOG DE AUDITORIA API
+            Console.WriteLine($"[API] Registrando Tarea: '{command.Titulo}' | Recibido (UTC/Offset): {command.FechaInicio:yyyy-MM-dd HH:mm:ss K} | Local Servidor: {command.FechaInicio.LocalDateTime:yyyy-MM-dd HH:mm:ss}");
 
             // Validar existencia de cliente si se provee y que pertenezca al agente
             if (command.ClienteId.HasValue)
@@ -50,7 +53,8 @@ public static class RegistrarTareaFeature
                 Titulo = command.Titulo,
                 Descripcion = command.Descripcion,
                 TipoTarea = command.TipoTarea,
-                FechaVencimiento = command.FechaVencimiento,
+                FechaInicio = command.FechaInicio,
+                DuracionMinutos = 30, // Default para registros rápidos de tareas
                 ClienteId = command.ClienteId,
                 PropiedadId = command.PropiedadId,
                 Estado = "Pendiente",

@@ -112,6 +112,8 @@ public sealed class CrmDbContext : DbContext
             entity.Property(e => e.Titulo).HasMaxLength(150);
             entity.Property(e => e.TipoTarea).HasMaxLength(50);
             entity.Property(e => e.Estado).HasMaxLength(50);
+            entity.Property(e => e.ColorHex).HasMaxLength(7);
+            entity.Property(e => e.DuracionMinutos).IsRequired();
 
             entity.HasOne(d => d.Agente)
                 .WithMany(p => p.Tasks)

@@ -15,7 +15,9 @@ public static class ListarTareasFeature
         string Titulo,
         string? Descripcion,
         string TipoTarea,
-        DateTimeOffset FechaVencimiento,
+        DateTimeOffset FechaInicio,
+        int DuracionMinutos,
+        string? ColorHex,
         string Estado,
         string? ClienteNombre,
         string? PropiedadTitulo);
@@ -30,13 +32,15 @@ public static class ListarTareasFeature
                 .Include(t => t.Cliente)
                 .Include(t => t.Propiedad)
                 .Where(t => t.AgenteId == agenteId)
-                .OrderBy(t => t.FechaVencimiento)
+                .OrderBy(t => t.FechaInicio)
                 .Select(t => new Response(
                     t.Id,
                     t.Titulo,
                     t.Descripcion,
                     t.TipoTarea,
-                    t.FechaVencimiento,
+                    t.FechaInicio,
+                    t.DuracionMinutos,
+                    t.ColorHex,
                     t.Estado,
                     t.Cliente != null ? $"{t.Cliente.Nombre} {t.Cliente.Apellido}".Trim() : null,
                     t.Propiedad != null ? t.Propiedad.Titulo : null))

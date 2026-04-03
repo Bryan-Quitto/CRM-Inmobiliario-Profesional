@@ -9,6 +9,11 @@ This file defines the strict technical standards and architectural rules for the
 - **Database & Auth:** Supabase (PostgreSQL + Supabase Auth JWT)
 - **ORM:** Entity Framework Core (EF Core)
 
+## Development Workflow & Spec-Driven Development (SDD) Protocol
+- **CRITICAL RULE:** SDD is NOT a silver bullet. Agents must evaluate the scope of the task before generating any formal specification.
+- **WHEN TO USE SDD (High Complexity):** IF the requirement involves creating a new database entity, bootstrapping a module from scratch, or defining interactions between multiple architectural components -> THEN the agent MUST generate and agree upon a specification document (`spec.md`) before writing any code.
+- **WHEN NOT TO USE SDD (Low Complexity / Maintenance):** IF the requirement is fixing a bug, optimizing a query, refactoring an isolated block of code, adjusting UI components, or updating an existing trigger/procedure -> THEN the use of SDD is STRICTLY PROHIBITED. Execute the code changes directly, surgically, and concisely.
+
 ## Architectural Standards
 
 ### Backend (Vertical Slice Architecture)
