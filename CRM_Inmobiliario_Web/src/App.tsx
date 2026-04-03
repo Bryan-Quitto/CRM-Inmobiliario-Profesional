@@ -20,11 +20,13 @@ import {
   Bell,
   Search,
   Loader2,
-  LayoutDashboard
+  LayoutDashboard,
+  Calendar
 } from 'lucide-react';
 
 // Lazy Loading de Features
 const DashboardPrincipal = lazy(() => import('./features/dashboard/components/DashboardPrincipal').then(m => ({ default: m.DashboardPrincipal })));
+const CalendarioView = lazy(() => import('./features/calendario/components/CalendarioView'));
 const ClientesList = lazy(() => import('./features/clientes/components/ClientesList').then(m => ({ default: m.ClientesList })));
 const ClienteDetalle = lazy(() => import('./features/clientes/components/ClienteDetalle').then(m => ({ default: m.ClienteDetalle })));
 const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
@@ -52,6 +54,7 @@ function AppContent({ session }: { session: Session | null }) {
 
   const menuItems = [
     { id: 'dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Inicio' },
+    { id: 'calendario', path: '/calendario', icon: <Calendar className="h-5 w-5" />, label: 'Calendario' },
     { id: 'prospectos', path: '/prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
     { id: 'propiedades', path: '/propiedades', icon: <Home className="h-5 w-5" />, label: 'Propiedades' },
     { id: 'kpis', path: '/kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
@@ -191,6 +194,7 @@ function AppContent({ session }: { session: Session | null }) {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<DashboardPrincipal />} />
+              <Route path="/calendario" element={<CalendarioView />} />
               <Route path="/prospectos" element={<ClientesList />} />
               <Route path="/prospectos/:id" element={<ClienteDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />

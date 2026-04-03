@@ -16,12 +16,13 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { crearTarea } from '../api/crearTarea';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import type { CrearTareaDTO } from '../types';
 
 interface Props {
   onSuccess: () => void;
   onCancel: () => void;
+  fechaInicial?: string;
 }
 
 const TIPOS_TAREA = [
@@ -33,37 +34,76 @@ const TIPOS_TAREA = [
 
 const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
 
-export const CrearTareaForm = ({ onSuccess, onCancel }: Props) => {
+export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => {
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
-  const getInitialValues = (): Partial<CrearTareaDTO> => {
+  const defaultFecha = useMemo(() => {
+    console.log('[FORM] Calculando defaultFecha. Props fechaInicial:', fechaInicial);
+    
+    if (fechaInicial) {
+      // Si viene del calendario (YYYY-MM-DD), concatenamos la hora directamente
+      const result = `${fechaInicial}T10:00`;
+      console.log('[FORM] Resultado (Calendario):', result);
+      return result;
+    }
+
+    // Para nueva tarea normal, usamos la hora LOCAL exacta actual
+    const now = new Date();
+    
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    const result = `${year}-${month}-${day}T${hours}:${minutes}`;
+    console.log('[FORM] Resultado (Hoy/Nuevo):', result);
+    return result;
+  }, [fechaInicial]);
+
+  const getInitialValues = (): CrearTareaDTO => {
     const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const draft = JSON.parse(saved);
+        // ELIMINAMOS cualquier fecha guardada en el borrador para que 
+        // siempre prevalezca la calculada (la del botón presionado)
+        delete draft.fechaInicio;
+        
+        return {
+          ...draft,
+          fechaInicio: defaultFecha
+        };
       } catch (e) {
         console.error('Error al parsear borrador de tarea:', e);
       }
     }
     return {
+      titulo: '',
+      descripcion: '',
       tipoTarea: 'Llamada',
-      fechaVencimiento: new Date(new Date().getTime() + 3600000).toISOString().slice(0, 16)
+      fechaInicio: defaultFecha
     };
   };
 
   const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<CrearTareaDTO>({
-    defaultValues: getInitialValues() as CrearTareaDTO
+    defaultValues: getInitialValues()
   });
 
   const formData = watch();
   const hasData = formData.titulo || formData.descripcion;
 
   useEffect(() => {
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+    // Solo guardamos título, descripción y tipo en el borrador
+    // EXCLUIMOS la fecha para que no se quede "pegada" la de sesiones anteriores
+    const rest = { ...formData };
+    // @ts-expect-error: Excluyendo intencionalmente para el localStorage
+    delete rest.fechaInicio;
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(rest));
   }, [formData]);
 
   useEffect(() => {
@@ -82,7 +122,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel }: Props) => {
       titulo: '',
       descripcion: '',
       tipoTarea: 'Llamada',
-      fechaVencimiento: new Date(new Date().getTime() + 3600000).toISOString().slice(0, 16)
+      fechaInicio: defaultFecha
     });
     setIsConfirmingClear(false);
   };
@@ -94,14 +134,14 @@ export const CrearTareaForm = ({ onSuccess, onCancel }: Props) => {
       
       const payload = {
         ...data,
-        fechaVencimiento: new Date(data.fechaVencimiento).toISOString()
+        fechaInicio: new Date(data.fechaInicio).toISOString()
       };
 
       await crearTarea(payload);
       localStorage.removeItem(DRAFT_STORAGE_KEY);
       reset(); 
       onSuccess();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error al crear tarea:', err);
       setError('No se pudo programar la tarea. Verifica los datos o su conexión.');
     } finally {
@@ -117,6 +157,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel }: Props) => {
       <div className="p-6 border-b border-slate-50 flex items-center gap-4 bg-white sticky top-0 z-10">
         <button 
           onClick={onCancel}
+          type="button"
           className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -134,7 +175,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel }: Props) => {
               <button 
                 type="button"
                 onClick={() => setIsConfirmingClear(true)}
-                className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 px-2 py-1 rounded-full transition-all cursor-pointer group"
+                className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:Rose-500 bg-slate-50 hover:bg-rose-50 px-2 py-1 rounded-full transition-all cursor-pointer group"
               >
                 <Trash2 className="h-2.5 w-2.5" />
                 Limpiar Borrador
@@ -161,7 +202,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel }: Props) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-10">
           {error && (
             <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center gap-3 text-rose-700 text-sm font-bold">
               <AlertCircle className="h-5 w-5" />
@@ -245,13 +286,13 @@ export const CrearTareaForm = ({ onSuccess, onCancel }: Props) => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Vencimiento</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Fecha de Inicio</label>
             <div className="relative">
               <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input 
-                {...register('fechaVencimiento', { required: 'La fecha es obligatoria' })}
+                {...register('fechaInicio', { required: 'La fecha es obligatoria' })}
                 type="datetime-local" 
-                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fechaVencimiento ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none`}
+                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fechaInicio ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none`}
               />
             </div>
           </div>

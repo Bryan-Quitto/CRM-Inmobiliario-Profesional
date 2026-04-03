@@ -1,3 +1,6 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -12,22 +15,49 @@ public static class CambiarEtapaClienteFeature
 
     public static void MapCambiarEtapaClienteEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPatch("/clientes/{id:guid}/etapa", async (Guid id, Command command, CrmDbContext context) =>
+        app.MapPatch("/clientes/{id:guid}/etapa", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            // Validación básica de etapa permitida
-            var etapasPermitidas = new[] { "Nuevo", "Contactado", "En Negociación", "Cerrado", "Perdido" };
+            var agenteId = user.GetRequiredUserId();
+
+            // Validación básica de etapa permitida (Evolución: Cita Programada añadida)
+            var etapasPermitidas = new[] { "Nuevo", "Contactado", "Cita Programada", "En Negociación", "Cerrado", "Perdido" };
             if (!etapasPermitidas.Contains(command.NuevaEtapa))
             {
                 return Results.BadRequest(new { Message = $"La etapa '{command.NuevaEtapa}' no es válida." });
             }
 
-            var rowsAffected = await context.Leads
-                .Where(l => l.Id == id)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(l => l.EtapaEmbudo, command.NuevaEtapa));
+            // Buscar cliente para verificar propiedad y obtener datos para la tarea
+            var cliente = await context.Leads
+                .FirstOrDefaultAsync(l => l.Id == id && l.AgenteId == agenteId);
 
-            return rowsAffected > 0 
-                ? Results.NoContent() 
-                : Results.NotFound(new { Message = $"No se encontró el prospecto con ID: {id}" });
+            if (cliente == null)
+            {
+                return Results.NotFound(new { Message = $"No se encontró el prospecto o no te pertenece." });
+            }
+
+            // Actualizar etapa
+            cliente.EtapaEmbudo = command.NuevaEtapa;
+
+            // Sincronización Automática: Generar evento de calendario si es Cita Programada
+            if (command.NuevaEtapa == "Cita Programada")
+            {
+                var visitaEvent = new TaskItem
+                {
+                    Id = Guid.NewGuid(),
+                    AgenteId = agenteId,
+                    ClienteId = id,
+                    Titulo = $"Visita Programada: {cliente.Nombre} {cliente.Apellido}",
+                    TipoTarea = "Visita",
+                    FechaInicio = DateTimeOffset.UtcNow.AddDays(1).Date.AddHours(10), // Mañana 10:00 AM UTC default
+                    DuracionMinutos = 60,
+                    ColorHex = "#10b981", // Emerald-500
+                    Estado = "Pendiente"
+                };
+                context.Tasks.Add(visitaEvent);
+            }
+
+            await context.SaveChangesAsync();
+            return Results.NoContent();
         })
         .WithTags("Clientes")
         .WithName("CambiarEtapaCliente");

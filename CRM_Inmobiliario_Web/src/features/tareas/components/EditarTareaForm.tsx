@@ -49,7 +49,7 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
       try {
         setIsLoading(true);
         const data = await getTareaById(tareaId);
-        const fechaLocal = new Date(data.fechaVencimiento).toISOString().slice(0, 16);
+        const fechaLocal = new Date(data.fechaInicio).toISOString().slice(0, 16);
         
         setIsReadOnly(data.estado !== 'Pendiente');
 
@@ -57,7 +57,7 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
           titulo: data.titulo,
           descripcion: data.descripcion || '',
           tipoTarea: data.tipoTarea,
-          fechaVencimiento: fechaLocal,
+          fechaInicio: fechaLocal,
           clienteId: data.clienteId,
           propiedadId: data.propiedadId
         });
@@ -90,7 +90,7 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
       
       const payload = {
         ...data,
-        fechaVencimiento: new Date(data.fechaVencimiento).toISOString()
+        fechaInicio: new Date(data.fechaInicio).toISOString()
       };
 
       await actualizarTarea(tareaId, payload);
@@ -238,14 +238,14 @@ export const EditarTareaForm = ({ tareaId, onSuccess, onCancel }: Props) => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Vencimiento</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Fecha de Inicio</label>
             <div className="relative">
               <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input 
-                {...register('fechaVencimiento', { required: 'La fecha es obligatoria' })}
+                {...register('fechaInicio', { required: 'La fecha es obligatoria' })}
                 type="datetime-local" 
                 disabled={isReadOnly}
-                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fechaVencimiento ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-70 disabled:cursor-not-allowed`}
+                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fechaInicio ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-70 disabled:cursor-not-allowed`}
               />
             </div>
           </div>

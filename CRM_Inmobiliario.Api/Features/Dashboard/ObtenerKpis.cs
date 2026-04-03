@@ -37,7 +37,7 @@ public static class ObtenerKpisEndpoint
 
             // 3. Tareas Pendientes Hoy del Agente
             var tareasHoy = await context.Tasks
-                .CountAsync(t => t.AgenteId == agenteId && t.Estado == "Pendiente" && t.FechaVencimiento <= limiteHoy);
+                .CountAsync(t => t.AgenteId == agenteId && t.Estado == "Pendiente" && t.FechaInicio <= limiteHoy);
 
             // 4. Embudo de Ventas del Agente
             var embudo = await context.Leads

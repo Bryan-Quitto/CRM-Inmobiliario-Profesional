@@ -14,7 +14,9 @@ public static class ActualizarTareaFeature
         string Titulo,
         string? Descripcion,
         string TipoTarea,
-        DateTimeOffset FechaVencimiento,
+        DateTimeOffset FechaInicio,
+        int DuracionMinutos,
+        string? ColorHex,
         Guid? ClienteId,
         Guid? PropiedadId);
 
@@ -48,7 +50,9 @@ public static class ActualizarTareaFeature
             tarea.Titulo = command.Titulo;
             tarea.Descripcion = command.Descripcion;
             tarea.TipoTarea = command.TipoTarea;
-            tarea.FechaVencimiento = command.FechaVencimiento;
+            tarea.FechaInicio = command.FechaInicio;
+            tarea.DuracionMinutos = command.DuracionMinutos;
+            tarea.ColorHex = command.ColorHex;
             tarea.ClienteId = command.ClienteId;
             tarea.PropiedadId = command.PropiedadId;
 

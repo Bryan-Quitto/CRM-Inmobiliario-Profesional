@@ -91,7 +91,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   const tareasAtrasadas = useMemo(() => {
     const ahora = new Date();
     ahora.setHours(0, 0, 0, 0);
-    return tareasPendientes.filter(t => new Date(t.fechaVencimiento) < ahora);
+    return tareasPendientes.filter(t => new Date(t.fechaInicio) < ahora);
   }, [tareasPendientes]);
 
   const tareasHoy = useMemo(() => {
@@ -100,7 +100,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     const finHoy = new Date(hoy.setHours(23, 59, 59, 999));
     
     return tareasPendientes.filter(t => {
-      const fecha = new Date(t.fechaVencimiento);
+      const fecha = new Date(t.fechaInicio);
       return fecha >= inicioHoy && fecha <= finHoy;
     });
   }, [tareasPendientes]);
@@ -108,7 +108,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   const tareasFuturas = useMemo(() => {
     const hoy = new Date();
     hoy.setHours(23, 59, 59, 999);
-    return tareasPendientes.filter(t => new Date(t.fechaVencimiento) > hoy);
+    return tareasPendientes.filter(t => new Date(t.fechaInicio) > hoy);
   }, [tareasPendientes]);
 
   if (view === 'create') {
@@ -324,7 +324,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                         {tarea.titulo}
                       </p>
                       <p className="text-[9px] font-medium text-slate-400 uppercase tracking-tighter">
-                        {tarea.estado} • {formatDateTime(tarea.fechaVencimiento)}
+                        {tarea.estado} • {formatDateTime(tarea.fechaInicio)}
                       </p>
                     </div>
                     <ChevronRight className="h-3 w-3 text-slate-300 group-hover:text-blue-400 transition-colors" />
@@ -347,7 +347,7 @@ const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: {
 }) => {
   const Icon = TIPO_ICONOS[tarea.tipoTarea] || Clock;
   const colorClass = TIPO_COLORES[tarea.tipoTarea] || 'text-slate-600 bg-slate-50';
-  const expired = isExpired(tarea.fechaVencimiento) && tarea.estado === 'Pendiente';
+  const expired = isExpired(tarea.fechaInicio) && tarea.estado === 'Pendiente';
 
   return (
     <div 
@@ -355,7 +355,7 @@ const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
-      aria-label={`Tarea: ${tarea.titulo}. Tipo: ${tarea.tipoTarea}. Vence: ${formatDateTime(tarea.fechaVencimiento)}. ${expired ? '¡ATRASADA!' : ''}`}
+      aria-label={`Tarea: ${tarea.titulo}. Tipo: ${tarea.tipoTarea}. Inicia: ${formatDateTime(tarea.fechaInicio)}. ${expired ? '¡ATRASADA!' : ''}`}
       className={`group bg-white border border-slate-100 p-4 rounded-2xl transition-all duration-300 hover:shadow-xl hover:border-blue-50 relative overflow-hidden cursor-pointer ${
       tarea.estado === 'Completada' ? 'opacity-50 scale-95 translate-x-4 grayscale' : ''
     }`}>
@@ -385,7 +385,7 @@ const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: {
               {tarea.tipoTarea}
             </span>
             <span className={`text-[10px] font-bold ${expired ? 'text-rose-500 animate-pulse' : 'text-slate-400 italic'}`}>
-              {formatDateTime(tarea.fechaVencimiento)}
+              {formatDateTime(tarea.fechaInicio)}
             </span>
           </div>
           

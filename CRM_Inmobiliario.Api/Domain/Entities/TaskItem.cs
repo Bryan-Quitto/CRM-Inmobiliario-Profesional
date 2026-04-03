@@ -29,7 +29,12 @@ public sealed class TaskItem
     [MaxLength(50)]
     public string TipoTarea { get; set; } = string.Empty;
 
-    public DateTimeOffset FechaVencimiento { get; set; }
+    public DateTimeOffset FechaInicio { get; set; }
+
+    public int DuracionMinutos { get; set; } = 30;
+
+    [MaxLength(7)]
+    public string? ColorHex { get; set; }
 
     [Required]
     [MaxLength(50)]

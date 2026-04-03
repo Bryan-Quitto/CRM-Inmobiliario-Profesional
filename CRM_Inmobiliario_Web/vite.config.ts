@@ -21,11 +21,38 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'vendor-react';
-            if (id.includes('lucide')) return 'vendor-icons';
-            if (id.includes('jszip') || id.includes('browser-image-compression')) return 'vendor-media';
-            if (id.includes('axios') || id.includes('react-hook-form') || id.includes('sonner') || id.includes('supabase')) return 'vendor-utils';
-            return 'vendor';
+            // Core libraries (React & Router)
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-core';
+            }
+            
+            // UI Libraries (Icons, Toasts, DND)
+            if (id.includes('lucide') || id.includes('sonner') || id.includes('@hello-pangea')) {
+              return 'vendor-ui';
+            }
+
+            // Calendar (The heaviest part of the new module)
+            if (id.includes('@fullcalendar')) {
+              return 'vendor-calendar';
+            }
+
+            // Charts
+            if (id.includes('recharts') || id.includes('d3')) {
+              return 'vendor-charts';
+            }
+            
+            // Media Utils (Heavy utility libs)
+            if (id.includes('jszip') || id.includes('browser-image-compression')) {
+              return 'vendor-media';
+            }
+
+            // Backend Utils (Axios, Supabase, Hook Form)
+            if (id.includes('axios') || id.includes('react-hook-form') || id.includes('supabase')) {
+              return 'vendor-utils';
+            }
+
+            // Other 3rd party libs
+            return 'vendor-lib';
           }
         },
       },
