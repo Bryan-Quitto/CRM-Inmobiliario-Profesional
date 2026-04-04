@@ -145,7 +145,17 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="w-80 h-full bg-white border-l border-slate-100 flex flex-col shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] animate-in fade-in slide-in-from-left duration-300">
+    <div className="w-80 h-full bg-white border-l border-slate-100 flex flex-col shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] animate-in fade-in slide-in-from-left duration-300 relative">
+      {/* Indicador de Sincronización UPSP */}
+      {loading && allTareas.length > 0 && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-2 duration-300 pointer-events-none">
+          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-white/10">
+            <Loader2 className="h-3 w-3 animate-spin text-blue-400" />
+            <span className="text-[8px] font-black uppercase tracking-[0.2em]">Sincronizando...</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div>

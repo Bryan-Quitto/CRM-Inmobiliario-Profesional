@@ -108,16 +108,16 @@ app.UseOutputCache();
 var apiGroup = app.MapGroup("/api").RequireAuthorization();
 
 apiGroup.MapRegistrarClienteEndpoint();
-apiGroup.MapListarClientesEndpoint();
-apiGroup.MapObtenerClientePorIdEndpoint();
+apiGroup.MapListarClientesEndpoint().CacheOutput();
+apiGroup.MapObtenerClientePorIdEndpoint().CacheOutput();
 apiGroup.MapCambiarEtapaClienteEndpoint();
 apiGroup.MapVincularPropiedadEndpoint();
 apiGroup.MapDesvincularPropiedadEndpoint();
 
 // Propiedades
 apiGroup.MapRegistrarPropiedadEndpoint();
-apiGroup.MapListarPropiedadesEndpoint();
-apiGroup.MapObtenerPropiedadPorIdEndpoint();
+apiGroup.MapListarPropiedadesEndpoint().CacheOutput();
+apiGroup.MapObtenerPropiedadPorIdEndpoint().CacheOutput();
 apiGroup.MapCambiarEstadoPropiedadEndpoint();
 apiGroup.MapSubirImagenPropiedadEndpoint();
 apiGroup.MapEstablecerImagenPrincipalEndpoint();
@@ -128,9 +128,9 @@ apiGroup.MapLimpiarImagenesPropiedadEndpoint();
 
 // Tareas
 apiGroup.MapRegistrarTareaEndpoint();
-apiGroup.MapListarTareasEndpoint();
+apiGroup.MapListarTareasEndpoint().CacheOutput();
 apiGroup.MapCompletarTareaEndpoint();
-apiGroup.MapObtenerTareaPorIdEndpoint();
+apiGroup.MapObtenerTareaPorIdEndpoint().CacheOutput();
 apiGroup.MapActualizarTareaEndpoint();
 apiGroup.MapCancelarTareaEndpoint();
 
@@ -140,10 +140,10 @@ apiGroup.MapActualizarInteraccionEndpoint();
 apiGroup.MapEliminarInteraccionEndpoint();
 
 // Dashboard
-apiGroup.MapObtenerKpisEndpoint();
+apiGroup.MapObtenerKpisEndpoint().CacheOutput();
 
 // Calendario
-apiGroup.MapListarEventosEndpoint();
+apiGroup.MapListarEventosEndpoint().CacheOutput(p => p.SetVaryByQuery("inicio", "fin"));
 apiGroup.MapReprogramarEventoEndpoint();
 
 // Analítica con Cache Inteligente (10s)

@@ -22,9 +22,9 @@ public static class ListarTareasFeature
         string? ClienteNombre,
         string? PropiedadTitulo);
 
-    public static void MapListarTareasEndpoint(this IEndpointRouteBuilder app)
+    public static RouteHandlerBuilder MapListarTareasEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/tareas", async (ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/tareas", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 

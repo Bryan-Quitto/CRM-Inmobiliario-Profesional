@@ -29,31 +29,11 @@ import {
   Area
 } from 'recharts';
 import { api } from '../../../lib/axios';
+import { localStorageProvider } from '../../../lib/swr';
 import type { ActividadAnalitica, SeguimientoAnalitica, ProyeccionAnalitica, EficienciaAnalitica } from '../types';
 
 // Fetcher genérico para SWR usando Axios
 const fetcher = (url: string, params?: Record<string, unknown>) => api.get(url, { params }).then(res => res.data);
-
-// Middleware World-Class: Persistencia en LocalStorage para SWR
-const localStorageProvider = () => {
-  const map = new Map<string, any>(JSON.parse(localStorage.getItem('crm-swr-cache') || '[]'));
-  
-  // Guardar en cada cambio (más robusto que beforeunload para SPAs)
-  const save = () => {
-    const appCache = JSON.stringify(Array.from(map.entries()));
-    localStorage.setItem('crm-swr-cache', appCache);
-  };
-
-  // Interceptar el set para guardar automáticamente
-  const originalSet = map.set.bind(map);
-  map.set = (key, value) => {
-    const result = originalSet(key, value);
-    save();
-    return result;
-  };
-
-  return map;
-};
 
 interface RangoFechas {
   inicio: Date;

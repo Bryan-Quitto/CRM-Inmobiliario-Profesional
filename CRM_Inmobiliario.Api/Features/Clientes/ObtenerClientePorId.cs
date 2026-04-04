@@ -37,9 +37,9 @@ public static class ObtenerClientePorIdFeature
         string NivelInteres,
         DateTimeOffset FechaRegistro);
 
-    public static void MapObtenerClientePorIdEndpoint(this IEndpointRouteBuilder app)
+    public static RouteHandlerBuilder MapObtenerClientePorIdEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/clientes/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/clientes/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 

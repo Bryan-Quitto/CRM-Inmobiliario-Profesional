@@ -1,10 +1,12 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useSWR, { SWRConfig } from 'swr';
 import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock, LayoutGrid, List } from 'lucide-react';
 import { getClientes } from '../api/getClientes';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { CrearClienteForm } from './CrearClienteForm';
 import { ClientesKanban } from './ClientesKanban';
+import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import type { Cliente } from '../types';
 
 const ETAPAS = [
@@ -53,7 +55,7 @@ const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: numbe
         <Plus className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nuevos (Hoy)</p>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">En Proceso</p>
         <p className="text-2xl font-black text-slate-900">{nuevos}</p>
       </div>
     </div>
@@ -69,20 +71,17 @@ const StatsBar = ({ total, nuevos, negociacion }: { total: number, nuevos: numbe
   </div>
 );
 
-const CLIENTES_CACHE_KEY = 'crm_clientes_cache';
 const VIEW_MODE_KEY = 'crm_clientes_view_mode';
 
-export const ClientesList = () => {
+const ClientesContent = () => {
   const navigate = useNavigate();
-  // 1. Carga inicial desde Cache (Instantánea)
-  const [clientes, setClientes] = useState<Cliente[]>(() => {
-    const saved = localStorage.getItem(CLIENTES_CACHE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
+  const { data: clientes = [], isValidating: syncing, mutate } = useSWR<Cliente[]>(
+    '/clientes',
+    getClientes,
+    swrDefaultConfig
+  );
   
-  // Si tenemos cache, no mostramos loading inicial
-  const [loading, setLoading] = useState(clientes.length === 0);
-  const [, setError] = useState<string | null>(null);
+  const loading = !clientes.length && !syncing;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de cliente
@@ -99,29 +98,6 @@ export const ClientesList = () => {
   useEffect(() => {
     localStorage.setItem(VIEW_MODE_KEY, viewMode);
   }, [viewMode]);
-
-  const fetchClientes = useCallback(async () => {
-    try {
-      // Si no hay datos, mostramos loading. Si hay cache, el sync es silencioso.
-      if (clientes.length === 0) setLoading(true);
-      
-      const data = await getClientes();
-      
-      // 2. Actualizar estado y Cache simultáneamente
-      setClientes(data);
-      localStorage.setItem(CLIENTES_CACHE_KEY, JSON.stringify(data));
-      setError(null);
-    } catch (err) {
-      console.error('Error al cargar clientes:', err);
-      setError('No se pudo establecer conexión con el CRM.');
-    } finally {
-      setLoading(false);
-    }
-  }, [clientes.length]);
-
-  useEffect(() => {
-    fetchClientes();
-  }, [fetchClientes]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -145,7 +121,6 @@ export const ClientesList = () => {
       const fullName = `${cliente.nombre} ${cliente.apellido || ''}`.toLowerCase();
       const matchesSearch = fullName.includes(searchQuery.toLowerCase()) || 
                            cliente.email?.toLowerCase().includes(searchQuery.toLowerCase());
-      // En vista Kanban mostramos todas las etapas, pero aplicamos el filtro si existe
       const matchesEtapa = filterEtapa === 'Todas' || cliente.etapaEmbudo === filterEtapa;
       return matchesSearch && matchesEtapa;
     });
@@ -153,7 +128,7 @@ export const ClientesList = () => {
 
   const stats = useMemo(() => ({
     total: clientes.length,
-    nuevos: clientes.filter(c => c.etapaEmbudo === 'Nuevo').length,
+    nuevos: clientes.filter(c => c.etapaEmbudo === 'Nuevo' || c.etapaEmbudo === 'Contactado').length,
     negociacion: clientes.filter(c => c.etapaEmbudo === 'En Negociación').length
   }), [clientes]);
 
@@ -162,20 +137,20 @@ export const ClientesList = () => {
     const cliente = clientes.find(c => c.id === id);
     if (!cliente || cliente.etapaEmbudo === nuevaEtapa) return;
 
-    // Guardar estado previo para revertir si falla
-    const etapaAnterior = cliente.etapaEmbudo;
-
-    // 1. Actualización Optimista
-    setClientes(prev => prev.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c));
-
+    // 1. Actualización Optimista vía SWR
+    const optimisticData = clientes.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c);
+    
     try {
       setUpdatingId(id);
-      await actualizarEtapaCliente(id, nuevaEtapa);
-      // Éxito: no hacemos nada más porque la UI ya se actualizó
-    } catch (err: unknown) {
-      // 2. Revertir en caso de error
-      setClientes(prev => prev.map(c => c.id === id ? { ...c, etapaEmbudo: etapaAnterior } : c));
-      const msg = (err as { response?: { data?: { Message?: string } } }).response?.data?.Message || 'No se pudo actualizar el estado. Intente nuevamente.';
+      await mutate(actualizarEtapaCliente(id, nuevaEtapa).then(() => optimisticData), {
+        optimisticData,
+        rollbackOnError: true,
+        revalidate: true
+      });
+      setNotification({ type: 'success', message: `Cliente movido a ${nuevaEtapa}` });
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+      console.error(err);
+      const msg = err.response?.data?.Message || 'No se pudo actualizar el estado.';
       setNotification({ type: 'error', message: msg });
     } finally {
       setUpdatingId(null);
@@ -187,34 +162,35 @@ export const ClientesList = () => {
     return found?.color || 'bg-gray-50 text-gray-600 border-gray-100';
   };
 
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+        {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-slate-50 min-h-screen relative font-sans antialiased">
-      {notification && (
-        <div 
-          role="alert"
-          aria-live="polite"
-          className={`fixed bottom-8 right-8 z-[200] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 animate-in slide-in-from-bottom-10 duration-300 ${
-            notification.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white'
-          }`}
-        >
-          {notification.type === 'success' ? <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> : <AlertCircle className="h-5 w-5" aria-hidden="true" />}
-          <span className="font-bold text-sm tracking-tight">{notification.message}</span>
-          <button 
-            onClick={() => setNotification(null)} 
-            aria-label="Cerrar notificación"
-            className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all cursor-pointer"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
+    <div className="bg-slate-50 min-h-screen relative font-sans antialiased space-y-6 pb-20">
+      {/* Indicador de Sincronización UPSP */}
+      {syncing && clientes.length > 0 && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-4 duration-300">
+          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-white/10">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sincronizando Leads...</span>
+          </div>
         </div>
       )}
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <CrearClienteForm 
-            onSuccess={() => { setIsModalOpen(false); fetchClientes(); setNotification({ type: 'success', message: 'Prospecto registrado.' }); }} 
-            onCancel={() => setIsModalOpen(false)} 
-          />
+      {notification && (
+        <div className={`fixed bottom-8 right-8 z-[200] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 animate-in slide-in-from-bottom-10 duration-300 ${
+          notification.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white'
+        }`}>
+          {notification.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+          <span className="font-bold text-sm tracking-tight">{notification.message}</span>
+          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all">
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -225,7 +201,6 @@ export const ClientesList = () => {
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          {/* Toggle de Vista */}
           <div className="flex bg-white p-1 border border-slate-200 rounded-xl shadow-sm mr-2">
             <button 
               onClick={() => setViewMode('list')}
@@ -248,44 +223,28 @@ export const ClientesList = () => {
           </div>
 
           <div className="relative flex-1 sm:min-w-[250px]">
-            <label htmlFor="cliente-search" className="sr-only">Buscar prospectos por nombre o email</label>
-            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
-              id="cliente-search"
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por nombre o email..." 
               className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
             />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')} 
-                aria-label="Limpiar búsqueda"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 cursor-pointer"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </button>
-            )}
           </div>
 
           <div className="relative" ref={openDropdownId === 'filter' ? dropdownRef : null}>
             <button 
               onClick={() => setOpenDropdownId(openDropdownId === 'filter' ? null : 'filter')}
-              aria-label={`Filtrar por etapa. Filtro actual: ${filterEtapa === 'Todas' ? 'Todas las etapas' : filterEtapa}`}
-              aria-expanded={openDropdownId === 'filter'}
-              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all shadow-sm cursor-pointer"
+              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:border-slate-300 transition-all shadow-sm cursor-pointer"
             >
-              <FilterIcon className="h-4 w-4 text-slate-500" aria-hidden="true" />
+              <FilterIcon className="h-4 w-4 text-slate-500" />
               <span className="hidden sm:inline">{filterEtapa === 'Todas' ? 'Todas las etapas' : filterEtapa}</span>
-              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} aria-hidden="true" />
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${openDropdownId === 'filter' ? 'rotate-180' : ''}`} />
             </button>
 
             {openDropdownId === 'filter' && (
               <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
-                <div className="px-4 py-2 mb-1 border-b border-slate-50">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtrar por estado</span>
-                </div>
                 {FILTER_OPTIONS.map((option) => (
                   <button
                     key={option.value}
@@ -304,45 +263,23 @@ export const ClientesList = () => {
 
           <button 
             onClick={() => setIsModalOpen(true)}
-            aria-label="Registrar nuevo prospecto"
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer"
           >
-            <Plus className="h-5 w-5" aria-hidden="true" />
+            <Plus className="h-5 w-5" />
             <span className="hidden sm:inline">Nuevo Prospecto</span>
-            <span className="sm:hidden">Nuevo</span>
           </button>
         </div>
       </div>
 
       <StatsBar total={stats.total} nuevos={stats.nuevos} negociacion={stats.negociacion} />
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
-        </div>
-      ) : filteredClientes.length === 0 ? (
+      {filteredClientes.length === 0 ? (
         <div className="bg-white rounded-3xl border border-dashed border-slate-200 py-32 text-center shadow-sm flex flex-col items-center">
           <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
             <Search className="h-10 w-10 text-slate-200" />
           </div>
           <p className="text-xl font-bold text-slate-900">Sin resultados</p>
-          <p className="text-slate-400 text-sm mt-1 max-w-xs mx-auto">
-            No encontramos lo que buscas. Intenta con otros filtros o registra un nuevo prospecto.
-          </p>
-          <div className="flex gap-4 mt-8">
-            <button 
-              onClick={() => { setSearchQuery(''); setFilterEtapa('Todas'); }}
-              className="px-6 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
-            >
-              Limpiar filtros
-            </button>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all cursor-pointer shadow-lg shadow-blue-600/10"
-            >
-              Crear Prospecto
-            </button>
-          </div>
+          <p className="text-slate-400 text-sm mt-1">No encontramos lo que buscas. Intenta con otros filtros.</p>
         </div>
       ) : viewMode === 'kanban' ? (
         <ClientesKanban 
@@ -356,8 +293,10 @@ export const ClientesList = () => {
             <div 
               key={cliente.id} 
               onClick={() => navigate(`/prospectos/${cliente.id}`)}
-              className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer"
+              className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer relative overflow-hidden"
             >
+              {syncing && <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px] pointer-events-none" />}
+              
               <div className="flex justify-between items-start mb-5">
                 <div className="h-12 w-12 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black text-lg shadow-lg shadow-slate-900/10 group-hover:bg-blue-600 group-hover:shadow-blue-600/20 transition-all">
                   {cliente.nombre[0]}{cliente.apellido?.[0] || ''}
@@ -370,40 +309,36 @@ export const ClientesList = () => {
                       <span className="text-[10px] font-black text-slate-400">SYNC...</span>
                     </div>
                   ) : (
-                    <>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenDropdownId(openDropdownId === cliente.id ? null : cliente.id);
-                        }}
-                        aria-label={`Cambiar etapa de ${cliente.nombre}. Etapa actual: ${cliente.etapaEmbudo}`}
-                        aria-expanded={openDropdownId === cliente.id}
-                        className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 group/btn ${getEtapaStyles(cliente.etapaEmbudo)}`}
-                      >
-                        {cliente.etapaEmbudo}
-                        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${openDropdownId === cliente.id ? 'rotate-180' : ''}`} aria-hidden="true" />
-                      </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenDropdownId(openDropdownId === cliente.id ? null : cliente.id);
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 ${getEtapaStyles(cliente.etapaEmbudo)}`}
+                    >
+                      {cliente.etapaEmbudo}
+                      <ChevronDown className={`h-3 w-3 transition-transform ${openDropdownId === cliente.id ? 'rotate-180' : ''}`} />
+                    </button>
+                  )}
 
-                      {openDropdownId === cliente.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
-                          {ETAPAS.map((etapa) => (
-                            <button
-                              key={etapa.value}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleStageChange(cliente.id, etapa.value);
-                              }}
-                              className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
-                                cliente.etapaEmbudo === etapa.value ? 'text-blue-600' : 'text-slate-600'
-                              }`}
-                            >
-                              {etapa.label}
-                              {cliente.etapaEmbudo === etapa.value && <Check className="h-3.5 w-3.5" />}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </>
+                  {openDropdownId === cliente.id && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
+                      {ETAPAS.map((etapa) => (
+                        <button
+                          key={etapa.value}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStageChange(cliente.id, etapa.value);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
+                            cliente.etapaEmbudo === etapa.value ? 'text-blue-600' : 'text-slate-600'
+                          }`}
+                        >
+                          {etapa.label}
+                          {cliente.etapaEmbudo === etapa.value && <Check className="h-3.5 w-3.5" />}
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
@@ -435,13 +370,30 @@ export const ClientesList = () => {
               <div className="mt-6 pt-5 border-t border-slate-50 flex items-center justify-between">
                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
                   <Clock className="h-3 w-3" />
-                  Desde: {new Date(cliente.fechaCreacion).toLocaleDateString()}
+                  Desde: {new Date(cliente.fechaCreacion!).toLocaleDateString()}
                 </span>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <CrearClienteForm 
+            onSuccess={() => { mutate(); setIsModalOpen(false); setNotification({ type: 'success', message: 'Prospecto registrado.' }); }} 
+            onCancel={() => setIsModalOpen(false)} 
+          />
+        </div>
+      )}
     </div>
+  );
+};
+
+export const ClientesList = () => {
+  return (
+    <SWRConfig value={{ provider: localStorageProvider }}>
+      <ClientesContent />
+    </SWRConfig>
   );
 };

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
+import useSWR, { SWRConfig } from 'swr';
 import { 
   Home, 
   Users, 
@@ -19,10 +20,10 @@ import {
   Cell
 } from 'recharts';
 import { getDashboardKpis } from '../api/getDashboardKpis';
+import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import type { DashboardKpis } from '../types';
 
 const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#94a3b8'];
-const DASHBOARD_CACHE_KEY = 'crm_dashboard_kpis_cache';
 
 // Definición del orden lógico del embudo para una visualización coherente
 const ORDEN_EMBUDO: Record<string, number> = {
@@ -35,58 +36,41 @@ const ORDEN_EMBUDO: Record<string, number> = {
   'Perdido': 7
 };
 
-export const DashboardPrincipal: React.FC = () => {
-  const [data, setData] = useState<DashboardKpis | null>(() => {
-    // Intento de carga instantánea desde cache (SWR Pattern)
-    const saved = localStorage.getItem(DASHBOARD_CACHE_KEY);
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [loading, setLoading] = useState(!data); // Solo mostramos loader si NO hay cache
+const DashboardContent: React.FC = () => {
+  const { data: rawData, isValidating: syncing } = useSWR<DashboardKpis>(
+    '/dashboard/kpis', 
+    getDashboardKpis, 
+    swrDefaultConfig
+  );
 
-  useEffect(() => {
-    const fetchKpis = async () => {
-      try {
-        const kpis = await getDashboardKpis();
-        
-        const normalizar = (str: string) => 
-          str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  const data = useMemo(() => {
+    if (!rawData) return null;
 
-        const mapaNormalizado: Record<string, number> = {};
-        Object.entries(ORDEN_EMBUDO).forEach(([key, val]) => {
-          mapaNormalizado[normalizar(key)] = val;
-        });
+    const normalizar = (str: string) => 
+      str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
 
-        // Ordenamos ascendentemente para que el primer proceso (Nuevo) esté arriba en el layout vertical
-        const embudoOrdenado = [...kpis.embudoVentas].sort((a, b) => {
-          const pesoA = mapaNormalizado[normalizar(a.etapa)] || 99;
-          const pesoB = mapaNormalizado[normalizar(b.etapa)] || 99;
-          return pesoA - pesoB; 
-        });
+    const mapaNormalizado: Record<string, number> = {};
+    Object.entries(ORDEN_EMBUDO).forEach(([key, val]) => {
+      mapaNormalizado[normalizar(key)] = val;
+    });
 
-        const kpisProcesados = { ...kpis, embudoVentas: embudoOrdenado };
-        setData(kpisProcesados);
-        
-        localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(kpisProcesados));
-      } catch (error) {
-        console.error("Error al cargar KPIs del dashboard", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const embudoOrdenado = [...rawData.embudoVentas].sort((a, b) => {
+      const pesoA = mapaNormalizado[normalizar(a.etapa)] || 99;
+      const pesoB = mapaNormalizado[normalizar(b.etapa)] || 99;
+      return pesoA - pesoB; 
+    });
 
-    fetchKpis();
-  }, []);
+    return { ...rawData, embudoVentas: embudoOrdenado };
+  }, [rawData]);
 
-  if (loading) {
+  if (!data) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] animate-in fade-in duration-500">
         <Loader2 className="h-10 w-10 text-blue-700 animate-spin mb-4" />
-        <p className="text-sm font-bold text-slate-700 uppercase tracking-widest">Generando resumen...</p>
+        <p className="text-sm font-bold text-slate-700 uppercase tracking-widest italic">Iniciando motor de inteligencia comercial...</p>
       </div>
     );
   }
-
-  if (!data) return null;
 
   const kpiCards = [
     {
@@ -113,7 +97,17 @@ export const DashboardPrincipal: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
+      {/* Sincronización Overlay (UPSP Pattern) */}
+      {syncing && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-4 duration-300">
+          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-white/10">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sincronizando Resumen...</span>
+          </div>
+        </div>
+      )}
+
       {/* Welcome Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">
@@ -127,8 +121,9 @@ export const DashboardPrincipal: React.FC = () => {
         {kpiCards.map((card, idx) => (
           <div 
             key={idx} 
-            className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group"
+            className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden"
           >
+            {syncing && <div className="absolute inset-0 bg-white/10 backdrop-blur-[0.5px] pointer-events-none" />}
             <div className="flex items-start justify-between">
               <div className={`p-3 rounded-2xl ${card.color} group-hover:scale-110 transition-transform`}>
                 {card.icon}
@@ -155,7 +150,8 @@ export const DashboardPrincipal: React.FC = () => {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
+          {syncing && <div className="absolute inset-0 bg-white/10 backdrop-blur-[0.5px] pointer-events-none" />}
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -218,5 +214,13 @@ export const DashboardPrincipal: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+export const DashboardPrincipal: React.FC = () => {
+  return (
+    <SWRConfig value={{ provider: localStorageProvider }}>
+      <DashboardContent />
+    </SWRConfig>
   );
 };

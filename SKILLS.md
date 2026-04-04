@@ -48,7 +48,7 @@ This file defines the strict technical standards and architectural rules for the
 All new features and refactors MUST implement these zero-latency patterns:
 
 ### Frontend Velocity (The "Zero Wait" Policy)
-- **Ultra-Premium Sync Pattern (UPSP):** 
+- **Ultra-Premium Sync Pattern (UPSP) (Read CRM Inmobiliario Profesional\CRM_Inmobiliario_Web\src\lib\swr.ts):** 
     - **Disk Persistence:** Implement `localStorageProvider` in SWR to cache metrics and lists permanently across sessions.
     - **Zero Flicker:** Use `keepPreviousData: true` to maintain old data visible while fetching fresh updates.
     - **Smart Feedback:** Show granular "Syncing" indicators (spinners/overlays) only on affected elements to eliminate user uncertainty.

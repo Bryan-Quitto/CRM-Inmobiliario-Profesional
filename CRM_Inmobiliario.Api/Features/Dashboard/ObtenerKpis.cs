@@ -19,9 +19,9 @@ public record EtapaEmbudoItem(string Etapa, int Cantidad);
 
 public static class ObtenerKpisEndpoint
 {
-    public static void MapObtenerKpisEndpoint(this IEndpointRouteBuilder app)
+    public static RouteHandlerBuilder MapObtenerKpisEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/dashboard/kpis", async (ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/dashboard/kpis", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
             var hoyUtc = DateTimeOffset.UtcNow;

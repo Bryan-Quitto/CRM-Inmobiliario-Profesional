@@ -24,9 +24,9 @@ public static class ListarEventosFeature
         Guid? PropiedadId,
         string? PropiedadTitulo);
 
-    public static void MapListarEventosEndpoint(this IEndpointRouteBuilder app)
+    public static RouteHandlerBuilder MapListarEventosEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/calendario", async (DateTimeOffset inicio, DateTimeOffset fin, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/calendario", async (DateTimeOffset inicio, DateTimeOffset fin, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 

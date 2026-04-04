@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import useSWR, { SWRConfig } from 'swr';
 import { 
   X, 
   Mail, 
@@ -27,6 +28,7 @@ import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import { desvincularPropiedad } from '../api/desvincularPropiedad';
 import { actualizarInteraccion } from '../api/actualizarInteraccion';
 import { eliminarInteraccion } from '../api/eliminarInteraccion';
+import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import type { Cliente, Interaccion, Interes } from '../types';
 import type { Propiedad } from '../../propiedades/types';
 
@@ -56,18 +58,19 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export const ClienteDetalle = () => {
+const ClienteDetalleContent = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [cliente, setCliente] = useState<Cliente | null>(() => {
-    if (!id) return null;
-    const saved = localStorage.getItem(`crm_cliente_cache_${id}`);
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { data: cliente, isValidating: syncing, mutate } = useSWR<Cliente>(
+    id ? `/clientes/${id}` : null,
+    () => getClienteById(id!),
+    swrDefaultConfig
+  );
   
-  const [loading, setLoading] = useState(!cliente);
+  // UPSP: loading es TRUE solo si no hay datos y estamos validando por primera vez o revalidando sin cache.
+  const loading = !cliente && syncing;
   const [sending, setSending] = useState(false);
   const [nuevaNota, setNuevaNota] = useState('');
   const [tipoNota, setTipoNota] = useState('Nota');
@@ -92,31 +95,6 @@ export const ClienteDetalle = () => {
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isInteresesOpen, setIsInteresesOpen] = useState(true);
 
-  const fetchCliente = useCallback(async (isInitial = false) => {
-    if (!id) return;
-    try {
-      // Usamos el estado actual de forma segura para el loader
-      if (isInitial) {
-        setLoading(prev => {
-          const cached = localStorage.getItem(`crm_cliente_cache_${id}`);
-          return !cached && !prev;
-        });
-      }
-      
-      const data = await getClienteById(id);
-      setCliente(data);
-      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(data));
-    } catch (err) {
-      console.error('Error al cargar detalles del cliente:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => { 
-    if (id) fetchCliente(true); 
-  }, [id, fetchCliente]);
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -130,13 +108,18 @@ export const ClienteDetalle = () => {
   const handleStageChange = async (nuevaEtapa: string) => {
     if (!cliente || !id || cliente.etapaEmbudo === nuevaEtapa) return;
     setShowEtapaDropdown(false);
-    const etapaAnterior = cliente.etapaEmbudo;
-    setCliente({ ...cliente, etapaEmbudo: nuevaEtapa });
+    
+    const optimisticData = { ...cliente, etapaEmbudo: nuevaEtapa };
+    
     try {
       setUpdatingEtapa(true);
-      await actualizarEtapaCliente(id, nuevaEtapa);
-    } catch {
-      setCliente({ ...cliente, etapaEmbudo: etapaAnterior });
+      await mutate(actualizarEtapaCliente(id, nuevaEtapa).then(() => optimisticData), {
+        optimisticData,
+        rollbackOnError: true,
+        revalidate: true
+      });
+    } catch (err) {
+      console.error(err);
     } finally {
       setUpdatingEtapa(false);
     }
@@ -151,7 +134,7 @@ export const ClienteDetalle = () => {
         titulo: interes.titulo, 
         precio: interes.precio, 
         estadoComercial: interes.estadoComercial,
-        codigo: '', // Campos requeridos por el tipo Propiedad pero no críticos aquí
+        codigo: '', 
         tipoInmueble: '',
         ubicacion: '',
         area: 0,
@@ -181,9 +164,8 @@ export const ClienteDetalle = () => {
 
   const handleVincular = async () => {
     if (!propiedadSeleccionada || !cliente || !id) return;
-    const previousIntereses = [...(cliente.intereses || [])];
     
-    const nuevoInteres = {
+    const nuevoInteres: Interes = {
       propiedadId: propiedadSeleccionada.id,
       titulo: propiedadSeleccionada.titulo,
       precio: propiedadSeleccionada.precio,
@@ -193,10 +175,10 @@ export const ClienteDetalle = () => {
     };
 
     let nuevosIntereses;
+    const previousIntereses = [...(cliente.intereses || [])];
     if (isEditingInteres) {
       nuevosIntereses = previousIntereses.map(i => i.propiedadId === propiedadSeleccionada.id ? { ...i, nivelInteres } : i);
     } else {
-      // Upsert local logic
       const existe = previousIntereses.find(i => i.propiedadId === propiedadSeleccionada.id);
       if (existe) {
         nuevosIntereses = previousIntereses.map(i => i.propiedadId === propiedadSeleccionada.id ? { ...i, nivelInteres, fechaRegistro: nuevoInteres.fechaRegistro } : i);
@@ -205,17 +187,18 @@ export const ClienteDetalle = () => {
       }
     }
 
-    const nuevoEstado = { ...cliente, intereses: nuevosIntereses };
-    setCliente(nuevoEstado);
-    localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
-    
+    const optimisticData = { ...cliente, intereses: nuevosIntereses };
     setShowVincularModal(false);
+    
     try {
       setVinculando(true);
-      await vincularPropiedad(id, propiedadSeleccionada.id, nivelInteres);
-    } catch {
-      setCliente({ ...cliente, intereses: previousIntereses });
-      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
+      await mutate(vincularPropiedad(id, propiedadSeleccionada.id, nivelInteres).then(() => optimisticData), {
+        optimisticData,
+        rollbackOnError: true,
+        revalidate: true
+      });
+    } catch (err) {
+      console.error(err);
     } finally {
       setVinculando(false);
     }
@@ -247,49 +230,54 @@ export const ClienteDetalle = () => {
     const previousInteracciones = [...(cliente.interacciones || [])];
 
     if (notaEnEdicion) {
-      // Flujo de Actualización (PUT)
       const nuevasInteracciones = previousInteracciones.map(i => i.id === notaEnEdicion ? { ...i, notas: nuevaNota, tipoInteraccion: tipoNota } : i);
-      const nuevoEstado = { ...cliente, interacciones: nuevasInteracciones };
-      setCliente(nuevoEstado);
-      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
+      const optimisticData = { ...cliente, interacciones: nuevasInteracciones };
       
       const idNota = notaEnEdicion;
       const tipoParaActualizar = tipoNota;
+      const notaParaActualizar = nuevaNota;
       setNotaEnEdicion(null);
       setNuevaNota('');
+      
       try {
         setSending(true);
-        await actualizarInteraccion(idNota, nuevaNota, tipoParaActualizar);
-      } catch {
-        setCliente({ ...cliente, interacciones: previousInteracciones });
-        localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
+        await mutate(actualizarInteraccion(idNota, notaParaActualizar, tipoParaActualizar).then(() => optimisticData), {
+          optimisticData,
+          rollbackOnError: true,
+          revalidate: true
+        });
+      } catch (err) {
+        console.error(err);
       } finally {
         setSending(false);
       }
       return;
     }
 
-    const nuevaInteraccion = {
+    const nuevaInteraccion: Interaccion = {
       id: crypto.randomUUID(),
       tipoInteraccion: tipoNota,
       notas: nuevaNota,
       fechaInteraccion: new Date().toISOString()
     };
-    const nuevoEstado = { ...cliente, interacciones: [nuevaInteraccion, ...previousInteracciones] };
-    setCliente(nuevoEstado);
-    localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
-    
+    const optimisticData = { ...cliente, interacciones: [nuevaInteraccion, ...previousInteracciones] };
+    const notaAGuardar = nuevaNota;
+    const tipoAGuardar = tipoNota;
     setNuevaNota('');
+    
     try {
       setSending(true);
-      await registrarInteraccion({
+      await mutate(registrarInteraccion({
         clienteId: id,
-        tipoInteraccion: tipoNota,
-        notas: nuevaNota
+        tipoInteraccion: tipoAGuardar,
+        notas: notaAGuardar
+      }).then(() => optimisticData), {
+        optimisticData,
+        rollbackOnError: true,
+        revalidate: true
       });
-    } catch {
-      setCliente({ ...cliente, interacciones: previousInteracciones });
-      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
+    } catch (err) {
+      console.error(err);
     } finally {
       setSending(false);
     }
@@ -304,36 +292,38 @@ export const ClienteDetalle = () => {
   const handleEliminarNota = async (interaccionId: string) => {
     if (!cliente || !id) return;
     const previousInteracciones = [...(cliente.interacciones || [])];
-    const nuevoEstado = {
+    const optimisticData = {
       ...cliente,
       interacciones: previousInteracciones.filter(i => i.id !== interaccionId)
     };
-    setCliente(nuevoEstado);
-    localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
 
     try {
-      await eliminarInteraccion(interaccionId);
-    } catch {
-      setCliente({ ...cliente, interacciones: previousInteracciones });
-      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
+      await mutate(eliminarInteraccion(interaccionId).then(() => optimisticData), {
+        optimisticData,
+        rollbackOnError: true,
+        revalidate: true
+      });
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const handleDesvincularInteres = async (propiedadId: string) => {
     if (!cliente || !id) return;
     const previousIntereses = [...(cliente.intereses || [])];
-    const nuevoEstado = {
+    const optimisticData = {
       ...cliente,
       intereses: previousIntereses.filter(i => i.propiedadId !== propiedadId)
     };
-    setCliente(nuevoEstado);
-    localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(nuevoEstado));
 
     try {
-      await desvincularPropiedad(id, propiedadId);
-    } catch {
-      setCliente({ ...cliente, intereses: previousIntereses });
-      localStorage.setItem(`crm_cliente_cache_${id}`, JSON.stringify(cliente));
+      await mutate(desvincularPropiedad(id, propiedadId).then(() => optimisticData), {
+        optimisticData,
+        rollbackOnError: true,
+        revalidate: true
+      });
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -372,7 +362,17 @@ export const ClienteDetalle = () => {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
+      {/* Indicador de Sincronización UPSP */}
+      {syncing && cliente && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-4 duration-300">
+          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-white/10">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sincronizando Expediente...</span>
+          </div>
+        </div>
+      )}
+
       {/* Modales Complementarios */}
       {showVincularModal && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
@@ -437,10 +437,7 @@ export const ClienteDetalle = () => {
         </div>
       )}
 
-      {/* 🚀 ARQUITECTURA SOLIDARIA: El Header y las Columnas comparten el mismo destino final */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative overflow-visible">
-        
-        {/* 1. Header de Página (Sticky top-20) */}
         <div className="lg:col-span-12 sticky top-20 z-50 bg-slate-50 py-6 mb-2 border-b border-slate-200/60 -mx-8 px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -465,7 +462,6 @@ export const ClienteDetalle = () => {
           </div>
         </div>
 
-        {/* 2. COLUMNA IZQUIERDA (Info Personal) - STICKY EN EL CONTENEDOR DE COLUMNA */}
         <div className="lg:col-span-4 sticky top-[180px] self-start h-fit z-20">
           <div className="bg-white rounded-[40px] border-2 border-slate-100 shadow-sm p-10 overflow-hidden relative group">
             <div className="flex flex-col items-center text-center mb-10">
@@ -478,13 +474,12 @@ export const ClienteDetalle = () => {
               <div className="flex items-center gap-4 group/item"><div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover/item:bg-blue-600 group-hover/item:text-white transition-all"><Phone className="h-5 w-5" /></div><div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Teléfono</p><p className="text-sm font-bold text-slate-700">{cliente.telefono}</p></div></div>
               <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-50">
                 <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Origen</p><p className="text-xs font-black text-slate-900">{cliente.origen}</p></div>
-                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Fecha</p><p className="text-xs font-black text-slate-900">{formatDate(cliente.fechaCreacion).split(',')[0]}</p></div>
+                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Fecha</p><p className="text-xs font-black text-slate-900">{formatDate(cliente.fechaCreacion!).split(',')[0]}</p></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 3. COLUMNA CENTRAL (Timeline) */}
         <div className="lg:col-span-5 space-y-8">
           <div className="bg-white rounded-[40px] border-2 border-slate-100 shadow-sm overflow-hidden">
             <div onClick={() => setIsTimelineOpen(!isTimelineOpen)} className="p-8 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
@@ -540,7 +535,6 @@ export const ClienteDetalle = () => {
           </div>
         </div>
 
-        {/* 4. COLUMNA DERECHA (Notas e Intereses) - STICKY EN EL CONTENEDOR DE COLUMNA */}
         <div className="lg:col-span-3 sticky top-[180px] self-start h-fit z-20">
           <div className="space-y-8">
             <div className="bg-slate-900 rounded-[40px] p-8 shadow-2xl relative overflow-hidden group border-2 border-slate-800">
@@ -620,5 +614,13 @@ export const ClienteDetalle = () => {
 
       </div>
     </div>
+  );
+};
+
+export const ClienteDetalle = () => {
+  return (
+    <SWRConfig value={{ provider: localStorageProvider }}>
+      <ClienteDetalleContent />
+    </SWRConfig>
   );
 };

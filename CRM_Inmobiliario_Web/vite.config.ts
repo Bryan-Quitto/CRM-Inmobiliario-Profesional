@@ -1,14 +1,17 @@
 import { defineConfig } from 'vite'
-import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
+import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
   envDir: '../',
   plugins: [
-    react(),
-    babel({ presets: [reactCompilerPreset()] })
+    react({
+      // @ts-expect-error - React Compiler es experimental y puede no estar en los tipos estables del plugin v6 todavía
+      babel: {
+        plugins: ["babel-plugin-react-compiler"]
+      }
+    }),
   ],
   resolve: {
     alias: {
