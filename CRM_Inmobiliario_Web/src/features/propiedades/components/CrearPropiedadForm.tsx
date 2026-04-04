@@ -421,8 +421,8 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
             </div>
           </div>
 
-          {/* Captación Propia Toggle - Full Width */}
-          <div className="md:col-span-6">
+          {/* Configuración de Captación y Comisión - Full Width */}
+          <div className="md:col-span-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="flex items-center gap-3 p-4 bg-blue-50/50 border-2 border-blue-100/50 rounded-[24px] cursor-pointer hover:bg-blue-50 transition-all group">
               <div className="relative inline-flex items-center cursor-pointer">
                 <input 
@@ -434,10 +434,26 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
                 <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
               </div>
               <div>
-                <span className="text-xs font-black text-slate-900 uppercase tracking-tight block">¿Es una captación propia?</span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block opacity-70">Marca esta opción si tú gestionaste el ingreso directo del inmueble</span>
+                <span className="text-xs font-black text-slate-900 uppercase tracking-tight block">¿Captación propia?</span>
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block opacity-70">Gestión directa</span>
               </div>
             </label>
+
+            <div className="bg-slate-50 border-2 border-slate-100 rounded-[24px] p-4 flex items-center justify-between gap-4 group hover:border-blue-200 transition-all">
+              <div className="flex flex-col">
+                <span className="text-xs font-black text-slate-900 uppercase tracking-tight">Comisión (%)</span>
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest opacity-70">Porcentaje pactado</span>
+              </div>
+              <div className="relative w-24">
+                <input 
+                  {...register('porcentajeComision', { required: true, min: 0, max: 100 })}
+                  type="number" 
+                  step="0.1"
+                  defaultValue={5.0}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black text-blue-600 text-center focus:ring-4 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all shadow-sm"
+                />
+              </div>
+            </div>
           </div>
         </div>
 

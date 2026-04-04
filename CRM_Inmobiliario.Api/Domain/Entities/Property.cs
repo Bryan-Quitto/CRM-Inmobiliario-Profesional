@@ -54,6 +54,9 @@ public sealed class Property
     public bool EsCaptacionPropia { get; set; } = true;
 
     [Required]
+    public decimal PorcentajeComision { get; set; } = 5.0m;
+
+    [Required]
     public Guid AgenteId { get; set; }
     public Agent? Agente { get; set; }
 

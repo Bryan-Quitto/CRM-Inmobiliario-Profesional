@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import useSWR, { SWRConfig } from 'swr';
 import { 
   CheckCircle2, 
   Handshake, 
@@ -9,7 +10,14 @@ import {
   Calendar,
   ChevronDown,
   Check,
-  Target
+  Target,
+  DollarSign,
+  ArrowUpRight,
+  Zap,
+  Clock,
+  Activity,
+  BarChart3,
+  Info
 } from 'lucide-react';
 import { 
   XAxis, 
@@ -20,19 +28,42 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { getActividadAnalitica, getSeguimientoAnalitica } from '../api/analitica';
-import type { ActividadAnalitica, SeguimientoAnalitica } from '../types';
+import { api } from '../../../lib/axios';
+import type { ActividadAnalitica, SeguimientoAnalitica, ProyeccionAnalitica, EficienciaAnalitica } from '../types';
 
-const ANALITICA_CACHE_BASE = 'crm_analitica_v1_';
+// Fetcher genérico para SWR usando Axios
+const fetcher = (url: string, params?: Record<string, unknown>) => api.get(url, { params }).then(res => res.data);
 
-export const AnaliticaView: React.FC = () => {
-  const [actividad, setActividad] = useState<ActividadAnalitica | null>(null);
-  const [seguimiento, setSeguimiento] = useState<SeguimientoAnalitica | null>(null);
-  const [loading, setLoading] = useState(true);
+// Middleware World-Class: Persistencia en LocalStorage para SWR
+const localStorageProvider = () => {
+  const map = new Map<string, any>(JSON.parse(localStorage.getItem('crm-swr-cache') || '[]'));
   
-  // Estados para filtros granulares
+  // Guardar en cada cambio (más robusto que beforeunload para SPAs)
+  const save = () => {
+    const appCache = JSON.stringify(Array.from(map.entries()));
+    localStorage.setItem('crm-swr-cache', appCache);
+  };
+
+  // Interceptar el set para guardar automáticamente
+  const originalSet = map.set.bind(map);
+  map.set = (key, value) => {
+    const result = originalSet(key, value);
+    save();
+    return result;
+  };
+
+  return map;
+};
+
+interface RangoFechas {
+  inicio: Date;
+  fin: Date;
+  label: string;
+}
+
+const AnaliticaContent: React.FC = () => {
   const [mesSeleccionado, setMesSeleccionado] = useState(new Date().getMonth());
-  const [semanaSeleccionada, setSemanaSeleccionada] = useState<number | 'total'>('total');
+  const [semanaIndice, setSemanaIndice] = useState<number | 'total'>('total');
   const [anioSeleccionado] = useState(new Date().getFullYear());
   const [showMesDropdown, setShowMesDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -42,12 +73,89 @@ export const AnaliticaView: React.FC = () => {
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  // Helper para generar una llave de cache única por periodo (Memoizado para evitar warnings de lint)
-  const getCacheKey = useCallback(() => {
-    return `${ANALITICA_CACHE_BASE}${anioSeleccionado}_${mesSeleccionado}_${semanaSeleccionada}`;
-  }, [anioSeleccionado, mesSeleccionado, semanaSeleccionada]);
+  const semanasDelMes = useMemo(() => {
+    const rawSemanas: { inicio: Date; fin: Date }[] = [];
+    const primerDia = new Date(anioSeleccionado, mesSeleccionado, 1);
+    const ultimoDia = new Date(anioSeleccionado, mesSeleccionado + 1, 0, 23, 59, 59);
 
-  // Cerrar dropdown al hacer click fuera
+    let current = new Date(primerDia);
+    while (current <= ultimoDia) {
+      const inicio = new Date(current);
+      const diaSemana = inicio.getDay();
+      const diasHastaDomingo = diaSemana === 0 ? 0 : 7 - diaSemana;
+      let fin = new Date(inicio);
+      fin.setDate(inicio.getDate() + diasHastaDomingo);
+      fin.setHours(23, 59, 59);
+
+      if (fin > ultimoDia) fin = new Date(ultimoDia);
+      rawSemanas.push({ inicio, fin });
+      
+      current = new Date(fin);
+      current.setDate(fin.getDate() + 1);
+      current.setHours(0, 0, 0, 0);
+    }
+
+    const clustered: RangoFechas[] = [];
+    for (let i = 0; i < rawSemanas.length; i++) {
+      const item = rawSemanas[i];
+      const diffMs = item.fin.getTime() - item.inicio.getTime();
+      const durationDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+      if (i === 0 && durationDays < 4 && rawSemanas.length > 1) {
+        rawSemanas[i + 1].inicio = item.inicio;
+        continue;
+      }
+      if (i === rawSemanas.length - 1 && durationDays < 4 && clustered.length > 0) {
+        clustered[clustered.length - 1].fin = item.fin;
+        continue;
+      }
+
+      clustered.push({
+        inicio: item.inicio,
+        fin: item.fin,
+        label: `S${clustered.length + 1}`
+      });
+    }
+
+    return clustered;
+  }, [anioSeleccionado, mesSeleccionado]);
+
+  const rangoActual = useMemo(() => {
+    if (semanaIndice === 'total') {
+      return {
+        inicio: new Date(anioSeleccionado, mesSeleccionado, 1),
+        fin: new Date(anioSeleccionado, mesSeleccionado + 1, 0, 23, 59, 59)
+      };
+    }
+    const s = semanasDelMes[semanaIndice] || semanasDelMes[0];
+    return { inicio: s.inicio, fin: s.fin };
+  }, [semanaIndice, semanasDelMes, anioSeleccionado, mesSeleccionado]);
+
+  const formattedRange = `${rangoActual.inicio.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} - ${rangoActual.fin.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`;
+
+  const swrConfig = { 
+    dedupingInterval: 10000, 
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    keepPreviousData: true
+  };
+
+  const { data: seguimiento } = useSWR<SeguimientoAnalitica>('/analitica/seguimiento', fetcher, swrConfig);
+  const { data: proyeccion } = useSWR<ProyeccionAnalitica>('/analitica/proyecciones', fetcher, swrConfig);
+  const { data: eficiencia } = useSWR<EficienciaAnalitica>('/analitica/eficiencia', fetcher, swrConfig);
+
+  const actividadKey = [`/analitica/actividad`, rangoActual.inicio.toISOString(), rangoActual.fin.toISOString()];
+  const { data: actividad, isValidating: loadingActividad } = useSWR<ActividadAnalitica>(
+    actividadKey,
+    () => fetcher('/analitica/actividad', { 
+      inicio: rangoActual.inicio.toISOString(), 
+      fin: rangoActual.fin.toISOString() 
+    }),
+    swrConfig
+  );
+
+  const initialLoading = !actividad && !seguimiento && !proyeccion;
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -58,312 +166,230 @@ export const AnaliticaView: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Helper para obtener el rango de fechas de una semana específica en un mes
-  const getRangoSemana = (year: number, month: number, weekNum: number | 'total') => {
-    if (weekNum === 'total') {
-      const inicio = new Date(year, month, 1);
-      const fin = new Date(year, month + 1, 0, 23, 59, 59);
-      return { inicio, fin };
-    }
-
-    const primerDiaMes = new Date(year, month, 1);
-    const diaSemanaPrimerDia = primerDiaMes.getDay(); // 0 (Dom) a 6 (Sab)
-    const desfaseLunes = diaSemanaPrimerDia === 0 ? 1 : diaSemanaPrimerDia === 1 ? 0 : 8 - diaSemanaPrimerDia;
-    
-    const inicioSemana1 = new Date(year, month, 1 + desfaseLunes);
-    const inicio = new Date(inicioSemana1.getTime());
-    inicio.setDate(inicio.getDate() + (weekNum - 1) * 7);
-    
-    const fin = new Date(inicio.getTime());
-    fin.setDate(fin.getDate() + 6);
-    fin.setHours(23, 59, 59);
-    
-    return { inicio, fin };
-  };
-
-  const { inicio: startObj, fin: endObj } = getRangoSemana(anioSeleccionado, mesSeleccionado, semanaSeleccionada);
-  const formattedRange = `${startObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} - ${endObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`;
-
-  // Efecto para sincronizar datos (Cache-First + Background Sync)
-  useEffect(() => {
-    const fetchData = async () => {
-      const cacheKey = getCacheKey();
-      const saved = localStorage.getItem(cacheKey);
-      
-      // 1. Instant UI: Cargar desde cache si existe
-      if (saved) {
-        const { actividad: cachedAct, seguimiento: cachedSeg } = JSON.parse(saved);
-        setActividad(cachedAct);
-        setSeguimiento(cachedSeg);
-        setLoading(false); // No bloqueamos la UI principal si hay cache
-      } else {
-        setActividad(null);
-        setLoading(true); // Bloqueamos solo si no hay nada que mostrar
-      }
-
-      try {
-        const { inicio, fin } = getRangoSemana(anioSeleccionado, mesSeleccionado, semanaSeleccionada);
-        const [act, seg] = await Promise.all([
-          getActividadAnalitica(inicio.toISOString(), fin.toISOString()),
-          getSeguimientoAnalitica()
-        ]);
-        
-        setActividad(act);
-        setSeguimiento(seg);
-        
-        // Actualizar cache
-        localStorage.setItem(cacheKey, JSON.stringify({ actividad: act, seguimiento: seg, timestamp: Date.now() }));
-      } catch (error) {
-        console.error("Error al cargar datos de analítica", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [mesSeleccionado, semanaSeleccionada, anioSeleccionado, getCacheKey]);
-
-  if (loading && !actividad) {
+  if (initialLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh]">
         <Loader2 className="h-10 w-10 text-blue-700 animate-spin mb-4" />
-        <p className="text-sm font-bold text-slate-700 uppercase tracking-widest italic">Calculando métricas de rendimiento...</p>
+        <p className="text-sm font-bold text-slate-700 uppercase tracking-widest italic text-center">Iniciando motor de inteligencia comercial...</p>
       </div>
     );
   }
 
-  const kpis = [
-    {
-      title: 'Visitas Completadas',
-      value: actividad?.visitasCompletadas ?? 0,
-      icon: <CheckCircle2 className="h-6 w-6" />,
-      color: 'bg-emerald-50 text-emerald-600',
-      description: 'Efectividad en agenda'
-    },
-    {
-      title: 'Cierres Realizados',
-      value: actividad?.cierresRealizados ?? 0,
-      icon: <Handshake className="h-6 w-6" />,
-      color: 'bg-blue-50 text-blue-600',
-      description: 'Operaciones exitosas'
-    },
-    {
-      title: 'Ofertas Generadas',
-      value: actividad?.ofertasGeneradas ?? 0,
-      icon: <FileText className="h-6 w-6" />,
-      color: 'bg-indigo-50 text-indigo-600',
-      description: 'En negociación activa'
-    },
-    {
-      title: 'Captaciones Propias',
-      value: actividad?.captacionesPropias ?? 0,
-      icon: <Target className="h-6 w-6" />,
-      color: 'bg-amber-50 text-amber-600',
-      description: 'Inventario directo'
-    },
-    {
-      title: 'Seguimiento Crítico',
-      value: seguimiento?.seguimientoRequerido ?? 0,
-      icon: <Users className="h-6 w-6" />,
-      color: 'bg-rose-50 text-rose-600',
-      description: 'Interés Medio/Alto'
-    }
+  const kpisOperativos = [
+    { title: 'Visitas', value: actividad?.visitasCompletadas ?? 0, icon: <CheckCircle2 className="h-5 w-5" />, color: 'bg-emerald-50 text-emerald-600', desc: 'Completadas' },
+    { title: 'Cierres', value: actividad?.cierresRealizados ?? 0, icon: <Handshake className="h-5 w-5" />, color: 'bg-blue-50 text-blue-600', desc: 'Finalizados' },
+    { title: 'Ofertas', value: actividad?.ofertasGeneradas ?? 0, icon: <FileText className="h-5 w-5" />, color: 'bg-indigo-50 text-indigo-600', desc: 'Generadas' },
+    { title: 'Captaciones', value: actividad?.captacionesPropias ?? 0, icon: <Target className="h-5 w-5" />, color: 'bg-amber-50 text-amber-600', desc: 'Nuevas' },
   ];
 
-  const dataGrafico = [
-    { name: 'S1', visitas: 4, cierres: 1, captaciones: 2 },
-    { name: 'S2', visitas: 7, cierres: 2, captaciones: 1 },
-    { name: 'S3', visitas: 5, cierres: actividad?.cierresRealizados ?? 0, captaciones: actividad?.captacionesPropias ?? 0 },
-    { name: 'S4', visitas: actividad?.visitasCompletadas ?? 0, cierres: 1, captaciones: 3 },
-  ];
+  const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 relative">
-      {/* Overlay de Carga Sutil (Zero Wait Pattern) */}
-      {loading && actividad && (
-        <div className="absolute inset-0 bg-slate-50/40 backdrop-blur-[1px] z-[60] flex items-start justify-center pt-40 transition-all duration-500 rounded-3xl">
-          <div className="bg-white/90 px-6 py-4 rounded-3xl shadow-2xl border border-slate-100 flex items-center gap-4 animate-in zoom-in-95 duration-300">
-            <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
-            <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Sincronizando analítica...</span>
+    <div className="space-y-10 animate-in fade-in duration-700 relative pb-20">
+      {loadingActividad && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-4 duration-300">
+          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-white/10">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sincronizando Inteligencia...</span>
           </div>
         </div>
       )}
 
-      {/* Header con Selectores Granulares */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Rendimiento <span className="text-blue-600">Comercial</span></h1>
-          <p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
-            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100">Rango</span>
-            {formattedRange}
-          </p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+              <Zap className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Pulso del Negocio</h2>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Snapshot en Tiempo Real</span>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Selector de Mes (Custom Dropdown) */}
-          <div className="relative" ref={dropdownRef}>
-            <button 
-              onClick={() => setShowMesDropdown(!showMesDropdown)}
-              className="bg-white border-2 border-slate-100 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:border-blue-300 focus:ring-4 focus:ring-blue-50/50 transition-all cursor-pointer outline-none shadow-md flex items-center gap-3 min-w-[140px] justify-between"
-            >
-              {MESES[mesSeleccionado]}
-              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${showMesDropdown ? 'rotate-180' : ''}`} />
-            </button>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 bg-gradient-to-br from-slate-900 to-slate-800 rounded-[40px] p-10 text-white shadow-2xl shadow-slate-900/20 overflow-hidden relative group border border-white/5">
+            <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:scale-110 transition-transform duration-700">
+              <DollarSign className="h-40 w-40" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 h-full">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-500/20 backdrop-blur-md p-2 rounded-xl border border-emerald-500/20">
+                    <TrendingUp className="h-5 w-5 text-emerald-400" />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-400">Proyección Estratégica</span>
+                </div>
+                <h2 className="text-6xl font-black tracking-tighter">
+                  {formatCurrency(proyeccion?.proyeccionIngresos ?? 0)}
+                </h2>
+                <p className="text-slate-400 text-sm font-medium max-w-md">
+                  Ingresos estimados basados en inmuebles <span className="text-white font-bold italic">Reservados</span> y clientes activos.
+                </p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 flex flex-col items-center justify-center min-w-[220px]">
+                <div className="bg-white/10 text-white p-3 rounded-2xl mb-4 border border-white/10">
+                  <ArrowUpRight className="h-6 w-6 text-emerald-400" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Potencial Real</span>
+                <span className="text-2xl font-black tracking-tight text-white">Pipeline</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 grid grid-cols-1 gap-6">
+            <div className="bg-rose-50 border-2 border-rose-100 rounded-[32px] p-8 relative overflow-hidden group">
+              <Users className="absolute -right-4 -bottom-4 h-24 w-24 text-rose-500/10 group-hover:scale-110 transition-transform" />
+              <div className="relative z-10">
+                <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em] mb-1">Seguimiento Crítico</p>
+                <h3 className="text-5xl font-black text-rose-600 tracking-tighter">{seguimiento?.seguimientoRequerido ?? 0}</h3>
+                <p className="text-[11px] font-bold text-rose-500/70 mt-2">Leads nuevos con interés Alto/Medio</p>
+              </div>
+            </div>
             
-            {showMesDropdown && (
-              <div className="absolute left-0 mt-3 w-48 bg-white border-2 border-slate-50 rounded-[24px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left overflow-hidden backdrop-blur-xl bg-white/95">
-                {MESES.map((mes, idx) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => {
-                      setMesSeleccionado(idx);
-                      setSemanaSeleccionada('total');
-                      setShowMesDropdown(false);
-                    }}
-                    className={`w-full px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${mesSeleccionado === idx ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'}`}
-                  >
-                    {mes}
-                    {mesSeleccionado === idx && <Check className="h-3 w-3" />}
-                  </button>
-                ))}
+            <div className="bg-white border-2 border-slate-100 rounded-[32px] p-8 flex items-center justify-between group hover:border-blue-200 transition-all shadow-sm">
+              <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Tasa de Éxito</p>
+                <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{eficiencia?.tasaConversion ?? 0}%</h3>
+                <p className="text-[11px] font-bold text-slate-500 mt-1">Cierres Totales</p>
+              </div>
+              <div className="h-14 w-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:rotate-12 transition-all">
+                <Activity className="h-7 w-7" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="h-px bg-slate-100"></div>
+
+      <div className="space-y-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
+              <BarChart3 className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Análisis de Desempeño</h2>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mt-0.5">
+                <Info className="h-3 w-3" /> Basado en el filtro de fecha seleccionado
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative" ref={dropdownRef}>
+              <button onClick={() => setShowMesDropdown(!showMesDropdown)} className="bg-white border-2 border-slate-100 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:border-blue-300 focus:ring-4 focus:ring-blue-50/50 transition-all cursor-pointer outline-none shadow-md flex items-center gap-3 min-w-[140px] justify-between">{MESES[mesSeleccionado]}<ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${showMesDropdown ? 'rotate-180' : ''}`} /></button>
+              {showMesDropdown && (
+                <div className="absolute left-0 mt-3 w-48 bg-white border-2 border-slate-50 rounded-[24px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left overflow-hidden backdrop-blur-xl bg-white/95">
+                  {MESES.map((mes, idx) => (
+                    <button key={idx} onClick={() => { setMesSeleccionado(idx); setSemanaIndice('total'); setShowMesDropdown(false); }} className={`w-full px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${mesSeleccionado === idx ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'}`}>{mes}{mesSeleccionado === idx && <Check className="h-3 w-3" />}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl shadow-inner border border-slate-200/50">
+              <button onClick={() => setSemanaIndice('total')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${semanaIndice === 'total' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}>Mes</button>
+              {semanasDelMes.map((s, idx) => (
+                <button key={idx} onClick={() => setSemanaIndice(idx)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${semanaIndice === idx ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}>{s.label}</button>
+              ))}
+            </div>
+
+            <div className="bg-slate-900 text-white px-5 py-3 rounded-2xl flex items-center gap-3 shadow-lg shadow-slate-900/10 border border-white/5">
+              <Calendar className="h-4 w-4 text-blue-400" />
+              <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{formattedRange}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {kpisOperativos.map((kpi, idx) => (
+            <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group border-b-4 border-b-transparent hover:border-b-blue-500 relative overflow-hidden">
+              {loadingActividad && (
+                <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10 flex items-center justify-center animate-in fade-in duration-300">
+                  <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                </div>
+              )}
+              <div className={`p-3 rounded-2xl ${kpi.color} w-fit mb-4 group-hover:scale-110 transition-transform`}>{kpi.icon}</div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{kpi.title}</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <h2 className="text-4xl font-black text-slate-900">{kpi.value}</h2>
+                <p className="text-[11px] font-bold text-slate-500">{kpi.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm relative overflow-hidden">
+            {loadingActividad && (
+              <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center animate-in fade-in duration-500">
+                 <div className="bg-white p-4 rounded-full shadow-xl border border-slate-100">
+                    <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                 </div>
+                 <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recalculando Tendencia...</p>
               </div>
             )}
-          </div>
-
-          {/* Selector de Semana */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl shadow-inner border border-slate-200/50">
-            <button 
-              onClick={() => setSemanaSeleccionada('total')}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${semanaSeleccionada === 'total' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
-            >
-              Mes Completo
-            </button>
-            {[1, 2, 3, 4].map(w => (
-              <button 
-                key={w}
-                onClick={() => setSemanaSeleccionada(w)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${semanaSeleccionada === w ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
-              >
-                S{w}
-              </button>
-            ))}
-          </div>
-
-          <div className="h-10 w-px bg-slate-200 mx-2 hidden lg:block"></div>
-          
-          <div className="bg-slate-900 text-white px-5 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-slate-900/10">
-            <Calendar className="h-4 w-4 text-blue-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest">{anioSeleccionado}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* KPI Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {kpis.map((kpi, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-            <div className={`p-3 rounded-2xl ${kpi.color} w-fit mb-4 group-hover:scale-110 transition-transform`}>
-              {kpi.icon}
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">Tendencia Diaria</h3>
+                <p className="text-sm font-medium text-slate-500">Esfuerzo operativo detectado en el rango</p>
+              </div>
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{kpi.title}</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <h2 className="text-4xl font-black text-slate-900">{kpi.value}</h2>
-              <p className="text-[11px] font-bold text-slate-500">{kpi.description}</p>
+            <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={actividad?.trend ?? []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorVisitas" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
+                    <linearGradient id="colorCierres" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient>
+                    <linearGradient id="colorCaptaciones" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.1}/><stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="fecha" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                  <Area type="monotone" dataKey="visitas" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitas)" />
+                  <Area type="monotone" dataKey="cierres" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCierres)" />
+                  <Area type="monotone" dataKey="captaciones" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorCaptaciones)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Charts Section */}
-      <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-              Tendencia de Actividad
-            </h3>
-            <p className="text-sm font-medium text-slate-500">Comparativa de visitas vs cierres vs captaciones en el tiempo</p>
-          </div>
-          <div className="hidden sm:flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-              <span className="text-[10px] font-bold text-slate-500 uppercase">Visitas</span>
+          <div className="bg-indigo-600 rounded-[40px] p-8 text-white flex flex-col justify-between shadow-xl shadow-indigo-200">
+            <div className="h-14 w-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10 mb-6">
+              <Clock className="h-7 w-7 text-indigo-200" />
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-              <span className="text-[10px] font-bold text-slate-500 uppercase">Cierres</span>
+            <div>
+              <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] mb-1">Velocidad de Cierre</p>
+              <h3 className="text-5xl font-black tracking-tighter mb-2">{eficiencia?.tiempoPromedioCierreDias ?? 0} <span className="text-2xl opacity-50 italic">días</span></h3>
+              <p className="text-indigo-100/70 text-sm font-medium leading-relaxed">Promedio histórico desde el registro del prospecto hasta el éxito comercial.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-              <span className="text-[10px] font-bold text-slate-500 uppercase">Captaciones</span>
+            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Ciclo de Venta</span>
+              <div className="flex gap-1">
+                {[1,2,3].map(i => <div key={i} className="w-1 h-3 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: `${i*0.2}s` }}></div>)}
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="h-[400px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dataGrafico} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorVisitas" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorCierres" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorCaptaciones" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }}
-              />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '16px', 
-                  border: 'none', 
-                  boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="visitas" 
-                stroke="#10b981" 
-                strokeWidth={3}
-                fillOpacity={1} 
-                fill="url(#colorVisitas)" 
-              />
-              <Area 
-                type="monotone" 
-                dataKey="cierres" 
-                stroke="#3b82f6" 
-                strokeWidth={3}
-                fillOpacity={1} 
-                fill="url(#colorCierres)" 
-              />
-              <Area 
-                type="monotone" 
-                dataKey="captaciones" 
-                stroke="#f59e0b" 
-                strokeWidth={3}
-                fillOpacity={1} 
-                fill="url(#colorCaptaciones)" 
-              />
-            </AreaChart>
-          </ResponsiveContainer>
         </div>
       </div>
     </div>
+  );
+};
+
+export const AnaliticaView: React.FC = () => {
+  return (
+    <SWRConfig value={{ provider: localStorageProvider }}>
+      <AnaliticaContent />
+    </SWRConfig>
   );
 };

@@ -41,7 +41,7 @@ Estas métricas son las principales del módulo y se calculan con base en la act
 ### F. Proyección de Ingresos (Revenue Projection)
 - **Fórmula:** `SUM(PrecioPropiedad * ComisionConfigurable)`
 - **Lógica:** Suma del precio de propiedades en negociación multiplicada por una comisión que debe ser configurable por el usuario al momento del cierre.
-- **Nota:** Se descarta el estándar fijo del 3% en favor de una entrada de datos dinámica.
+- **Nota:** Se descarta el estándar fijo del 5% en favor de una entrada de datos dinámica.
 
 ### G. Tasa de Conversión (Conversion Rate)
 - **Fórmula:** `(Total Leads "Cerrado" / Total Leads en el Periodo) * 100`.

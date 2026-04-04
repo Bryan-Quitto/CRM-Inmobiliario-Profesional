@@ -38,6 +38,16 @@ public static class CambiarEtapaClienteFeature
             // Actualizar etapa
             cliente.EtapaEmbudo = command.NuevaEtapa;
 
+            // Gestión de FechaCierre para Analítica
+            if (command.NuevaEtapa == "Cerrado")
+            {
+                cliente.FechaCierre = DateTimeOffset.UtcNow;
+            }
+            else
+            {
+                cliente.FechaCierre = null;
+            }
+
             // Sincronización Automática: Generar evento de calendario si es Cita Programada
             if (command.NuevaEtapa == "Cita Programada")
             {
