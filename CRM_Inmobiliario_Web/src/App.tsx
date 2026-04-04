@@ -7,6 +7,7 @@ import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { NetworkStatusListener } from './components/NetworkStatusListener';
 import { supabase } from './lib/supabase';
 import { LoginForm } from './features/auth/components/LoginForm';
+import { usePerfil } from './features/auth/api/perfil';
 import { toast } from 'sonner';
 import type { Session } from '@supabase/supabase-js';
 import { 
@@ -32,6 +33,7 @@ const ClienteDetalle = lazy(() => import('./features/clientes/components/Cliente
 const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
 const AnaliticaView = lazy(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView })));
 const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
+const ConfiguracionPerfil = lazy(() => import('./features/auth/components/ConfiguracionPerfil'));
 
 const PageLoader = () => (
   <div className="flex flex-col items-center justify-center h-[60vh] animate-in fade-in duration-500">
@@ -50,6 +52,7 @@ function AppContent({ session }: { session: Session | null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAgendaOpen, setIsAgendaOpen] = useState(true);
   const { urgentesCount } = useTareas();
+  const { perfil } = usePerfil();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -71,9 +74,6 @@ function AppContent({ session }: { session: Session | null }) {
       toast.error('Error al cerrar sesión');
     }
   };
-
-  const userEmail = session?.user?.email || 'Agente Demo';
-  const userInitial = userEmail.substring(0, 1).toUpperCase();
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
@@ -122,10 +122,15 @@ function AppContent({ session }: { session: Session | null }) {
 
         <div className="p-3 border-t border-slate-800/50 space-y-2">
           <button 
+            onClick={() => navigate('/configuracion')}
             aria-label="Abrir Configuración"
-            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition-all group relative cursor-pointer"
+            className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative cursor-pointer ${
+              isActive('/configuracion')
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                : 'hover:bg-slate-800 hover:text-slate-200'
+            }`}
           >
-            <Settings className="h-5 w-5 group-hover:rotate-45 transition-transform" />
+            <Settings className={`h-5 w-5 ${isActive('/configuracion') ? '' : 'group-hover:rotate-45'} transition-transform`} />
             {isSidebarOpen && <span className="text-sm font-bold">Configuración</span>}
           </button>
           <button 
@@ -180,11 +185,24 @@ function AppContent({ session }: { session: Session | null }) {
             <div className="h-8 w-px bg-slate-200"></div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-black text-slate-900">{userEmail.split('@')[0]}</p>
+                <p className="text-sm font-black text-slate-900">
+                  {perfil ? (
+                    (() => {
+                      const nombreCompleto = `${perfil.nombre} ${perfil.apellido}`;
+                      return nombreCompleto.length > 50 ? perfil.apellido : nombreCompleto;
+                    })()
+                  ) : (
+                    session?.user?.email?.split('@')[0] || 'Agente'
+                  )}
+                </p>
                 <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Agente Activo</p>
               </div>
-              <div className="h-10 w-10 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm uppercase">
-                {userInitial}
+              <div className="h-10 w-10 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm uppercase overflow-hidden">
+                {perfil?.fotoUrl ? (
+                  <img src={perfil.fotoUrl} alt="Perfil" className="w-full h-full object-cover" />
+                ) : (
+                  perfil ? `${perfil.nombre[0]}${perfil.apellido[0]}` : (session?.user?.email?.[0] || 'A')
+                )}
               </div>
             </div>
           </div>
@@ -200,6 +218,7 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/prospectos/:id" element={<ClienteDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
               <Route path="/kpis" element={<AnaliticaView />} />
+              <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionPerfil /></Suspense>} />
             </Routes>
           </Suspense>
         </main>
