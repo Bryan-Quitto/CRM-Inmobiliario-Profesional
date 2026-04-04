@@ -21,9 +21,9 @@ public static class ListarClientesFeature
         DateTimeOffset FechaCreacion
     );
 
-    public static void MapListarClientesEndpoint(this IEndpointRouteBuilder app)
+    public static RouteHandlerBuilder MapListarClientesEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/clientes", async (ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/clientes", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 

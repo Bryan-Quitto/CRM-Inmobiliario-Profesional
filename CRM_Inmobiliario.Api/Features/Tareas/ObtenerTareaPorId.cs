@@ -24,9 +24,9 @@ public static class ObtenerTareaPorIdFeature
         Guid? ClienteId,
         Guid? PropiedadId);
 
-    public static void MapObtenerTareaPorIdEndpoint(this IEndpointRouteBuilder app)
+    public static RouteHandlerBuilder MapObtenerTareaPorIdEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/tareas/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/tareas/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 

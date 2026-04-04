@@ -21,9 +21,9 @@ public static class ListarPropiedadesFeature
         string EstadoComercial,
         string? ImagenPortadaUrl);
 
-    public static void MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
+    public static RouteHandlerBuilder MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/propiedades", async (ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/propiedades", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 

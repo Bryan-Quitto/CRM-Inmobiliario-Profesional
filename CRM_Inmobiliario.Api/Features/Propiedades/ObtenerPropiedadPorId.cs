@@ -34,9 +34,9 @@ public static class ObtenerPropiedadPorIdFeature
         bool EsPrincipal,
         int Orden);
 
-    public static void MapObtenerPropiedadPorIdEndpoint(this IEndpointRouteBuilder app)
+    public static RouteHandlerBuilder MapObtenerPropiedadPorIdEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/propiedades/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/propiedades/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 
