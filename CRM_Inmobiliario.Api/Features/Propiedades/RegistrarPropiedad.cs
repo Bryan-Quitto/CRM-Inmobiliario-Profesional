@@ -22,7 +22,8 @@ public static class RegistrarPropiedadFeature
         int Habitaciones,
         decimal Banos,
         decimal AreaTotal,
-        bool EsCaptacionPropia = true);
+        bool EsCaptacionPropia = true,
+        decimal PorcentajeComision = 5.0m);
 
     public static void MapRegistrarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -46,6 +47,7 @@ public static class RegistrarPropiedadFeature
                 AreaTotal = command.AreaTotal,
                 EstadoComercial = "Disponible",
                 EsCaptacionPropia = command.EsCaptacionPropia,
+                PorcentajeComision = command.PorcentajeComision,
                 AgenteId = agenteId,
                 FechaIngreso = DateTimeOffset.UtcNow
             };

@@ -64,6 +64,12 @@ builder.Services.AddAuthentication(options =>
 
 
 builder.Services.AddAuthorization();
+builder.Services.AddOutputCache(options =>
+{
+    // Política Global: Cache por 10 segundos, variando por el token de autorización (AgenteId)
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromSeconds(10)).VaryByValue((context) => 
+        new KeyValuePair<string, string>("Auth", context.Request.Headers.Authorization.ToString())));
+});
 
 // Configuración de CORS para el Frontend (Vite default: http://localhost:5173)
 builder.Services.AddCors(options =>
@@ -96,6 +102,7 @@ app.UseHttpsRedirection();
 // Middlewares de Autenticación y Autorización
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOutputCache();
 
 // Registro de Features (Vertical Slice) con protección global
 var apiGroup = app.MapGroup("/api").RequireAuthorization();
@@ -139,8 +146,11 @@ apiGroup.MapObtenerKpisEndpoint();
 apiGroup.MapListarEventosEndpoint();
 apiGroup.MapReprogramarEventoEndpoint();
 
-// Analítica
-apiGroup.MapObtenerActividadEndpoint();
-apiGroup.MapObtenerSeguimientoEndpoint();
+// Analítica con Cache Inteligente (10s)
+apiGroup.MapObtenerActividadEndpoint().CacheOutput(p => p.SetVaryByQuery("inicio", "fin").VaryByValue((context) => 
+    new KeyValuePair<string, string>("Auth", context.Request.Headers.Authorization.ToString())));
+apiGroup.MapObtenerSeguimientoEndpoint().CacheOutput();
+apiGroup.MapObtenerProyeccionesEndpoint().CacheOutput();
+apiGroup.MapObtenerEficienciaEndpoint().CacheOutput();
 
 app.Run();

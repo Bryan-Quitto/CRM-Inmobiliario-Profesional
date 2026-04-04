@@ -22,6 +22,7 @@ export interface Propiedad {
   areaTotal: number;
   estadoComercial: string;
   esCaptacionPropia: boolean;
+  porcentajeComision: number;
   fechaIngreso: string;
   media?: MultimediaPropiedad[];
   imagenPortadaUrl?: string;
