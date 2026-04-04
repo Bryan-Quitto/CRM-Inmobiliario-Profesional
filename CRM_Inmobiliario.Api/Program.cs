@@ -6,6 +6,7 @@ using CRM_Inmobiliario.Api.Features.Interacciones;
 using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Features.Calendario;
 using CRM_Inmobiliario.Api.Features.Analitica;
+using CRM_Inmobiliario.Api.Features.Configuracion;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Supabase;
@@ -146,6 +147,10 @@ apiGroup.MapEliminarInteraccionEndpoint();
 
 // Dashboard
 apiGroup.MapObtenerKpisEndpoint().CacheOutput();
+
+// Configuracion
+apiGroup.MapObtenerPerfilEndpoint();
+apiGroup.MapActualizarPerfilEndpoint();
 
 // Calendario
 apiGroup.MapListarEventosEndpoint().CacheOutput(p => p.SetVaryByQuery("inicio", "fin"));
