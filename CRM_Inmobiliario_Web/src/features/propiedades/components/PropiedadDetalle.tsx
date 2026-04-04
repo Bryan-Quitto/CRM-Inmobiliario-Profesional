@@ -20,11 +20,14 @@ import {
   Download,
   FileDown,
   ChevronDown,
-  AlertCircle
+  AlertCircle,
+  Handshake,
+  Pencil
 } from 'lucide-react';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { getPropiedadById } from '../api/getPropiedadById';
+import { CrearPropiedadForm } from './CrearPropiedadForm';
 import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import { establecerImagenPrincipal } from '../api/establecerImagenPrincipal';
@@ -89,6 +92,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isCleaningGallery, setIsCleaningGallery] = useState(false);
   const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const { uploadFiles, isUploading } = useUpload();
 
@@ -501,6 +505,13 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             </div>
           </div>
           <div className="flex gap-2">
+            <button 
+              onClick={() => setShowEditModal(true)}
+              className="px-4 py-1.5 bg-white border-2 border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+            >
+              <Pencil className="h-3 w-3 text-blue-600" />
+              Editar
+            </button>
             <div className="relative">
               <button onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)} disabled={isUpdatingStatus} className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition-all cursor-pointer hover:scale-105 active:scale-95 disabled:opacity-50 ${getStatusBadgeStyles(propiedad.estadoComercial)}`}>
                 {isUpdatingStatus ? <Loader2 className="h-3 w-3 animate-spin" /> : propiedad.estadoComercial}
@@ -522,7 +533,15 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         <div className="p-8 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3"><span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase tracking-widest">{propiedad.tipoPropiedad}</span></div>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase tracking-widest">{propiedad.tipoPropiedad}</span>
+                {propiedad.esCaptacionPropia && (
+                  <span className="text-[10px] font-black text-white bg-blue-600 px-2 py-0.5 rounded-md uppercase tracking-widest flex items-center gap-1">
+                    <Handshake className="h-3 w-3" />
+                    Captación Propia
+                  </span>
+                )}
+              </div>
               <h1 className="text-4xl font-black text-slate-900 leading-tight tracking-tight">{propiedad.titulo}</h1>
               <div className="flex items-center gap-2 text-slate-500 mt-4"><MapPin className="h-5 w-5 text-blue-600" /><span className="text-lg font-bold italic">{propiedad.direccion}</span></div>
               <div className="text-slate-400 text-sm font-medium ml-7">{propiedad.sector}, {propiedad.ciudad}</div>
@@ -533,11 +552,12 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {[
               { label: 'Habitaciones', value: propiedad.habitaciones, icon: Bed, color: 'blue' },
               { label: 'Baños', value: propiedad.banos, icon: Bath, color: 'emerald' },
               { label: 'Área Total', value: `${propiedad.areaTotal} m²`, icon: Maximize, color: 'amber' },
+              { label: 'Comisión', value: `${propiedad.porcentajeComision}%`, icon: Handshake, color: 'indigo' },
               { label: 'Ingreso', value: formatDate(propiedad.fechaIngreso), icon: Clock, color: 'slate' }
             ].map((stat, i) => (
               <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3 group hover:border-blue-100 transition-all">
@@ -653,6 +673,19 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             </div>
             <div className="bg-slate-50 p-4 border-t border-slate-100"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Acción permanente de limpieza</p></div>
           </div>
+        </div>
+      )}
+
+      {showEditModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
+          <CrearPropiedadForm 
+            initialData={propiedad}
+            onSuccess={() => {
+              mutate();
+              setShowEditModal(false);
+            }}
+            onCancel={() => setShowEditModal(false)}
+          />
         </div>
       )}
     </div>

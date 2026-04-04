@@ -19,6 +19,8 @@ public static class ListarPropiedadesFeature
         string Sector,
         string Ciudad,
         string EstadoComercial,
+        bool EsCaptacionPropia,
+        decimal PorcentajeComision,
         string? ImagenPortadaUrl);
 
     public static RouteHandlerBuilder MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
@@ -39,6 +41,8 @@ public static class ListarPropiedadesFeature
                     p.Sector,
                     p.Ciudad,
                     p.EstadoComercial,
+                    p.EsCaptacionPropia,
+                    p.PorcentajeComision,
                     p.Media
                         .Where(m => m.EsPrincipal)
                         .Select(m => m.UrlPublica)

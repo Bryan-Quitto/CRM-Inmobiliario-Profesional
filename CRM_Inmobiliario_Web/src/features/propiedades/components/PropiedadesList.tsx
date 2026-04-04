@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronDown,
-  Check
+  Check,
+  Handshake,
+  Pencil
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedades } from '../api/getPropiedades';
@@ -109,6 +111,7 @@ const PropiedadesContent = () => {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de propiedad
   const [statusConfirmation, setStatusConfirmation] = useState<{ id: string; nuevoEstado: string } | null>(null);
   const [selectedPropiedadId, setSelectedPropiedadId] = useState<string | null>(null);
+  const [selectedPropiedadIdForEdit, setSelectedPropiedadIdForEdit] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -346,7 +349,7 @@ const PropiedadesContent = () => {
             >
               {syncing && <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px] pointer-events-none" />}
               
-              <div className="absolute top-4 left-4 flex gap-2 z-30">
+              <div className="absolute top-4 left-4 right-4 flex flex-wrap gap-2 z-30">
                 <div className="relative" ref={openDropdownId === p.id ? dropdownRef : null}>
                   {updatingId === p.id ? (
                     <div className="px-3 py-1 bg-white/90 backdrop-blur-md border border-white/20 rounded-full flex items-center gap-2 shadow-sm">
@@ -391,7 +394,25 @@ const PropiedadesContent = () => {
                 <span className="px-3 py-1 bg-white/90 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-slate-900 shadow-sm h-fit">
                   {p.operacion}
                 </span>
+
+                {p.esCaptacionPropia && (
+                  <div className="px-3 py-1 bg-blue-600/90 backdrop-blur-md text-white rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-xl shadow-blue-600/20 border border-white/20 animate-in zoom-in-95 duration-500">
+                    <Handshake className="h-3 w-3" />
+                    Captación Propia
+                  </div>
+                )}
               </div>
+
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPropiedadIdForEdit(p.id);
+                }}
+                className="absolute top-4 right-4 z-40 h-8 w-8 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:scale-110 transition-all shadow-sm cursor-pointer opacity-0 group-hover:opacity-100"
+                title="Editar Propiedad"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
 
               <div className="h-56 bg-slate-200 relative overflow-hidden flex items-center justify-center rounded-t-3xl">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
@@ -423,9 +444,17 @@ const PropiedadesContent = () => {
                 </div>
 
                 <div className="pt-5 border-t border-slate-50 flex items-center justify-between">
-                  <span className="text-2xl font-black text-slate-900 tracking-tight">
-                    {formatCurrency(p.precio)}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-2xl font-black text-slate-900 tracking-tight">
+                      {formatCurrency(p.precio)}
+                    </span>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-blue-100">
+                        <Handshake className="h-2.5 w-2.5" />
+                        Comisión: {p.porcentajeComision}%
+                      </div>
+                    </div>
+                  </div>
                   <div 
                     className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-all cursor-pointer border border-slate-100"
                   >
@@ -444,6 +473,20 @@ const PropiedadesContent = () => {
           onClose={() => setSelectedPropiedadId(null)} 
           onCoverUpdated={(url) => handleCoverUpdate(selectedPropiedadId, url)}
         />
+      )}
+
+      {selectedPropiedadIdForEdit && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
+          <CrearPropiedadForm 
+            initialData={propiedades?.find(p => p.id === selectedPropiedadIdForEdit)}
+            onSuccess={() => {
+              mutate();
+              setSelectedPropiedadIdForEdit(null);
+              toast.success('Propiedad actualizada con éxito');
+            }}
+            onCancel={() => setSelectedPropiedadIdForEdit(null)}
+          />
+        </div>
       )}
 
       {isModalOpen && (

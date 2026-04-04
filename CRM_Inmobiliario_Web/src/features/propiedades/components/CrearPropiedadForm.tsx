@@ -15,12 +15,16 @@ import {
   RotateCcw, 
   ChevronDown,
   Type,
-  FileText
+  FileText,
+  Pencil
 } from 'lucide-react';
 import { crearPropiedad, type CrearPropiedadDTO } from '../api/crearPropiedad';
+import { actualizarPropiedad } from '../api/actualizarPropiedad';
 import { useState, useEffect, useRef } from 'react';
+import type { Propiedad } from '../types';
 
 interface Props {
+  initialData?: Propiedad;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -41,7 +45,8 @@ const OPERACIONES = [
 
 const DRAFT_STORAGE_KEY = 'crm_propiedad_draft';
 
-export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
+export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) => {
+  const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -51,6 +56,8 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
   const selectRef = useRef<HTMLDivElement>(null);
 
   const getInitialValues = (): Partial<CrearPropiedadDTO> => {
+    if (isEditing) return initialData;
+
     const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
     if (saved) {
       try {
@@ -72,6 +79,8 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
   const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
+    if (isEditing) return;
+
     // Sincronización inicial y suscripción optimizada para borrador
     const currentValues = getValues();
     const checkHasData = (vals: Record<string, unknown>) => Object.values(vals).some(v => v && v !== '' && v !== 0);
@@ -84,7 +93,7 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
       if (isNowDirty !== hasData) setHasData(isNowDirty);
     });
     return () => subscription.unsubscribe();
-  }, [watch, getValues, hasData]);
+  }, [watch, getValues, hasData, isEditing]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -127,19 +136,25 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
         areaTotal: Number(data.areaTotal)
       };
 
-      await crearPropiedad(payload);
+      if (isEditing) {
+        await actualizarPropiedad(initialData.id, payload);
+      } else {
+        await crearPropiedad(payload);
+      }
       
       // Transición Satisfy
       setIsSuccess(true);
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      if (!isEditing) {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
       
       setTimeout(() => {
         reset(); 
         onSuccess();
       }, 800);
     } catch (err) {
-      console.error('Error al crear propiedad:', err);
-      setError('No se pudo registrar la propiedad. Verifica la conexión.');
+      console.error('Error al guardar propiedad:', err);
+      setError(`No se pudo ${isEditing ? 'actualizar' : 'registrar'} la propiedad. Verifica la conexión.`);
       setIsSubmitting(false);
     }
   };
@@ -156,11 +171,15 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
       </button>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Nueva Propiedad</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+          {isEditing ? 'Editar Propiedad' : 'Nueva Propiedad'}
+        </h2>
         <div className="flex flex-wrap items-center gap-2 mt-1 min-h-[24px]">
-          <p className="text-slate-500 font-medium text-sm">Ingresa los detalles del inmueble para el catálogo.</p>
+          <p className="text-slate-500 font-medium text-sm">
+            {isEditing ? 'Actualiza los detalles técnicos del inmueble.' : 'Ingresa los detalles del inmueble para el catálogo.'}
+          </p>
           
-          {hasData && !isSuccess && (
+          {!isEditing && hasData && !isSuccess && (
             <div className="flex items-center gap-1.5 animate-in slide-in-from-left-2 duration-300">
               {!isConfirmingClear ? (
                 <button 
@@ -478,15 +497,18 @@ export const CrearPropiedadForm = ({ onSuccess, onCancel }: Props) => {
             {isSuccess ? (
               <div className="flex items-center gap-2 animate-in zoom-in duration-300">
                 <Check className="h-5 w-5 stroke-[4px]" />
-                <span>¡Registrada!</span>
+                <span>¡{isEditing ? 'Actualizada' : 'Registrada'}!</span>
               </div>
             ) : isSubmitting ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Registrando...
+                {isEditing ? 'Actualizando...' : 'Registrando...'}
               </>
             ) : (
-              'Guardar Propiedad'
+              <div className="flex items-center gap-2">
+                {isEditing ? <Pencil className="h-4 w-4" /> : null}
+                <span>{isEditing ? 'Actualizar Propiedad' : 'Guardar Propiedad'}</span>
+              </div>
             )}
           </button>
         </div>

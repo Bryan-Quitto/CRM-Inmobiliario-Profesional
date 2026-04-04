@@ -1,9 +1,12 @@
 import { useForm, Controller } from 'react-hook-form';
-import { User, Mail, Phone, Tag, Loader2, AlertCircle, X, Trash2, Check, RotateCcw, ChevronDown } from 'lucide-react';
+import { User, Mail, Phone, Tag, Loader2, AlertCircle, X, Trash2, Check, RotateCcw, ChevronDown, Pencil } from 'lucide-react';
 import { crearCliente, type CrearClienteDTO } from '../api/crearCliente';
+import { actualizarCliente } from '../api/actualizarCliente';
 import { useState, useEffect, useRef } from 'react';
+import type { Cliente } from '../types';
 
 interface Props {
+  initialData?: Cliente;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -18,7 +21,8 @@ const ORIGENES = [
 
 const DRAFT_STORAGE_KEY = 'crm_prospecto_draft';
 
-export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
+export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) => {
+  const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -27,6 +31,8 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
   const selectRef = useRef<HTMLDivElement>(null);
 
   const getInitialValues = (): Partial<CrearClienteDTO> => {
+    if (isEditing) return initialData;
+
     const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
     if (saved) {
       try {
@@ -45,6 +51,8 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
   const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
+    if (isEditing) return;
+
     // Sincronización inicial y suscripción optimizada para borrador
     const currentValues = getValues();
     setHasData(Object.values(currentValues).some(v => v));
@@ -56,7 +64,7 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
       if (isNowDirty !== hasData) setHasData(isNowDirty);
     });
     return () => subscription.unsubscribe();
-  }, [watch, getValues, hasData]);
+  }, [watch, getValues, hasData, isEditing]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -84,19 +92,26 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
     try {
       setIsSubmitting(true);
       setError(null);
-      await crearCliente(data);
+      
+      if (isEditing) {
+        await actualizarCliente(initialData.id, data);
+      } else {
+        await crearCliente(data);
+      }
       
       // Transición Satisfy
       setIsSuccess(true);
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      if (!isEditing) {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
       
       setTimeout(() => {
         reset(); 
         onSuccess();
       }, 800);
     } catch (err) {
-      console.error('Error al crear cliente:', err);
-      setError('No se pudo registrar al prospecto. Verifica la conexión.');
+      console.error('Error al guardar cliente:', err);
+      setError(`No se pudo ${isEditing ? 'actualizar' : 'registrar'} al prospecto. Verifica la conexión.`);
       setIsSubmitting(false);
     }
   };
@@ -113,11 +128,15 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
       </button>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Nuevo Prospecto</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+          {isEditing ? 'Editar Prospecto' : 'Nuevo Prospecto'}
+        </h2>
         <div className="flex flex-wrap items-center gap-2 mt-1 min-h-[24px]">
-          <p className="text-slate-500 font-medium text-sm">Completa los datos para iniciar el seguimiento.</p>
+          <p className="text-slate-500 font-medium text-sm">
+            {isEditing ? 'Actualiza la información de contacto.' : 'Completa los datos para iniciar el seguimiento.'}
+          </p>
           
-          {hasData && !isSuccess && (
+          {!isEditing && hasData && !isSuccess && (
             <div className="flex items-center gap-1.5 animate-in slide-in-from-left-2 duration-300">
               {!isConfirmingClear ? (
                 <button 
@@ -291,15 +310,18 @@ export const CrearClienteForm = ({ onSuccess, onCancel }: Props) => {
             {isSuccess ? (
               <div className="flex items-center gap-2 animate-in zoom-in duration-300">
                 <Check className="h-5 w-5 stroke-[4px]" />
-                <span>¡Registrado!</span>
+                <span>¡{isEditing ? 'Actualizado' : 'Registrado'}!</span>
               </div>
             ) : isSubmitting ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Registrando...
+                {isEditing ? 'Actualizando...' : 'Registrando...'}
               </>
             ) : (
-              'Guardar Prospecto'
+              <div className="flex items-center gap-2">
+                {isEditing ? <Pencil className="h-4 w-4" /> : null}
+                <span>{isEditing ? 'Actualizar Prospecto' : 'Guardar Prospecto'}</span>
+              </div>
             )}
           </button>
         </div>
