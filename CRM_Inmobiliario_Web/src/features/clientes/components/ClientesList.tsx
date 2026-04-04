@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSWR, { SWRConfig } from 'swr';
-import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock, LayoutGrid, List } from 'lucide-react';
+import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock, LayoutGrid, List, Pencil } from 'lucide-react';
 import { getClientes } from '../api/getClientes';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { CrearClienteForm } from './CrearClienteForm';
@@ -83,6 +83,7 @@ const ClientesContent = () => {
   
   const loading = !clientes.length && !syncing;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedClienteForEdit, setSelectedClienteForEdit] = useState<Cliente | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de cliente
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -372,9 +373,33 @@ const ClientesContent = () => {
                   <Clock className="h-3 w-3" />
                   Desde: {new Date(cliente.fechaCreacion!).toLocaleDateString()}
                 </span>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedClienteForEdit(cliente);
+                  }}
+                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                  title="Editar Prospecto"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {selectedClienteForEdit && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
+          <CrearClienteForm 
+            initialData={selectedClienteForEdit}
+            onSuccess={() => {
+              mutate();
+              setSelectedClienteForEdit(null);
+              setNotification({ type: 'success', message: 'Prospecto actualizado con éxito.' });
+            }}
+            onCancel={() => setSelectedClienteForEdit(null)}
+          />
         </div>
       )}
 

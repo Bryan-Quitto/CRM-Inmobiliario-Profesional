@@ -85,7 +85,10 @@ builder.Services.AddCors(options =>
 
 // Configuración de EF Core con PostgreSQL (Npgsql)
 builder.Services.AddDbContext<CrmDbContext>(options =>
-    options.UseNpgsql(Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(
+        Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions => npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+    ));
 
 var app = builder.Build();
 
@@ -108,6 +111,7 @@ app.UseOutputCache();
 var apiGroup = app.MapGroup("/api").RequireAuthorization();
 
 apiGroup.MapRegistrarClienteEndpoint();
+apiGroup.MapActualizarClienteEndpoint();
 apiGroup.MapListarClientesEndpoint().CacheOutput();
 apiGroup.MapObtenerClientePorIdEndpoint().CacheOutput();
 apiGroup.MapCambiarEtapaClienteEndpoint();
@@ -116,6 +120,7 @@ apiGroup.MapDesvincularPropiedadEndpoint();
 
 // Propiedades
 apiGroup.MapRegistrarPropiedadEndpoint();
+apiGroup.MapActualizarPropiedadEndpoint();
 apiGroup.MapListarPropiedadesEndpoint().CacheOutput();
 apiGroup.MapObtenerPropiedadPorIdEndpoint().CacheOutput();
 apiGroup.MapCambiarEstadoPropiedadEndpoint();

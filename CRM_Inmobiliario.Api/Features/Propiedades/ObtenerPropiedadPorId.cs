@@ -24,6 +24,8 @@ public static class ObtenerPropiedadPorIdFeature
         decimal Banos,
         decimal AreaTotal,
         string EstadoComercial,
+        bool EsCaptacionPropia,
+        decimal PorcentajeComision,
         DateTimeOffset FechaIngreso,
         IEnumerable<MediaResponse> Media);
 
@@ -56,6 +58,8 @@ public static class ObtenerPropiedadPorIdFeature
                     p.Banos,
                     p.AreaTotal,
                     p.EstadoComercial,
+                    p.EsCaptacionPropia,
+                    p.PorcentajeComision,
                     p.FechaIngreso,
                     p.Media
                         .OrderBy(m => m.Orden)

@@ -28,6 +28,7 @@ import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import { desvincularPropiedad } from '../api/desvincularPropiedad';
 import { actualizarInteraccion } from '../api/actualizarInteraccion';
 import { eliminarInteraccion } from '../api/eliminarInteraccion';
+import { CrearClienteForm } from './CrearClienteForm';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import type { Cliente, Interaccion, Interes } from '../types';
 import type { Propiedad } from '../../propiedades/types';
@@ -81,6 +82,7 @@ const ClienteDetalleContent = () => {
   const [idInteresABorrar, setIdInteresABorrar] = useState<string | null>(null);
 
   const [showVincularModal, setShowVincularModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [isEditingInteres, setIsEditingInteres] = useState(false);
   const [propiedadesDisponibles, setPropiedadesDisponibles] = useState<Propiedad[]>([]);
   const [filtroPropiedad, setFiltroPropiedad] = useState('');
@@ -447,17 +449,26 @@ const ClienteDetalleContent = () => {
                 <h1 className="text-2xl font-black text-slate-900 uppercase leading-none">{cliente.nombre} {cliente.apellido}</h1>
               </div>
             </div>
-            <div className="relative" ref={dropdownRef}>
-              {updatingEtapa ? <div className="px-6 py-3 bg-slate-100 border-2 border-slate-200 rounded-2xl flex items-center gap-3"><Loader2 className="h-4 w-4 animate-spin text-blue-600" /><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sincronizando...</span></div> : 
-                <button onClick={() => setShowEtapaDropdown(!showEtapaDropdown)} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border-2 shadow-md transition-all flex items-center gap-3 cursor-pointer ${getEtapaStyles(cliente.etapaEmbudo)}`}>{cliente.etapaEmbudo}<ChevronDown className={`h-4 w-4 transition-transform duration-500 ${showEtapaDropdown ? 'rotate-180' : ''}`} /></button>
-              }
-              {showEtapaDropdown && (
-                <div className="absolute right-0 mt-3 w-64 bg-white border-2 border-slate-100 rounded-[32px] shadow-2xl z-[100] py-3 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden backdrop-blur-xl bg-white/95">
-                  {ETAPAS.map((etapa) => (
-                    <button key={etapa.value} onClick={() => handleStageChange(etapa.value)} className={`w-full px-6 py-4 text-left text-[11px] font-black uppercase tracking-widest flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${cliente.etapaEmbudo === etapa.value ? 'text-blue-600 bg-blue-50/20' : 'text-slate-600'}`}>{etapa.label}{cliente.etapaEmbudo === etapa.value && <Check className="h-4 w-4" />}</button>
-                  ))}
-                </div>
-              )}
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setShowEditModal(true)}
+                className="px-6 py-3 bg-white border-2 border-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Editar Datos
+              </button>
+              <div className="relative" ref={dropdownRef}>
+                {updatingEtapa ? <div className="px-6 py-3 bg-slate-100 border-2 border-slate-200 rounded-2xl flex items-center gap-3"><Loader2 className="h-4 w-4 animate-spin text-blue-600" /><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sincronizando...</span></div> : 
+                  <button onClick={() => setShowEtapaDropdown(!showEtapaDropdown)} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border-2 shadow-md transition-all flex items-center gap-3 cursor-pointer ${getEtapaStyles(cliente.etapaEmbudo)}`}>{cliente.etapaEmbudo}<ChevronDown className={`h-4 w-4 transition-transform duration-500 ${showEtapaDropdown ? 'rotate-180' : ''}`} /></button>
+                }
+                {showEtapaDropdown && (
+                  <div className="absolute right-0 mt-3 w-64 bg-white border-2 border-slate-100 rounded-[32px] shadow-2xl z-[100] py-3 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden backdrop-blur-xl bg-white/95">
+                    {ETAPAS.map((etapa) => (
+                      <button key={etapa.value} onClick={() => handleStageChange(etapa.value)} className={`w-full px-6 py-4 text-left text-[11px] font-black uppercase tracking-widest flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${cliente.etapaEmbudo === etapa.value ? 'text-blue-600 bg-blue-50/20' : 'text-slate-600'}`}>{etapa.label}{cliente.etapaEmbudo === etapa.value && <Check className="h-4 w-4" />}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -613,6 +624,18 @@ const ClienteDetalleContent = () => {
         </div>
 
       </div>
+      {showEditModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
+          <CrearClienteForm 
+            initialData={cliente}
+            onSuccess={() => {
+              mutate();
+              setShowEditModal(false);
+            }}
+            onCancel={() => setShowEditModal(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
