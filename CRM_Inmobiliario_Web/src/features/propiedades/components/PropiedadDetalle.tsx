@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import { 
   X, 
@@ -13,7 +13,8 @@ import {
   Check,
   AlertCircle,
   Handshake,
-  Plus
+  Plus,
+  FileDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedadById } from '../api/getPropiedadById';
@@ -28,6 +29,9 @@ import { eliminarSeccion } from '../api/eliminarSeccion';
 import { actualizarSeccion } from '../api/actualizarSeccion';
 import { reordenarSecciones } from '../api/reordenarSecciones';
 import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PropiedadFichaPDF } from './PropiedadFichaPDF';
+import { usePerfil } from '../../auth/api/perfil';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import { SectionalGallery } from './SectionalGallery';
 import type { Propiedad, SeccionGaleria } from '../types';
@@ -70,6 +74,8 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     swrDefaultConfig
   );
 
+  const { perfil } = usePerfil();
+
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [isCreatingInline, setIsCreatingInline] = useState(false);
@@ -78,6 +84,47 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
+  const [principalBase64, setPrincipalBase64] = useState<string | null>(null);
+  const [mediaBase64Map, setMediaBase64Map] = useState<Record<string, string>>({});
+
+  // Conversor Maestro de WebP a JPG para PDF (Bypass total de formatos y CORS)
+  useEffect(() => {
+    if (!propiedad) return;
+
+    const allMedia = [
+      ...(propiedad.mediaSinSeccion || []),
+      ...(propiedad.secciones?.flatMap(s => s.media) || [])
+    ];
+
+    const convert = (id: string, url: string, isPrincipal: boolean) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = isPrincipal ? 1 : 0.6;
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          if (isPrincipal) setPrincipalBase64(dataUrl);
+          setMediaBase64Map(prev => ({ ...prev, [id]: dataUrl }));
+        }
+      };
+      img.src = url;
+    };
+
+    // Procesar principal
+    const pUrl = propiedad.imagenPortadaUrl || propiedad.mediaSinSeccion?.[0]?.urlPublica;
+    if (pUrl) convert('principal', pUrl, true);
+
+    // Procesar resto
+    allMedia.forEach(m => {
+      if (!mediaBase64Map[m.id]) convert(m.id, m.urlPublica, false);
+    });
+
+  }, [propiedad?.id, propiedad?.imagenPortadaUrl, propiedad?.mediaSinSeccion, propiedad?.secciones]);
 
   const handleSetCover = async (imagenId: string) => {
     if (!propiedad) return;
@@ -315,6 +362,26 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             </div>
           </div>
           <div className="flex gap-2">
+            <PDFDownloadLink 
+              document={<PropiedadFichaPDF 
+              propiedad={propiedad} 
+              perfil={perfil} 
+              principalBase64={principalBase64} 
+              mediaBase64Map={mediaBase64Map}
+              />} 
+              fileName={`Ficha_${propiedad.titulo.replace(/\s+/g, '_')}.pdf`}
+            >
+              {({ loading }) => (
+                <button 
+                  disabled={loading}
+                  className="px-4 py-1.5 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileDown className="h-3 w-3" />}
+                  {loading ? 'Generando...' : 'Ficha PDF'}
+                </button>
+              )}
+            </PDFDownloadLink>
+
             <button 
               onClick={() => setShowEditModal(true)}
               className="px-4 py-1.5 bg-white border-2 border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
