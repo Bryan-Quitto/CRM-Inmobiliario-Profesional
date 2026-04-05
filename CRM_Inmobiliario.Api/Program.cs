@@ -149,6 +149,7 @@ apiGroup.MapLimpiarImagenesPropiedadEndpoint();
 // Secciones de Galería
 apiGroup.MapRegistrarSeccionEndpoint();
 apiGroup.MapActualizarSeccionEndpoint();
+apiGroup.MapReordenarSeccionesEndpoint();
 apiGroup.MapEliminarSeccionEndpoint();
 apiGroup.MapActualizarDescripcionMultimediaEndpoint();
 

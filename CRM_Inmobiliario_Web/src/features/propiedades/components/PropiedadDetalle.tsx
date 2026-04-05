@@ -26,9 +26,11 @@ import { deleteImagenesSeleccionadas } from '../api/deleteImagenesSeleccionadas'
 import { crearSeccion } from '../api/crearSeccion';
 import { eliminarSeccion } from '../api/eliminarSeccion';
 import { actualizarSeccion } from '../api/actualizarSeccion';
+import { reordenarSecciones } from '../api/reordenarSecciones';
+import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import { SectionalGallery } from './SectionalGallery';
-import type { Propiedad } from '../types';
+import type { Propiedad, SeccionGaleria } from '../types';
 
 interface PropiedadDetalleProps {
   id: string;
@@ -75,6 +77,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isReordering, setIsReordering] = useState(false);
 
   const handleSetCover = async (imagenId: string) => {
     if (!propiedad) return;
@@ -191,6 +194,58 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     } catch {
       toast.error("Error al limpiar la galería");
     }
+  };
+
+  const handleReorder = async (nuevoOrdenIds: string[]) => {
+    if (!propiedad || isReordering) return;
+
+    setIsReordering(true);
+    const toastId = toast.loading("Guardando nuevo orden...");
+
+    // Optimistic UI
+    const seccionesOriginales = [...(propiedad.secciones || [])];
+    mutate((prev) => {
+      if (!prev || !prev.secciones) return prev;
+      const nuevasSecciones = nuevoOrdenIds
+        .map(id => prev.secciones!.find(s => s.id === id))
+        .filter(Boolean) as SeccionGaleria[];
+      return { ...prev, secciones: nuevasSecciones };
+    }, false);
+
+    try {
+      await reordenarSecciones(propiedad.id, nuevoOrdenIds);
+      toast.success("Orden actualizado", { id: toastId });
+    } catch {
+      toast.error("Error al guardar el nuevo orden", { id: toastId });
+      mutate((prev) => prev ? { ...prev, secciones: seccionesOriginales } : prev, false);
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination || !propiedad?.secciones || isReordering) return;
+    if (result.destination.index === result.source.index) return;
+
+    const ids = propiedad.secciones.map(s => s.id);
+    const [reorderedItem] = ids.splice(result.source.index, 1);
+    ids.splice(result.destination.index, 0, reorderedItem);
+
+    handleReorder(ids);
+  };
+
+  const handleMoveSection = (index: number, direction: 'up' | 'down', customTargetIndex?: number) => {
+    if (!propiedad?.secciones || isReordering) return;
+    
+    const newIndex = customTargetIndex !== undefined ? customTargetIndex : (direction === 'up' ? index - 1 : index + 1);
+    
+    if (newIndex < 0 || newIndex >= propiedad.secciones.length || newIndex === index) return;
+
+    const ids = propiedad.secciones.map(s => s.id);
+    const [item] = ids.splice(index, 1);
+    ids.splice(newIndex, 0, item);
+
+    handleReorder(ids);
   };
 
   const handleStatusChange = async (nuevoEstado: string, confirmed = false) => {
@@ -344,6 +399,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             <SectionalGallery 
               propiedadId={id}
               propiedadTitulo={propiedad.titulo}
+              index={-1}
               media={propiedad.mediaSinSeccion || []}
               onSetCover={handleSetCover}
               onDeleteMedia={handleDeleteMedia}
@@ -351,23 +407,41 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
               onClearGallery={handleClearGallery}
             />
 
-            {/* Secciones Dinámicas */}
-            {propiedad.secciones?.map((seccion) => (
-              <SectionalGallery 
-                key={seccion.id}
-                sectionId={seccion.id}
-                sectionNombre={seccion.nombre}
-                sectionDescripcion={seccion.descripcion}
-                propiedadId={id}
-                propiedadTitulo={propiedad.titulo}
-                media={seccion.media || []}
-                onSetCover={handleSetCover}
-                onDeleteMedia={handleDeleteMedia}
-                onImageUploaded={() => mutate()}
-                onDeleteSection={handleDeleteSection}
-                onRenameSection={handleRenameSection}
-              />
-            ))}
+            {/* Secciones Dinámicas con Drag & Drop */}
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="sections-list">
+                {(provided) => (
+                  <div 
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-12"
+                  >
+                    {propiedad.secciones?.map((seccion, index) => (
+                      <SectionalGallery 
+                        key={seccion.id}
+                        index={index}
+                        sectionId={seccion.id}
+                        sectionNombre={seccion.nombre}
+                        sectionDescripcion={seccion.descripcion}
+                        propiedadId={id}
+                        propiedadTitulo={propiedad.titulo}
+                        media={seccion.media || []}
+                        onSetCover={handleSetCover}
+                        onDeleteMedia={handleDeleteMedia}
+                        onImageUploaded={() => mutate()}
+                        onDeleteSection={handleDeleteSection}
+                        onRenameSection={handleRenameSection}
+                        onMoveUp={() => handleMoveSection(index, 'up')}
+                        onMoveDown={() => handleMoveSection(index, 'down')}
+                        onMoveTo={(newIndex) => handleMoveSection(index, newIndex > index ? 'down' : 'up', newIndex)}
+                        totalSections={propiedad.secciones?.length || 0}
+                      />
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
 
             {/* Input Inline para Nueva Sección - World Class UX */}
             {isCreatingInline && (
