@@ -19,43 +19,47 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Core libraries (React & Router)
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-core';
-            }
+            // 1. Core React & DOM
+            if (id.includes('node_modules/react-dom/')) return 'vendor-dom';
+            if (id.includes('node_modules/react/')) return 'vendor-react';
             
-            // UI Libraries (Icons, Toasts, DND)
-            if (id.includes('lucide') || id.includes('sonner') || id.includes('@hello-pangea')) {
-              return 'vendor-ui';
-            }
+            // 2. Routing (React Router + Internal Remix packages)
+            if (id.includes('react-router') || id.includes('@remix-run')) return 'vendor-router';
 
-            // Calendar (The heaviest part of the new module)
-            if (id.includes('@fullcalendar')) {
-              return 'vendor-calendar';
-            }
-
-            // Charts
-            if (id.includes('recharts') || id.includes('d3')) {
-              return 'vendor-charts';
-            }
+            // 3. Heavy Engine: PDF (Lazy loaded in UI)
+            if (id.includes('@react-pdf')) return 'vendor-pdf';
             
-            // Media Utils (Heavy utility libs)
-            if (id.includes('jszip') || id.includes('browser-image-compression')) {
-              return 'vendor-media';
-            }
+            // 4. Heavy Engine: Calendar
+            if (id.includes('@fullcalendar')) return 'vendor-calendar';
 
-            // Backend Utils (Axios, Supabase, Hook Form)
-            if (id.includes('axios') || id.includes('react-hook-form') || id.includes('supabase')) {
-              return 'vendor-utils';
-            }
+            // 5. Heavy Engine: Charts
+            if (id.includes('recharts') || id.includes('d3')) return 'vendor-charts';
+            
+            // 6. UI: Icons (Lucide can be big if many are used)
+            if (id.includes('lucide-react')) return 'vendor-icons';
 
-            // Other 3rd party libs
-            return 'vendor-lib';
+            // 7. UI: Components (Sonner, DnD)
+            if (id.includes('sonner') || id.includes('@hello-pangea')) return 'vendor-ui-core';
+
+            // 8. Storage & Logic (Supabase, Axios)
+            if (id.includes('@supabase') || id.includes('axios')) return 'vendor-backend';
+
+            // 9. Heavy Utils: JSZip (Very heavy)
+            if (id.includes('jszip')) return 'vendor-jszip';
+
+            // 10. Media & Compression
+            if (id.includes('browser-image-compression') || id.includes('buffer')) return 'vendor-media';
+
+            // 11. Forms & State
+            if (id.includes('swr') || id.includes('react-hook-form')) return 'vendor-logic';
+
+            // El resto que sea realmente pequeño
+            return 'vendor-misc';
           }
         },
       },

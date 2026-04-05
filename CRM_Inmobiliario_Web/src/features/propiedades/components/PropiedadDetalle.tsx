@@ -13,8 +13,7 @@ import {
   Check,
   AlertCircle,
   Handshake,
-  Plus,
-  FileDown
+  Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedadById } from '../api/getPropiedadById';
@@ -29,11 +28,10 @@ import { eliminarSeccion } from '../api/eliminarSeccion';
 import { actualizarSeccion } from '../api/actualizarSeccion';
 import { reordenarSecciones } from '../api/reordenarSecciones';
 import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { PropiedadFichaPDF } from './PropiedadFichaPDF';
 import { usePerfil } from '../../auth/api/perfil';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import { SectionalGallery } from './SectionalGallery';
+import { LazyPDFDownload } from './LazyPDFDownload';
 import type { Propiedad, SeccionGaleria } from '../types';
 
 interface PropiedadDetalleProps {
@@ -87,6 +85,9 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [principalBase64, setPrincipalBase64] = useState<string | null>(null);
   const [mediaBase64Map, setMediaBase64Map] = useState<Record<string, string>>({});
 
+  // Para evitar reconversiones infinitas o redundantes
+  const [convertedIds] = useState(() => new Set<string>());
+
   // Conversor Maestro de WebP a JPG para PDF (Bypass total de formatos y CORS)
   useEffect(() => {
     if (!propiedad) return;
@@ -97,6 +98,9 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     ];
 
     const convert = (id: string, url: string, isPrincipal: boolean) => {
+      if (convertedIds.has(id)) return;
+      convertedIds.add(id);
+
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
@@ -117,14 +121,14 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
     // Procesar principal
     const pUrl = propiedad.imagenPortadaUrl || propiedad.mediaSinSeccion?.[0]?.urlPublica;
-    if (pUrl) convert('principal', pUrl, true);
+    if (pUrl && !mediaBase64Map['principal']) convert('principal', pUrl, true);
 
     // Procesar resto
     allMedia.forEach(m => {
       if (!mediaBase64Map[m.id]) convert(m.id, m.urlPublica, false);
     });
 
-  }, [propiedad?.id, propiedad?.imagenPortadaUrl, propiedad?.mediaSinSeccion, propiedad?.secciones]);
+  }, [propiedad, mediaBase64Map, convertedIds]);
 
   const handleSetCover = async (imagenId: string) => {
     if (!propiedad) return;
@@ -362,25 +366,12 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             </div>
           </div>
           <div className="flex gap-2">
-            <PDFDownloadLink 
-              document={<PropiedadFichaPDF 
-              propiedad={propiedad} 
-              perfil={perfil} 
-              principalBase64={principalBase64} 
+            <LazyPDFDownload 
+              propiedad={propiedad}
+              perfil={perfil}
+              principalBase64={principalBase64}
               mediaBase64Map={mediaBase64Map}
-              />} 
-              fileName={`Ficha_${propiedad.titulo.replace(/\s+/g, '_')}.pdf`}
-            >
-              {({ loading }) => (
-                <button 
-                  disabled={loading}
-                  className="px-4 py-1.5 bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileDown className="h-3 w-3" />}
-                  {loading ? 'Generando...' : 'Ficha PDF'}
-                </button>
-              )}
-            </PDFDownloadLink>
+            />
 
             <button 
               onClick={() => setShowEditModal(true)}
