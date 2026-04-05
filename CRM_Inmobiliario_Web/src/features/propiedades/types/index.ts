@@ -1,10 +1,20 @@
 export interface MultimediaPropiedad {
   id: string;
   propiedadId: string;
+  sectionId?: string | null;
   tipoMultimedia: string;
   urlPublica: string;
+  descripcion?: string | null;
   esPrincipal: boolean;
   orden: number;
+}
+
+export interface SeccionGaleria {
+  id: string;
+  nombre: string;
+  descripcion?: string | null;
+  orden: number;
+  media: MultimediaPropiedad[];
 }
 
 export interface Propiedad {
@@ -24,6 +34,8 @@ export interface Propiedad {
   esCaptacionPropia: boolean;
   porcentajeComision: number;
   fechaIngreso: string;
-  media?: MultimediaPropiedad[];
+  media?: MultimediaPropiedad[]; // Mantenido por compatibilidad si es necesario
+  secciones?: SeccionGaleria[];
+  mediaSinSeccion?: MultimediaPropiedad[];
   imagenPortadaUrl?: string;
 }

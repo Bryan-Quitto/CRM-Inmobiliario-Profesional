@@ -27,12 +27,21 @@ public static class ObtenerPropiedadPorIdFeature
         bool EsCaptacionPropia,
         decimal PorcentajeComision,
         DateTimeOffset FechaIngreso,
+        IEnumerable<SectionResponse> Secciones,
+        IEnumerable<MediaResponse> MediaSinSeccion);
+
+    public record SectionResponse(
+        Guid Id,
+        string Nombre,
+        string? Descripcion,
+        int Orden,
         IEnumerable<MediaResponse> Media);
 
     public record MediaResponse(
         Guid Id,
         string TipoMultimedia,
         string UrlPublica,
+        string? Descripcion,
         bool EsPrincipal,
         int Orden);
 
@@ -43,6 +52,7 @@ public static class ObtenerPropiedadPorIdFeature
             var agenteId = user.GetRequiredUserId();
 
             var propiedad = await context.Properties
+                .AsSplitQuery()
                 .Where(p => p.Id == id && p.AgenteId == agenteId)
                 .Select(p => new Response(
                     p.Id,
@@ -61,12 +71,30 @@ public static class ObtenerPropiedadPorIdFeature
                     p.EsCaptacionPropia,
                     p.PorcentajeComision,
                     p.FechaIngreso,
+                    p.GallerySections
+                        .OrderBy(s => s.Orden)
+                        .Select(s => new SectionResponse(
+                            s.Id,
+                            s.Nombre,
+                            s.Descripcion,
+                            s.Orden,
+                            s.Media
+                                .OrderBy(m => m.Orden)
+                                .Select(m => new MediaResponse(
+                                    m.Id,
+                                    m.TipoMultimedia,
+                                    m.UrlPublica,
+                                    m.Descripcion,
+                                    m.EsPrincipal,
+                                    m.Orden)))),
                     p.Media
+                        .Where(m => m.SectionId == null)
                         .OrderBy(m => m.Orden)
                         .Select(m => new MediaResponse(
                             m.Id,
                             m.TipoMultimedia,
                             m.UrlPublica,
+                            m.Descripcion,
                             m.EsPrincipal,
                             m.Orden))))
                 .FirstOrDefaultAsync();

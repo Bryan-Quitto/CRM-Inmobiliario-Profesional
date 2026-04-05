@@ -5,13 +5,24 @@ export interface UploadResponse {
   urlPublica: string;
   esPrincipal: boolean;
   orden: number;
+  sectionId?: string | null;
+  descripcion?: string | null;
 }
 
-export const uploadImagenPropiedad = async (id: string, file: File): Promise<UploadResponse> => {
+export const uploadImagenPropiedad = async (
+  id: string, 
+  file: File, 
+  sectionId?: string | null, 
+  descripcion?: string | null
+): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const { data } = await api.post<UploadResponse>(`/propiedades/${id}/imagenes`, formData, {
+  const params = new URLSearchParams();
+  if (sectionId) params.append('sectionId', sectionId);
+  if (descripcion) params.append('descripcion', descripcion);
+
+  const { data } = await api.post<UploadResponse>(`/propiedades/${id}/imagenes?${params.toString()}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },

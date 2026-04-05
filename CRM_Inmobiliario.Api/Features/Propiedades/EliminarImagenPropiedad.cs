@@ -22,34 +22,28 @@ public static class EliminarImagenPropiedadFeature
         {
             var agenteId = user.GetRequiredUserId();
 
-            // 1. Buscar el registro de la imagen y verificar pertenencia de la propiedad al agente
             var media = await context.PropertyMedia
                 .Include(m => m.Propiedad)
                 .FirstOrDefaultAsync(m => m.Id == imagenId && m.PropiedadId == propiedadId && m.Propiedad!.AgenteId == agenteId);
 
             if (media == null)
-                return Results.NotFound("La imagen no existe o la propiedad no pertenece a este agente.");
+                return Results.NotFound("Imagen no encontrada.");
 
             try
             {
-                // 2. Eliminar el archivo físico de Supabase Storage
+                // 1. Eliminar archivo físico de Supabase Storage
                 if (!string.IsNullOrEmpty(media.StoragePath))
                 {
-                    var bucket = supabase.Storage.From("propiedades");
-
-                    try 
-                    {
-                        // Con la Service Role Key, esto debería tener permiso total
-                        await bucket.Remove(media.StoragePath);
-                    }
-                    catch (Exception storageEx)
-                    {
-                        // Si falla aquí con la Service Role Key, es probable que sea un error de red o de Supabase
-                        return Results.Problem($"Error crítico de Supabase Storage: {storageEx.Message}. Verifique la conexión con el servidor.");
+                    var response = await supabase.Storage.From("propiedades").Remove(new List<string> { media.StoragePath });
+                    var count = response?.Count ?? 0;
+                    Console.WriteLine($"DEBUG [Storage]: Intento de borrado de {media.StoragePath}. Confirmados por Supabase: {count}");
+                    
+                    if (count == 0) {
+                        Console.WriteLine("ADVERTENCIA [Storage]: Supabase no eliminó el archivo. Verifica permisos RLS o que la Key sea 'service_role'.");
                     }
                 }
 
-                // 3. Eliminar el registro de la base de datos (Hard Delete)
+                // 2. Eliminar registro de la DB
                 context.PropertyMedia.Remove(media);
                 await context.SaveChangesAsync();
 
@@ -57,7 +51,7 @@ public static class EliminarImagenPropiedadFeature
             }
             catch (Exception ex)
             {
-                return Results.Problem($"Error al eliminar la imagen: {ex.Message}");
+                return Results.Problem(ex.Message);
             }
         })
         .WithTags("Propiedades")

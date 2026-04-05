@@ -3,6 +3,7 @@ using System;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260405012235_AgregarLogoUrlAAgente")]
+    partial class AgregarLogoUrlAAgente
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,42 +282,11 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.ToTable("Properties");
                 });
 
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("FechaCreacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int>("Orden")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("PropiedadId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PropiedadId");
-
-                    b.ToTable("PropertyGallerySections");
-                });
-
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyMedia", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("Descripcion")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("EsPrincipal")
                         .HasColumnType("boolean");
@@ -323,9 +295,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer");
 
                     b.Property<Guid>("PropiedadId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("SectionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("StoragePath")
@@ -344,8 +313,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PropiedadId");
-
-                    b.HasIndex("SectionId");
 
                     b.ToTable("PropertyMedia");
                 });
@@ -477,17 +444,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Propietario");
                 });
 
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
-                {
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Propiedad")
-                        .WithMany("GallerySections")
-                        .HasForeignKey("PropiedadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Propiedad");
-                });
-
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyMedia", b =>
                 {
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Propiedad")
@@ -496,14 +452,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", "Section")
-                        .WithMany("Media")
-                        .HasForeignKey("SectionId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Propiedad");
-
-                    b.Navigation("Section");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.TaskItem", b =>
@@ -555,8 +504,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Property", b =>
                 {
-                    b.Navigation("GallerySections");
-
                     b.Navigation("Interactions");
 
                     b.Navigation("LeadInterests");
@@ -564,11 +511,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Media");
 
                     b.Navigation("Tasks");
-                });
-
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
-                {
-                    b.Navigation("Media");
                 });
 #pragma warning restore 612, 618
         }

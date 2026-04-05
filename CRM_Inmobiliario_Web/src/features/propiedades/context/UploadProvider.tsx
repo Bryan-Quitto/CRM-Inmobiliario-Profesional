@@ -28,8 +28,10 @@ interface UploadStatus {
 interface UploadResult {
   id: string;
   propiedadId: string;
+  sectionId?: string | null;
   tipoMultimedia: string;
   urlPublica: string;
+  descripcion?: string | null;
   esPrincipal: boolean;
   orden: number;
 }
@@ -46,7 +48,8 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     propiedadId: string, 
     nombrePropiedad: string, 
     files: File[], 
-    onImageUploaded?: (result: UploadResult) => void
+    onImageUploaded?: (result: UploadResult) => void,
+    sectionId?: string | null
   ) => {
     const filesArray = Array.from(files);
     
@@ -100,7 +103,7 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
           setUploads(prev => prev.map(u => u.id === currentUploadId ? { ...u, status: 'uploading' } : u));
           
-          const result = await uploadImagenPropiedad(propiedadId, finalFile);
+          const result = await uploadImagenPropiedad(propiedadId, finalFile, sectionId);
           
           setUploads(prev => prev.map(u => u.id === currentUploadId ? { ...u, status: 'completed', progress: 100 } : u));
           
@@ -108,8 +111,10 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             onImageUploaded({
               id: result.id,
               propiedadId,
+              sectionId: result.sectionId,
               tipoMultimedia: 'Imagen',
               urlPublica: result.urlPublica,
+              descripcion: result.descripcion,
               esPrincipal: result.esPrincipal,
               orden: result.orden
             });

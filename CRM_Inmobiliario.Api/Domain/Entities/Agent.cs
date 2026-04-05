@@ -31,6 +31,9 @@ public sealed class Agent
     [MaxLength(500)]
     public string? FotoUrl { get; set; }
 
+    [MaxLength(500)]
+    public string? LogoUrl { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Rol { get; set; } = "Agente";

@@ -18,6 +18,7 @@ public static class ObtenerPerfilFeature
         string? Telefono,
         string? Agencia,
         string? FotoUrl,
+        string? LogoUrl,
         string Rol,
         DateTimeOffset FechaCreacion);
 
@@ -37,6 +38,7 @@ public static class ObtenerPerfilFeature
                     a.Telefono,
                     a.Agencia,
                     a.FotoUrl,
+                    a.LogoUrl,
                     a.Rol,
                     a.FechaCreacion))
                 .FirstOrDefaultAsync();

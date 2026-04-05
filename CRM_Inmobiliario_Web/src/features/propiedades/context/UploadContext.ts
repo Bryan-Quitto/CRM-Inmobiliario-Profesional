@@ -21,8 +21,10 @@ interface UploadStatus {
 interface UploadResult {
   id: string;
   propiedadId: string;
+  sectionId?: string | null;
   tipoMultimedia: string;
   urlPublica: string;
+  descripcion?: string | null;
   esPrincipal: boolean;
   orden: number;
 }
@@ -30,7 +32,13 @@ interface UploadResult {
 export interface UploadContextType {
   uploads: UploadStatus[];
   activeUploads: Record<string, UploadProcess>;
-  uploadFiles: (propiedadId: string, nombrePropiedad: string, files: File[], onImageUploaded?: (result: UploadResult) => void) => Promise<void>;
+  uploadFiles: (
+    propiedadId: string, 
+    nombrePropiedad: string, 
+    files: File[], 
+    onImageUploaded?: (result: UploadResult) => void,
+    sectionId?: string | null
+  ) => Promise<void>;
   isUploading: (propiedadId: string) => boolean;
 }
 

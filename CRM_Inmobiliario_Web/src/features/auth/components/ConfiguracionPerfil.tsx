@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { usePerfil } from '../api/perfil';
-import { User, Phone, Building, Mail, Save, CheckCircle } from 'lucide-react';
+import { User, Save, CheckCircle, Loader2 } from 'lucide-react';
+import { Camera, Image as ImageIcon } from 'lucide-react';
 import FotoPerfilUpload from './FotoPerfilUpload';
+import LogoAgenciaUpload from './LogoAgenciaUpload';
 
 const ConfiguracionPerfil: React.FC = () => {
   const { perfil, isLoading, actualizarPerfil } = usePerfil();
@@ -10,7 +12,8 @@ const ConfiguracionPerfil: React.FC = () => {
     apellido: '',
     telefono: '',
     agencia: '',
-    fotoUrl: ''
+    fotoUrl: '',
+    logoUrl: ''
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -23,13 +26,14 @@ const ConfiguracionPerfil: React.FC = () => {
         apellido: perfil.apellido ?? '',
         telefono: perfil.telefono ?? '',
         agencia: perfil.agencia ?? '',
-        fotoUrl: perfil.fotoUrl ?? ''
+        fotoUrl: perfil.fotoUrl ?? '',
+        logoUrl: perfil.logoUrl ?? ''
       });
     }
   }, [perfil]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSaving(true);
     try {
       await actualizarPerfil(formData);
@@ -51,164 +55,212 @@ const ConfiguracionPerfil: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Configuración del Perfil</h1>
-        <p className="text-gray-600">Actualiza tus datos para las fichas técnicas y contacto.</p>
+    <div className="max-w-5xl mx-auto p-6">
+      <header className="mb-10">
+        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Configuración del Perfil</h1>
+        <p className="text-slate-500 font-medium mt-2">Gestiona tu identidad personal y branding corporativo para el CRM y PDFs.</p>
       </header>
 
-      <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
-        <div className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Sección de Foto de Perfil */}
-            <div className="flex flex-col md:flex-row items-center gap-12 pb-8 border-b border-gray-100">
-              <FotoPerfilUpload 
-                userId={perfil?.id || ''} 
-                currentFotoUrl={formData.fotoUrl}
-                onUploadSuccess={async (url) => {
-                  const nuevosDatos = { ...formData, fotoUrl: url };
-                  setFormData(nuevosDatos);
-                  // Sincronización inmediata con DB para evitar inconsistencia Bucket-DB
-                  await actualizarPerfil(nuevosDatos);
-                }}
-                onDeleteSuccess={async () => {
-                  const nuevosDatos = { ...formData, fotoUrl: '' };
-                  setFormData(nuevosDatos);
-                  // Sincronización inmediata con DB
-                  await actualizarPerfil(nuevosDatos);
-                }}
-              />
-              <div className="flex-1 text-center md:text-left">
-                <h3 className="text-lg font-bold text-gray-900">Tu Foto de Perfil</h3>
-                <p className="text-sm text-gray-500 max-w-sm">
-                  Esta foto se usará en tus fichas técnicas en PDF y en la barra lateral del CRM. Se recomienda una foto profesional de frente.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-              {/* Nombre */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <User size={18} className="text-indigo-500" /> Nombre
-                </label>
-                <input
-                  type="text"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Tu nombre"
-                  required
-                />
-              </div>
-
-              {/* Apellido */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <User size={18} className="text-indigo-500" /> Apellido
-                </label>
-                <input
-                  type="text"
-                  value={formData.apellido}
-                  onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Tu apellido"
-                  required
-                />
-              </div>
-
-              {/* Email (Solo lectura) */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <Mail size={18} className="text-gray-400" /> Email (No editable)
-                </label>
-                <input
-                  type="email"
-                  value={perfil?.email || ''}
-                  disabled
-                  className="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
-                />
-              </div>
-
-              {/* Teléfono */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <Phone size={18} className="text-indigo-500" /> Teléfono / WhatsApp
-                </label>
-                <input
-                  type="tel"
-                  value={formData.telefono}
-                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                  placeholder="+1 234 567 890"
-                />
-              </div>
-
-              {/* Agencia */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <Building size={18} className="text-indigo-500" /> Nombre de la Agencia / Empresa
-                </label>
-                <input
-                  type="text"
-                  value={formData.agencia}
-                  onChange={(e) => setFormData({ ...formData, agencia: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Ej: Inmobiliaria Horizonte Real"
-                />
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {showSuccess && (
-                  <span className="text-green-600 flex items-center gap-2 font-medium animate-bounce">
-                    <CheckCircle size={20} /> ¡Perfil actualizado con éxito!
-                  </span>
-                )}
-              </div>
-              
-              <button
-                type="submit"
-                disabled={isSaving}
-                className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white transition-all transform active:scale-95 shadow-lg ${
-                  isSaving ? 'bg-indigo-400 cursor-wait' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 cursor-pointer'
-                }`}
-              >
-                {isSaving ? (
-                  <>
-                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save size={20} /> Guardar Cambios
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Vista Previa de Ficha */}
-      <div className="mt-8 p-6 bg-indigo-50 rounded-2xl border border-indigo-100">
-        <h3 className="text-lg font-bold text-indigo-900 mb-2">Información para Fichas PDF</h3>
-        <p className="text-sm text-indigo-700">
-          Así aparecerán tus datos en el pie de página de las fichas técnicas que compartas:
-        </p>
-        <div className="mt-4 p-4 bg-white rounded-xl border border-indigo-200 flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xl overflow-hidden border border-indigo-200 shadow-sm">
-            {formData.fotoUrl ? (
-              <img src={formData.fotoUrl} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
-              <span className="uppercase">{formData.nombre?.[0]}{formData.apellido?.[0]}</span>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Columna Izquierda: Branding y Media */}
+        <div className="lg:col-span-1 space-y-8">
+          {/* Card: Foto de Perfil */}
+          <div className="bg-white p-8 rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center justify-center gap-2">
+              <Camera size={16} /> Foto de Perfil
+            </h3>
+            <FotoPerfilUpload 
+              userId={perfil?.id || ''} 
+              currentFotoUrl={formData.fotoUrl}
+              onUploadSuccess={async (url) => {
+                const nuevosDatos = { ...formData, fotoUrl: url };
+                setFormData(nuevosDatos);
+                await actualizarPerfil(nuevosDatos);
+              }}
+              onDeleteSuccess={async () => {
+                const nuevosDatos = { ...formData, fotoUrl: '' };
+                setFormData(nuevosDatos);
+                await actualizarPerfil(nuevosDatos);
+              }}
+            />
+            <p className="text-xs text-slate-400 mt-6 leading-relaxed">
+              Esta foto se usará en tus fichas técnicas y en la barra lateral.
+            </p>
           </div>
-          <div>
-            <p className="font-bold text-gray-900">{formData.nombre} {formData.apellido}</p>
-            <p className="text-sm text-gray-500">{formData.agencia || 'Agente Independiente'}</p>
-            <p className="text-sm text-indigo-600 font-medium">{formData.telefono || 'Sin teléfono configurado'}</p>
+
+          {/* Card: Logo de Agencia */}
+          <div className="bg-white p-8 rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center justify-center gap-2">
+              <ImageIcon size={16} /> Logo Corporativo
+            </h3>
+            <LogoAgenciaUpload 
+              userId={perfil?.id || ''} 
+              currentLogoUrl={formData.logoUrl}
+              onUploadSuccess={async (url) => {
+                const nuevosDatos = { ...formData, logoUrl: url };
+                setFormData(nuevosDatos);
+                await actualizarPerfil(nuevosDatos);
+              }}
+              onDeleteSuccess={async () => {
+                const nuevosDatos = { ...formData, logoUrl: '' };
+                setFormData(nuevosDatos);
+                await actualizarPerfil(nuevosDatos);
+              }}
+            />
+            <p className="text-xs text-slate-400 mt-6 leading-relaxed">
+              El logo aparecerá en la cabecera de tus PDFs profesionales.
+            </p>
+          </div>
+        </div>
+
+        {/* Columna Derecha: Datos y Formulario */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden border border-slate-100">
+            <div className="p-10">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Nombre */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Nombre</label>
+                    <input
+                      type="text"
+                      value={formData.nombre}
+                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                      placeholder="Tu nombre"
+                      required
+                    />
+                  </div>
+
+                  {/* Apellido */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Apellido</label>
+                    <input
+                      type="text"
+                      value={formData.apellido}
+                      onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                      placeholder="Tu apellido"
+                      required
+                    />
+                  </div>
+
+                  {/* Email (Solo lectura) */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Email (Privado)</label>
+                    <input
+                      type="email"
+                      value={perfil?.email || ''}
+                      disabled
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-100 border-transparent text-slate-400 cursor-not-allowed outline-none font-bold"
+                    />
+                  </div>
+
+                  {/* Teléfono */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Teléfono / WhatsApp</label>
+                    <input
+                      type="tel"
+                      value={formData.telefono}
+                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                      placeholder="+1 234 567 890"
+                    />
+                  </div>
+
+                  {/* Agencia */}
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Nombre de la Agencia</label>
+                    <input
+                      type="text"
+                      value={formData.agencia}
+                      onChange={(e) => setFormData({ ...formData, agencia: e.target.value })}
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                      placeholder="Ej: Inmobiliaria Horizonte Real"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-slate-50 flex items-center justify-between">
+                  <div>
+                    {showSuccess && (
+                      <span className="text-emerald-600 flex items-center gap-2 font-black text-sm animate-in fade-in slide-in-from-left-4">
+                        <CheckCircle size={20} /> PERFIL ACTUALIZADO
+                      </span>
+                    )}
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className={`flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl ${
+                      isSaving ? 'bg-indigo-400 cursor-wait' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 cursor-pointer'
+                    }`}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        GUARDANDO...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={20} /> GUARDAR CAMBIOS
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Vista Previa de Ficha PDF - REDISEÑADA */}
+          <div className="bg-slate-900 rounded-[40px] p-10 text-white relative overflow-hidden group">
+            {/* Círculos decorativos de fondo */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full -mr-32 -mt-32 blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-600/10 rounded-full -ml-24 -mb-24 blur-3xl" />
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/10">
+                <h3 className="text-lg font-black tracking-tighter uppercase text-indigo-400">Previsualización de Branding</h3>
+                <div className="h-8 px-3 bg-white/10 rounded-full flex items-center text-[10px] font-black tracking-widest uppercase border border-white/10">
+                  Formato PDF A4
+                </div>
+              </div>
+
+              {/* Cabecera Simulada */}
+              <div className="flex items-center justify-between mb-12">
+                <div className="h-16 w-48 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden">
+                  {formData.logoUrl ? (
+                    <img src={formData.logoUrl} alt="Logo Preview" className="max-w-[80%] max-h-[80%] object-contain" />
+                  ) : (
+                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Logo Agencia</span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="h-2 w-32 bg-white/20 rounded-full mb-2 ml-auto" />
+                  <div className="h-2 w-20 bg-white/10 rounded-full ml-auto" />
+                </div>
+              </div>
+
+              {/* Pie de Página Simulado */}
+              <div className="mt-16 pt-8 border-t border-white/10">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center overflow-hidden border border-white/20 ring-4 ring-white/5">
+                    {formData.fotoUrl ? (
+                      <img src={formData.fotoUrl} alt="Foto Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={32} className="text-white/20" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xl font-black tracking-tight">{formData.nombre} {formData.apellido}</p>
+                    <p className="text-indigo-400 font-bold text-sm tracking-wide">{formData.agencia || 'Agente Independiente'}</p>
+                    <p className="text-white/40 text-xs font-bold mt-1 tracking-widest uppercase">{formData.telefono || 'Sin teléfono'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
