@@ -1,0 +1,9 @@
+Actúa como un Desarrollador Senior de .NET 10. A continuación te paso una lista de archivos fuente de mi API. Basado en el análisis de rendimiento previo, necesito que refactorices estos archivos para optimizar las consultas de Entity Framework Core.
+
+Aplica las siguientes reglas estrictas:
+1. Agrega `.AsNoTracking()` a TODAS las consultas de solo lectura (GET) antes de ejecutar filtros (`.Where`) o proyecciones (`.Select`).
+2. Mantén `.AsSplitQuery()` en aquellas consultas que ya lo tengan o agrégalo si la consulta incluye colecciones anidadas pesadas.
+3. NO alteres la lógica de negocio, las firmas de los métodos, ni las validaciones de seguridad (como los claims del usuario).
+4. NO agregues `.AsNoTracking()` en endpoints que modifiquen datos (PUT, POST, DELETE, PATCH) y requieran guardar cambios con `SaveChangesAsync()`.
+
+Despues de refactorizar un modulo asegurate de hacer en Web: npm run build, y en API: dotnet build /t:Rebuild

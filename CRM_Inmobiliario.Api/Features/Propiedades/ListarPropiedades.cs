@@ -30,6 +30,7 @@ public static class ListarPropiedadesFeature
             var agenteId = user.GetRequiredUserId();
 
             var propiedades = await context.Properties
+                .AsNoTracking()
                 .Where(p => p.AgenteId == agenteId)
                 .OrderByDescending(p => p.FechaIngreso)
                 .Select(p => new Response(

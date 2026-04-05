@@ -49,16 +49,19 @@ public static class ObtenerActividadEndpoint
             // 2. Generar Puntos de Tendencia (Agrupados por Día)
             // Traemos los datos crudos del rango para agruparlos en memoria (más eficiente para rangos pequeños de analítica)
             var rawVisitas = await context.Tasks
+                .AsNoTracking()
                 .Where(t => t.AgenteId == agenteId && (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completado" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
                 .Select(t => t.FechaInicio.Date)
                 .ToListAsync();
 
             var rawCierres = await context.Leads
+                .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)))
                 .Select(l => (l.FechaCierre ?? l.FechaCreacion).Date)
                 .ToListAsync();
 
             var rawCaptaciones = await context.Properties
+                .AsNoTracking()
                 .Where(p => p.AgenteId == agenteId && p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin)
                 .Select(p => p.FechaIngreso.Date)
                 .ToListAsync();

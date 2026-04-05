@@ -30,6 +30,7 @@ public static class ObtenerSeguimientoEndpoint
             // 1. Interés Medio o Alto
             // 2. Que NO estén en Negociación, Cerrados o Perdidos
             var leadsConInteres = await context.Leads
+                .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && !etapasExcluidas.Contains(l.EtapaEmbudo))
                 .Where(l => l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
                 .Select(l => new { l.Nombre, l.Apellido, l.EtapaEmbudo })

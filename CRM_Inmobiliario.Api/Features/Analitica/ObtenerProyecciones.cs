@@ -25,6 +25,7 @@ public static class ObtenerProyeccionesEndpoint
 
             // 1. Obtenemos los detalles de lo que vamos a sumar para debuggear
             var itemsProyeccion = await context.Leads
+                .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && l.EtapaEmbudo == "En Negociación")
                 .SelectMany(l => l.PropertyInterests)
                 .Where(i => i.Propiedad!.EstadoComercial == "Reservada")

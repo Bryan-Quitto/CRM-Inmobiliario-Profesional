@@ -34,6 +34,7 @@ public static class ObtenerEficienciaEndpoint
             // 2. Tiempo Promedio de Cierre: Promedio de (FechaCierre - FechaCreacion) en días
             // Filtramos los que tienen FechaCierre para el cálculo
             var leadsCerrados = await context.Leads
+                .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null)
                 .Select(l => new { l.FechaCreacion, l.FechaCierre })
                 .ToListAsync();

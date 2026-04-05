@@ -29,6 +29,7 @@ public static class ObtenerPerfilFeature
             var agenteId = user.GetRequiredUserId();
 
             var perfil = await context.Agents
+                .AsNoTracking()
                 .Where(a => a.Id == agenteId)
                 .Select(a => new Response(
                     a.Id,

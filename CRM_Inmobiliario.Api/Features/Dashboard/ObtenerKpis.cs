@@ -41,6 +41,7 @@ public static class ObtenerKpisEndpoint
 
             // 4. Embudo de Ventas del Agente
             var embudo = await context.Leads
+                .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId)
                 .GroupBy(l => l.EtapaEmbudo)
                 .Select(g => new EtapaEmbudoItem(g.Key ?? "Sin Etapa", g.Count()))

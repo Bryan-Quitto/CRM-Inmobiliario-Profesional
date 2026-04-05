@@ -31,6 +31,7 @@ public static class ObtenerTareaPorIdFeature
             var agenteId = user.GetRequiredUserId();
 
             var tarea = await context.Tasks
+                .AsNoTracking()
                 .Include(t => t.Cliente)
                 .Include(t => t.Propiedad)
                 .FirstOrDefaultAsync(t => t.Id == id && t.AgenteId == agenteId);
