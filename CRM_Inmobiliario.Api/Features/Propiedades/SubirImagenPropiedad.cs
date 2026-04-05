@@ -16,6 +16,8 @@ public static class SubirImagenPropiedadFeature
     {
         app.MapPost("/propiedades/{id}/imagenes", async (
             [FromRoute] Guid id,
+            [FromQuery] Guid? sectionId,
+            [FromQuery] string? descripcion,
             IFormFile file,
             ClaimsPrincipal user,
             CrmDbContext context,
@@ -68,6 +70,8 @@ public static class SubirImagenPropiedadFeature
                 {
                     Id = Guid.NewGuid(),
                     PropiedadId = id,
+                    SectionId = sectionId,
+                    Descripcion = descripcion,
                     TipoMultimedia = "Imagen",
                     UrlPublica = urlPublica,
                     StoragePath = nombreArchivo,
@@ -82,7 +86,9 @@ public static class SubirImagenPropiedadFeature
                 { 
                     media.Id,
                     media.UrlPublica,
-                    media.EsPrincipal 
+                    media.EsPrincipal,
+                    media.SectionId,
+                    media.Descripcion
                 });
             }
             catch (Exception ex)

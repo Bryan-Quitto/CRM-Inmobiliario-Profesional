@@ -23,65 +23,45 @@ public static class LimpiarImagenesPropiedadFeature
         {
             var logger = loggerFactory.CreateLogger("LimpiarImagenesPropiedad");
             var agenteId = user.GetRequiredUserId();
-            logger.LogInformation("Iniciando limpieza de imágenes no principales para la propiedad {PropiedadId}", propiedadId);
-
+            
             try
             {
-                // 0. Verificar que la propiedad pertenece al agente
-                var propiedadExists = await context.Properties
+                var propiedad = await context.Properties
                     .AnyAsync(p => p.Id == propiedadId && p.AgenteId == agenteId, ct);
 
-                if (!propiedadExists)
-                    return Results.NotFound("La propiedad no existe o no pertenece a este agente.");
+                if (!propiedad)
+                    return Results.NotFound("Propiedad no encontrada.");
 
-                // 1. Obtener las rutas de almacenamiento de las imágenes que NO son principales
+                // 1. Obtener rutas de archivos de imágenes que NO son principales
                 var storagePaths = await context.PropertyMedia
                     .Where(m => m.PropiedadId == propiedadId && !m.EsPrincipal && !string.IsNullOrEmpty(m.StoragePath))
                     .Select(m => m.StoragePath!)
                     .ToListAsync(ct);
 
-                logger.LogInformation("Se encontraron {Count} rutas de archivos en Storage para eliminar (no principales)", storagePaths.Count);
+                // 2. Eliminar físicos del Storage
+                if (storagePaths.Any())
+                {
+                    await supabase.Storage.From("propiedades").Remove(storagePaths);
+                }
 
-                // 2. Ejecutar borrado masivo en la base de datos de las imágenes que NO son principales
-                var deletedRows = await context.PropertyMedia
+                // 3. Borrar las imágenes de la base de datos (excepto principal)
+                await context.PropertyMedia
                     .Where(m => m.PropiedadId == propiedadId && !m.EsPrincipal)
                     .ExecuteDeleteAsync(ct);
 
-                logger.LogInformation("Se eliminaron {Count} registros de la base de datos", deletedRows);
+                // 4. Borrar todas las secciones dinámicas (ya que sus fotos fueron borradas arriba o eran principales)
+                // Nota: Las fotos principales que estaban en una sección ahora quedarán con SectionId = NULL
+                // gracias a la configuración ON DELETE SET NULL del FK.
+                await context.PropertyGallerySections
+                    .Where(s => s.PropiedadId == propiedadId)
+                    .ExecuteDeleteAsync(ct);
 
-                if (deletedRows == 0)
-                    return Results.NoContent();
-
-                // 3. Limpiar los archivos físicos de Supabase Storage
-                if (storagePaths.Count > 0)
-                {
-                    logger.LogInformation("Eliminando {Count} archivos físicos de Supabase Storage", storagePaths.Count);
-                    var bucket = supabase.Storage.From("propiedades");
-                    
-                    try 
-                    {
-                        // No pasamos el CT aquí para asegurar que el borrado físico ocurra 
-                        await bucket.Remove(storagePaths);
-                        logger.LogInformation("Archivos físicos eliminados correctamente del bucket");
-                    }
-                    catch (Exception storageEx)
-                    {
-                        logger.LogWarning(storageEx, "Error al eliminar archivos de Storage (huérfanos potenciales).");
-                    }
-                }
-
-                logger.LogInformation("Limpieza de imágenes completada con éxito");
                 return Results.NoContent();
-            }
-            catch (OperationCanceledException)
-            {
-                logger.LogWarning("La operación de limpieza fue cancelada");
-                return Results.StatusCode(499);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error fatal al limpiar las imágenes de la propiedad {PropiedadId}", propiedadId);
-                return Results.Problem($"Error al limpiar las imágenes: {ex.Message}");
+                logger.LogError(ex, "Error al limpiar galería por cambio de estado");
+                return Results.Problem(ex.Message);
             }
         })
         .WithTags("Propiedades")

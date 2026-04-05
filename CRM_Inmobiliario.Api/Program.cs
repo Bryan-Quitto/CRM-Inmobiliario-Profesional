@@ -1,129 +1,143 @@
-using CRM_Inmobiliario.Api.Features.Intereses;
-using CRM_Inmobiliario.Api.Features.Clientes;
-using CRM_Inmobiliario.Api.Features.Propiedades;
-using CRM_Inmobiliario.Api.Features.Tareas;
-using CRM_Inmobiliario.Api.Features.Interacciones;
-using CRM_Inmobiliario.Api.Features.Dashboard;
-using CRM_Inmobiliario.Api.Features.Calendario;
+using System.Text.Json.Serialization;
 using CRM_Inmobiliario.Api.Features.Analitica;
+using CRM_Inmobiliario.Api.Features.Calendario;
+using CRM_Inmobiliario.Api.Features.Clientes;
 using CRM_Inmobiliario.Api.Features.Configuracion;
+using CRM_Inmobiliario.Api.Features.Dashboard;
+using CRM_Inmobiliario.Api.Features.Interacciones;
+using CRM_Inmobiliario.Api.Features.Intereses;
+using CRM_Inmobiliario.Api.Features.Propiedades;
+using CRM_Inmobiliario.Api.Features.SeccionesGaleria;
+using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Supabase;
-using DotNetEnv;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-// Cargar variables de entorno desde el archivo .env en la raíz del proyecto
-Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
+// Cargar variables de entorno desde .env escalando hasta la raíz (TraversePath)
+DotNetEnv.Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ConfiguraciÃ³n de servicios base
-builder.Services.AddOpenApi();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHttpsRedirection(options =>
-{
-    // Usamos el puerto configurado en launchSettings.json (7046) o 443 por defecto
-    options.HttpsPort = 7046;
+// Configuración de JSON para manejar Enums y evitar ciclos
+builder.Services.ConfigureHttpJsonOptions(options => {
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+// Configuración de PostgreSQL usando DATABASE_URL del .env
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+builder.Services.AddDbContext<CrmDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
-// Configuración de Supabase Client usando variables de entorno
-builder.Services.AddScoped<Supabase.Client>(_ => 
-{
-    var url = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? builder.Configuration["Supabase:Url"]!;
-    
-    // Priorizamos la ROLE_KEY (Service Role) para el backend, ya que permite bypass de RLS
-    var key = Environment.GetEnvironmentVariable("SUPABASE_ROLE_KEY") 
-              ?? Environment.GetEnvironmentVariable("SUPABASE_KEY") 
-              ?? builder.Configuration["Supabase:Key"]!;
+// Cliente de Supabase configurado con SERVICE_ROLE para permisos totales (Storage/Auth)
+var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
+var supabaseRoleKey = Environment.GetEnvironmentVariable("SUPABASE_ROLE_KEY");
 
-    return new Supabase.Client(url, key, new SupabaseOptions { AutoConnectRealtime = true });
-});
-// Configuración de Autenticación JWT (Supabase con llaves rotativas)
-var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? builder.Configuration["Supabase:Url"]!;
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    // Con Authority, .NET descarga automáticamente el JWKS desde {supabaseUrl}/auth/v1/.well-known/jwks.json
-    options.Authority = $"{supabaseUrl}/auth/v1";
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddScoped(_ => new Supabase.Client(
+    supabaseUrl!,
+    supabaseRoleKey, // Usamos la Role Key para que el Backend pueda borrar archivos
+    new Supabase.SupabaseOptions { AutoConnectRealtime = true }
+));
+
+// Auth configurada para Supabase usando JWKS dinámico
+var jwksUrl = $"{supabaseUrl}/auth/v1/.well-known/jwks.json";
+var httpClient = new HttpClient();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidIssuer = $"{supabaseUrl}/auth/v1",
-        ValidateAudience = true,
-        ValidAudience = "authenticated",
-        ValidateLifetime = true,
-        // Al usar Authority/JWKS, .NET gestiona la rotación de llaves automáticamente
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"{supabaseUrl}/auth/v1",
+            ValidateAudience = true,
+            ValidAudience = "authenticated",
+            ValidateIssuerSigningKey = true,
+            
+            // Resolución dinámica de llaves JWKS de Supabase
+            IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
+            {
+                try 
+                {
+                    var jwksJson = httpClient.GetStringAsync(jwksUrl).GetAwaiter().GetResult();
+                    return new JsonWebKeySet(jwksJson).GetSigningKeys();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"DEBUG [JWKS]: Error -> {ex.Message}");
+                    return Enumerable.Empty<SecurityKey>();
+                }
+            },
+            ClockSkew = TimeSpan.Zero
+        };
 
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"DEBUG [Auth]: Falló -> {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                // Solo loguear si hay un error real para no saturar
+                if (!string.IsNullOrEmpty(context.Error))
+                    Console.WriteLine($"DEBUG [Auth]: 401 disparado -> {context.Error}");
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 builder.Services.AddAuthorization();
-builder.Services.AddOutputCache(options =>
-{
-    // Política Global: Cache por 10 segundos, variando por el token de autorización (AgenteId)
-    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromSeconds(10)).VaryByValue((context) => 
-        new KeyValuePair<string, string>("Auth", context.Request.Headers.Authorization.ToString())));
-});
+builder.Services.AddCors(options => options.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
-// Configuración de CORS para el Frontend (Vite default: http://localhost:5173)
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("FrontendPolicy", policy =>
-    {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
-    });
+// Cache de Salida (Output Caching)
+builder.Services.AddOutputCache(options => {
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
 });
-
-// Configuración de EF Core con PostgreSQL (Npgsql)
-builder.Services.AddDbContext<CrmDbContext>(options =>
-    options.UseNpgsql(
-        Environment.GetEnvironmentVariable("DATABASE_URL") ?? builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions => npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
-    ));
 
 var app = builder.Build();
 
-// Pipeline de middleware
-app.UseCors("FrontendPolicy");
-
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseDeveloperExceptionPage();
 }
 
-app.UseHttpsRedirection();
+// Middleware de Logging Minimalista para diagnosticar 401s
+app.Use(async (context, next) =>
+{
+    await next();
+    if (context.Response.StatusCode == 401)
+    {
+        Console.WriteLine($"WARN [401]: {context.Request.Method} {context.Request.Path}");
+    }
+});
 
-// Middlewares de Autenticación y Autorización
+app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseOutputCache();
 
-// Registro de Features (Vertical Slice) con protección global
+// Grupos de Endpoints
 var apiGroup = app.MapGroup("/api").RequireAuthorization();
 
+// Clientes
 apiGroup.MapRegistrarClienteEndpoint();
-apiGroup.MapActualizarClienteEndpoint();
 apiGroup.MapListarClientesEndpoint().CacheOutput();
 apiGroup.MapObtenerClientePorIdEndpoint().CacheOutput();
+apiGroup.MapActualizarClienteEndpoint();
 apiGroup.MapCambiarEtapaClienteEndpoint();
-apiGroup.MapVincularPropiedadEndpoint();
-apiGroup.MapDesvincularPropiedadEndpoint();
 
 // Propiedades
 apiGroup.MapRegistrarPropiedadEndpoint();
-apiGroup.MapActualizarPropiedadEndpoint();
 apiGroup.MapListarPropiedadesEndpoint().CacheOutput();
 apiGroup.MapObtenerPropiedadPorIdEndpoint().CacheOutput();
+apiGroup.MapActualizarPropiedadEndpoint();
 apiGroup.MapCambiarEstadoPropiedadEndpoint();
 apiGroup.MapSubirImagenPropiedadEndpoint();
 apiGroup.MapEstablecerImagenPrincipalEndpoint();
@@ -132,18 +146,28 @@ apiGroup.MapEliminarTodasLasImagenesEndpoint();
 apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
 apiGroup.MapLimpiarImagenesPropiedadEndpoint();
 
+// Secciones de Galería
+apiGroup.MapRegistrarSeccionEndpoint();
+apiGroup.MapActualizarSeccionEndpoint();
+apiGroup.MapEliminarSeccionEndpoint();
+apiGroup.MapActualizarDescripcionMultimediaEndpoint();
+
 // Tareas
 apiGroup.MapRegistrarTareaEndpoint();
 apiGroup.MapListarTareasEndpoint().CacheOutput();
-apiGroup.MapCompletarTareaEndpoint();
 apiGroup.MapObtenerTareaPorIdEndpoint().CacheOutput();
 apiGroup.MapActualizarTareaEndpoint();
+apiGroup.MapCompletarTareaEndpoint();
 apiGroup.MapCancelarTareaEndpoint();
 
 // Interacciones
 apiGroup.MapRegistrarInteraccionEndpoint();
 apiGroup.MapActualizarInteraccionEndpoint();
 apiGroup.MapEliminarInteraccionEndpoint();
+
+// Intereses
+apiGroup.MapVincularPropiedadEndpoint();
+apiGroup.MapDesvincularPropiedadEndpoint();
 
 // Dashboard
 apiGroup.MapObtenerKpisEndpoint().CacheOutput();
@@ -153,12 +177,11 @@ apiGroup.MapObtenerPerfilEndpoint();
 apiGroup.MapActualizarPerfilEndpoint();
 
 // Calendario
-apiGroup.MapListarEventosEndpoint().CacheOutput(p => p.SetVaryByQuery("inicio", "fin"));
+apiGroup.MapListarEventosEndpoint().CacheOutput();
 apiGroup.MapReprogramarEventoEndpoint();
 
-// Analítica con Cache Inteligente (10s)
-apiGroup.MapObtenerActividadEndpoint().CacheOutput(p => p.SetVaryByQuery("inicio", "fin").VaryByValue((context) => 
-    new KeyValuePair<string, string>("Auth", context.Request.Headers.Authorization.ToString())));
+// Analítica
+apiGroup.MapObtenerActividadEndpoint().CacheOutput(p => p.Tag("Actividad").SetVaryByHeader("Authorization").SetVaryByQuery("agenteId"));
 apiGroup.MapObtenerSeguimientoEndpoint().CacheOutput();
 apiGroup.MapObtenerProyeccionesEndpoint().CacheOutput();
 apiGroup.MapObtenerEficienciaEndpoint().CacheOutput();

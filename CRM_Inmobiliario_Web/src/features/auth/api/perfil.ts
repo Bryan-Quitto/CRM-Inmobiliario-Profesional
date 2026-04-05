@@ -9,6 +9,7 @@ export interface PerfilAgente {
   telefono?: string;
   agencia?: string;
   fotoUrl?: string;
+  logoUrl?: string;
   rol: string;
   fechaCreacion: string;
 }

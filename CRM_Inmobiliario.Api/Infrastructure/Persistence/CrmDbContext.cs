@@ -12,6 +12,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<Agent> Agents => Set<Agent>();
     public DbSet<Lead> Leads => Set<Lead>();
     public DbSet<Property> Properties => Set<Property>();
+    public DbSet<PropertyGallerySection> PropertyGallerySections => Set<PropertyGallerySection>();
     public DbSet<PropertyMedia> PropertyMedia => Set<PropertyMedia>();
     public DbSet<LeadPropertyInterest> LeadPropertyInterests => Set<LeadPropertyInterest>();
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
@@ -81,9 +82,26 @@ public sealed class CrmDbContext : DbContext
         {
             entity.Property(e => e.TipoMultimedia).HasMaxLength(50);
             entity.Property(e => e.StoragePath).HasMaxLength(255);
+            entity.Property(e => e.Descripcion).HasMaxLength(500);
 
             entity.HasOne(d => d.Propiedad)
                 .WithMany(p => p.Media)
+                .HasForeignKey(d => d.PropiedadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Section)
+                .WithMany(p => p.Media)
+                .HasForeignKey(d => d.SectionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Secciones de Galería
+        modelBuilder.Entity<PropertyGallerySection>(entity =>
+        {
+            entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
+
+            entity.HasOne(d => d.Propiedad)
+                .WithMany(p => p.GallerySections)
                 .HasForeignKey(d => d.PropiedadId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

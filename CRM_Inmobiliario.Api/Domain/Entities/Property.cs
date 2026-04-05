@@ -68,6 +68,7 @@ public sealed class Property
     public DateTimeOffset? FechaCierre { get; set; }
 
     // Relaciones de navegación
+    public ICollection<PropertyGallerySection> GallerySections { get; set; } = new List<PropertyGallerySection>();
     public ICollection<PropertyMedia> Media { get; set; } = new List<PropertyMedia>();
     public ICollection<LeadPropertyInterest> LeadInterests { get; set; } = new List<LeadPropertyInterest>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();

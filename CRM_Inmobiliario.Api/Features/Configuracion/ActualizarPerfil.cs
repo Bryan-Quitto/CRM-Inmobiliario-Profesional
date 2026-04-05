@@ -15,7 +15,8 @@ public static class ActualizarPerfilFeature
         string Apellido,
         string? Telefono,
         string? Agencia,
-        string? FotoUrl);
+        string? FotoUrl,
+        string? LogoUrl);
 
     public static RouteHandlerBuilder MapActualizarPerfilEndpoint(this IEndpointRouteBuilder app)
     {
@@ -30,7 +31,8 @@ public static class ActualizarPerfilFeature
                     .SetProperty(a => a.Apellido, request.Apellido)
                     .SetProperty(a => a.Telefono, request.Telefono)
                     .SetProperty(a => a.Agencia, request.Agencia)
-                    .SetProperty(a => a.FotoUrl, request.FotoUrl));
+                    .SetProperty(a => a.FotoUrl, request.FotoUrl)
+                    .SetProperty(a => a.LogoUrl, request.LogoUrl));
 
             return rowsAffected > 0 
                 ? Results.NoContent() 
