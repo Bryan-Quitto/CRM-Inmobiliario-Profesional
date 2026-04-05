@@ -1,7 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { Buffer } from 'buffer'
 import { Toaster } from 'sonner'
+
+// Polyfill de Buffer para compatibilidad con librerías de PDF
+window.Buffer = window.Buffer || Buffer;
+
 import { SWRConfig } from 'swr'
 import { api } from './lib/axios'
 import { localStorageProvider, swrDefaultConfig } from './lib/swr'
