@@ -29,8 +29,7 @@ public static class ListarTareasFeature
             var agenteId = user.GetRequiredUserId();
 
             var tareas = await context.Tasks
-                .Include(t => t.Cliente)
-                .Include(t => t.Propiedad)
+                .AsNoTracking()
                 .Where(t => t.AgenteId == agenteId)
                 .OrderBy(t => t.FechaInicio)
                 .Select(t => new Response(

@@ -52,6 +52,7 @@ public static class ObtenerPropiedadPorIdFeature
             var agenteId = user.GetRequiredUserId();
 
             var propiedad = await context.Properties
+                .AsNoTracking()
                 .AsSplitQuery()
                 .Where(p => p.Id == id && p.AgenteId == agenteId)
                 .Select(p => new Response(
