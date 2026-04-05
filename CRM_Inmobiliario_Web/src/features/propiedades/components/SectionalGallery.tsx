@@ -8,8 +8,12 @@ import {
   Pencil,
   Plus,
   AlignLeft,
-  Check
+  Check,
+  GripVertical,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
+import { Draggable } from '@hello-pangea/dnd';
 import { useGalleryCore } from '../hooks/useGalleryCore';
 import { useUpload } from '../context/useUpload';
 import type { MultimediaPropiedad } from '../types';
@@ -19,6 +23,7 @@ import { MediaCard } from './MediaCard';
 interface SectionalGalleryProps {
   propiedadId: string;
   propiedadTitulo: string;
+  index: number;
   sectionId?: string | null;
   sectionNombre?: string;
   sectionDescripcion?: string | null;
@@ -29,11 +34,16 @@ interface SectionalGalleryProps {
   onRenameSection?: (id: string, nuevoNombre: string, descripcion: string | null) => Promise<void>;
   onDeleteSection?: (id: string) => Promise<void>;
   onClearGallery?: () => Promise<void>;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  onMoveTo?: (index: number) => void;
+  totalSections?: number;
 }
 
 export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
   propiedadId,
   propiedadTitulo,
+  index,
   sectionId = null,
   sectionNombre = "Galería General",
   sectionDescripcion = "",
@@ -43,7 +53,11 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
   onImageUploaded,
   onRenameSection,
   onDeleteSection,
-  onClearGallery
+  onClearGallery,
+  onMoveUp,
+  onMoveDown,
+  onMoveTo,
+  totalSections = 0
 }) => {
   const { 
     selectedMediaIds, 
@@ -61,12 +75,25 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
   const [confirmDeleteSection, setConfirmDeleteSection] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isOrderDropdownOpen, setIsOrderDropdownOpen] = useState(false);
   
   const [nombre, setNombre] = useState(sectionNombre);
   const [descripcion, setDescripcion] = useState(sectionDescripcion || '');
   const [isSavingDesc, setIsSavingDesc] = useState(false);
   const [saveDescSuccess, setSaveDescSuccess] = useState(false);
   const descTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOrderDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Sincronizar estado local con props (importante para pre-carga de SWR)
   useEffect(() => {
@@ -103,6 +130,7 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    if (e.target instanceof HTMLElement && e.target.closest('textarea')) return;
     if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
   };
 
@@ -127,13 +155,49 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
     setIsEditingName(false);
   };
 
-  return (
+  const galleryId = sectionId || 'general';
+
+  const content = (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header de Sección */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
         <div className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
           <div className="flex-1 space-y-4">
             <div className="flex items-center gap-4">
+              {sectionId && (
+                <div className="flex flex-col gap-1 mr-1">
+                  <button onClick={onMoveUp} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer" title="Subir sección"><ChevronUp size={16} /></button>
+                  
+                  {/* Selector de Orden Dinámico */}
+                  <div className="relative" ref={dropdownRef}>
+                    <button 
+                      onClick={() => setIsOrderDropdownOpen(!isOrderDropdownOpen)}
+                      className="h-6 w-6 rounded-md bg-slate-50 text-[10px] font-black text-indigo-600 flex items-center justify-center border border-indigo-100 hover:bg-indigo-50 transition-all cursor-pointer"
+                      title="Cambiar orden"
+                    >
+                      {index + 1}
+                    </button>
+                    {isOrderDropdownOpen && (
+                      <div className="absolute left-0 mt-1 w-16 bg-white border border-slate-100 rounded-xl shadow-2xl z-[100] py-1 max-h-40 overflow-y-auto animate-in zoom-in-95 duration-200 scrollbar-hide">
+                        {Array.from({ length: totalSections }).map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              onMoveTo?.(i);
+                              setIsOrderDropdownOpen(false);
+                            }}
+                            className={`w-full py-1.5 text-center text-[11px] font-black transition-colors hover:bg-indigo-50 cursor-pointer ${i === index ? 'bg-indigo-600 text-white' : 'text-slate-600'}`}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button onClick={onMoveDown} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer" title="Bajar sección"><ChevronDown size={16} /></button>
+                </div>
+              )}
               <div className={`h-12 w-12 shrink-0 ${sectionId ? 'bg-indigo-50 text-indigo-600' : 'bg-blue-50 text-blue-600'} rounded-[1.25rem] flex items-center justify-center shadow-inner`}>
                 {sectionId ? <Plus size={24} /> : <ImageIcon size={24} />}
               </div>
@@ -182,6 +246,12 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {sectionId && (
+              <div className="p-3 text-slate-300 cursor-grab active:cursor-grabbing hover:text-indigo-400 transition-colors">
+                <GripVertical size={24} />
+              </div>
+            )}
+
             {media.length > 0 && (
               <button 
                 disabled={isDownloading}
@@ -299,5 +369,21 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
         description={sectionId ? "Se eliminarán todas las imágenes de esta sección." : "Se eliminarán todas las fotos excepto la de portada."}
       />
     </div>
+  );
+
+  if (!sectionId) return content;
+
+  return (
+    <Draggable draggableId={galleryId} index={index}>
+      {(provided) => (
+        <div 
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+        >
+          {content}
+        </div>
+      )}
+    </Draggable>
   );
 };
