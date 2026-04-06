@@ -2,6 +2,7 @@ using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,8 @@ public static class SubirImagenPropiedadFeature
             IFormFile file,
             ClaimsPrincipal user,
             CrmDbContext context,
-            Supabase.Client supabase) =>
+            Supabase.Client supabase,
+            IPdfGeneratorQueue pdfQueue) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -81,6 +83,9 @@ public static class SubirImagenPropiedadFeature
 
                 context.PropertyMedia.Add(media);
                 await context.SaveChangesAsync();
+
+                // Disparar regeneración de PDF
+                await pdfQueue.QueuePdfGenerationAsync(id);
 
                 return Results.Ok(new 
                 { 

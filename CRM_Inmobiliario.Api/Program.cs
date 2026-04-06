@@ -10,6 +10,7 @@ using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Features.SeccionesGaleria;
 using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 DotNetEnv.Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Silenciar logs ruidosos de HttpClient
+builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
 
 // Configuración de JSON para manejar Enums y evitar ciclos
 builder.Services.ConfigureHttpJsonOptions(options => {
@@ -100,6 +104,18 @@ builder.Services.AddOutputCache(options => {
     options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
 });
 
+// Infraestructura de Red
+builder.Services.AddHttpClient();
+
+// Fase 1: Cola de Generación de PDFs
+builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
+
+// Fase 2: Background Service (El Obrero)
+builder.Services.AddHostedService<PdfWorker>();
+
+// Configuración de QuestPDF (Licencia Comunitaria)
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -147,6 +163,11 @@ apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
 apiGroup.MapLimpiarImagenesPropiedadEndpoint();
 
 // Secciones de Galería
+apiGroup.MapPost("/propiedades/{id:guid}/generar-pdf", async (Guid id, CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.IPdfGeneratorQueue pdfQueue) => 
+{
+    await pdfQueue.QueuePdfGenerationAsync(id);
+    return Results.Accepted();
+});
 apiGroup.MapRegistrarSeccionEndpoint();
 apiGroup.MapActualizarSeccionEndpoint();
 apiGroup.MapReordenarSeccionesEndpoint();

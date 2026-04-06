@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,8 @@ public static class EliminarImagenesSeleccionadasFeature
             CrmDbContext context,
             Supabase.Client supabase,
             CancellationToken ct,
-            ILoggerFactory loggerFactory) =>
+            ILoggerFactory loggerFactory,
+            IPdfGeneratorQueue pdfQueue) =>
         {
             var logger = loggerFactory.CreateLogger("EliminarImagenesSeleccionadas");
             var agenteId = user.GetRequiredUserId();
@@ -74,6 +76,8 @@ public static class EliminarImagenesSeleccionadasFeature
                         logger.LogWarning(storageEx, "Error al eliminar algunos archivos de Storage (huérfanos potenciales).");
                     }
                 }
+
+                await pdfQueue.QueuePdfGenerationAsync(propiedadId);
 
                 return Results.NoContent();
             }
