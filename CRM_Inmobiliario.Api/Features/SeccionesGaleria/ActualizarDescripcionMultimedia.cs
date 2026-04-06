@@ -1,4 +1,5 @@
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -12,14 +13,23 @@ public static class ActualizarDescripcionMultimediaFeature
 
     public static RouteHandlerBuilder MapActualizarDescripcionMultimediaEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPut("/propiedades/imagenes/{id}/descripcion", async (Guid id, Request request, CrmDbContext context) =>
+        return app.MapPut("/propiedades/imagenes/{id}/descripcion", async (Guid id, Request request, CrmDbContext context, IPdfGeneratorQueue pdfQueue) =>
         {
+            var media = await context.PropertyMedia.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+            if (media == null) return Results.NotFound();
+
             var rowsAffected = await context.PropertyMedia
                 .Where(m => m.Id == id)
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(m => m.Descripcion, request.Descripcion));
 
-            return rowsAffected > 0 ? Results.NoContent() : Results.NotFound();
+            if (rowsAffected > 0)
+            {
+                await pdfQueue.QueuePdfGenerationAsync(media.PropiedadId);
+                return Results.NoContent();
+            }
+
+            return Results.NotFound();
         })
         .WithTags("Propiedades - Galería")
         .WithName("ActualizarDescripcionMultimedia");

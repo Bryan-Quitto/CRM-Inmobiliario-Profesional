@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,8 @@ public static class EliminarImagenPropiedadFeature
             [FromRoute] Guid imagenId,
             ClaimsPrincipal user,
             CrmDbContext context,
-            Supabase.Client supabase) =>
+            Supabase.Client supabase,
+            IPdfGeneratorQueue pdfQueue) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -46,6 +48,8 @@ public static class EliminarImagenPropiedadFeature
                 // 2. Eliminar registro de la DB
                 context.PropertyMedia.Remove(media);
                 await context.SaveChangesAsync();
+
+                await pdfQueue.QueuePdfGenerationAsync(propiedadId);
 
                 return Results.NoContent();
             }

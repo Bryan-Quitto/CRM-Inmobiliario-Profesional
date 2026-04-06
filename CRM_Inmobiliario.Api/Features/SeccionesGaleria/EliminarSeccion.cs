@@ -1,4 +1,5 @@
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -10,8 +11,12 @@ public static class EliminarSeccionFeature
 {
     public static RouteHandlerBuilder MapEliminarSeccionEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, CrmDbContext context, Supabase.Client supabase) =>
+        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, CrmDbContext context, Supabase.Client supabase, IPdfGeneratorQueue pdfQueue) =>
         {
+            // 0. Obtener ID de propiedad antes de borrar
+            var seccion = await context.PropertyGallerySections.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            if (seccion == null) return Results.NotFound();
+
             // 1. Obtener las rutas de almacenamiento de las imágenes de la sección antes de borrarlas de la DB
             var storagePaths = await context.PropertyMedia
                 .Where(m => m.SectionId == id && !string.IsNullOrEmpty(m.StoragePath))
@@ -27,13 +32,17 @@ public static class EliminarSeccionFeature
                 }
 
                 // 3. Borrar la sección de la base de datos
-                // Gracias al DeleteBehavior.Cascade configurado en el DbContext, 
-                // esto borrará automáticamente los registros de PropertyMedia asociados.
                 var rowsAffected = await context.PropertyGallerySections
                     .Where(s => s.Id == id)
                     .ExecuteDeleteAsync();
 
-                return rowsAffected > 0 ? Results.NoContent() : Results.NotFound();
+                if (rowsAffected > 0)
+                {
+                    await pdfQueue.QueuePdfGenerationAsync(seccion.PropiedadId);
+                    return Results.NoContent();
+                }
+
+                return Results.NotFound();
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -12,8 +13,11 @@ public static class ActualizarSeccionFeature
 
     public static RouteHandlerBuilder MapActualizarSeccionEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPut("/propiedades/secciones/{id}", async (Guid id, Request request, CrmDbContext context) =>
+        return app.MapPut("/propiedades/secciones/{id}", async (Guid id, Request request, CrmDbContext context, IPdfGeneratorQueue pdfQueue) =>
         {
+            var seccion = await context.PropertyGallerySections.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            if (seccion == null) return Results.NotFound();
+
             var rowsAffected = await context.PropertyGallerySections
                 .Where(s => s.Id == id)
                 .ExecuteUpdateAsync(setters => setters
@@ -21,7 +25,13 @@ public static class ActualizarSeccionFeature
                     .SetProperty(s => s.Descripcion, request.Descripcion)
                     .SetProperty(s => s.Orden, request.Orden));
 
-            return rowsAffected > 0 ? Results.NoContent() : Results.NotFound();
+            if (rowsAffected > 0)
+            {
+                await pdfQueue.QueuePdfGenerationAsync(seccion.PropiedadId);
+                return Results.NoContent();
+            }
+
+            return Results.NotFound();
         })
         .WithTags("Propiedades - Galería")
         .WithName("ActualizarSeccionGaleria");
