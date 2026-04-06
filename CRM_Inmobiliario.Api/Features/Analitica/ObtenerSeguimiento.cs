@@ -46,6 +46,7 @@ public static class ObtenerSeguimientoEndpoint
             return Results.Ok(new SeguimientoResponse(leadsConInteres.Count));
         })
         .WithTags("Analitica")
-        .WithName("ObtenerSeguimiento");
+        .WithName("ObtenerSeguimiento")
+        .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization"));
     }
 }

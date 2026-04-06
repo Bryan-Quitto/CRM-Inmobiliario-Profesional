@@ -21,42 +21,52 @@ public static class ObtenerKpisEndpoint
 {
     public static RouteHandlerBuilder MapObtenerKpisEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/dashboard/kpis", async (ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/dashboard/kpis", async (ClaimsPrincipal user, IDbContextFactory<CrmDbContext> factory) =>
         {
             var agenteId = user.GetRequiredUserId();
             var hoyUtc = DateTimeOffset.UtcNow;
             var limiteHoy = new DateTimeOffset(hoyUtc.Year, hoyUtc.Month, hoyUtc.Day, 23, 59, 59, hoyUtc.Offset);
 
-            // 1. Propiedades Disponibles del Agente
-            var totalPropiedades = await context.Properties
+            // 1. Creamos contextos independientes para permitir el paralelismo real (Thread-Safe)
+            using var ctxProp = await factory.CreateDbContextAsync();
+            using var ctxLead = await factory.CreateDbContextAsync();
+            using var ctxTask = await factory.CreateDbContextAsync();
+            using var ctxEmbudo = await factory.CreateDbContextAsync();
+
+            // 2. Definición de tareas paralelas con AsNoTracking
+            var propiedadesTask = ctxProp.Properties
+                .AsNoTracking()
                 .CountAsync(p => p.AgenteId == agenteId && p.EstadoComercial == "Disponible");
 
-            // 2. Prospectos Activos del Agente
-            var totalProspectos = await context.Leads
+            var prospectosTask = ctxLead.Leads
+                .AsNoTracking()
                 .CountAsync(l => l.AgenteId == agenteId && l.EtapaEmbudo != "Perdido");
 
-            // 3. Tareas Pendientes Hoy del Agente
-            var tareasHoy = await context.Tasks
+            var tareasTask = ctxTask.Tasks
+                .AsNoTracking()
                 .CountAsync(t => t.AgenteId == agenteId && t.Estado == "Pendiente" && t.FechaInicio <= limiteHoy);
 
-            // 4. Embudo de Ventas del Agente
-            var embudo = await context.Leads
+            var embudoTask = ctxEmbudo.Leads
                 .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId)
                 .GroupBy(l => l.EtapaEmbudo)
                 .Select(g => new EtapaEmbudoItem(g.Key ?? "Sin Etapa", g.Count()))
                 .ToListAsync();
 
+            // 3. Ejecución simultánea
+            await Task.WhenAll(propiedadesTask, prospectosTask, tareasTask, embudoTask);
+
             var kpis = new DashboardKpisResponse(
-                totalPropiedades,
-                totalProspectos,
-                tareasHoy,
-                embudo
+                propiedadesTask.Result,
+                prospectosTask.Result,
+                tareasTask.Result,
+                embudoTask.Result
             );
 
             return Results.Ok(kpis);
         })
         .WithTags("Dashboard")
-        .WithName("ObtenerKpis");
+        .WithName("ObtenerKpis")
+        .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization"));
     }
 }

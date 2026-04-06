@@ -17,38 +17,43 @@ public static class ObtenerEficienciaEndpoint
 {
     public static IEndpointConventionBuilder MapObtenerEficienciaEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/analitica/eficiencia", async (ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/analitica/eficiencia", async (ClaimsPrincipal user, IDbContextFactory<CrmDbContext> factory) =>
         {
             var agenteId = user.GetRequiredUserId();
 
-            // 1. Tasa de Conversión: (Cerrados / Total) * 100
-            var totalLeads = await context.Leads.CountAsync(l => l.AgenteId == agenteId);
-            var cerrados = await context.Leads.CountAsync(l => l.AgenteId == agenteId && l.EtapaEmbudo == "Cerrado");
+            using var ctxTotal = await factory.CreateDbContextAsync();
+            using var ctxCerrados = await factory.CreateDbContextAsync();
+            using var ctxAvg = await factory.CreateDbContextAsync();
 
-            decimal tasaConversion = 0;
-            if (totalLeads > 0)
-            {
-                tasaConversion = Math.Round((decimal)cerrados / totalLeads * 100, 2);
-            }
+            // 1. Definición de Tareas
+            var totalLeadsTask = ctxTotal.Leads.AsNoTracking().CountAsync(l => l.AgenteId == agenteId);
+            var cerradosTask = ctxCerrados.Leads.AsNoTracking().CountAsync(l => l.AgenteId == agenteId && l.EtapaEmbudo == "Cerrado");
 
-            // 2. Tiempo Promedio de Cierre: Promedio de (FechaCierre - FechaCreacion) en días
-            // Filtramos los que tienen FechaCierre para el cálculo
-            var leadsCerrados = await context.Leads
+            // Calculamos el promedio directamente en SQL (PostgreSQL)
+            // Usamos un cast a double? para que AverageAsync devuelva un nullable
+            var tiempoPromedioTask = ctxAvg.Leads
                 .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null)
-                .Select(l => new { l.FechaCreacion, l.FechaCierre })
-                .ToListAsync();
+                .Select(l => (double?)(l.FechaCierre!.Value - l.FechaCreacion).TotalDays)
+                .AverageAsync();
 
-            decimal tiempoPromedioDias = 0;
-            if (leadsCerrados.Any())
+            // 2. Ejecución paralela
+            await Task.WhenAll(totalLeadsTask, cerradosTask, tiempoPromedioTask);
+
+            // 3. Cálculos
+            decimal tasaConversion = 0;
+            if (totalLeadsTask.Result > 0)
             {
-                var totalDias = leadsCerrados.Sum(l => (l.FechaCierre!.Value - l.FechaCreacion).TotalDays);
-                tiempoPromedioDias = Math.Round((decimal)totalDias / leadsCerrados.Count, 1);
+                tasaConversion = Math.Round((decimal)cerradosTask.Result / totalLeadsTask.Result * 100, 2);
             }
+
+            // Convertimos el resultado de double? a decimal de forma segura
+            decimal tiempoPromedioDias = Math.Round((decimal)(tiempoPromedioTask.Result ?? 0.0), 1);
 
             return Results.Ok(new EficienciaResponse(tasaConversion, tiempoPromedioDias));
         })
         .WithTags("Analitica")
-        .WithName("ObtenerEficiencia");
+        .WithName("ObtenerEficiencia")
+        .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization"));
     }
 }
