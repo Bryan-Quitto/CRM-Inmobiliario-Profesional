@@ -12,13 +12,18 @@ import {
   Briefcase,
   History,
   XCircle,
-  Search
+  Search,
+  Pencil
 } from 'lucide-react';
 import { completarTarea } from '../api/completarTarea';
+import { cancelarTarea } from '../api/cancelarTarea';
 import { useTareas } from '../context/useTareas';
 import type { Tarea } from '../types';
 import { CrearTareaForm } from './CrearTareaForm';
 import { EditarTareaForm } from './EditarTareaForm';
+import { TareaDetalle } from './TareaDetalle';
+import ConfirmModal from '../../../components/ConfirmModal';
+import { toast } from 'sonner';
 
 const TIPO_ICONOS = {
   'Llamada': Phone,
@@ -54,27 +59,41 @@ interface AgendaPanelProps {
 export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   const { tareas: allTareas, loading, updateTareaEstado, refreshTareas } = useTareas();
   const [completingId, setCompletingId] = useState<string | null>(null);
-  const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
+  const [view, setView] = useState<'list' | 'create' | 'edit' | 'detail'>('list');
   const [selectedTareaId, setSelectedTareaId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
+  const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
+
+  const selectedTarea = useMemo(() => 
+    allTareas.find(t => t.id === selectedTareaId), 
+  [allTareas, selectedTareaId]);
 
   const handleCompletar = async (id: string) => {
     try {
       setCompletingId(id);
-      // 1. Actualización Optimista a través del contexto global
       await updateTareaEstado(id, 'Completada');
-      
-      // 2. Llamada real al API
       await completarTarea(id);
-      
-      // Éxito: no necesitamos refrescar todo porque el contexto ya se actualizó
     } catch (err) {
       console.error('Error al completar tarea:', err);
-      // El contexto revierte automáticamente si el error burbujea (dependiendo de la implementación del contexto)
-      // En nuestra implementación de TareasContext, ya manejamos el catch para revertir.
     } finally {
       setCompletingId(null);
+    }
+  };
+
+  const handleCancelar = async () => {
+    if (!selectedTareaId) return;
+    try {
+      await updateTareaEstado(selectedTareaId, 'Cancelada');
+      await cancelarTarea(selectedTareaId);
+      toast.success('Tarea cancelada correctamente');
+      setView('list');
+      setSelectedTareaId(null);
+    } catch (err) {
+      console.error('Error al cancelar tarea:', err);
+      toast.error('No se pudo cancelar la tarea');
+    } finally {
+      setIsConfirmingCancel(false);
     }
   };
 
@@ -125,11 +144,34 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     );
   }
 
+  if (view === 'detail' && selectedTarea) {
+    return (
+      <div className="w-80 h-full border-l border-slate-100 shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)]">
+        <TareaDetalle 
+          tarea={selectedTarea}
+          onEdit={() => setView('edit')}
+          onCancelTask={() => setIsConfirmingCancel(true)}
+          onBack={() => setView('list')}
+        />
+        <ConfirmModal 
+          isOpen={isConfirmingCancel}
+          title="¿Cancelar Tarea?"
+          description="Esta acción no se puede deshacer. La tarea quedará marcada como cancelada en el historial."
+          confirmText="Sí, cancelar"
+          type="danger"
+          onConfirm={handleCancelar}
+          onClose={() => setIsConfirmingCancel(false)}
+        />
+      </div>
+    );
+  }
+
   if (view === 'edit' && selectedTareaId) {
     return (
       <div className="w-80 h-full border-l border-slate-100 shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)]">
         <EditarTareaForm 
           tareaId={selectedTareaId}
+          initialData={selectedTarea}
           onSuccess={() => {
             setView('list');
             setSelectedTareaId(null);
@@ -139,6 +181,16 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
             setView('list');
             setSelectedTareaId(null);
           }}
+          onCancelTask={() => setIsConfirmingCancel(true)}
+        />
+        <ConfirmModal 
+          isOpen={isConfirmingCancel}
+          title="¿Cancelar Tarea?"
+          description="Esta acción no se puede deshacer. La tarea quedará marcada como cancelada en el historial."
+          confirmText="Sí, cancelar"
+          type="danger"
+          onConfirm={handleCancelar}
+          onClose={() => setIsConfirmingCancel(false)}
         />
       </div>
     );
@@ -216,6 +268,10 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                       onComplete={handleCompletar}
                       onClick={() => {
                         setSelectedTareaId(tarea.id);
+                        setView('detail');
+                      }}
+                      onEdit={() => {
+                        setSelectedTareaId(tarea.id);
                         setView('edit');
                       }}
                       isCompleting={completingId === tarea.id}
@@ -240,6 +296,10 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                       onComplete={handleCompletar}
                       onClick={() => {
                         setSelectedTareaId(tarea.id);
+                        setView('detail');
+                      }}
+                      onEdit={() => {
+                        setSelectedTareaId(tarea.id);
                         setView('edit');
                       }}
                       isCompleting={completingId === tarea.id}
@@ -263,6 +323,10 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                       tarea={tarea} 
                       onComplete={handleCompletar}
                       onClick={() => {
+                        setSelectedTareaId(tarea.id);
+                        setView('detail');
+                      }}
+                      onEdit={() => {
                         setSelectedTareaId(tarea.id);
                         setView('edit');
                       }}
@@ -318,7 +382,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                     key={tarea.id}
                     onClick={() => {
                       setSelectedTareaId(tarea.id);
-                      setView('edit');
+                      setView('detail');
                     }}
                     className="p-3 bg-white border border-slate-100 rounded-xl opacity-60 hover:opacity-100 transition-all grayscale hover:grayscale-0 flex items-center gap-3 group cursor-pointer hover:border-blue-100 hover:shadow-sm"
                   >
@@ -349,10 +413,11 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   );
 };
 
-const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: { 
+const TaskCard = ({ tarea, onComplete, onClick, onEdit, isCompleting }: { 
   tarea: Tarea; 
   onComplete: (id: string) => void;
   onClick: () => void;
+  onEdit: () => void;
   isCompleting: boolean;
 }) => {
   const Icon = TIPO_ICONOS[tarea.tipoTarea] || Clock;
@@ -369,6 +434,20 @@ const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: {
       className={`group bg-white border border-slate-100 p-4 rounded-2xl transition-all duration-300 hover:shadow-xl hover:border-blue-50 relative overflow-hidden cursor-pointer ${
       tarea.estado === 'Completada' ? 'opacity-50 scale-95 translate-x-4 grayscale' : ''
     }`}>
+      {/* Botón de Editar en la esquina inferior izquierda */}
+      {tarea.estado === 'Pendiente' && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          className="absolute bottom-2 left-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10 cursor-pointer"
+          title="Editar Tarea"
+        >
+          <Pencil className="h-3 w-3" />
+        </button>
+      )}
+
       <div className="flex items-start gap-3">
         {/* Custom Checkbox */}
         <button 
@@ -406,7 +485,7 @@ const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: {
           </h4>
 
           {/* Relaciones */}
-          {(tarea.clienteNombre || tarea.propiedadTitulo) && (
+          {(tarea.clienteNombre || tarea.propiedadTitulo || tarea.lugar) && (
             <div className="mt-2 space-y-1">
               {tarea.clienteNombre && (
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
@@ -418,6 +497,12 @@ const TaskCard = ({ tarea, onComplete, onClick, isCompleting }: {
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
                   <MapPin className="h-3 w-3 text-slate-300" />
                   <span className="truncate italic">{tarea.propiedadTitulo}</span>
+                </div>
+              )}
+              {tarea.lugar && !tarea.propiedadTitulo && (
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                  <MapPin className="h-3 w-3 text-slate-300" />
+                  <span className="truncate">{tarea.lugar}</span>
                 </div>
               )}
             </div>

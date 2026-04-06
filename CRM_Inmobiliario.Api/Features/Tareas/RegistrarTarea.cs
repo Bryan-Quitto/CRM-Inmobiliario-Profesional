@@ -17,7 +17,8 @@ public static class RegistrarTareaFeature
         string TipoTarea,
         DateTimeOffset FechaInicio,
         Guid? ClienteId,
-        Guid? PropiedadId);
+        Guid? PropiedadId,
+        string? Lugar);
 
     public static void MapRegistrarTareaEndpoint(this IEndpointRouteBuilder app)
     {
@@ -57,6 +58,7 @@ public static class RegistrarTareaFeature
                 DuracionMinutos = 30, // Default para registros rápidos de tareas
                 ClienteId = command.ClienteId,
                 PropiedadId = command.PropiedadId,
+                Lugar = command.Lugar,
                 Estado = "Pendiente",
                 AgenteId = agenteId
             };
@@ -64,7 +66,7 @@ public static class RegistrarTareaFeature
             context.Tasks.Add(tarea);
             await context.SaveChangesAsync();
 
-            return Results.Created($"/tareas/{tarea.Id}", tarea);
+            return Results.Created($"/tareas/{tarea.Id}", new { tarea.Id, tarea.Titulo, tarea.Estado });
         })
         .WithTags("Tareas")
         .WithName("RegistrarTarea");

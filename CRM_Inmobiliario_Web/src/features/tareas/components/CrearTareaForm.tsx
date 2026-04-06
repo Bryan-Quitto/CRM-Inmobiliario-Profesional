@@ -13,9 +13,14 @@ import {
   MapPin,
   Users,
   Briefcase,
-  ChevronLeft
+  ChevronLeft,
+  User,
+  Home
 } from 'lucide-react';
 import { crearTarea } from '../api/crearTarea';
+import { buscarClientes } from '../../clientes/api/buscarClientes';
+import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
+import { DynamicSearchSelect } from '../../../components/DynamicSearchSelect';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { CrearTareaDTO } from '../types';
 
@@ -284,6 +289,57 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
               />
             </div>
           </div>
+
+          <Controller
+            name="clienteId"
+            control={control}
+            render={({ field }) => (
+              <DynamicSearchSelect
+                label="Cliente (Opcional)"
+                icon={User}
+                placeholder="Buscar por nombre o teléfono..."
+                value={field.value}
+                onSearch={async (q) => {
+                  const res = await buscarClientes(q);
+                  return res.map(c => ({ id: c.id, title: c.nombreCompleto, subtitle: c.telefono }));
+                }}
+                onChange={(id) => field.onChange(id)}
+              />
+            )}
+          />
+
+          <Controller
+            name="propiedadId"
+            control={control}
+            render={({ field }) => (
+              <DynamicSearchSelect
+                label="Propiedad (Opcional)"
+                icon={Home}
+                placeholder="Buscar por título de propiedad..."
+                value={field.value}
+                onSearch={async (q) => {
+                  const res = await buscarPropiedades(q);
+                  return res.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad}, ${p.sector}` }));
+                }}
+                onChange={(id) => field.onChange(id)}
+              />
+            )}
+          />
+
+          {(formData.tipoTarea === 'Visita' || formData.tipoTarea === 'Reunión') && !formData.propiedadId && (
+            <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Lugar</label>
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input 
+                  {...register('lugar')}
+                  type="text" 
+                  placeholder="Dirección o punto de encuentro..."
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Fecha de Inicio</label>

@@ -18,7 +18,8 @@ public static class ActualizarTareaFeature
         int DuracionMinutos,
         string? ColorHex,
         Guid? ClienteId,
-        Guid? PropiedadId);
+        Guid? PropiedadId,
+        string? Lugar);
 
     public static void MapActualizarTareaEndpoint(this IEndpointRouteBuilder app)
     {
@@ -55,6 +56,7 @@ public static class ActualizarTareaFeature
             tarea.ColorHex = command.ColorHex;
             tarea.ClienteId = command.ClienteId;
             tarea.PropiedadId = command.PropiedadId;
+            tarea.Lugar = command.Lugar;
 
             await context.SaveChangesAsync();
 
