@@ -24,7 +24,7 @@ public static class RegistrarClienteFeature
                 Nombre = command.Nombre,
                 Apellido = command.Apellido,
                 Email = command.Email,
-                Telefono = command.Telefono,
+                Telefono = command.Telefono.NormalizeEcuadorPhone() ?? command.Telefono,
                 Origen = command.Origen,
                 EtapaEmbudo = "Nuevo", // Valor por defecto según requerimiento
                 AgenteId = agenteId,

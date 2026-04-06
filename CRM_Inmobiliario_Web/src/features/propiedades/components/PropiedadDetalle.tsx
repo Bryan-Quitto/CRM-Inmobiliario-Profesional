@@ -13,7 +13,8 @@ import {
   Check,
   AlertCircle,
   Handshake,
-  Plus
+  Plus,
+  MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedadById } from '../api/getPropiedadById';
@@ -340,6 +341,12 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     handleReorder(ids);
   };
 
+  const handleWhatsAppShare = () => {
+    if (!propiedad) return;
+    const text = encodeURIComponent(`Mira esta increíble propiedad: ${propiedad.titulo} por ${formatCurrency(propiedad.precio)}. Te envío la ficha técnica...`);
+    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+  };
+
   const handleMoveSection = (index: number, direction: 'up' | 'down', customTargetIndex?: number) => {
     if (!propiedad?.secciones || isReordering) return;
     
@@ -463,6 +470,14 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           </div>
           <div className="flex gap-2">
             <PDFLinkInternal propiedad={propiedad} />
+
+            <button 
+              onClick={handleWhatsAppShare}
+              className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 cursor-pointer group/wa"
+              title="Compartir por WhatsApp"
+            >
+              <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
+            </button>
 
             <button 
               onClick={() => setShowEditModal(true)}

@@ -34,7 +34,7 @@ public static class ActualizarClienteFeature
             cliente.Nombre = command.Nombre;
             cliente.Apellido = command.Apellido;
             cliente.Email = command.Email;
-            cliente.Telefono = command.Telefono;
+            cliente.Telefono = command.Telefono.NormalizeEcuadorPhone() ?? command.Telefono;
             cliente.Origen = command.Origen;
 
             await context.SaveChangesAsync();
