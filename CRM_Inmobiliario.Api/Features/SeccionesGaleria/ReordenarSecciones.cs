@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
-using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -15,7 +14,7 @@ public static class ReordenarSeccionesFeature
 
     public static RouteHandlerBuilder MapReordenarSeccionesEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPut("/propiedades/{propiedadId}/secciones/orden", async (Guid propiedadId, Request request, ClaimsPrincipal user, CrmDbContext context, IPdfGeneratorQueue pdfQueue) =>
+        return app.MapPut("/propiedades/{propiedadId}/secciones/orden", async (Guid propiedadId, Request request, ClaimsPrincipal user, CrmDbContext context) =>
         {
             if (propiedadId != request.PropiedadId) return Results.BadRequest("ID de propiedad no coincide");
 
@@ -47,8 +46,6 @@ public static class ReordenarSeccionesFeature
                         "UPDATE \"PropertyGallerySections\" SET \"Orden\" = {0} WHERE \"Id\" = {1} AND \"PropiedadId\" = {2}",
                         i, sectionId, propiedadId);
                 }
-
-                await pdfQueue.QueuePdfGenerationAsync(propiedadId);
 
                 Console.WriteLine($"DEBUG [ReordenarSecciones]: SQL Directo ejecutado. Secciones afectadas: {totalActualizados}");
                 return Results.NoContent();

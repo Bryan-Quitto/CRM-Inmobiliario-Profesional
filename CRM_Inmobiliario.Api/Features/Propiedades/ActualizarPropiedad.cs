@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
-using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -28,7 +27,7 @@ public static class ActualizarPropiedadFeature
 
     public static void MapActualizarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/propiedades/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IPdfGeneratorQueue pdfQueue) =>
+        app.MapPut("/propiedades/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -55,9 +54,6 @@ public static class ActualizarPropiedadFeature
             propiedad.PorcentajeComision = command.PorcentajeComision;
 
             await context.SaveChangesAsync();
-
-            // Encolar regeneración de PDF en segundo plano
-            await pdfQueue.QueuePdfGenerationAsync(propiedad.Id);
 
             return Results.NoContent();
         })

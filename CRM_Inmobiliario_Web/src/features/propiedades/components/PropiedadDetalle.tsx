@@ -148,39 +148,109 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   };
 
   const handleConfirmAddSection = async () => {
-    if (!newSectionName.trim()) {
+    if (!newSectionName.trim() || !propiedad) {
       setIsCreatingInline(false);
       return;
     }
 
+    const nombreNuevaSeccion = newSectionName.trim();
+    const orden = (propiedad.secciones?.length || 0) + 1;
+    
+    // Guardar estado previo para revertir si falla
+    const previousSecciones = [...(propiedad.secciones || [])];
+    
+    // Nueva sección temporal para UI Optimista con clientId estable
+    const tempId = `temp-${Date.now()}`;
+    const nuevaSeccionTemp: SeccionGaleria & { clientId?: string } = {
+      id: tempId,
+      clientId: tempId,
+      nombre: nombreNuevaSeccion,
+      orden: orden,
+      media: []
+    };
+
+    setIsCreatingInline(false);
+    setNewSectionName('');
+
+    // Actualización Optimista
+    mutate((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        secciones: [...(prev.secciones || []), nuevaSeccionTemp]
+      };
+    }, false);
+
     try {
       setIsAddingSection(true);
-      const orden = (propiedad?.secciones?.length || 0) + 1;
-      await crearSeccion(id, newSectionName, orden);
-      mutate();
-      setIsCreatingInline(false);
-      setNewSectionName('');
+      const nuevaSeccionReal = await crearSeccion(id, nombreNuevaSeccion, orden);
+      
+      // Actualizamos el cache con la sección real pero manteniendo el clientId para la key
+      mutate((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          secciones: prev.secciones?.map(s => 
+            s.id === tempId ? { ...nuevaSeccionReal, clientId: tempId } : s
+          )
+        };
+      }, false);
+      
       toast.success("Sección creada");
     } catch {
       toast.error("Error al crear sección");
+      // Revertir a estado anterior
+      mutate((prev) => prev ? { ...prev, secciones: previousSecciones } : prev, false);
     } finally {
       setIsAddingSection(false);
     }
   };
 
   const handleDeleteSection = async (sectionId: string) => {
-    try {
-      await eliminarSeccion(sectionId);
-      mutate();
-      toast.success("Sección eliminada");
-    } catch {
-      toast.error("Error al eliminar sección");
-    }
+    if (!propiedad) return;
+    
+    // Optimistic UI: Guardar estado previo por si falla
+    const previousSecciones = [...(propiedad.secciones || [])];
+    
+    // Pattern Undo
+    let isCancelled = false;
+    toast.warning("Sección eliminada", {
+      description: "Tienes unos segundos para deshacer.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          mutate(); // Forzar re-fetching o restaurar localmente
+          toast.success("Eliminación cancelada");
+        }
+      },
+      duration: 5000,
+      onAutoClose: async () => {
+        if (isCancelled) return;
+        try {
+          await eliminarSeccion(sectionId);
+          mutate();
+        } catch {
+          toast.error("Error al eliminar sección del servidor");
+          // Revertir UI
+          mutate((prev) => prev ? { ...prev, secciones: previousSecciones } : prev, false);
+        }
+      }
+    });
+
+    // Actualización Optimista UI
+    mutate((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        secciones: prev.secciones?.filter(s => s.id !== sectionId)
+      };
+    }, false);
   };
 
-  const handleRenameSection = async (sectionId: string, nombre: string, descripcion: string | null) => {
+  const handleRenameSection = async (sectionId: string, nombre: string, descripcion: string | null, orden: number) => {
     try {
-      await actualizarSeccion(sectionId, nombre, descripcion, 0);
+      await actualizarSeccion(sectionId, nombre, descripcion, orden);
       mutate();
     } catch {
       toast.error("Error al actualizar sección");
@@ -188,13 +258,48 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   };
 
   const handleClearGallery = async () => {
-    try {
-      await limpiarImagenesPropiedad(id);
-      mutate();
-      toast.success("Galería general limpia (portada preservada)");
-    } catch {
-      toast.error("Error al limpiar la galería");
-    }
+    if (!propiedad) return;
+
+    // Optimistic UI: Guardar estado previo
+    const previousState = {
+      mediaSinSeccion: [...(propiedad.mediaSinSeccion || [])],
+      secciones: [...(propiedad.secciones || [])]
+    };
+
+    // Pattern Undo
+    let isCancelled = false;
+    toast.warning("Galería depurada", {
+      description: "Se han eliminado todas las fotos excepto la de portada. Tienes unos segundos para deshacer.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          mutate();
+          toast.success("Limpieza cancelada");
+        }
+      },
+      duration: 6000,
+      onAutoClose: async () => {
+        if (isCancelled) return;
+        try {
+          await limpiarImagenesPropiedad(id);
+          mutate();
+        } catch {
+          toast.error("Error al limpiar la galería en el servidor");
+          mutate((prev) => prev ? { ...prev, ...previousState } : prev, false);
+        }
+      }
+    });
+
+    // Actualización Optimista UI
+    mutate((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        mediaSinSeccion: prev.mediaSinSeccion?.filter(m => m.urlPublica === prev.imagenPortadaUrl) || [],
+        secciones: [] // Al limpiar galería se eliminan todas las secciones según lógica de negocio
+      };
+    }, false);
   };
 
   const handleReorder = async (nuevoOrdenIds: string[]) => {
@@ -253,24 +358,65 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
     setIsStatusDropdownOpen(false);
 
-    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva') && !confirmed) {
-      setStatusConfirmation(nuevoEstado);
+    // Casos especiales: Vendida o Inactiva requieren limpieza de galería
+    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva')) {
+      if (!confirmed) {
+        setStatusConfirmation(nuevoEstado);
+        return;
+      }
+
+      setStatusConfirmation(null);
+
+      // Optimistic UI Data
+      const previousState = { ...propiedad };
+      const optimisticData: Propiedad = {
+        ...propiedad,
+        estadoComercial: nuevoEstado,
+        mediaSinSeccion: propiedad.mediaSinSeccion?.filter(m => m.urlPublica === propiedad.imagenPortadaUrl) || [],
+        secciones: []
+      };
+
+      // Pattern Undo para cierre de propiedad
+      let isCancelled = false;
+      toast.warning(`Estado: ${nuevoEstado}`, {
+        description: "La propiedad se ha cerrado y la galería ha sido depurada. Tienes unos segundos para deshacer.",
+        action: {
+          label: "Deshacer",
+          onClick: () => {
+            isCancelled = true;
+            mutate();
+            toast.success("Cambio de estado cancelado");
+          }
+        },
+        duration: 6000,
+        onAutoClose: async () => {
+          if (isCancelled) return;
+          try {
+            setIsUpdatingStatus(true);
+            await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
+            await limpiarImagenesPropiedad(propiedad.id);
+            mutate();
+            toast.success("Propiedad actualizada y galería depurada");
+          } catch {
+            toast.error("Error al procesar el cambio de estado");
+            mutate(previousState, false);
+          } finally {
+            setIsUpdatingStatus(false);
+          }
+        }
+      });
+
+      // Aplicar cambio optimista
+      mutate(optimisticData, false);
       return;
     }
 
-    setStatusConfirmation(null);
-
+    // Cambio de estado simple (Disponible/Reservada/Alquilada)
     try {
       setIsUpdatingStatus(true);
-      if (confirmed) {
-        await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
-        await limpiarImagenesPropiedad(propiedad.id);
-        toast.success("Propiedad cerrada y galería depurada");
-      } else {
-        await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
-        toast.success(`Estado: ${nuevoEstado}`);
-      }
+      await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
       mutate();
+      toast.success(`Estado actualizado a ${nuevoEstado}`);
     } catch {
       toast.error("Error al cambiar estado");
     } finally {
@@ -419,10 +565,12 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                     ref={provided.innerRef}
                     className="space-y-12"
                   >
-                    {propiedad.secciones?.map((seccion, index) => (
-                      <SectionalGallery 
-                        key={seccion.id}
-                        index={index}
+                    {propiedad.secciones?.map((seccion, index) => {
+                      const seccionConClient = seccion as SeccionGaleria & { clientId?: string };
+                      return (
+                        <SectionalGallery 
+                          key={seccionConClient.clientId || seccion.id}
+                          index={index}
                         sectionId={seccion.id}
                         sectionNombre={seccion.nombre}
                         sectionDescripcion={seccion.descripcion}
@@ -433,13 +581,14 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                         onDeleteMedia={handleDeleteMedia}
                         onImageUploaded={() => mutate()}
                         onDeleteSection={handleDeleteSection}
-                        onRenameSection={handleRenameSection}
+                        onRenameSection={(id, nombre, desc) => handleRenameSection(id, nombre, desc, seccion.orden)}
                         onMoveUp={() => handleMoveSection(index, 'up')}
                         onMoveDown={() => handleMoveSection(index, 'down')}
                         onMoveTo={(newIndex) => handleMoveSection(index, newIndex > index ? 'down' : 'up', newIndex)}
                         totalSections={propiedad.secciones?.length || 0}
                       />
-                    ))}
+                    );
+                  })}
                     {provided.placeholder}
                   </div>
                 )}

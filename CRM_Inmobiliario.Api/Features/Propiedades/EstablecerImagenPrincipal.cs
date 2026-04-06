@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
-using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,8 +17,7 @@ public static class EstablecerImagenPrincipalFeature
             [FromRoute] Guid propiedadId,
             [FromRoute] Guid imagenId,
             ClaimsPrincipal user,
-            CrmDbContext context,
-            IPdfGeneratorQueue pdfQueue) =>
+            CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -40,8 +38,6 @@ public static class EstablecerImagenPrincipalFeature
 
                 if (filasAfectadas == 0)
                     return Results.NotFound("No se encontró la imagen especificada.");
-
-                await pdfQueue.QueuePdfGenerationAsync(propiedadId);
 
                 return Results.Ok(new { Message = "Imagen de portada actualizada correctamente." });
             }
