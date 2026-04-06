@@ -20,7 +20,8 @@ public static class ListarTareasFeature
         string? ColorHex,
         string Estado,
         string? ClienteNombre,
-        string? PropiedadTitulo);
+        string? PropiedadTitulo,
+        string? Lugar);
 
     public static RouteHandlerBuilder MapListarTareasEndpoint(this IEndpointRouteBuilder app)
     {
@@ -42,7 +43,8 @@ public static class ListarTareasFeature
                     t.ColorHex,
                     t.Estado,
                     t.Cliente != null ? $"{t.Cliente.Nombre} {t.Cliente.Apellido}".Trim() : null,
-                    t.Propiedad != null ? t.Propiedad.Titulo : null))
+                    t.Propiedad != null ? t.Propiedad.Titulo : null,
+                    t.Lugar))
                 .ToListAsync();
 
             return Results.Ok(tareas);

@@ -36,6 +36,9 @@ public sealed class TaskItem
     [MaxLength(7)]
     public string? ColorHex { get; set; }
 
+    [MaxLength(255)]
+    public string? Lugar { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Estado { get; set; } = "Pendiente";

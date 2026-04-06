@@ -11,6 +11,7 @@ export interface CalendarEvent {
   clienteNombre?: string;
   propiedadId?: string;
   propiedadTitulo?: string;
+  lugar?: string;
 }
 
 export interface ReprogramarEventoCommand {

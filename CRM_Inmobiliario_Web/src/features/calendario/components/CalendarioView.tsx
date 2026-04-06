@@ -9,6 +9,7 @@ import type { CalendarEvent } from '../types';
 import type { Tarea } from '../../tareas/types';
 import { getEventos } from '../api/getEventos';
 import { reprogramarEvento } from '../api/reprogramarEvento';
+import { cancelarTarea } from '../../tareas/api/cancelarTarea';
 import { 
   Calendar, 
   Loader2, 
@@ -28,6 +29,8 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import type { DatesSetArg, EventChangeArg, EventClickArg, EventContentArg, EventMountArg } from '@fullcalendar/core';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
+import { TareaDetalle } from '../../tareas/components/TareaDetalle';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 // Mapeo de iconos por tipo de tarea con tipado fuerte
 const TIPO_ICONS: Record<string, LucideIcon> = {
@@ -63,9 +66,32 @@ const CalendarioContent: React.FC = () => {
 
   // Estados para gestión de modales
   const [isCrearOpen, setIsCrearOpen] = useState(false);
+  const [viewingTareaId, setViewingTareaId] = useState<string | null>(null);
   const [editingTareaId, setEditingTareaId] = useState<string | null>(null);
+  const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0); 
+
+  const selectedTarea = useMemo(() => 
+    listaEventos.find(e => e.id === (viewingTareaId || editingTareaId)) as unknown as Tarea, 
+  [listaEventos, viewingTareaId, editingTareaId]);
+
+  const handleCancelar = async () => {
+    const id = viewingTareaId || editingTareaId;
+    if (!id) return;
+    try {
+      await cancelarTarea(id);
+      toast.success('Tarea cancelada correctamente');
+      setViewingTareaId(null);
+      setEditingTareaId(null);
+      mutate();
+    } catch (err) {
+      console.error('Error al cancelar tarea:', err);
+      toast.error('No se pudo cancelar la tarea');
+    } finally {
+      setIsConfirmingCancel(false);
+    }
+  };
 
   // Función unificada para abrir creación con corrección de desfase
   const handleOpenCrear = (dateInput?: Date) => {
@@ -199,6 +225,12 @@ const CalendarioContent: React.FC = () => {
                 <span className="truncate">{props.propiedadTitulo}</span>
               </div>
             )}
+            {props.lugar && !props.propiedadTitulo && (
+              <div className="flex items-center gap-1 truncate text-[9px] text-slate-600">
+                <MapPin size={10} className="shrink-0" />
+                <span className="truncate">{props.lugar}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -216,7 +248,7 @@ const CalendarioContent: React.FC = () => {
   };
 
   const handleEventClick = (arg: EventClickArg) => {
-    setEditingTareaId(arg.event.id);
+    setViewingTareaId(arg.event.id);
   };
 
   const renderDayCell = (arg: { date: Date; dayNumberText: string; isToday: boolean }) => (
@@ -378,9 +410,9 @@ const CalendarioContent: React.FC = () => {
 
       {/* Capa de Modales Global Fixed */}
       <React.Suspense fallback={null}>
-        {(isCrearOpen || editingTareaId) && (
+        {(isCrearOpen || viewingTareaId || editingTareaId) && (
           <div className="fixed inset-0 z-[300] flex justify-end bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="absolute inset-0" onClick={() => { setIsCrearOpen(false); setEditingTareaId(null); setSelectedDate(null); }}></div>
+            <div className="absolute inset-0" onClick={() => { setIsCrearOpen(false); setViewingTareaId(null); setEditingTareaId(null); setSelectedDate(null); }}></div>
             
             <div className="relative w-full max-w-lg h-full bg-white shadow-2xl animate-in slide-in-from-right duration-500 border-l border-slate-100">
               {isCrearOpen && (
@@ -391,17 +423,35 @@ const CalendarioContent: React.FC = () => {
                   onCancel={() => { setIsCrearOpen(false); setSelectedDate(null); }} 
                 />
               )}
-              {editingTareaId && (
+              {viewingTareaId && selectedTarea && (
+                <TareaDetalle 
+                  tarea={selectedTarea}
+                  onEdit={() => { setEditingTareaId(viewingTareaId); setViewingTareaId(null); }}
+                  onCancelTask={() => setIsConfirmingCancel(true)}
+                  onBack={() => setViewingTareaId(null)}
+                />
+              )}
+              {editingTareaId && selectedTarea && (
                 <EditarTareaForm 
                   tareaId={editingTareaId} 
-                  initialData={listaEventos.find(e => e.id === editingTareaId) as unknown as Tarea}
+                  initialData={selectedTarea}
                   onSuccess={() => { setEditingTareaId(null); mutate(); }} 
                   onCancel={() => { setEditingTareaId(null); }} 
+                  onCancelTask={() => setIsConfirmingCancel(true)}
                 />
               )}
             </div>
           </div>
         )}
+        <ConfirmModal 
+          isOpen={isConfirmingCancel}
+          title="¿Cancelar Tarea?"
+          description="Esta acción no se puede deshacer. La tarea quedará marcada como cancelada en el historial."
+          confirmText="Sí, cancelar"
+          type="danger"
+          onConfirm={handleCancelar}
+          onClose={() => setIsConfirmingCancel(false)}
+        />
       </React.Suspense>
 
       <style>{`

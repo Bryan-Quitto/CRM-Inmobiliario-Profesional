@@ -154,6 +154,7 @@ var apiGroup = app.MapGroup("/api").RequireAuthorization();
 
 // Clientes
 apiGroup.MapRegistrarClienteEndpoint();
+apiGroup.MapBuscarClientesEndpoint();
 apiGroup.MapListarClientesEndpoint().CacheOutput();
 apiGroup.MapObtenerClientePorIdEndpoint().CacheOutput();
 apiGroup.MapActualizarClienteEndpoint();
@@ -161,6 +162,7 @@ apiGroup.MapCambiarEtapaClienteEndpoint();
 
 // Propiedades
 apiGroup.MapRegistrarPropiedadEndpoint();
+apiGroup.MapBuscarPropiedadesEndpoint();
 apiGroup.MapListarPropiedadesEndpoint().CacheOutput();
 apiGroup.MapObtenerPropiedadPorIdEndpoint().CacheOutput();
 apiGroup.MapActualizarPropiedadEndpoint();

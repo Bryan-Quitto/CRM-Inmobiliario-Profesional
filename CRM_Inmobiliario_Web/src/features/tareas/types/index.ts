@@ -9,6 +9,7 @@ export interface Tarea {
   propiedadTitulo?: string;
   clienteId?: string;
   propiedadId?: string;
+  lugar?: string;
 }
 
 export interface CrearTareaDTO {
@@ -18,4 +19,17 @@ export interface CrearTareaDTO {
   fechaInicio: string;
   clienteId?: string;
   propiedadId?: string;
+  lugar?: string;
+}
+
+export interface ActualizarTareaDTO {
+  titulo: string;
+  descripcion?: string;
+  tipoTarea: string;
+  fechaInicio: string;
+  duracionMinutos: number;
+  colorHex?: string;
+  clienteId?: string;
+  propiedadId?: string;
+  lugar?: string;
 }
