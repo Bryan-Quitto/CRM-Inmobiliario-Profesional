@@ -1,6 +1,5 @@
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
-using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -14,7 +13,7 @@ public static class RegistrarSeccionFeature
 
     public static RouteHandlerBuilder MapRegistrarSeccionEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPost("/propiedades/secciones", async (Request request, CrmDbContext context, IPdfGeneratorQueue pdfQueue) =>
+        return app.MapPost("/propiedades/secciones", async (Request request, CrmDbContext context) =>
         {
             var propiedadExiste = await context.Properties.AnyAsync(p => p.Id == request.PropiedadId);
             if (!propiedadExiste) return Results.NotFound("Propiedad no encontrada");
@@ -29,8 +28,6 @@ public static class RegistrarSeccionFeature
 
             context.PropertyGallerySections.Add(nuevaSeccion);
             await context.SaveChangesAsync();
-
-            await pdfQueue.QueuePdfGenerationAsync(request.PropiedadId);
 
             return Results.Created($"/propiedades/secciones/{nuevaSeccion.Id}", nuevaSeccion);
         })

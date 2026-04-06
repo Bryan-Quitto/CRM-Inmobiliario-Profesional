@@ -73,7 +73,6 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [confirmDeleteSelection, setConfirmDeleteSelection] = useState(false);
   const [confirmDeleteSection, setConfirmDeleteSection] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [isOrderDropdownOpen, setIsOrderDropdownOpen] = useState(false);
   
@@ -95,16 +94,23 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Sincronizar estado local con props (importante para pre-carga de SWR)
+  // Sincronizar estado local con props solo si no hay cambios pendientes locales
   useEffect(() => {
-    setNombre(sectionNombre);
-    setDescripcion(sectionDescripcion || '');
-  }, [sectionNombre, sectionDescripcion]);
+    // Si no estamos guardando y no hay un cambio local en curso (timeout activo), sincronizamos
+    if (!isSavingDesc && !descTimeoutRef.current) {
+      setNombre(sectionNombre);
+      setDescripcion(sectionDescripcion || '');
+    }
+  }, [sectionNombre, sectionDescripcion, isSavingDesc]);
 
   // Auto-save for section description
   useEffect(() => {
     if (descripcion === (sectionDescripcion || '')) return;
     if (!sectionId || !onRenameSection) return;
+    
+    // IMPORTANTE: No guardar si el ID es temporal (comienza con temp-)
+    // Esto evita errores 404 y permite que la key estable maneje la transición
+    if (sectionId.startsWith('temp-')) return;
 
     if (descTimeoutRef.current) clearTimeout(descTimeoutRef.current);
 
@@ -134,18 +140,14 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
     if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
   };
 
-  const handleConfirmAction = async () => {
-    setIsProcessing(true);
-    try {
-      if (sectionId && onDeleteSection) {
-        await onDeleteSection(sectionId);
-      } else if (!sectionId && onClearGallery) {
-        await onClearGallery();
-      }
-      setConfirmDeleteSection(false);
-    } finally {
-      setIsProcessing(false);
+  const handleConfirmAction = () => {
+    // Ya no usamos isProcessing porque el patrón Undo devuelve inmediatamente
+    if (sectionId && onDeleteSection) {
+      onDeleteSection(sectionId);
+    } else if (!sectionId && onClearGallery) {
+      onClearGallery();
     }
+    setConfirmDeleteSection(false);
   };
 
   const handleRenameSubmit = async () => {
@@ -161,8 +163,8 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header de Sección */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-        <div className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
-          <div className="flex-1 space-y-4">
+        <div className="p-6 md:p-8 flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <div className="flex items-center gap-4">
               {sectionId && (
                 <div className="flex flex-col gap-1 mr-1">
@@ -226,64 +228,64 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
               </div>
             </div>
 
-            {/* Descripción de la Sección */}
-            {sectionId && (
-              <div className="relative group/desc max-w-2xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlignLeft size={14} className="text-indigo-400" />
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resumen de la sección</span>
-                  {isSavingDesc && <Loader2 size={12} className="text-indigo-500 animate-spin ml-2" />}
-                  {saveDescSuccess && <Check size={12} className="text-emerald-500 animate-in zoom-in ml-2" />}
+            <div className="flex items-center gap-3 shrink-0">
+              {sectionId && (
+                <div className="p-3 text-slate-300 cursor-grab active:cursor-grabbing hover:text-indigo-400 transition-colors">
+                  <GripVertical size={24} />
                 </div>
-                <textarea
-                  value={descripcion}
-                  onChange={(e) => setDescripcion(e.target.value)}
-                  placeholder="Describe brevemente esta área para el PDF (ej: Vista al jardín, acabados premium...)"
-                  className="w-full bg-slate-50/50 border-none rounded-2xl p-4 text-sm font-bold text-slate-600 placeholder:text-slate-300 focus:bg-slate-50 focus:ring-4 focus:ring-indigo-100 transition-all resize-none h-20"
-                />
-              </div>
-            )}
+              )}
+
+              {media.length > 0 && (
+                <button 
+                  disabled={isDownloading}
+                  onClick={() => {
+                    const toDownload = selectedMediaIds.size > 0 
+                      ? media.filter(m => selectedMediaIds.has(m.id)) 
+                      : media;
+                    handleBulkDownload(toDownload, `${sectionNombre}_${propiedadId.split('-')[0]}`);
+                  }}
+                  className="flex items-center gap-3 px-6 py-3 bg-slate-50 text-slate-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />}
+                  {selectedMediaIds.size > 0 ? `Bajar (${selectedMediaIds.size})` : 'Descargar ZIP'}
+                </button>
+              )}
+              
+              {(sectionId || media.length > 0) && (
+                <button 
+                  onClick={() => selectedMediaIds.size > 0 ? setConfirmDeleteSelection(true) : setConfirmDeleteSection(true)}
+                  className="flex items-center gap-3 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all cursor-pointer"
+                >
+                  <Trash2 size={16} />
+                  {selectedMediaIds.size > 0 ? `Borrar Selección` : (sectionId ? 'Eliminar' : 'Limpiar')}
+                </button>
+              )}
+              
+              {selectedMediaIds.size > 0 && (
+                <button onClick={clearSelection} className="h-10 w-10 flex items-center justify-center bg-slate-900 text-white rounded-xl hover:bg-black transition-all cursor-pointer">
+                  <Plus size={20} className="rotate-45" />
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            {sectionId && (
-              <div className="p-3 text-slate-300 cursor-grab active:cursor-grabbing hover:text-indigo-400 transition-colors">
-                <GripVertical size={24} />
+          {/* Descripción de la Sección */}
+          {sectionId && (
+            <div className="flex flex-col w-full group/desc">
+              <div className="flex items-center gap-2 mb-2">
+                <AlignLeft size={14} className="text-indigo-400" />
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resumen de la sección</span>
+                {isSavingDesc && <Loader2 size={12} className="text-indigo-500 animate-spin ml-2" />}
+                {saveDescSuccess && <Check size={12} className="text-emerald-500 animate-in zoom-in ml-2" />}
               </div>
-            )}
-
-            {media.length > 0 && (
-              <button 
-                disabled={isDownloading}
-                onClick={() => {
-                  const toDownload = selectedMediaIds.size > 0 
-                    ? media.filter(m => selectedMediaIds.has(m.id)) 
-                    : media;
-                  handleBulkDownload(toDownload, `${sectionNombre}_${propiedadId.split('-')[0]}`);
-                }}
-                className="flex items-center gap-3 px-6 py-3 bg-slate-50 text-slate-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 transition-all cursor-pointer disabled:opacity-50"
-              >
-                {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />}
-                {selectedMediaIds.size > 0 ? `Bajar (${selectedMediaIds.size})` : 'Descargar ZIP'}
-              </button>
-            )}
-            
-            {(sectionId || media.length > 0) && (
-              <button 
-                onClick={() => selectedMediaIds.size > 0 ? setConfirmDeleteSelection(true) : setConfirmDeleteSection(true)}
-                className="flex items-center gap-3 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all cursor-pointer"
-              >
-                <Trash2 size={16} />
-                {selectedMediaIds.size > 0 ? `Borrar Selección` : (sectionId ? 'Eliminar' : 'Limpiar')}
-              </button>
-            )}
-            
-            {selectedMediaIds.size > 0 && (
-              <button onClick={clearSelection} className="h-10 w-10 flex items-center justify-center bg-slate-900 text-white rounded-xl hover:bg-black transition-all cursor-pointer">
-                <Plus size={20} className="rotate-45" />
-              </button>
-            )}
-          </div>
+              <textarea
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                placeholder="Describe brevemente esta área para el PDF (ej: Vista al jardín, acabados premium...)"
+                className="w-full bg-slate-50/50 border-none rounded-2xl p-4 text-sm font-bold text-slate-600 placeholder:text-slate-300 focus:bg-slate-50 focus:ring-4 focus:ring-indigo-100 transition-all resize-none h-24 block"
+              />
+            </div>
+          )}
         </div>
 
         {/* Zona de Arrastre World-Class */}
@@ -341,8 +343,10 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
       <ConfirmModal 
         isOpen={!!confirmDelete} 
         onClose={() => setConfirmDelete(null)} 
-        onConfirm={() => confirmDelete && onDeleteMedia(confirmDelete)}
-        isDeleting={isProcessing}
+        onConfirm={() => {
+          if (confirmDelete) onDeleteMedia(confirmDelete);
+          setConfirmDelete(null);
+        }}
         title="¿Eliminar imagen?"
         description="Esta acción es permanente."
       />
@@ -355,7 +359,6 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
           clearSelection();
           setConfirmDeleteSelection(false);
         }}
-        isDeleting={isProcessing}
         title={`¿Eliminar ${selectedMediaIds.size} imágenes?`}
         description="Se borrarán definitivamente del servidor."
       />
@@ -364,7 +367,6 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
         isOpen={confirmDeleteSection} 
         onClose={() => setConfirmDeleteSection(false)} 
         onConfirm={handleConfirmAction}
-        isDeleting={isProcessing}
         title={sectionId ? "¿Eliminar sección completa?" : "¿Limpiar galería general?"}
         description={sectionId ? "Se eliminarán todas las imágenes de esta sección." : "Se eliminarán todas las fotos excepto la de portada."}
       />

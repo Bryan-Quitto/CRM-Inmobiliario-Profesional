@@ -2,7 +2,6 @@ using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
-using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -28,7 +27,7 @@ public static class RegistrarPropiedadFeature
 
     public static void MapRegistrarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/propiedades", async (Command command, ClaimsPrincipal user, CrmDbContext context, IPdfGeneratorQueue pdfQueue) =>
+        app.MapPost("/propiedades", async (Command command, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -55,9 +54,6 @@ public static class RegistrarPropiedadFeature
 
             context.Properties.Add(propiedad);
             await context.SaveChangesAsync();
-
-            // Encolar generación de PDF en segundo plano
-            await pdfQueue.QueuePdfGenerationAsync(propiedad.Id);
 
             return Results.Created($"/propiedades/{propiedad.Id}", propiedad);
         })

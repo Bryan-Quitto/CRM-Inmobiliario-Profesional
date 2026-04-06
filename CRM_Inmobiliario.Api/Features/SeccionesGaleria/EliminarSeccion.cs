@@ -1,5 +1,4 @@
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
-using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -11,7 +10,7 @@ public static class EliminarSeccionFeature
 {
     public static RouteHandlerBuilder MapEliminarSeccionEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, CrmDbContext context, Supabase.Client supabase, IPdfGeneratorQueue pdfQueue) =>
+        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, CrmDbContext context, Supabase.Client supabase) =>
         {
             // 0. Obtener ID de propiedad antes de borrar
             var seccion = await context.PropertyGallerySections.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
@@ -38,7 +37,6 @@ public static class EliminarSeccionFeature
 
                 if (rowsAffected > 0)
                 {
-                    await pdfQueue.QueuePdfGenerationAsync(seccion.PropiedadId);
                     return Results.NoContent();
                 }
 

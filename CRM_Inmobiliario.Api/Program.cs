@@ -109,9 +109,11 @@ builder.Services.AddHttpClient();
 
 // Fase 1: Cola de Generación de PDFs
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
+builder.Services.AddSingleton<IPdfCleanupQueue, PdfCleanupQueue>();
 
 // Fase 2: Background Service (El Obrero)
 builder.Services.AddHostedService<PdfWorker>();
+builder.Services.AddHostedService<PdfCleanupWorker>();
 
 // Configuración de QuestPDF (Licencia Comunitaria)
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
@@ -163,10 +165,22 @@ apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
 apiGroup.MapLimpiarImagenesPropiedadEndpoint();
 
 // Secciones de Galería
-apiGroup.MapPost("/propiedades/{id:guid}/generar-pdf", async (Guid id, CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.IPdfGeneratorQueue pdfQueue) => 
+apiGroup.MapPost("/propiedades/{id:guid}/generar-pdf", async (Guid id, IPdfGeneratorQueue pdfQueue) => 
 {
     await pdfQueue.QueuePdfGenerationAsync(id);
     return Results.Accepted();
+});
+
+apiGroup.MapGet("/propiedades/{id:guid}/pdf-status", (Guid id, IPdfGeneratorQueue pdfQueue) => 
+{
+    return Results.Ok(new { isGenerating = pdfQueue.IsGenerating(id) });
+});
+
+apiGroup.MapPost("/propiedades/{id:guid}/confirmar-descarga", async (Guid id, IPdfCleanupQueue cleanupQueue) => 
+{
+    // Programamos la eliminación para dentro de 30 segundos
+    await cleanupQueue.QueueDeletionAsync(id, TimeSpan.FromSeconds(30));
+    return Results.Ok();
 });
 apiGroup.MapRegistrarSeccionEndpoint();
 apiGroup.MapActualizarSeccionEndpoint();

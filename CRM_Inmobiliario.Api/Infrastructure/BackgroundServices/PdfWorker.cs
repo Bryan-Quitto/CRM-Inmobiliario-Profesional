@@ -38,7 +38,19 @@ public class PdfWorker : BackgroundService
                 var propiedadId = await _queue.DequeuePdfGenerationAsync(stoppingToken);
                 _logger.LogInformation("📥 [WORKER] Mensaje recibido en la cola para Propiedad ID: {PropiedadId}", propiedadId);
 
-                await ProcessPdfAsync(propiedadId, stoppingToken);
+        try
+        {
+            await ProcessPdfAsync(propiedadId, stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ [WORKER] Error inesperado procesando PDF para {PropiedadId}", propiedadId);
+        }
+        finally
+        {
+            _queue.SetStatus(propiedadId, false);
+            _logger.LogInformation("ℹ️ [WORKER] Estado de generación liberado para {PropiedadId}", propiedadId);
+        }
             }
             catch (OperationCanceledException) { break; }
             catch (Exception ex)
