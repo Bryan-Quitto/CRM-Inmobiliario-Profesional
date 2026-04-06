@@ -368,7 +368,7 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
         onClose={() => setConfirmDeleteSection(false)} 
         onConfirm={handleConfirmAction}
         title={sectionId ? "¿Eliminar sección completa?" : "¿Limpiar galería general?"}
-        description={sectionId ? "Se eliminarán todas las imágenes de esta sección." : "Se eliminarán todas las fotos excepto la de portada."}
+        description={sectionId ? "Se eliminarán todas las imágenes de esta sección." : "Se eliminarán todas las secciones y fotos (excepto la de portada)."}
       />
     </div>
   );

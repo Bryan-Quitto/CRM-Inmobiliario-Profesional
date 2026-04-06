@@ -27,62 +27,89 @@ public static class ObtenerActividadEndpoint
             DateTimeOffset inicio, 
             DateTimeOffset fin, 
             ClaimsPrincipal user, 
-            CrmDbContext context,
+            IDbContextFactory<CrmDbContext> factory,
             ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("Analitica.Actividad");
             var agenteId = user.GetRequiredUserId();
 
-            // 1. Cálculos de Totales (Mantenemos la lógica anterior)
-            var visitasTotal = await context.Tasks
+            // 1. Creamos contextos independientes para paralelismo masivo
+            using var ctxV = await factory.CreateDbContextAsync();
+            using var ctxC = await factory.CreateDbContextAsync();
+            using var ctxO = await factory.CreateDbContextAsync();
+            using var ctxCap = await factory.CreateDbContextAsync();
+            using var ctxRV = await factory.CreateDbContextAsync();
+            using var ctxRC = await factory.CreateDbContextAsync();
+            using var ctxRCap = await factory.CreateDbContextAsync();
+
+            // 2. Definición de Tareas de Conteo
+            var visitasTask = ctxV.Tasks
+                .AsNoTracking()
                 .CountAsync(t => t.AgenteId == agenteId && (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completado" && t.FechaInicio >= inicio && t.FechaInicio <= fin);
 
-            var cierresTotal = await context.Leads
+            var cierresTask = ctxC.Leads
+                .AsNoTracking()
                 .CountAsync(l => l.AgenteId == agenteId && (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)));
 
-            var ofertasTotal = await context.Leads
+            var ofertasTask = ctxO.Leads
+                .AsNoTracking()
                 .CountAsync(l => l.AgenteId == agenteId && l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin);
 
-            var captacionesTotal = await context.Properties
+            var captacionesTask = ctxCap.Properties
+                .AsNoTracking()
                 .CountAsync(p => p.AgenteId == agenteId && p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin);
 
-            // 2. Generar Puntos de Tendencia (Agrupados por Día)
-            // Traemos los datos crudos del rango para agruparlos en memoria (más eficiente para rangos pequeños de analítica)
-            var rawVisitas = await context.Tasks
+            // 3. Definición de Tareas de Tendencia (Agrupadas en SQL para máxima velocidad)
+            var trendVisitasTask = ctxRV.Tasks
                 .AsNoTracking()
                 .Where(t => t.AgenteId == agenteId && (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completado" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
-                .Select(t => t.FechaInicio.Date)
+                .GroupBy(t => t.FechaInicio.Date)
+                .Select(g => new { Fecha = g.Key, Cantidad = g.Count() })
                 .ToListAsync();
 
-            var rawCierres = await context.Leads
+            var trendCierresTask = ctxRC.Leads
                 .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)))
-                .Select(l => (l.FechaCierre ?? l.FechaCreacion).Date)
+                .GroupBy(l => (l.FechaCierre ?? l.FechaCreacion).Date)
+                .Select(g => new { Fecha = g.Key, Cantidad = g.Count() })
                 .ToListAsync();
 
-            var rawCaptaciones = await context.Properties
+            var trendCaptacionesTask = ctxRCap.Properties
                 .AsNoTracking()
                 .Where(p => p.AgenteId == agenteId && p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin)
-                .Select(p => p.FechaIngreso.Date)
+                .GroupBy(p => p.FechaIngreso.Date)
+                .Select(g => new { Fecha = g.Key, Cantidad = g.Count() })
                 .ToListAsync();
 
-            // Construir la lista de días entre inicio y fin
+            // 4. Ejecución simultánea de las 7 consultas
+            await Task.WhenAll(visitasTask, cierresTask, ofertasTask, captacionesTask, trendVisitasTask, trendCierresTask, trendCaptacionesTask);
+
+            // 5. Mapeo final (Unión de huecos vacíos en memoria)
             var trend = new List<TrendPoint>();
+            var vDict = trendVisitasTask.Result.ToDictionary(x => x.Fecha, x => x.Cantidad);
+            var cDict = trendCierresTask.Result.ToDictionary(x => x.Fecha, x => x.Cantidad);
+            var capDict = trendCaptacionesTask.Result.ToDictionary(x => x.Fecha, x => x.Cantidad);
+
             for (var dt = inicio.Date; dt <= fin.Date; dt = dt.AddDays(1))
             {
-                var vCount = rawVisitas.Count(d => d == dt);
-                var cCount = rawCierres.Count(d => d == dt);
-                var capCount = rawCaptaciones.Count(d => d == dt);
-                
-                trend.Add(new TrendPoint(dt.ToString("dd MMM"), vCount, cCount, capCount));
+                trend.Add(new TrendPoint(
+                    dt.ToString("dd MMM"), 
+                    vDict.GetValueOrDefault(dt, 0), 
+                    cDict.GetValueOrDefault(dt, 0), 
+                    capDict.GetValueOrDefault(dt, 0)));
             }
 
-            logger.LogInformation("--- Reporte de Tendencia ({Inicio} a {Fin}) ---", inicio.ToString("d"), fin.ToString("d"));
-            logger.LogInformation("Visitas: {V} | Cierres: {C} | Captaciones: {Cap}", visitasTotal, cierresTotal, captacionesTotal);
+            logger.LogInformation("--- Reporte Paralelizado ({Inicio} a {Fin}) ---", inicio.ToString("d"), fin.ToString("d"));
 
-            return Results.Ok(new ActividadResponse(visitasTotal, cierresTotal, ofertasTotal, captacionesTotal, trend));
+            return Results.Ok(new ActividadResponse(
+                visitasTask.Result, 
+                cierresTask.Result, 
+                ofertasTask.Result, 
+                captacionesTask.Result, 
+                trend));
         })
         .WithTags("Analitica")
-        .WithName("ObtenerActividad");
+        .WithName("ObtenerActividad")
+        .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization"));
     }
 }

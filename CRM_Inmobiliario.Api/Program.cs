@@ -34,8 +34,14 @@ builder.Services.ConfigureHttpJsonOptions(options => {
 
 // Configuración de PostgreSQL usando DATABASE_URL del .env
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-builder.Services.AddDbContext<CrmDbContext>(options =>
+
+// Unificamos la configuración: Factoría (Singleton) + Registro del DbContext (Scoped)
+builder.Services.AddDbContextFactory<CrmDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// Esto permite que el resto de los endpoints sigan inyectando CrmDbContext normalmente
+builder.Services.AddScoped(sp => 
+    sp.GetRequiredService<IDbContextFactory<CrmDbContext>>().CreateDbContext());
 
 // Cliente de Supabase configurado con SERVICE_ROLE para permisos totales (Storage/Auth)
 var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
@@ -101,7 +107,9 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(p => p.AllowAnyOrig
 
 // Cache de Salida (Output Caching)
 builder.Services.AddOutputCache(options => {
-    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromMinutes(5)));
+    options.AddBasePolicy(builder => 
+        builder.Expire(TimeSpan.FromMinutes(5))
+               .SetVaryByHeader("Authorization"));
 });
 
 // Infraestructura de Red
@@ -206,7 +214,7 @@ apiGroup.MapVincularPropiedadEndpoint();
 apiGroup.MapDesvincularPropiedadEndpoint();
 
 // Dashboard
-apiGroup.MapObtenerKpisEndpoint().CacheOutput();
+apiGroup.MapObtenerKpisEndpoint();
 
 // Configuracion
 apiGroup.MapObtenerPerfilEndpoint();

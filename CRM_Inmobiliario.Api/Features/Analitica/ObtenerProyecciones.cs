@@ -53,6 +53,7 @@ public static class ObtenerProyeccionesEndpoint
             return Results.Ok(new ProyeccionResponse(total));
         })
         .WithTags("Analitica")
-        .WithName("ObtenerProyecciones");
+        .WithName("ObtenerProyecciones")
+        .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization"));
     }
 }
