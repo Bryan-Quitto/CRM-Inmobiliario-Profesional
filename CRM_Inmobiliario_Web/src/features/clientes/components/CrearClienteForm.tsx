@@ -41,7 +41,9 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
         console.error('Error al parsear borrador:', e);
       }
     }
-    return {};
+    return {
+      telefono: '+593 '
+    };
   };
 
   const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue, getValues } = useForm<CrearClienteDTO>({

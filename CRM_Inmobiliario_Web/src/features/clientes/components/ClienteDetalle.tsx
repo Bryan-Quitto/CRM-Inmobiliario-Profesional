@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { getClienteById } from '../api/getClienteById';
 import { registrarInteraccion } from '../api/registrarInteraccion';
+import { usePerfil } from '../../auth/api/perfil';
 import { vincularPropiedad } from '../api/vincularPropiedad';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
@@ -63,6 +64,7 @@ const ClienteDetalleContent = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { perfil } = usePerfil();
 
   const { data: cliente, isValidating: syncing, mutate } = useSWR<Cliente>(
     id ? `/clientes/${id}` : null,
@@ -106,6 +108,14 @@ const ClienteDetalleContent = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleWhatsAppClick = () => {
+    if (!cliente?.telefono) return;
+    const cleanPhone = cliente.telefono.replace(/[^\d]/g, '');
+    const agencia = perfil?.agencia || 'mi agencia inmobiliaria';
+    const text = encodeURIComponent(`Hola ${cliente.nombre}, te saludo de ${agencia}. ¿Cómo puedo ayudarte hoy?`);
+    window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank', 'noopener,noreferrer');
+  };
 
   const handleStageChange = async (nuevaEtapa: string) => {
     if (!cliente || !id || cliente.etapaEmbudo === nuevaEtapa) return;
@@ -482,7 +492,26 @@ const ClienteDetalleContent = () => {
             </div>
             <div className="space-y-6">
               <div className="flex items-center gap-4 group/item"><div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover/item:bg-blue-600 group-hover/item:text-white transition-all"><Mail className="h-5 w-5" /></div><div className="flex-1 overflow-hidden"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email</p><p className="text-sm font-bold text-slate-700 truncate">{cliente.email || 'N/A'}</p></div></div>
-              <div className="flex items-center gap-4 group/item"><div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover/item:bg-blue-600 group-hover/item:text-white transition-all"><Phone className="h-5 w-5" /></div><div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Teléfono</p><p className="text-sm font-bold text-slate-700">{cliente.telefono}</p></div></div>
+              <div className="flex items-center gap-4 group/item">
+                <div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover/item:bg-blue-600 group-hover/item:text-white transition-all">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <div className="flex-1 flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Teléfono</p>
+                    <p className="text-sm font-bold text-slate-700">{cliente.telefono}</p>
+                  </div>
+                  {cliente.telefono && (
+                    <button 
+                      onClick={handleWhatsAppClick}
+                      className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 cursor-pointer group/wa"
+                      title="Contactar por WhatsApp"
+                    >
+                      <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-50">
                 <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Origen</p><p className="text-xs font-black text-slate-900">{cliente.origen}</p></div>
                 <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Fecha</p><p className="text-xs font-black text-slate-900">{formatDate(cliente.fechaCreacion!).split(',')[0]}</p></div>

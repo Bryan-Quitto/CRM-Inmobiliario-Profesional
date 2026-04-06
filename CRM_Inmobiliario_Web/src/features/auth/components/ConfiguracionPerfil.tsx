@@ -163,9 +163,15 @@ const ConfiguracionPerfil: React.FC = () => {
                     <input
                       type="tel"
                       value={formData.telefono}
-                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        if (val && !val.startsWith('+')) {
+                           val = '+593 ' + val.replace(/^0/, '');
+                        }
+                        setFormData({ ...formData, telefono: val });
+                      }}
                       className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
-                      placeholder="+1 234 567 890"
+                      placeholder="+593 98 765 4321"
                     />
                   </div>
 

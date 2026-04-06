@@ -29,7 +29,7 @@ public static class ActualizarPerfilFeature
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(a => a.Nombre, request.Nombre)
                     .SetProperty(a => a.Apellido, request.Apellido)
-                    .SetProperty(a => a.Telefono, request.Telefono)
+                    .SetProperty(a => a.Telefono, request.Telefono.NormalizeEcuadorPhone())
                     .SetProperty(a => a.Agencia, request.Agencia)
                     .SetProperty(a => a.FotoUrl, request.FotoUrl)
                     .SetProperty(a => a.LogoUrl, request.LogoUrl));
