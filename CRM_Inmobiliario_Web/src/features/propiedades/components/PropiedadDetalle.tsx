@@ -29,6 +29,7 @@ import { crearSeccion } from '../api/crearSeccion';
 import { eliminarSeccion } from '../api/eliminarSeccion';
 import { actualizarSeccion } from '../api/actualizarSeccion';
 import { reordenarSecciones } from '../api/reordenarSecciones';
+import { ClosingModal } from './ClosingModal';
 import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import { SectionalGallery } from './SectionalGallery';
@@ -88,7 +89,7 @@ const getMapEmbedUrl = (url: string, direccionFisica: string) => {
     if (query) {
       return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&hl=es&z=17&output=embed`;
     }
-  } catch (e) { /* Ignorar */ }
+  } catch { /* Ignorar */ }
 
   // 5. Fallback final: Búsqueda por texto (Dirección + Ciudad)
   return `https://maps.google.com/maps?q=${encodeURIComponent(direccionFisica)}&hl=es&z=16&output=embed`;
@@ -114,9 +115,32 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [isCreatingInline, setIsCreatingInline] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
   const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
+
+  const handleClosingConfirm = async (precioCierre: number, cerradoConId: string) => {
+    if (!propiedad) return;
+    try {
+      setIsUpdatingStatus(true);
+      await actualizarEstadoPropiedad(propiedad.id, propiedad.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida', precioCierre, cerradoConId);
+      
+      // Si es Venta, también limpiamos la galería
+      if (propiedad.operacion !== 'Alquiler') {
+        await limpiarImagenesPropiedad(propiedad.id);
+      }
+      
+      await mutate();
+      toast.success(`Propiedad ${propiedad.operacion === 'Alquiler' ? 'alquilada' : 'vendida'} con éxito`);
+      setIsClosing(false);
+    } catch (error) {
+      console.error('Error al cerrar:', error);
+      throw error;
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
 
   const handleSetCover = async (imagenId: string) => {
     if (!propiedad) return;
@@ -402,63 +426,30 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
     setIsStatusDropdownOpen(false);
 
-    // Casos especiales: Vendida o Inactiva requieren limpieza de galería
-    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva')) {
-      if (!confirmed) {
-        setStatusConfirmation(nuevoEstado);
-        return;
-      }
-
-      setStatusConfirmation(null);
-
-      // Optimistic UI Data
-      const previousState = { ...propiedad };
-      const optimisticData: Propiedad = {
-        ...propiedad,
-        estadoComercial: nuevoEstado,
-        mediaSinSeccion: propiedad.mediaSinSeccion?.filter(m => m.urlPublica === propiedad.imagenPortadaUrl) || [],
-        secciones: []
-      };
-
-      // Pattern Undo para cierre de propiedad
-      let isCancelled = false;
-      toast.warning(`Estado: ${nuevoEstado}`, {
-        description: "La propiedad se ha cerrado y la galería ha sido depurada. Tienes unos segundos para deshacer.",
-        action: {
-          label: "Deshacer",
-          onClick: () => {
-            isCancelled = true;
-            mutate();
-            toast.success("Cambio de estado cancelado");
-          }
-        },
-        duration: 6000,
-        onAutoClose: async () => {
-          if (isCancelled) return;
-          try {
-            setIsUpdatingStatus(true);
-            await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
-            await limpiarImagenesPropiedad(propiedad.id);
-            mutate();
-            toast.success("Propiedad actualizada y galería depurada");
-          } catch {
-            toast.error("Error al procesar el cambio de estado");
-            mutate(previousState, false);
-          } finally {
-            setIsUpdatingStatus(false);
-          }
-        }
-      });
-
-      // Aplicar cambio optimista
-      mutate(optimisticData, false);
+    // Caso de CIERRE (Venta/Alquiler)
+    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && !confirmed) {
+      setIsClosing(true);
       return;
     }
 
-    // Cambio de estado simple (Disponible/Reservada/Alquilada)
+    // Caso de INACTIVA (Limpieza simple)
+    if (nuevoEstado === 'Inactiva' && !confirmed) {
+      setStatusConfirmation(nuevoEstado);
+      return;
+    }
+
+    setStatusConfirmation(null);
+    setIsClosing(false);
+
+    // Cambio de estado simple o confirmado
     try {
       setIsUpdatingStatus(true);
       await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
+      
+      if (confirmed && (nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva')) {
+        await limpiarImagenesPropiedad(propiedad.id);
+      }
+      
       mutate();
       toast.success(`Estado actualizado a ${nuevoEstado}`);
     } catch {
@@ -573,15 +564,53 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             </div>
           </div>
 
-          {/* Estadísticas */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Estadísticas Inteligentes */}
+          <div className={`grid grid-cols-2 ${
+            [
+              ['Casa', 'Departamento', 'Suite'].includes(propiedad.tipoPropiedad),
+              propiedad.tipoPropiedad !== 'Terreno',
+              true, // Área
+              true, // Comisión
+              true  // Ingreso
+            ].filter(Boolean).length >= 5 ? 'md:grid-cols-5' : 'md:grid-cols-3'
+          } gap-4`}>
             {[
-              { label: 'Habitaciones', value: propiedad.habitaciones, icon: Bed, color: 'blue' },
-              { label: 'Baños', value: propiedad.banos, icon: Bath, color: 'emerald' },
-              { label: 'Área Total', value: `${propiedad.areaTotal} m²`, icon: Maximize, color: 'amber' },
-              { label: 'Comisión', value: `${propiedad.porcentajeComision}%`, icon: Handshake, color: 'indigo' },
-              { label: 'Ingreso', value: formatDate(propiedad.fechaIngreso), icon: Clock, color: 'slate' }
-            ].map((stat, i) => (
+              { 
+                label: 'Habitaciones', 
+                value: propiedad.habitaciones, 
+                icon: Bed, 
+                color: 'blue',
+                show: ['Casa', 'Departamento', 'Suite'].includes(propiedad.tipoPropiedad)
+              },
+              { 
+                label: 'Baños', 
+                value: propiedad.banos, 
+                icon: Bath, 
+                color: 'emerald',
+                show: propiedad.tipoPropiedad !== 'Terreno'
+              },
+              { 
+                label: 'Área Total', 
+                value: `${propiedad.areaTotal} m²`, 
+                icon: Maximize, 
+                color: 'amber',
+                show: true
+              },
+              { 
+                label: 'Comisión', 
+                value: `${propiedad.porcentajeComision}%`, 
+                icon: Handshake, 
+                color: 'indigo',
+                show: true
+              },
+              { 
+                label: 'Ingreso', 
+                value: formatDate(propiedad.fechaIngreso), 
+                icon: Clock, 
+                color: 'slate',
+                show: true
+              }
+            ].filter(stat => stat.show).map((stat, i) => (
               <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3 group hover:border-indigo-100 transition-all">
                 <div className={`h-10 w-10 bg-${stat.color}-50 rounded-xl flex items-center justify-center text-${stat.color}-600 group-hover:bg-${stat.color}-600 group-hover:text-white transition-all`}><stat.icon className="h-5 w-5" /></div>
                 <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p><p className="text-lg font-black text-slate-900 truncate" title={stat.value.toString()}>{stat.value}</p></div>
@@ -609,9 +638,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                     style={{ border: 0 }}
                     loading="lazy"
                     allowFullScreen
-                    src={propiedad.googleMapsUrl.includes('google.com/maps/embed') 
-                          ? propiedad.googleMapsUrl 
-                          : `https://www.google.com/maps?q=${encodeURIComponent(propiedad.direccion + ' ' + propiedad.sector + ' ' + propiedad.ciudad)}&output=embed`}
+                    src={getMapEmbedUrl(propiedad.googleMapsUrl, `${propiedad.direccion} ${propiedad.sector} ${propiedad.ciudad}`)}
                   ></iframe>
                   
                   {/* Botón superior izquierdo que tapa el nativo de Google */}
@@ -762,6 +789,16 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           />
         </div>
       )}
+
+      <ClosingModal 
+        key={propiedad.id}
+        isOpen={isClosing}
+        onClose={() => setIsClosing(false)}
+        onConfirm={handleClosingConfirm}
+        tituloPropiedad={propiedad.titulo}
+        precioSugerido={propiedad.precio}
+        tipoOperacion={propiedad.operacion}
+      />
     </div>
   );
 };

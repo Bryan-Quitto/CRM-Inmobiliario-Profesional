@@ -35,6 +35,9 @@ export interface Propiedad {
   esCaptacionPropia: boolean;
   porcentajeComision: number;
   fechaIngreso: string;
+  precioCierre?: number;
+  fechaCierre?: string;
+  cerradoConId?: string;
   media?: MultimediaPropiedad[]; // Mantenido por compatibilidad si es necesario
   secciones?: SeccionGaleria[];
   mediaSinSeccion?: MultimediaPropiedad[];

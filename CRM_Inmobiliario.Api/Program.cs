@@ -35,13 +35,18 @@ builder.Services.ConfigureHttpJsonOptions(options => {
 // Configuración de PostgreSQL usando DATABASE_URL del .env
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-// Unificamos la configuración: Factoría (Singleton) + Registro del DbContext (Scoped)
-builder.Services.AddDbContextFactory<CrmDbContext>(options =>
-    options.UseNpgsql(connectionString));
+// Registro estándar de EF Core con Ciclo de Vida Scoped para las peticiones HTTP
+builder.Services.AddDbContext<CrmDbContext>(options => 
+{
+    options.UseNpgsql(connectionString);
 
-// Esto permite que el resto de los endpoints sigan inyectando CrmDbContext normalmente
-builder.Services.AddScoped(sp => 
-    sp.GetRequiredService<IDbContextFactory<CrmDbContext>>().CreateDbContext());
+    // Habilitar logs sensibles estrictamente solo en entorno de desarrollo
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableDetailedErrors();
+        options.EnableSensitiveDataLogging();
+    }
+});
 
 // Cliente de Supabase configurado con SERVICE_ROLE para permisos totales (Storage/Auth)
 var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
@@ -53,13 +58,12 @@ builder.Services.AddScoped(_ => new Supabase.Client(
     new Supabase.SupabaseOptions { AutoConnectRealtime = true }
 ));
 
-// Auth configurada para Supabase usando JWKS dinámico
-var jwksUrl = $"{supabaseUrl}/auth/v1/.well-known/jwks.json";
-var httpClient = new HttpClient();
-
+// Auth configurada para Supabase usando OIDC nativo y Authority
+// Esto maneja automáticamente el JWKS, asincronía y caché de llaves.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Authority = $"{supabaseUrl}/auth/v1";
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -67,21 +71,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = "authenticated",
             ValidateIssuerSigningKey = true,
-            
-            // Resolución dinámica de llaves JWKS de Supabase
-            IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
-            {
-                try 
-                {
-                    var jwksJson = httpClient.GetStringAsync(jwksUrl).GetAwaiter().GetResult();
-                    return new JsonWebKeySet(jwksJson).GetSigningKeys();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"DEBUG [JWKS]: Error -> {ex.Message}");
-                    return Enumerable.Empty<SecurityKey>();
-                }
-            },
+            ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
 

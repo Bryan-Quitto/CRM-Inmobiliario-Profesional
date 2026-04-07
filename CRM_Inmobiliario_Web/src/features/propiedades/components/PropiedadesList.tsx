@@ -25,6 +25,7 @@ import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import { CrearPropiedadForm } from './CrearPropiedadForm';
 import { PropiedadDetalle } from './PropiedadDetalle';
+import { ClosingModal } from './ClosingModal';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import type { Propiedad } from '../types';
 
@@ -110,6 +111,7 @@ const PropiedadesContent = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de propiedad
   const [statusConfirmation, setStatusConfirmation] = useState<{ id: string; nuevoEstado: string } | null>(null);
+  const [closingPropiedad, setClosingPropiedad] = useState<{ propiedad: Propiedad; nuevoEstado: string } | null>(null);
   const [selectedPropiedadId, setSelectedPropiedadId] = useState<string | null>(null);
   const [selectedPropiedadIdForEdit, setSelectedPropiedadIdForEdit] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -139,12 +141,20 @@ const PropiedadesContent = () => {
     const propiedad = propiedades.find(p => p.id === id);
     if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
 
-    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva') && !confirmed) {
+    // Caso de CIERRE (Venta/Alquiler)
+    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && !confirmed) {
+      setClosingPropiedad({ propiedad, nuevoEstado });
+      return;
+    }
+
+    // Caso de INACTIVA (Limpieza simple)
+    if (nuevoEstado === 'Inactiva' && !confirmed) {
       setStatusConfirmation({ id, nuevoEstado });
       return;
     }
 
     setStatusConfirmation(null);
+    setClosingPropiedad(null);
     const optimisticData = propiedades.map(p => p.id === id ? { ...p, estadoComercial: nuevoEstado } : p);
 
     // CASO 1: Cambio normal (sin limpieza)
@@ -198,6 +208,30 @@ const PropiedadesContent = () => {
     
     // Aplicamos cambio local visual inmediatamente mientras corre el timer del toast
     mutate(optimisticData, false);
+  };
+
+  const handleClosingConfirm = async (precioCierre: number, cerradoConId: string) => {
+    if (!closingPropiedad) return;
+    const { propiedad, nuevoEstado } = closingPropiedad;
+    
+    try {
+      setUpdatingId(propiedad.id);
+      await actualizarEstadoPropiedad(propiedad.id, nuevoEstado, precioCierre, cerradoConId);
+      
+      // Si es Vendida, también limpiamos la galería
+      if (nuevoEstado === 'Vendida') {
+        await limpiarImagenesPropiedad(propiedad.id);
+      }
+      
+      await mutate();
+      toast.success(`Propiedad ${nuevoEstado === 'Vendida' ? 'vendida' : 'alquilada'} con éxito`);
+    } catch (error) {
+      console.error('Error al cerrar:', error);
+      throw error; // El modal maneja el error visual
+    } finally {
+      setUpdatingId(null);
+      setClosingPropiedad(null);
+    }
   };
 
   const handleCoverUpdate = (propiedadId: string, newUrl: string) => {
@@ -537,6 +571,16 @@ const PropiedadesContent = () => {
           </div>
         </div>
       )}
+
+      <ClosingModal
+        key={closingPropiedad?.propiedad.id || 'closed'}
+        isOpen={!!closingPropiedad}
+        onClose={() => setClosingPropiedad(null)}
+        onConfirm={handleClosingConfirm}
+        tituloPropiedad={closingPropiedad?.propiedad.titulo || ''}
+        precioSugerido={closingPropiedad?.propiedad.precio || 0}
+        tipoOperacion={closingPropiedad?.propiedad.operacion || 'Venta'}
+      />
     </div>
   );
 };

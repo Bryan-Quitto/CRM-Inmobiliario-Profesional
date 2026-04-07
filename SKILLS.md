@@ -39,10 +39,10 @@ This file defines the strict technical standards and architectural rules for the
 - **Standard:** Use Object Storage and store only URLs.
 
 ### Database & Migrations (Supabase)
-- **CRITICAL RULE:** Do NOT use `dotnet ef database update`. It is strictly forbidden to apply migrations directly from the CLI.
-- **AI Direct Access:** The AI now has direct interaction capabilities with the Supabase project (via MCP). This power must be used with **EXTREME CAUTION**.
-- **Standard:** Generate SQL scripts using `dotnet ef migrations script` and apply them manually in the **Supabase SQL Editor** (unless a surgical SQL fix is explicitly requested and reviewed).
-- **Reason:** Ensuring environmental consistency and avoiding connection/permission conflicts with Supabase direct access.
+- **Rule:** Use `dotnet ef database update` to apply migrations.
+- **AI Direct Access:** The AI now has direct interaction capabilities with the Supabase project (via MCP).
+- **Standard:** Migrations should be managed through EF Core CLI. Ensure `GssEncryptionMode=Disable;` is present in the `DATABASE_URL` within the `.env` file to avoid connection issues.
+- **Reason:** Ensuring environmental consistency and allowing automated schema updates.
 
 ## World-Class Performance & UX Standards
 All new features and refactors MUST implement these zero-latency patterns:
