@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Handshake,
   Plus,
-  MessageSquare
+  MessageSquare,
+  Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedadById } from '../api/getPropiedadById';
@@ -55,6 +56,42 @@ const formatDate = (dateString: string) => {
     month: 'long',
     year: 'numeric'
   }).format(new Date(dateString));
+};
+
+const getMapEmbedUrl = (url: string, direccionFisica: string) => {
+  if (!url) return '';
+
+  // 1. Si ya tiene el formato embed, lo retornamos directo
+  if (url.includes('/embed') || url.includes('output=embed')) {
+    return url;
+  }
+
+  // 2. Si es un enlace acortado (maps.app.goo.gl), 
+  // usamos la dirección física para una búsqueda más fiable en el iframe.
+  if (url.includes('maps.app.goo.gl')) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(direccionFisica)}&hl=es&z=16&output=embed`;
+  }
+
+  // 3. Extraer coordenadas exactas (@lat,lng) de la URL estándar de navegador
+  const matchCoordenadas = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (matchCoordenadas) {
+    const lat = matchCoordenadas[1];
+    const lng = matchCoordenadas[2];
+    // Usamos q=lat,lng para forzar el pin rojo
+    return `https://maps.google.com/maps?q=${lat},${lng}&hl=es&z=17&output=embed`;
+  }
+
+  // 4. Intentar extraer parámetro de búsqueda q= si existe
+  try {
+    const urlObj = new URL(url);
+    const query = urlObj.searchParams.get('q') || urlObj.searchParams.get('query');
+    if (query) {
+      return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&hl=es&z=17&output=embed`;
+    }
+  } catch (e) { /* Ignorar */ }
+
+  // 5. Fallback final: Búsqueda por texto (Dirección + Ciudad)
+  return `https://maps.google.com/maps?q=${encodeURIComponent(direccionFisica)}&hl=es&z=16&output=embed`;
 };
 
 const ESTADOS = [
@@ -509,11 +546,12 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         </div>
 
         <div className="p-8 space-y-12 pb-24">
-          {/* Info Principal */}
+            {/* Info Principal */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-widest">{propiedad.tipoPropiedad}</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${propiedad.operacion === 'Venta' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>{propiedad.operacion}</span>
                 {propiedad.esCaptacionPropia && (
                   <span className="text-[10px] font-black text-white bg-indigo-600 px-2 py-0.5 rounded-md uppercase tracking-widest flex items-center gap-1">
                     <Handshake className="h-3 w-3" /> Captación Propia
@@ -521,7 +559,13 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                 )}
               </div>
               <h1 className="text-4xl font-black text-slate-900 leading-tight tracking-tight">{propiedad.titulo}</h1>
-              <div className="flex items-center gap-2 text-slate-500 mt-4"><MapPin className="h-5 w-5 text-indigo-600" /><span className="text-lg font-bold italic">{propiedad.direccion}</span></div>
+              <div className="flex items-start gap-3 text-slate-500 mt-4">
+                <MapPin className="h-6 w-6 text-indigo-600 mt-1 shrink-0" />
+                <div>
+                  <p className="text-lg font-bold italic leading-tight text-slate-700">{propiedad.direccion}</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1">{propiedad.sector}, {propiedad.ciudad}</p>
+                </div>
+              </div>
             </div>
             <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 flex flex-col items-end min-w-[200px]">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Precio de Lista</p>
@@ -530,7 +574,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           </div>
 
           {/* Estadísticas */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Habitaciones', value: propiedad.habitaciones, icon: Bed, color: 'blue' },
               { label: 'Baños', value: propiedad.banos, icon: Bath, color: 'emerald' },
@@ -540,9 +584,51 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             ].map((stat, i) => (
               <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3 group hover:border-indigo-100 transition-all">
                 <div className={`h-10 w-10 bg-${stat.color}-50 rounded-xl flex items-center justify-center text-${stat.color}-600 group-hover:bg-${stat.color}-600 group-hover:text-white transition-all`}><stat.icon className="h-5 w-5" /></div>
-                <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p><p className="text-lg font-black text-slate-900">{stat.value}</p></div>
+                <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p><p className="text-lg font-black text-slate-900 truncate" title={stat.value.toString()}>{stat.value}</p></div>
               </div>
             ))}
+          </div>
+
+          {/* Descripción & Mapa Dinámico */}
+          <div className={`grid grid-cols-1 ${propiedad.googleMapsUrl ? 'lg:grid-cols-2' : ''} gap-8`}>
+            <div className="space-y-6">
+              <div className="flex items-center gap-2"><div className="h-6 w-1 bg-indigo-600 rounded-full"></div><h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Descripción</h3></div>
+              <div className="bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100">
+                <p className="text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">{propiedad.descripcion}</p>
+              </div>
+            </div>
+
+            {propiedad.googleMapsUrl && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="flex items-center gap-2"><div className="h-6 w-1 bg-rose-600 rounded-full"></div><h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Ubicación</h3></div>
+                <div className="bg-slate-100 rounded-[2rem] overflow-hidden border-2 border-slate-100 shadow-inner h-[280px] relative group">
+                  <iframe
+                    title="Google Maps"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={propiedad.googleMapsUrl.includes('google.com/maps/embed') 
+                          ? propiedad.googleMapsUrl 
+                          : `https://www.google.com/maps?q=${encodeURIComponent(propiedad.direccion + ' ' + propiedad.sector + ' ' + propiedad.ciudad)}&output=embed`}
+                  ></iframe>
+                  
+                  {/* Botón superior izquierdo que tapa el nativo de Google */}
+                  <a 
+                    href={propiedad.googleMapsUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="absolute top-2 left-2 bg-white px-6 py-3 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] text-[11px] font-black uppercase tracking-[0.15em] text-slate-900 hover:bg-slate-50 transition-all flex items-center gap-3 border border-slate-100 z-20 hover:scale-[1.02] active:scale-95"
+                  >
+                    <div className="h-6 w-6 bg-indigo-50 rounded-lg flex items-center justify-center">
+                      <Globe className="h-3.5 w-3.5 text-indigo-600" />
+                    </div>
+                    Ver en Google Maps
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Galería Estructurada */}

@@ -27,6 +27,7 @@ export interface Propiedad {
   direccion: string;
   sector: string;
   ciudad: string;
+  googleMapsUrl?: string;
   habitaciones: number;
   banos: number;
   areaTotal: number;

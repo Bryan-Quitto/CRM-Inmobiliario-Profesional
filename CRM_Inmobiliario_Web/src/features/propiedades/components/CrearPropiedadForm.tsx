@@ -16,7 +16,8 @@ import {
   ChevronDown,
   Type,
   FileText,
-  Pencil
+  Pencil,
+  Globe
 } from 'lucide-react';
 import { crearPropiedad, type CrearPropiedadDTO } from '../api/crearPropiedad';
 import { actualizarPropiedad } from '../api/actualizarPropiedad';
@@ -116,6 +117,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       direccion: '',
       sector: '',
       ciudad: '',
+      googleMapsUrl: '',
       habitaciones: 0,
       banos: 0,
       areaTotal: 0
@@ -391,6 +393,28 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                 type="text" 
                 disabled={isSuccess}
                 placeholder="Calle principal, número y calle secundaria"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+              />
+            </div>
+          </div>
+
+          {/* Google Maps - Full Width */}
+          <div className="md:col-span-6 space-y-2">
+            <div className="flex items-center justify-between pl-1">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Google Maps (opcional)</label>
+              {watch('googleMapsUrl')?.includes('maps.app.goo.gl') && (
+                <span className="text-[9px] font-black text-amber-500 uppercase tracking-tight flex items-center gap-1 animate-pulse">
+                  <AlertCircle className="h-2.5 w-2.5" /> Enlace corto detectado: se usará dirección física para centrar
+                </span>
+              )}
+            </div>
+            <div className="relative">
+              <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input 
+                {...register('googleMapsUrl')}
+                type="url" 
+                disabled={isSuccess}
+                placeholder="Pega aquí el enlace de Google Maps (ej. https://maps.app.goo.gl/...)"
                 className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
               />
             </div>

@@ -19,6 +19,7 @@ public static class ActualizarPropiedadFeature
         string Direccion,
         string Sector,
         string Ciudad,
+        string? GoogleMapsUrl,
         int Habitaciones,
         decimal Banos,
         decimal AreaTotal,
@@ -47,6 +48,7 @@ public static class ActualizarPropiedadFeature
             propiedad.Direccion = command.Direccion;
             propiedad.Sector = command.Sector;
             propiedad.Ciudad = command.Ciudad;
+            propiedad.GoogleMapsUrl = command.GoogleMapsUrl;
             propiedad.Habitaciones = command.Habitaciones;
             propiedad.Banos = command.Banos;
             propiedad.AreaTotal = command.AreaTotal;
