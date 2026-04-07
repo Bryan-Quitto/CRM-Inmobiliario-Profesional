@@ -40,6 +40,8 @@ public sealed class Property
     [MaxLength(100)]
     public string Ciudad { get; set; } = string.Empty;
 
+    public string? GoogleMapsUrl { get; set; }
+
     public int Habitaciones { get; set; }
 
     public decimal Banos { get; set; }
