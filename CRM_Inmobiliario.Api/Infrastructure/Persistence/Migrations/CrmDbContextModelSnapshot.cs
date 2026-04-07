@@ -75,7 +75,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Agents");
+                    b.ToTable("Agents", (string)null);
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>
@@ -113,7 +113,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("Interactions");
+                    b.ToTable("Interactions", (string)null);
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Lead", b =>
@@ -166,7 +166,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AgenteId");
 
-                    b.ToTable("Leads");
+                    b.ToTable("Leads", (string)null);
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.LeadPropertyInterest", b =>
@@ -189,7 +189,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("LeadPropertyInterests");
+                    b.ToTable("LeadPropertyInterests", (string)null);
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Property", b =>
@@ -276,7 +276,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropietarioId");
 
-                    b.ToTable("Properties");
+                    b.ToTable("Properties", (string)null);
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
@@ -303,7 +303,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("PropertyGallerySections");
+                    b.ToTable("PropertyGallerySections", (string)null);
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyMedia", b =>
@@ -347,7 +347,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SectionId");
 
-                    b.ToTable("PropertyMedia");
+                    b.ToTable("PropertyMedia", (string)null);
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.TaskItem", b =>
@@ -401,7 +401,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Tasks", (string)null);
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>

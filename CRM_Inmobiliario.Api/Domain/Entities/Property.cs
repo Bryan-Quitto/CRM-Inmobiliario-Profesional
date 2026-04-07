@@ -65,6 +65,9 @@ public sealed class Property
     public Guid? PropietarioId { get; set; }
     public Lead? Propietario { get; set; }
 
+    public Guid? CerradoConId { get; set; }
+    public Lead? CerradoCon { get; set; }
+
     public DateTimeOffset FechaIngreso { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? FechaCierre { get; set; }

@@ -1,4 +1,4 @@
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { 
   Home, 
   Tag, 
@@ -73,28 +73,25 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
     };
   };
 
-  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue, getValues } = useForm<CrearPropiedadDTO>({
+  const { register, handleSubmit, formState: { errors }, reset, control, setValue } = useForm<CrearPropiedadDTO>({
     defaultValues: getInitialValues() as CrearPropiedadDTO
   });
 
-  const [hasData, setHasData] = useState(false);
+  // Se utiliza useWatch para campos específicos en lugar de watch()
+  const tipoSeleccionado = useWatch({ control, name: 'tipoPropiedad' });
+  const googleMapsUrl = useWatch({ control, name: 'googleMapsUrl' }); 
+  const watchedValues = useWatch({ control });
 
+  // 1. Calculamos hasData directamente al vuelo (estado derivado)
+  const hasData = watchedValues 
+    ? Object.values(watchedValues).some(v => v && v !== '' && v !== 0) 
+    : false;
+
+  // 2. El useEffect ahora SOLO hace llamadas al API externa (localStorage)
   useEffect(() => {
-    if (isEditing) return;
-
-    // Sincronización inicial y suscripción optimizada para borrador
-    const currentValues = getValues();
-    const checkHasData = (vals: Record<string, unknown>) => Object.values(vals).some(v => v && v !== '' && v !== 0);
-    setHasData(checkHasData(currentValues as unknown as Record<string, unknown>));
-
-    // eslint-disable-next-line react-hooks/incompatible-library
-    const subscription = watch((value) => {
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(value));
-      const isNowDirty = checkHasData(value as unknown as Record<string, unknown>);
-      if (isNowDirty !== hasData) setHasData(isNowDirty);
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, getValues, hasData, isEditing]);
+    if (isEditing || !watchedValues) return;
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(watchedValues));
+  }, [watchedValues, isEditing]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -133,8 +130,8 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       const payload = {
         ...data,
         precio: Number(data.precio),
-        habitaciones: Number(data.habitaciones),
-        banos: Number(data.banos),
+        habitaciones: Number(data.habitaciones || 0),
+        banos: Number(data.banos || 0),
         areaTotal: Number(data.areaTotal)
       };
 
@@ -144,7 +141,6 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
         await crearPropiedad(payload);
       }
       
-      // Transición Satisfy
       setIsSuccess(true);
       if (!isEditing) {
         localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -163,7 +159,6 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
 
   return (
     <div className="bg-white p-8 rounded-3xl w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
-      {/* Botón de cierre */}
       <button 
         onClick={onCancel}
         disabled={isSuccess}
@@ -226,7 +221,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-          {/* Título - Full Width */}
+          {/* 1. TÍTULO */}
           <div className="md:col-span-6 space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título de la Propiedad</label>
             <div className="relative">
@@ -242,7 +237,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
             {errors.titulo && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.titulo.message}</p>}
           </div>
 
-          {/* Descripción - Full Width */}
+          {/* 2. DESCRIPCIÓN */}
           <div className="md:col-span-6 space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Descripción Detallada</label>
             <div className="relative">
@@ -258,9 +253,9 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
             {errors.descripcion && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.descripcion.message}</p>}
           </div>
 
-          {/* Tipo de Propiedad */}
-          <div className="md:col-span-3 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Tipo</label>
+          {/* 3. TIPO (Trigger de visibilidad) */}
+          <div className="md:col-span-6 space-y-2">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Tipo de Propiedad</label>
             <div className="relative" ref={activeSelect === 'tipo' ? selectRef : null}>
               <Home className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Controller
@@ -276,7 +271,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                       className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.tipoPropiedad ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50`}
                     >
                       <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
-                        {field.value || 'Seleccionar...'}
+                        {field.value || 'Seleccionar tipo de inmueble...'}
                       </span>
                       <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${activeSelect === 'tipo' ? 'rotate-180' : ''}`} />
                     </button>
@@ -299,211 +294,217 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                 )}
               />
             </div>
+            {errors.tipoPropiedad && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.tipoPropiedad.message}</p>}
           </div>
 
-          {/* Operación */}
-          <div className="md:col-span-3 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Operación</label>
-            <div className="relative" ref={activeSelect === 'operacion' ? selectRef : null}>
-              <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Controller
-                name="operacion"
-                control={control}
-                rules={{ required: 'Selecciona operación' }}
-                render={({ field }) => (
-                  <>
-                    <button
-                      type="button"
-                      disabled={isSuccess}
-                      onClick={() => setActiveSelect(activeSelect === 'operacion' ? null : 'operacion')}
-                      className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.operacion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50`}
-                    >
-                      <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
-                        {field.value || 'Seleccionar...'}
-                      </span>
-                      <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${activeSelect === 'operacion' ? 'rotate-180' : ''}`} />
-                    </button>
-                    {activeSelect === 'operacion' && (
-                      <div className="absolute w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200 origin-top">
-                        {OPERACIONES.map((opt) => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => { setValue('operacion', opt.value, { shouldValidate: true }); setActiveSelect(null); }}
-                            className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'}`}
-                          >
-                            {opt.label}
-                            {field.value === opt.value && <Check className="h-4 w-4" />}
-                          </button>
-                        ))}
+          {/* CAMPOS DINÁMICOS - Solo si hay tipoSeleccionado */}
+          {tipoSeleccionado && (
+            <div className="md:col-span-6 grid grid-cols-1 md:grid-cols-6 gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+              
+              {/* Operación */}
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Operación</label>
+                <div className="relative">
+                  <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Controller
+                    name="operacion"
+                    control={control}
+                    rules={{ required: 'Selecciona operación' }}
+                    render={({ field }) => (
+                      <div className="relative" ref={activeSelect === 'operacion' ? selectRef : null}>
+                        <button
+                          type="button"
+                          disabled={isSuccess}
+                          onClick={() => setActiveSelect(activeSelect === 'operacion' ? null : 'operacion')}
+                          className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.operacion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50`}
+                        >
+                          <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
+                            {field.value || 'Seleccionar...'}
+                          </span>
+                          <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${activeSelect === 'operacion' ? 'rotate-180' : ''}`} />
+                        </button>
+                        {activeSelect === 'operacion' && (
+                          <div className="absolute w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200 origin-top">
+                            {OPERACIONES.map((opt) => (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => { setValue('operacion', opt.value, { shouldValidate: true }); setActiveSelect(null); }}
+                                className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'}`}
+                              >
+                                {opt.label}
+                                {field.value === opt.value && <Check className="h-4 w-4" />}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
-                  </>
-                )}
-              />
-            </div>
-          </div>
+                  />
+                </div>
+              </div>
 
-          {/* Precio */}
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Precio ($)</label>
-            <div className="relative">
-              <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                {...register('precio', { required: 'Requerido', min: 1 })}
-                type="number" 
-                disabled={isSuccess}
-                step="any"
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-              />
-            </div>
-          </div>
+              {/* Precio */}
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Precio ($)</label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    {...register('precio', { required: 'Requerido', min: 1 })}
+                    type="number" 
+                    disabled={isSuccess}
+                    step="any"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+                  />
+                </div>
+              </div>
 
-          {/* Sector */}
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Sector</label>
-            <input 
-              {...register('sector', { required: 'Requerido' })}
-              type="text" 
-              disabled={isSuccess}
-              placeholder="Ej. La Carolina"
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-            />
-          </div>
+              {/* Sector */}
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Sector</label>
+                <input 
+                  {...register('sector', { required: 'Requerido' })}
+                  type="text" 
+                  disabled={isSuccess}
+                  placeholder="Ej. La Carolina"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+                />
+              </div>
 
-          {/* Ciudad */}
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Ciudad</label>
-            <input 
-              {...register('ciudad', { required: 'Requerido' })}
-              type="text" 
-              disabled={isSuccess}
-              placeholder="Ej. Quito"
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-            />
-          </div>
+              {/* Ciudad */}
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Ciudad</label>
+                <input 
+                  {...register('ciudad', { required: 'Requerido' })}
+                  type="text" 
+                  disabled={isSuccess}
+                  placeholder="Ej. Quito"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+                />
+              </div>
 
-          {/* Dirección - Full Width */}
-          <div className="md:col-span-6 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Dirección Exacta</label>
-            <div className="relative">
-              <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                {...register('direccion', { required: 'La dirección es obligatoria' })}
-                type="text" 
-                disabled={isSuccess}
-                placeholder="Calle principal, número y calle secundaria"
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-              />
-            </div>
-          </div>
+              {/* Dirección Exacta */}
+              <div className="md:col-span-6 space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Dirección Exacta</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    {...register('direccion', { required: 'La dirección es obligatoria' })}
+                    type="text" 
+                    disabled={isSuccess}
+                    placeholder="Calle principal, número y calle secundaria"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+                  />
+                </div>
+              </div>
 
-          {/* Google Maps - Full Width */}
-          <div className="md:col-span-6 space-y-2">
-            <div className="flex items-center justify-between pl-1">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Google Maps (opcional)</label>
-              {watch('googleMapsUrl')?.includes('maps.app.goo.gl') && (
-                <span className="text-[9px] font-black text-amber-500 uppercase tracking-tight flex items-center gap-1 animate-pulse">
-                  <AlertCircle className="h-2.5 w-2.5" /> Enlace corto detectado: se usará dirección física para centrar
-                </span>
+              {/* Google Maps */}
+              <div className="md:col-span-6 space-y-2">
+                <div className="flex items-center justify-between pl-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Google Maps (opcional)</label>
+                  {googleMapsUrl?.includes('maps.app.goo.gl') && (
+                    <span className="text-[9px] font-black text-amber-500 uppercase tracking-tight flex items-center gap-1 animate-pulse">
+                      <AlertCircle className="h-2.5 w-2.5" /> Enlace corto detectado: se usará dirección física para centrar
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    {...register('googleMapsUrl')}
+                    type="url" 
+                    disabled={isSuccess}
+                    placeholder="Pega aquí el enlace de Google Maps"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              {/* Área Total */}
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Área Total (m²)</label>
+                <div className="relative">
+                  <Maximize className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    {...register('areaTotal', { required: 'Requerido', min: 1 })}
+                    type="number" 
+                    disabled={isSuccess}
+                    step="any"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              {/* Habitaciones - Solo Vivienda */}
+              {['Casa', 'Departamento', 'Suite'].includes(tipoSeleccionado) && (
+                <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Habitaciones</label>
+                  <div className="relative">
+                    <BedDouble className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input 
+                      {...register('habitaciones', { min: 0 })}
+                      type="number" 
+                      disabled={isSuccess}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
+                    />
+                  </div>
+                </div>
               )}
-            </div>
-            <div className="relative">
-              <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                {...register('googleMapsUrl')}
-                type="url" 
-                disabled={isSuccess}
-                placeholder="Pega aquí el enlace de Google Maps (ej. https://maps.app.goo.gl/...)"
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-              />
-            </div>
-          </div>
 
-          {/* Habitaciones */}
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Habitaciones</label>
-            <div className="relative">
-              <BedDouble className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                {...register('habitaciones', { min: 0 })}
-                type="number" 
-                disabled={isSuccess}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
-              />
-            </div>
-          </div>
+              {/* Baños - Todos menos Terreno */}
+              {tipoSeleccionado !== 'Terreno' && (
+                <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Baños</label>
+                  <div className="relative">
+                    <Bath className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input 
+                      {...register('banos', { min: 0 })}
+                      type="number" 
+                      disabled={isSuccess}
+                      step="0.5"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+              )}
 
-          {/* Baños */}
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Baños</label>
-            <div className="relative">
-              <Bath className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                {...register('banos', { min: 0 })}
-                type="number" 
-                disabled={isSuccess}
-                step="0.5"
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
-              />
-            </div>
-          </div>
+              {/* Comisión & Captación */}
+              <div className="md:col-span-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="flex items-center gap-3 p-4 bg-blue-50/50 border-2 border-blue-100/50 rounded-[24px] cursor-pointer hover:bg-blue-50 transition-all group">
+                  <div className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" {...register('esCaptacionPropia')} className="sr-only peer" defaultChecked={true} />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-black text-slate-900 uppercase tracking-tight block">¿Captación propia?</span>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block opacity-70">Gestión directa</span>
+                  </div>
+                </label>
 
-          {/* Área Total */}
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Área Total (m²)</label>
-            <div className="relative">
-              <Maximize className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                {...register('areaTotal', { required: 'Requerido', min: 1 })}
-                type="number" 
-                disabled={isSuccess}
-                step="any"
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
-              />
-            </div>
-          </div>
-
-          {/* Configuración de Captación y Comisión - Full Width */}
-          <div className="md:col-span-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label className="flex items-center gap-3 p-4 bg-blue-50/50 border-2 border-blue-100/50 rounded-[24px] cursor-pointer hover:bg-blue-50 transition-all group">
-              <div className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  {...register('esCaptacionPropia')} 
-                  className="sr-only peer"
-                  defaultChecked={true}
-                />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
-              </div>
-              <div>
-                <span className="text-xs font-black text-slate-900 uppercase tracking-tight block">¿Captación propia?</span>
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block opacity-70">Gestión directa</span>
-              </div>
-            </label>
-
-            <div className="bg-slate-50 border-2 border-slate-100 rounded-[24px] p-4 flex items-center justify-between gap-4 group hover:border-blue-200 transition-all">
-              <div className="flex flex-col">
-                <span className="text-xs font-black text-slate-900 uppercase tracking-tight">Comisión (%)</span>
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest opacity-70">Porcentaje pactado</span>
-              </div>
-              <div className="relative w-24">
-                <input 
-                  {...register('porcentajeComision', { required: true, min: 0, max: 100 })}
-                  type="number" 
-                  step="0.1"
-                  defaultValue={5.0}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black text-blue-600 text-center focus:ring-4 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all shadow-sm"
-                />
+                <div className="bg-slate-50 border-2 border-slate-100 rounded-[24px] p-4 flex items-center justify-between gap-4 group hover:border-blue-200 transition-all">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-black text-slate-900 uppercase tracking-tight">Comisión (%)</span>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest opacity-70">Porcentaje pactado</span>
+                  </div>
+                  <div className="relative w-24">
+                    <input 
+                      {...register('porcentajeComision', { required: true, min: 0, max: 100 })}
+                      type="number" 
+                      step="0.1"
+                      defaultValue={5.0}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black text-blue-600 text-center focus:ring-4 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="pt-8 flex items-center gap-3">
           <button 
-            type="button"
-            onClick={onCancel}
+            type="button" 
+            onClick={onCancel} 
             disabled={isSubmitting || isSuccess}
             className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors cursor-pointer disabled:opacity-0"
           >
@@ -511,11 +512,9 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
           </button>
           <button 
             type="submit"
-            disabled={isSubmitting || isSuccess}
+            disabled={isSubmitting || isSuccess || !tipoSeleccionado}
             className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed ${
-              isSuccess 
-                ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
-                : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700 disabled:bg-slate-300'
+              isSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700 disabled:bg-slate-300'
             }`}
           >
             {isSuccess ? (
