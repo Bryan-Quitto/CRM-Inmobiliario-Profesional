@@ -17,17 +17,40 @@ const ConfiguracionPerfil: React.FC = () => {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Ref para guardar los últimos datos sincronizados y detectar cambios locales
+  const lastSyncedData = React.useRef(perfil);
 
-  // Sincronizar datos del servidor con el formulario local
+  // Sincronizar datos del servidor con el formulario local (Smart Merge)
   useEffect(() => {
     if (perfil) {
-      setFormData({
-        nombre: perfil.nombre ?? '',
-        apellido: perfil.apellido ?? '',
-        telefono: perfil.telefono ?? '',
-        agencia: perfil.agencia ?? '',
-        fotoUrl: perfil.fotoUrl ?? '',
-        logoUrl: perfil.logoUrl ?? ''
+      setFormData(prev => {
+        // Si no había datos previos (primera carga), cargamos todo
+        if (!lastSyncedData.current) {
+          lastSyncedData.current = perfil;
+          return {
+            nombre: perfil.nombre ?? '',
+            apellido: perfil.apellido ?? '',
+            telefono: perfil.telefono ?? '',
+            agencia: perfil.agencia ?? '',
+            fotoUrl: perfil.fotoUrl ?? '',
+            logoUrl: perfil.logoUrl ?? ''
+          };
+        }
+
+        // SMART MERGE: Solo actualizamos los campos que el usuario NO ha tocado
+        // basándonos en si el valor actual es distinto al último que recibimos del servidor
+        const merged = {
+          nombre: prev.nombre !== (lastSyncedData.current.nombre ?? '') ? prev.nombre : (perfil.nombre ?? ''),
+          apellido: prev.apellido !== (lastSyncedData.current.apellido ?? '') ? prev.apellido : (perfil.apellido ?? ''),
+          telefono: prev.telefono !== (lastSyncedData.current.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
+          agencia: prev.agencia !== (lastSyncedData.current.agencia ?? '') ? prev.agencia : (perfil.agencia ?? ''),
+          fotoUrl: prev.fotoUrl !== (lastSyncedData.current.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
+          logoUrl: prev.logoUrl !== (lastSyncedData.current.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? '')
+        };
+
+        lastSyncedData.current = perfil;
+        return merged;
       });
     }
   }, [perfil]);

@@ -73,7 +73,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
     };
   };
 
-  const { register, handleSubmit, formState: { errors }, reset, control, setValue } = useForm<CrearPropiedadDTO>({
+  const { register, handleSubmit, formState: { errors, isDirty, dirtyFields }, reset, control, setValue } = useForm<CrearPropiedadDTO>({
     defaultValues: getInitialValues() as CrearPropiedadDTO
   });
 
@@ -81,6 +81,34 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
   const tipoSeleccionado = useWatch({ control, name: 'tipoPropiedad' });
   const googleMapsUrl = useWatch({ control, name: 'googleMapsUrl' }); 
   const watchedValues = useWatch({ control });
+
+  // Smart Merge: Sincronizar cambios del servidor (initialData) sin borrar lo que el usuario escribe
+  useEffect(() => {
+    if (!isEditing || !initialData || !watchedValues) return;
+
+    if (isDirty) {
+      const mergedValues = {
+        titulo: dirtyFields.titulo ? (watchedValues.titulo as string) : initialData.titulo,
+        descripcion: dirtyFields.descripcion ? (watchedValues.descripcion as string) : initialData.descripcion,
+        tipoPropiedad: dirtyFields.tipoPropiedad ? (watchedValues.tipoPropiedad as string) : initialData.tipoPropiedad,
+        operacion: dirtyFields.operacion ? (watchedValues.operacion as string) : initialData.operacion,
+        precio: dirtyFields.precio ? Number(watchedValues.precio) : initialData.precio,
+        direccion: dirtyFields.direccion ? (watchedValues.direccion as string) : initialData.direccion,
+        sector: dirtyFields.sector ? (watchedValues.sector as string) : initialData.sector,
+        ciudad: dirtyFields.ciudad ? (watchedValues.ciudad as string) : initialData.ciudad,
+        googleMapsUrl: dirtyFields.googleMapsUrl ? (watchedValues.googleMapsUrl as string) : (initialData.googleMapsUrl || ''),
+        habitaciones: dirtyFields.habitaciones ? Number(watchedValues.habitaciones) : (initialData.habitaciones || 0),
+        banos: dirtyFields.banos ? Number(watchedValues.banos) : (initialData.banos || 0),
+        areaTotal: dirtyFields.areaTotal ? Number(watchedValues.areaTotal) : initialData.areaTotal,
+        esCaptacionPropia: dirtyFields.esCaptacionPropia ? !!watchedValues.esCaptacionPropia : initialData.esCaptacionPropia,
+        porcentajeComision: dirtyFields.porcentajeComision ? Number(watchedValues.porcentajeComision) : initialData.porcentajeComision
+      };
+      reset(mergedValues);
+    } else {
+      reset(initialData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData, isEditing]);
 
   // 1. Calculamos hasData directamente al vuelo (estado derivado)
   const hasData = watchedValues 

@@ -46,9 +46,30 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
     };
   };
 
-  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue, getValues } = useForm<CrearClienteDTO>({
+  const { register, handleSubmit, watch, formState: { errors, isDirty, dirtyFields }, reset, control, setValue, getValues } = useForm<CrearClienteDTO>({
     defaultValues: getInitialValues() as CrearClienteDTO
   });
+
+  const currentValues = watch();
+
+  // Smart Merge: Sincronizar cambios del servidor (initialData) sin borrar lo que el usuario escribe
+  useEffect(() => {
+    if (!isEditing || !initialData) return;
+
+    if (isDirty) {
+      const mergedValues = {
+        nombre: dirtyFields.nombre ? currentValues.nombre : initialData.nombre,
+        apellido: dirtyFields.apellido ? currentValues.apellido : (initialData.apellido || ''),
+        email: dirtyFields.email ? currentValues.email : (initialData.email || ''),
+        telefono: dirtyFields.telefono ? currentValues.telefono : initialData.telefono,
+        origen: dirtyFields.origen ? currentValues.origen : initialData.origen
+      };
+      reset(mergedValues);
+    } else {
+      reset(initialData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData, isEditing]);
 
   const [hasData, setHasData] = useState(false);
 
@@ -59,7 +80,6 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
     const currentValues = getValues();
     setHasData(Object.values(currentValues).some(v => v));
 
-    // eslint-disable-next-line react-hooks/incompatible-library
     const subscription = watch((value) => {
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(value));
       const isNowDirty = Object.values(value).some(v => v);
