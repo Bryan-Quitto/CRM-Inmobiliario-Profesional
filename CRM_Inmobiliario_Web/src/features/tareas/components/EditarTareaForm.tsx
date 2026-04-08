@@ -62,7 +62,7 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
     [propiedades]
   );
 
-  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<ActualizarTareaDTO & { clienteNombre?: string; propiedadTitulo?: string }>({
+  const { register, handleSubmit, watch, formState: { errors, isDirty, dirtyFields }, reset, control, setValue } = useForm<ActualizarTareaDTO & { clienteNombre?: string; propiedadTitulo?: string }>({
     defaultValues: initialData ? {
       titulo: initialData.titulo,
       descripcion: initialData.descripcion || '',
@@ -77,6 +77,8 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
     } : undefined
   });
 
+  const currentValues = watch();
+
   useEffect(() => {
     const fetchTarea = async () => {
       try {
@@ -89,18 +91,37 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
         
         setIsReadOnly(data.estado !== 'Pendiente');
 
-        reset({
-          titulo: data.titulo,
-          descripcion: data.descripcion || '',
-          tipoTarea: data.tipoTarea as Tarea['tipoTarea'],
-          fechaInicio: fechaLocal,
-          clienteId: data.clienteId,
-          propiedadId: data.propiedadId,
-          lugar: data.lugar,
-          clienteNombre: data.clienteNombre,
-          propiedadTitulo: data.propiedadTitulo,
-          duracionMinutos: 30
-        });
+        // SMART MERGE: Solo actualizamos lo que el usuario NO ha tocado
+        // Si el formulario es "dirty", tenemos que tener cuidado
+        if (isDirty) {
+          const mergedValues = {
+            titulo: dirtyFields.titulo ? currentValues.titulo : data.titulo,
+            descripcion: dirtyFields.descripcion ? currentValues.descripcion : (data.descripcion || ''),
+            tipoTarea: dirtyFields.tipoTarea ? currentValues.tipoTarea : (data.tipoTarea as Tarea['tipoTarea']),
+            fechaInicio: dirtyFields.fechaInicio ? currentValues.fechaInicio : fechaLocal,
+            clienteId: dirtyFields.clienteId ? currentValues.clienteId : data.clienteId,
+            propiedadId: dirtyFields.propiedadId ? currentValues.propiedadId : data.propiedadId,
+            lugar: dirtyFields.lugar ? currentValues.lugar : data.lugar,
+            clienteNombre: dirtyFields.clienteId ? currentValues.clienteNombre : data.clienteNombre,
+            propiedadTitulo: dirtyFields.propiedadId ? currentValues.propiedadTitulo : data.propiedadTitulo,
+            duracionMinutos: 30
+          };
+          reset(mergedValues);
+        } else {
+          // Si no está sucio, podemos resetear todo tranquilamente
+          reset({
+            titulo: data.titulo,
+            descripcion: data.descripcion || '',
+            tipoTarea: data.tipoTarea as Tarea['tipoTarea'],
+            fechaInicio: fechaLocal,
+            clienteId: data.clienteId,
+            propiedadId: data.propiedadId,
+            lugar: data.lugar,
+            clienteNombre: data.clienteNombre,
+            propiedadTitulo: data.propiedadTitulo,
+            duracionMinutos: 30
+          });
+        }
         
         // Guardar en cache local para futuras aperturas rápidas
         localStorage.setItem(`tarea_cache_${tareaId}`, JSON.stringify(data));
@@ -116,7 +137,8 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
     };
 
     fetchTarea();
-  }, [tareaId, reset, initialData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tareaId, initialData]); // Removemos 'reset' y 'isDirty' de dependencias para evitar bucles infinitos, solo re-ejecutamos por tareaId o initialData
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

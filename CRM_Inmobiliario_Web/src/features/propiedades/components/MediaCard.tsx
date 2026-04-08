@@ -37,11 +37,17 @@ export const MediaCard: React.FC<MediaCardProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Ref para evitar sobrescritura mientras el usuario escribe
+  const isUserEditing = useRef(false);
 
   // Sincronizar estado local con props (Crítico para SWR)
   useEffect(() => {
-    setDescripcion(item.descripcion || '');
-  }, [item.descripcion]);
+    // Solo sincronizar si el usuario NO está editando activamente
+    if (!isUserEditing.current && !isSaving) {
+      setDescripcion(item.descripcion || '');
+    }
+  }, [item.descripcion, isSaving]);
 
   // Auto-save logic with debounce
   useEffect(() => {
@@ -55,6 +61,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
       try {
         await actualizarDescripcionMultimedia(item.id, descripcion || null);
         setSaveSuccess(true);
+        isUserEditing.current = false; // Finaliza la edición tras guardado exitoso
         if (onSaved) onSaved(); // Avisar al padre para que SWR sepa que hay datos nuevos
         setTimeout(() => setSaveSuccess(false), 2000);
       } catch (error) {
@@ -144,7 +151,10 @@ export const MediaCard: React.FC<MediaCardProps> = ({
         
         <textarea
           value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
+          onChange={(e) => {
+            isUserEditing.current = true;
+            setDescripcion(e.target.value);
+          }}
           placeholder="Añade un detalle..."
           className="w-full bg-white border-none rounded-2xl p-4 text-sm font-bold text-slate-700 placeholder:text-slate-300 placeholder:font-medium focus:ring-4 focus:ring-indigo-100 transition-all resize-none min-h-[80px] shadow-sm"
           onFocus={(e) => e.stopPropagation()}
