@@ -4,7 +4,6 @@ import {
   AlignLeft, 
   Calendar, 
   Loader2, 
-  AlertCircle, 
   Check, 
   ChevronDown,
   Phone,
@@ -25,6 +24,7 @@ import { DynamicSearchSelect } from '../../../components/DynamicSearchSelect';
 import { useTareas } from '../context/useTareas';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { ActualizarTareaDTO, Tarea } from '../types';
+import { toast } from 'sonner';
 
 interface Props {
   tareaId: string;
@@ -46,8 +46,6 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
   // Si tenemos initialData, empezamos con isLoading en false para carga instantánea
   const [isLoading, setIsLoading] = useState(!initialData);
   const [isSyncing, setIsSyncing] = useState(!!initialData); // Indica si estamos validando con el servidor
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(initialData ? initialData.estado !== 'Pendiente' : false);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -128,8 +126,6 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
         
       } catch (err) {
         console.error('Error al cargar tarea:', err);
-        // Solo mostramos error si no pudimos cargar ni los datos iniciales
-        if (!initialData) setError('No se pudo cargar la información de la tarea.');
       } finally {
         setIsLoading(false);
         setIsSyncing(false);
@@ -150,27 +146,26 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const onSubmit = async (data: ActualizarTareaDTO) => {
+  const onSubmit = (data: ActualizarTareaDTO) => {
     if (isReadOnly) return;
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      const payload = {
-        ...data,
-        fechaInicio: new Date(data.fechaInicio).toISOString()
-      };
+    
+    // FIRE AND FORGET: Respuesta instantánea
+    localStorage.removeItem(`tarea_cache_${tareaId}`);
+    onSuccess(); // Cerramos el panel/formulario de inmediato
 
-      await actualizarTarea(tareaId, payload);
-      // Limpiar cache al actualizar
-      localStorage.removeItem(`tarea_cache_${tareaId}`);
-      onSuccess();
-    } catch (err) {
-      console.error('Error al actualizar tarea:', err);
-      setError('No se pudo actualizar la tarea. Verifica los datos o su conexión.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    const payload = {
+      ...data,
+      fechaInicio: new Date(data.fechaInicio).toISOString()
+    };
+
+    // Petición en background
+    actualizarTarea(tareaId, payload).catch((err) => {
+      console.error('Error al actualizar tarea en background:', err);
+      // Notificación de error diferida
+      toast.error('No se pudo actualizar la tarea', {
+        description: 'Hubo un problema de conexión. Por favor revisa tu calendario en unos momentos.'
+      });
+    });
   };
 
   const formData = watch();
@@ -228,13 +223,6 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {error && (
-            <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center gap-3 text-rose-700 text-sm font-bold">
-              <AlertCircle className="h-5 w-5" />
-              {error}
-            </div>
-          )}
-
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título</label>
             <div className="relative">
@@ -392,17 +380,9 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
             <div className="pt-4">
               <button 
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] disabled:bg-slate-300 flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed"
+                className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  'Guardar Cambios'
-                )}
+                Guardar Cambios
               </button>
             </div>
           )}

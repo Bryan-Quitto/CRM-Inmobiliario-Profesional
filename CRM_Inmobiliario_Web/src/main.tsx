@@ -23,7 +23,7 @@ createRoot(document.getElementById('root')!).render(
           provider: localStorageProvider 
         }}
       >
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-right" closeButton expand={true} />
         <App />
       </SWRConfig>
     </BrowserRouter>
