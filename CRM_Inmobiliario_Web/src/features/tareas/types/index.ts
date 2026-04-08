@@ -7,6 +7,7 @@ export interface Tarea {
   estado: 'Pendiente' | 'Completada' | 'Cancelada';
   clienteNombre?: string;
   propiedadTitulo?: string;
+  propiedadDireccion?: string;
   clienteId?: string;
   propiedadId?: string;
   lugar?: string;

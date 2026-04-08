@@ -21,7 +21,10 @@ public static class ListarTareasFeature
         string Estado,
         string? ClienteNombre,
         string? PropiedadTitulo,
-        string? Lugar);
+        string? Lugar,
+        Guid? ClienteId,
+        Guid? PropiedadId,
+        string? PropiedadDireccion);
 
     public static RouteHandlerBuilder MapListarTareasEndpoint(this IEndpointRouteBuilder app)
     {
@@ -44,7 +47,10 @@ public static class ListarTareasFeature
                     t.Estado,
                     t.Cliente != null ? $"{t.Cliente.Nombre} {t.Cliente.Apellido}".Trim() : null,
                     t.Propiedad != null ? t.Propiedad.Titulo : null,
-                    t.Lugar))
+                    t.Lugar,
+                    t.ClienteId,
+                    t.PropiedadId,
+                    t.Propiedad != null ? t.Propiedad.Direccion : null))
                 .ToListAsync();
 
             return Results.Ok(tareas);
