@@ -22,7 +22,8 @@ import { actualizarTarea } from '../api/actualizarTarea';
 import { buscarClientes } from '../../clientes/api/buscarClientes';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import { DynamicSearchSelect } from '../../../components/DynamicSearchSelect';
-import { useState, useEffect, useRef } from 'react';
+import { useTareas } from '../context/useTareas';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import type { ActualizarTareaDTO, Tarea } from '../types';
 
 interface Props {
@@ -41,6 +42,7 @@ const TIPOS_TAREA = [
 ];
 
 export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onCancelTask }: Props) => {
+  const { clientes, propiedades } = useTareas();
   // Si tenemos initialData, empezamos con isLoading en false para carga instantánea
   const [isLoading, setIsLoading] = useState(!initialData);
   const [isSyncing, setIsSyncing] = useState(!!initialData); // Indica si estamos validando con el servidor
@@ -49,6 +51,16 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(initialData ? initialData.estado !== 'Pendiente' : false);
   const selectRef = useRef<HTMLDivElement>(null);
+
+  const clienteOptions = useMemo(() => 
+    clientes.map(c => ({ id: c.id, title: `${c.nombre} ${c.apellido}`, subtitle: c.telefono })),
+    [clientes]
+  );
+
+  const propiedadOptions = useMemo(() => 
+    propiedades.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad}, ${p.sector}` })),
+    [propiedades]
+  );
 
   const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<ActualizarTareaDTO & { clienteNombre?: string; propiedadTitulo?: string }>({
     defaultValues: initialData ? {
@@ -289,6 +301,7 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
                 placeholder="Buscar por nombre o teléfono..."
                 value={field.value}
                 initialLabel={formData.clienteNombre}
+                options={clienteOptions}
                 onSearch={async (q) => {
                   const res = await buscarClientes(q);
                   return res.map(c => ({ id: c.id, title: c.nombreCompleto, subtitle: c.telefono }));
@@ -311,6 +324,7 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
                 placeholder="Buscar por título de propiedad..."
                 value={field.value}
                 initialLabel={formData.propiedadTitulo}
+                options={propiedadOptions}
                 onSearch={async (q) => {
                   const res = await buscarPropiedades(q);
                   return res.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad}, ${p.sector}` }));

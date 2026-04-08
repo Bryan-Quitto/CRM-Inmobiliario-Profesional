@@ -21,6 +21,7 @@ import { crearTarea } from '../api/crearTarea';
 import { buscarClientes } from '../../clientes/api/buscarClientes';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import { DynamicSearchSelect } from '../../../components/DynamicSearchSelect';
+import { useTareas } from '../context/useTareas';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { CrearTareaDTO } from '../types';
 
@@ -40,11 +41,22 @@ const TIPOS_TAREA = [
 const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
 
 export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => {
+  const { clientes, propiedades } = useTareas();
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
+
+  const clienteOptions = useMemo(() => 
+    clientes.map(c => ({ id: c.id, title: `${c.nombre} ${c.apellido}`, subtitle: c.telefono })),
+    [clientes]
+  );
+
+  const propiedadOptions = useMemo(() => 
+    propiedades.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad}, ${p.sector}` })),
+    [propiedades]
+  );
 
   const defaultFecha = useMemo(() => {
     console.log('[FORM] Calculando defaultFecha. Props fechaInicial:', fechaInicial);
@@ -299,6 +311,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
                 icon={User}
                 placeholder="Buscar por nombre o teléfono..."
                 value={field.value}
+                options={clienteOptions}
                 onSearch={async (q) => {
                   const res = await buscarClientes(q);
                   return res.map(c => ({ id: c.id, title: c.nombreCompleto, subtitle: c.telefono }));
@@ -317,6 +330,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
                 icon={Home}
                 placeholder="Buscar por título de propiedad..."
                 value={field.value}
+                options={propiedadOptions}
                 onSearch={async (q) => {
                   const res = await buscarPropiedades(q);
                   return res.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad}, ${p.sector}` }));

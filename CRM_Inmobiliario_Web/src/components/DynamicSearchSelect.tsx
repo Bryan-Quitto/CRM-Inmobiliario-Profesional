@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Loader2, X, Check } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import Fuse from 'fuse.js';
 
 interface SearchItem {
   id: string;
@@ -14,7 +15,8 @@ interface Props {
   placeholder: string;
   value?: string; // ID
   initialLabel?: string;
-  onSearch: (query: string) => Promise<SearchItem[]>;
+  options?: SearchItem[]; // Búsqueda local instantánea
+  onSearch?: (query: string) => Promise<SearchItem[]>; // Fallback a búsqueda remota
   onChange: (id: string | undefined, title: string | undefined) => void;
   error?: string;
 }
@@ -25,6 +27,7 @@ export const DynamicSearchSelect = ({
   placeholder, 
   value, 
   initialLabel, 
+  options,
   onSearch, 
   onChange,
   error 
@@ -36,6 +39,15 @@ export const DynamicSearchSelect = ({
   const [selectedLabel, setSelectedLabel] = useState(initialLabel || '');
   
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const fuse = useMemo(() => {
+    if (!options) return null;
+    return new Fuse(options, {
+      keys: ['title', 'subtitle'],
+      threshold: 0.3,
+      distance: 100
+    });
+  }, [options]);
 
   useEffect(() => {
     if (initialLabel) setSelectedLabel(initialLabel);
@@ -52,6 +64,20 @@ export const DynamicSearchSelect = ({
   }, []);
 
   useEffect(() => {
+    // Si hay opciones locales, la búsqueda es INSTANTÁNEA (sin debounce)
+    if (options && fuse) {
+      if (query.length >= 1) {
+        const fuzzyResults = fuse.search(query).map(r => r.item);
+        setResults(fuzzyResults);
+      } else {
+        setResults([]);
+      }
+      return;
+    }
+
+    // Si NO hay opciones locales, usamos la búsqueda remota con debounce (el comportamiento anterior)
+    if (!onSearch) return;
+
     const delayDebounceFn = setTimeout(async () => {
       if (query.length >= 1) {
         setIsLoading(true);
@@ -69,7 +95,7 @@ export const DynamicSearchSelect = ({
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [query, onSearch]);
+  }, [query, options, fuse, onSearch]);
 
   const handleSelect = (item: SearchItem) => {
     setSelectedLabel(item.title);

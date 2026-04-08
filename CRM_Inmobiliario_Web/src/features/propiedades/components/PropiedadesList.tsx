@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import useSWR, { SWRConfig } from 'swr';
+import Fuse from 'fuse.js';
 import { 
   Home, 
   MapPin, 
@@ -262,15 +263,30 @@ const PropiedadesContent = () => {
     return found?.color || 'bg-slate-500 border-slate-400 text-white';
   };
 
-  const filteredPropiedades = useMemo(() => {
-    return propiedades.filter(p => {
-      const matchesSearch = p.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           p.sector.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           p.ciudad.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesEstado = filterEstado === 'Todos' || p.estadoComercial === filterEstado;
-      return matchesSearch && matchesEstado;
+  const fuse = useMemo(() => {
+    return new Fuse(propiedades, {
+      keys: [
+        { name: 'titulo', weight: 0.6 },
+        { name: 'sector', weight: 0.2 },
+        { name: 'ciudad', weight: 0.2 }
+      ],
+      threshold: 0.3,
+      distance: 100
     });
-  }, [propiedades, searchQuery, filterEstado]);
+  }, [propiedades]);
+
+  const filteredPropiedades = useMemo(() => {
+    let result = propiedades;
+
+    if (searchQuery.trim()) {
+      result = fuse.search(searchQuery).map(r => r.item);
+    }
+
+    return result.filter(p => {
+      const matchesEstado = filterEstado === 'Todos' || p.estadoComercial === filterEstado;
+      return matchesEstado;
+    });
+  }, [propiedades, searchQuery, filterEstado, fuse]);
 
   const stats = useMemo(() => ({
     total: propiedades.length,
