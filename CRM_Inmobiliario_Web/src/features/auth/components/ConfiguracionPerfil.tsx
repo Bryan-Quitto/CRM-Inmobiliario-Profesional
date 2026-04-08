@@ -18,40 +18,43 @@ const ConfiguracionPerfil: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  // Ref para guardar los últimos datos sincronizados y detectar cambios locales
+  // Ref para rastrear si ya hemos inicializado el formulario con datos reales
+  const isInitialized = React.useRef(false);
   const lastSyncedData = React.useRef(perfil);
 
-  // Sincronizar datos del servidor con el formulario local (Smart Merge)
+  // Sincronizar datos del servidor con el formulario local (Smart Merge Robusto)
   useEffect(() => {
     if (perfil) {
-      setFormData(prev => {
-        // Si no había datos previos (primera carga), cargamos todo
-        if (!lastSyncedData.current) {
-          lastSyncedData.current = perfil;
-          return {
-            nombre: perfil.nombre ?? '',
-            apellido: perfil.apellido ?? '',
-            telefono: perfil.telefono ?? '',
-            agencia: perfil.agencia ?? '',
-            fotoUrl: perfil.fotoUrl ?? '',
-            logoUrl: perfil.logoUrl ?? ''
-          };
-        }
-
-        // SMART MERGE: Solo actualizamos los campos que el usuario NO ha tocado
-        // basándonos en si el valor actual es distinto al último que recibimos del servidor
-        const merged = {
-          nombre: prev.nombre !== (lastSyncedData.current.nombre ?? '') ? prev.nombre : (perfil.nombre ?? ''),
-          apellido: prev.apellido !== (lastSyncedData.current.apellido ?? '') ? prev.apellido : (perfil.apellido ?? ''),
-          telefono: prev.telefono !== (lastSyncedData.current.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
-          agencia: prev.agencia !== (lastSyncedData.current.agencia ?? '') ? prev.agencia : (perfil.agencia ?? ''),
-          fotoUrl: prev.fotoUrl !== (lastSyncedData.current.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
-          logoUrl: prev.logoUrl !== (lastSyncedData.current.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? '')
-        };
-
+      // Caso 1: Inicialización forzada (Primera vez que llegan datos reales)
+      if (!isInitialized.current && (perfil.nombre || perfil.apellido)) {
+        setFormData({
+          nombre: perfil.nombre ?? '',
+          apellido: perfil.apellido ?? '',
+          telefono: perfil.telefono ?? '',
+          agencia: perfil.agencia ?? '',
+          fotoUrl: perfil.fotoUrl ?? '',
+          logoUrl: perfil.logoUrl ?? ''
+        });
         lastSyncedData.current = perfil;
-        return merged;
-      });
+        isInitialized.current = true;
+        return;
+      }
+
+      // Caso 2: Sincronización en segundo plano (Solo si ya inicializamos)
+      if (isInitialized.current) {
+        setFormData(prev => {
+          const merged = {
+            nombre: prev.nombre !== (lastSyncedData.current?.nombre ?? '') ? prev.nombre : (perfil.nombre ?? ''),
+            apellido: prev.apellido !== (lastSyncedData.current?.apellido ?? '') ? prev.apellido : (perfil.apellido ?? ''),
+            telefono: prev.telefono !== (lastSyncedData.current?.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
+            agencia: prev.agencia !== (lastSyncedData.current?.agencia ?? '') ? prev.agencia : (perfil.agencia ?? ''),
+            fotoUrl: prev.fotoUrl !== (lastSyncedData.current?.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
+            logoUrl: prev.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? '')
+          };
+          lastSyncedData.current = perfil;
+          return merged;
+        });
+      }
     }
   }, [perfil]);
 
@@ -69,10 +72,11 @@ const ConfiguracionPerfil: React.FC = () => {
     }
   };
 
-  if (isLoading && !perfil) {
+  if (isLoading || !perfil) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="flex flex-col items-center justify-center min-h-[400px] animate-in fade-in duration-500">
+        <Loader2 size={48} className="text-indigo-600 animate-spin mb-4" />
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Sincronizando perfil corporativo...</p>
       </div>
     );
   }

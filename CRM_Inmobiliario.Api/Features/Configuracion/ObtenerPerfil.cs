@@ -27,6 +27,12 @@ public static class ObtenerPerfilFeature
         return app.MapGet("/perfil", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
+            var email = user.FindFirstValue(ClaimTypes.Email) 
+                        ?? user.FindFirstValue("email") 
+                        ?? user.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress") 
+                        ?? "";
+
+            Console.WriteLine($"DEBUG [ObtenerPerfil]: Buscando agente {agenteId} ({email})");
 
             var perfil = await context.Agents
                 .AsNoTracking()
@@ -44,9 +50,25 @@ public static class ObtenerPerfilFeature
                     a.FechaCreacion))
                 .FirstOrDefaultAsync();
 
-            return perfil is not null 
-                ? Results.Ok(perfil) 
-                : Results.NotFound();
+            if (perfil is null)
+            {
+                Console.WriteLine($"DEBUG [ObtenerPerfil]: Agente no encontrado en DB. Devolviendo perfil base.");
+                return Results.Ok(new Response(
+                    agenteId,
+                    "",
+                    "",
+                    email,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Agente",
+                    DateTimeOffset.UtcNow
+                ));
+            }
+
+            Console.WriteLine($"DEBUG [ObtenerPerfil]: Agente encontrado: {perfil.Nombre} {perfil.Apellido}");
+            return Results.Ok(perfil);
         })
         .WithTags("Configuracion")
         .WithName("ObtenerPerfil");
