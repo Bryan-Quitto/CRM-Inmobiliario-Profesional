@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -23,7 +24,9 @@ public static class ActualizarPerfilFeature
         return app.MapPut("/perfil", async (Request request, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
+            var email = user.FindFirstValue(ClaimTypes.Email) ?? user.FindFirstValue("email") ?? "";
 
+            // Intentamos actualizar primero (más rápido)
             var rowsAffected = await context.Agents
                 .Where(a => a.Id == agenteId)
                 .ExecuteUpdateAsync(setters => setters
@@ -34,9 +37,29 @@ public static class ActualizarPerfilFeature
                     .SetProperty(a => a.FotoUrl, request.FotoUrl)
                     .SetProperty(a => a.LogoUrl, request.LogoUrl));
 
-            return rowsAffected > 0 
-                ? Results.NoContent() 
-                : Results.NotFound();
+            // Si no se afectaron filas, es que el agente no existe en la tabla public.Agents
+            if (rowsAffected == 0)
+            {
+                var nuevoAgente = new Agent
+                {
+                    Id = agenteId,
+                    Nombre = request.Nombre,
+                    Apellido = request.Apellido,
+                    Email = email,
+                    Telefono = request.Telefono.NormalizeEcuadorPhone(),
+                    Agencia = request.Agencia,
+                    FotoUrl = request.FotoUrl,
+                    LogoUrl = request.LogoUrl,
+                    Rol = "Agente",
+                    Activo = true,
+                    FechaCreacion = DateTimeOffset.UtcNow
+                };
+
+                context.Agents.Add(nuevoAgente);
+                await context.SaveChangesAsync();
+            }
+
+            return Results.NoContent();
         })
         .WithTags("Configuracion")
         .WithName("ActualizarPerfil");

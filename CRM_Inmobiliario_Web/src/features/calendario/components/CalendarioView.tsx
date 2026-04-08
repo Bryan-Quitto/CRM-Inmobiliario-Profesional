@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -46,10 +46,31 @@ const EditarTareaForm = React.lazy(() => import('../../tareas/components/EditarT
 
 const CalendarioContent: React.FC = () => {
   const calendarRef = useRef<FullCalendar>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [viewType, setViewType] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'>('dayGridMonth');
   const [currentTitle, setCurrentTitle] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [range, setRange] = useState({ start: '', end: '' });
+
+  // ResizeObserver para corregir el bug de responsive cuando cambian los paneles laterales
+  useEffect(() => {
+    if (!containerRef.current || !calendarRef.current) return;
+
+    const calendarApi = calendarRef.current.getApi();
+    
+    const observer = new ResizeObserver(() => {
+      // Usamos requestAnimationFrame para asegurar que el ajuste ocurra en el siguiente frame de renderizado
+      window.requestAnimationFrame(() => {
+        calendarApi.updateSize();
+      });
+    });
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
   
   // SWR: Carga reactiva basada en el rango visible
   const { data: eventos, isValidating: syncing, mutate } = useSWR<CalendarEvent[]>(
@@ -377,7 +398,7 @@ const CalendarioContent: React.FC = () => {
           </div>
         )}
         
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 h-full">
+        <div ref={containerRef} className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 h-full">
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}

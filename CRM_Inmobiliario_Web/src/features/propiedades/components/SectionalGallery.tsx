@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useTransition } from 'react';
 import { 
   Upload, 
   Trash2, 
-  FileDown, 
+  FileDown,
   Loader2, 
   ImageIcon,
   Pencil,
   Plus,
   AlignLeft,
   Check,
+  X,
   GripVertical,
   ChevronUp,
   ChevronDown
@@ -16,11 +17,13 @@ import {
 import { Draggable } from '@hello-pangea/dnd';
 import { useGalleryCore } from '../hooks/useGalleryCore';
 import { useUpload } from '../context/useUpload';
-import type { MultimediaPropiedad } from '../types';
+import { useSWRConfig } from 'swr';
+import type { MultimediaPropiedad, Propiedad } from '../types';
 import ConfirmModal from '@/components/ConfirmModal';
 import { MediaCard } from './MediaCard';
 
 interface SectionalGalleryProps {
+// ... (rest of the interface remains same)
   propiedadId: string;
   propiedadTitulo: string;
   index: number;
@@ -40,7 +43,7 @@ interface SectionalGalleryProps {
   totalSections?: number;
 }
 
-export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
+export const SectionalGallery = React.memo<SectionalGalleryProps>(({
   propiedadId,
   propiedadTitulo,
   index,
@@ -59,6 +62,17 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
   onMoveTo,
   totalSections = 0
 }) => {
+  const { mutate } = useSWRConfig();
+  const [, startTransition] = useTransition();
+
+  // Handlers estables para evitar re-renders innecesarios en MediaCard
+  const handleSetCoverStable = useCallback((id: string) => onSetCover(id), [onSetCover]);
+  const handleDeleteMediaStable = useCallback((id: string | string[]) => onDeleteMedia(id), [onDeleteMedia]);
+  const handleSavedStable = useCallback(() => {
+    // Sincronización silenciosa con el servidor
+    mutate(`/propiedades/${propiedadId}`);
+  }, [mutate, propiedadId]);
+
   const { 
     selectedMediaIds, 
     handleToggleSelection, 
@@ -116,17 +130,35 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
 
     descTimeoutRef.current = setTimeout(async () => {
       setIsSavingDesc(true);
+      const swrKey = `/propiedades/${propiedadId}`;
+
+      // Actualización Optimista para Descripción de Sección
+      mutate(swrKey, (prev: Propiedad | undefined) => {
+        if (!prev || !sectionId) return prev;
+        return {
+          ...prev,
+          secciones: prev.secciones?.map(s => 
+            s.id === sectionId ? { ...s, descripcion } : s
+          )
+        };
+      }, false);
+
       try {
         await onRenameSection(sectionId, nombre, descripcion || null);
         setSaveDescSuccess(true);
+        startTransition(() => {
+          mutate(swrKey);
+        });
         setTimeout(() => setSaveDescSuccess(false), 2000);
+      } catch {
+        mutate(swrKey);
       } finally {
         setIsSavingDesc(false);
       }
     }, 1500);
 
     return () => { if (descTimeoutRef.current) clearTimeout(descTimeoutRef.current); };
-  }, [descripcion, sectionId, nombre, onRenameSection, sectionDescripcion]);
+  }, [descripcion, sectionId, nombre, onRenameSection, sectionDescripcion, propiedadId, mutate]);
 
   const handleFiles = async (files: FileList | File[]) => {
     const filesArray = Array.from(files);
@@ -150,11 +182,36 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
     setConfirmDeleteSection(false);
   };
 
-  const handleRenameSubmit = async () => {
-    if (onRenameSection && sectionId && nombre !== sectionNombre) {
-      await onRenameSection(sectionId, nombre, descripcion || null);
-    }
+  const handleRenameSubmit = () => {
+    // Cerramos el modo edición inmediatamente para una respuesta instantánea (Zero Wait)
     setIsEditingName(false);
+
+    if (onRenameSection && sectionId && nombre !== sectionNombre) {
+      const swrKey = `/propiedades/${propiedadId}`;
+      
+      // 1. Actualización Optimista inmediata en el cache local
+      mutate(swrKey, (prev: Propiedad | undefined) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          secciones: prev.secciones?.map(s => 
+            s.id === sectionId ? { ...s, nombre } : s
+          )
+        };
+      }, false);
+
+      // 2. Ejecutar la petición en segundo plano (Fire and Forget)
+      onRenameSection(sectionId, nombre, descripcion || null)
+        .then(() => {
+          // Revalidar silenciosamente al terminar para asegurar integridad
+          mutate(swrKey);
+        })
+        .catch((err) => {
+          console.error("Error al renombrar sección:", err);
+          // Revertir automáticamente disparando una revalidación desde el servidor
+          mutate(swrKey);
+        });
+    }
   };
 
   const galleryId = sectionId || 'general';
@@ -206,14 +263,40 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
               
               <div className="flex-1">
                 {isEditingName ? (
-                  <input 
-                    value={nombre} 
-                    onChange={(e) => setNombre(e.target.value)}
-                    className="w-full bg-slate-50 border-2 border-indigo-100 rounded-xl px-4 py-2 text-xl font-black text-slate-900 outline-none focus:bg-white transition-all"
-                    autoFocus
-                    onBlur={handleRenameSubmit}
-                    onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()}
-                  />
+                  <div className="flex items-center gap-2 w-full animate-in zoom-in-95 duration-200">
+                    <input 
+                      value={nombre} 
+                      onChange={(e) => setNombre(e.target.value)}
+                      className="flex-1 bg-slate-50 border-2 border-indigo-100 rounded-xl px-4 py-2 text-xl font-black text-slate-900 outline-none focus:bg-white transition-all"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleRenameSubmit();
+                        if (e.key === 'Escape') {
+                          setNombre(sectionNombre);
+                          setIsEditingName(false);
+                        }
+                      }}
+                    />
+                    <div className="flex items-center gap-1">
+                      <button 
+                        onClick={handleRenameSubmit}
+                        className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all cursor-pointer"
+                        title="Confirmar"
+                      >
+                        <Check size={16} strokeWidth={3} />
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setNombre(sectionNombre);
+                          setIsEditingName(false);
+                        }}
+                        className="p-2 bg-slate-100 text-slate-400 rounded-lg hover:bg-rose-50 hover:text-rose-500 transition-all cursor-pointer"
+                        title="Cancelar"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-3 group">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">{sectionNombre}</h3>
@@ -324,11 +407,12 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
               item={item}
               isSelected={selectedMediaIds.has(item.id)}
               onToggleSelection={handleToggleSelection}
-              onSetCover={onSetCover}
-              onDelete={(id) => onDeleteMedia(id)}
+              onSetCover={handleSetCoverStable}
+              onDelete={handleDeleteMediaStable}
               onDownload={handleDownloadSingle}
               showActions={selectedMediaIds.size === 0}
-              onSaved={() => onImageUploaded?.(item)}
+              onSaved={handleSavedStable}
+              propiedadId={propiedadId}
             />
           ))}
         </div>
@@ -388,4 +472,4 @@ export const SectionalGallery: React.FC<SectionalGalleryProps> = ({
       )}
     </Draggable>
   );
-};
+});

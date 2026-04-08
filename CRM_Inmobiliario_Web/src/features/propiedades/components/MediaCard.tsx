@@ -8,9 +8,10 @@ import {
   Loader2,
   FileText
 } from 'lucide-react';
-import type { MultimediaPropiedad } from '../types';
+import type { MultimediaPropiedad, Propiedad } from '../types';
 import { actualizarDescripcionMultimedia } from '../api/actualizarDescripcionMultimedia';
 import { toast } from 'sonner';
+import { useSWRConfig } from 'swr';
 
 interface MediaCardProps {
   item: MultimediaPropiedad;
@@ -20,10 +21,11 @@ interface MediaCardProps {
   onDelete: (id: string) => void;
   onDownload: (url: string, filename: string) => void;
   showActions: boolean;
-  onSaved?: () => void; // Nueva prop para avisar al padre
+  onSaved?: () => void;
+  propiedadId: string;
 }
 
-export const MediaCard: React.FC<MediaCardProps> = ({
+export const MediaCard = React.memo<MediaCardProps>(({
   item,
   isSelected,
   onToggleSelection,
@@ -31,51 +33,75 @@ export const MediaCard: React.FC<MediaCardProps> = ({
   onDelete,
   onDownload,
   showActions,
-  onSaved
+  onSaved,
+  propiedadId
 }) => {
+  const { mutate } = useSWRConfig();
+// ... (keep internal state and effects)
   const [descripcion, setDescripcion] = useState(item.descripcion || '');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Ref para evitar sobrescritura mientras el usuario escribe
   const isUserEditing = useRef(false);
 
-  // Sincronizar estado local con props (Crítico para SWR)
   useEffect(() => {
-    // Solo sincronizar si el usuario NO está editando activamente
     if (!isUserEditing.current && !isSaving) {
       setDescripcion(item.descripcion || '');
     }
   }, [item.descripcion, isSaving]);
 
-  // Auto-save logic with debounce
   useEffect(() => {
-    // Si el texto es igual al que ya está en la prop, no hacer nada
     if (descripcion === (item.descripcion || '')) return;
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     timeoutRef.current = setTimeout(async () => {
       setIsSaving(true);
+      const swrKey = `/propiedades/${propiedadId}`;
+
+      // ACTUALIZACIÓN OPTIMISTA (UPSP Pattern)
+      // Actualizamos el cache global antes de que el servidor responda
+      mutate(swrKey, (prev: Propiedad | undefined) => {
+        if (!prev) return prev;
+        
+        // Clonación profunda inmutable para el merge optimista
+        return {
+          ...prev,
+          mediaSinSeccion: prev.mediaSinSeccion?.map(m => 
+            m.id === item.id ? { ...m, descripcion } : m
+          ),
+          secciones: prev.secciones?.map(s => ({
+            ...s,
+            media: s.media.map(m => m.id === item.id ? { ...m, descripcion } : m)
+          }))
+        };
+      }, false); // El false indica que no revalide todavía
+
       try {
         await actualizarDescripcionMultimedia(item.id, descripcion || null);
         setSaveSuccess(true);
-        isUserEditing.current = false; // Finaliza la edición tras guardado exitoso
-        if (onSaved) onSaved(); // Avisar al padre para que SWR sepa que hay datos nuevos
+        isUserEditing.current = false;
+        
+        // Revalidación silenciosa después del éxito para asegurar consistencia
+        mutate(swrKey);
+        
+        if (onSaved) onSaved();
         setTimeout(() => setSaveSuccess(false), 2000);
       } catch (error) {
         console.error('Error auto-guardando descripción:', error);
         toast.error('Error al guardar descripción');
+        // Revertimos el cache en caso de error disparando una revalidación
+        mutate(swrKey);
       } finally {
         setIsSaving(false);
       }
-    }, 1000);
+    }, 1200);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [descripcion, item.id, item.descripcion, onSaved]);
+  }, [descripcion, item.id, item.descripcion, onSaved, propiedadId, mutate]);
 
   return (
     <div className={`group flex flex-col bg-white rounded-[2.5rem] border-2 transition-all duration-500 overflow-hidden ${
@@ -163,4 +189,4 @@ export const MediaCard: React.FC<MediaCardProps> = ({
       </div>
     </div>
   );
-};
+});
