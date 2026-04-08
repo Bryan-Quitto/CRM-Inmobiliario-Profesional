@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import { getTareas } from '../api/getTareas';
+import { getClientes } from '../../clientes/api/getClientes';
+import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import type { Tarea } from '../types';
+import type { Cliente } from '../../clientes/types';
+import type { Propiedad } from '../../propiedades/types';
 import { TareasContext } from './TareasContext';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 
@@ -9,6 +13,18 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { data: tareas = [], isValidating: loading, mutate } = useSWR<Tarea[]>(
     '/tareas',
     getTareas,
+    swrDefaultConfig
+  );
+
+  const { data: clientes = [], isValidating: loadingClientes } = useSWR<Cliente[]>(
+    '/clientes',
+    getClientes,
+    swrDefaultConfig
+  );
+
+  const { data: propiedades = [], isValidating: loadingPropiedades } = useSWR<Propiedad[]>(
+    '/propiedades',
+    getPropiedades,
     swrDefaultConfig
   );
 
@@ -36,6 +52,10 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const value = {
     tareas,
     loading,
+    clientes,
+    loadingClientes,
+    propiedades,
+    loadingPropiedades,
     refreshTareas,
     updateTareaEstado,
     urgentesCount

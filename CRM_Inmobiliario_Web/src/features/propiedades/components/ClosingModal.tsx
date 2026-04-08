@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { X, DollarSign, User, Check, Loader2, Info } from 'lucide-react';
 import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
 import { buscarClientes } from '../../clientes/api/buscarClientes';
+import { useTareas } from '../../tareas/context/useTareas';
 import { toast } from 'sonner';
 
 interface ClosingModalProps {
@@ -21,10 +22,16 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
   precioSugerido,
   tipoOperacion
 }) => {
+  const { clientes } = useTareas();
   const [precioCierre, setPrecioCierre] = useState<string>(precioSugerido.toString());
   const [clienteId, setClienteId] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const clienteOptions = useMemo(() => 
+    clientes.map(c => ({ id: c.id, title: `${c.nombre} ${c.apellido}`, subtitle: c.telefono })),
+    [clientes]
+  );
 
   if (!isOpen) return null;
 
@@ -124,6 +131,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
               label={tipoOperacion === 'Alquiler' ? 'Inquilino Final' : 'Comprador Final'}
               icon={User}
               placeholder={`Buscar ${tipoOperacion === 'Alquiler' ? 'inquilino' : 'comprador'}...`}
+              options={clienteOptions}
               onSearch={onSearchClients}
               onChange={(id) => setClienteId(id)}
               value={clienteId}

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSWR, { SWRConfig } from 'swr';
 import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock, LayoutGrid, List, Pencil } from 'lucide-react';
+import Fuse from 'fuse.js';
 import { getClientes } from '../api/getClientes';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { CrearClienteForm } from './CrearClienteForm';
@@ -117,15 +118,30 @@ const ClientesContent = () => {
     }
   }, [notification]);
 
-  const filteredClientes = useMemo(() => {
-    return clientes.filter(cliente => {
-      const fullName = `${cliente.nombre} ${cliente.apellido || ''}`.toLowerCase();
-      const matchesSearch = fullName.includes(searchQuery.toLowerCase()) || 
-                           cliente.email?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesEtapa = filterEtapa === 'Todas' || cliente.etapaEmbudo === filterEtapa;
-      return matchesSearch && matchesEtapa;
+  const fuse = useMemo(() => {
+    return new Fuse(clientes, {
+      keys: [
+        { name: 'nombre', weight: 0.7 },
+        { name: 'apellido', weight: 0.7 },
+        { name: 'email', weight: 0.3 }
+      ],
+      threshold: 0.3,
+      distance: 100
     });
-  }, [clientes, searchQuery, filterEtapa]);
+  }, [clientes]);
+
+  const filteredClientes = useMemo(() => {
+    let result = clientes;
+
+    if (searchQuery.trim()) {
+      result = fuse.search(searchQuery).map(r => r.item);
+    }
+
+    return result.filter(cliente => {
+      const matchesEtapa = filterEtapa === 'Todas' || cliente.etapaEmbudo === filterEtapa;
+      return matchesEtapa;
+    });
+  }, [clientes, searchQuery, filterEtapa, fuse]);
 
   const stats = useMemo(() => ({
     total: clientes.length,
