@@ -38,7 +38,10 @@ var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 // Registro estándar de EF Core con Ciclo de Vida Scoped para las peticiones HTTP
 builder.Services.AddDbContext<CrmDbContext>(options => 
 {
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(connectionString, npgsqlOptions => 
+    {
+        npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+    });
 
     // Habilitar logs sensibles estrictamente solo en entorno de desarrollo
     if (builder.Environment.IsDevelopment())

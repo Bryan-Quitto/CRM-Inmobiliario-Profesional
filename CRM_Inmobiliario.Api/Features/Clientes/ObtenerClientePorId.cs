@@ -44,6 +44,8 @@ public static class ObtenerClientePorIdFeature
             var agenteId = user.GetRequiredUserId();
 
             var cliente = await context.Leads
+                .AsNoTracking()
+                .AsSplitQuery()
                 .Where(c => c.Id == id && c.AgenteId == agenteId)
                 .Select(c => new Response(
                     c.Id,
