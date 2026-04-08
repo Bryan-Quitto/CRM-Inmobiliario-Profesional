@@ -164,6 +164,20 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     
     // Pattern Undo
     let isCancelled = false;
+    const commitDelete = async () => {
+      if (isCancelled) return;
+      try {
+        if (idsArray.length === 1) {
+          await deleteImagenPropiedad(propiedad.id, idsArray[0]);
+        } else {
+          await deleteImagenesSeleccionadas(propiedad.id, idsArray);
+        }
+        mutate();
+      } catch {
+        toast.error("Error al eliminar del servidor");
+      }
+    };
+
     toast.warning(`${idsArray.length > 1 ? 'Imágenes eliminadas' : 'Imagen eliminada'}`, {
       description: "Tienes unos segundos para deshacer.",
       action: {
@@ -175,19 +189,8 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         }
       },
       duration: 5000,
-      onAutoClose: async () => {
-        if (isCancelled) return;
-        try {
-          if (idsArray.length === 1) {
-            await deleteImagenPropiedad(propiedad.id, idsArray[0]);
-          } else {
-            await deleteImagenesSeleccionadas(propiedad.id, idsArray);
-          }
-          mutate();
-        } catch {
-          toast.error("Error al eliminar del servidor");
-        }
-      }
+      onAutoClose: commitDelete,
+      onDismiss: commitDelete
     });
 
     // Optimistic UI
@@ -276,6 +279,18 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     
     // Pattern Undo
     let isCancelled = false;
+    const commitDelete = async () => {
+      if (isCancelled) return;
+      try {
+        await eliminarSeccion(sectionId);
+        mutate();
+      } catch {
+        toast.error("Error al eliminar sección del servidor");
+        // Revertir UI
+        mutate((prev) => prev ? { ...prev, secciones: previousSecciones } : prev, false);
+      }
+    };
+
     toast.warning("Sección eliminada", {
       description: "Tienes unos segundos para deshacer.",
       action: {
@@ -287,17 +302,8 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         }
       },
       duration: 5000,
-      onAutoClose: async () => {
-        if (isCancelled) return;
-        try {
-          await eliminarSeccion(sectionId);
-          mutate();
-        } catch {
-          toast.error("Error al eliminar sección del servidor");
-          // Revertir UI
-          mutate((prev) => prev ? { ...prev, secciones: previousSecciones } : prev, false);
-        }
-      }
+      onAutoClose: commitDelete,
+      onDismiss: commitDelete
     });
 
     // Actualización Optimista UI
@@ -330,6 +336,17 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
     // Pattern Undo
     let isCancelled = false;
+    const commitClear = async () => {
+      if (isCancelled) return;
+      try {
+        await limpiarImagenesPropiedad(id);
+        mutate();
+      } catch {
+        toast.error("Error al limpiar la galería en el servidor");
+        mutate((prev) => prev ? { ...prev, ...previousState } : prev, false);
+      }
+    };
+
     toast.warning("Galería depurada", {
       description: "Se han eliminado todas las fotos excepto la de portada. Tienes unos segundos para deshacer.",
       action: {
@@ -341,16 +358,8 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         }
       },
       duration: 6000,
-      onAutoClose: async () => {
-        if (isCancelled) return;
-        try {
-          await limpiarImagenesPropiedad(id);
-          mutate();
-        } catch {
-          toast.error("Error al limpiar la galería en el servidor");
-          mutate((prev) => prev ? { ...prev, ...previousState } : prev, false);
-        }
-      }
+      onAutoClose: commitClear,
+      onDismiss: commitClear
     });
 
     // Actualización Optimista UI
@@ -422,7 +431,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     handleReorder(ids);
   };
 
-  const handleStatusChange = async (nuevoEstado: string, confirmed = false) => {
+  const handleStatusChange = (nuevoEstado: string, confirmed = false) => {
     if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
     setIsStatusDropdownOpen(false);
 
@@ -441,22 +450,26 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     setStatusConfirmation(null);
     setIsClosing(false);
 
-    // Cambio de estado simple o confirmado
-    try {
-      setIsUpdatingStatus(true);
+    // FIRE AND FORGET: Respuesta instantánea
+    const optimisticData = { ...propiedad, estadoComercial: nuevoEstado };
+    mutate(optimisticData, false);
+    toast.success(`Estado actualizado a ${nuevoEstado}`);
+
+    // Cambio de estado simple o confirmado en background
+    const action = async () => {
       await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
-      
       if (confirmed && (nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva')) {
         await limpiarImagenesPropiedad(propiedad.id);
       }
-      
-      mutate();
-      toast.success(`Estado actualizado a ${nuevoEstado}`);
-    } catch {
-      toast.error("Error al cambiar estado");
-    } finally {
-      setIsUpdatingStatus(false);
-    }
+    };
+
+    action()
+      .then(() => mutate())
+      .catch((err) => {
+        console.error('Error al cambiar estado:', err);
+        toast.error("Error al sincronizar el estado");
+        mutate();
+      });
   };
 
   if (!propiedad && syncing) {

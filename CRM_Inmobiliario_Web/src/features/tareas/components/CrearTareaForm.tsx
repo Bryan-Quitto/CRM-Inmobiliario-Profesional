@@ -1,10 +1,8 @@
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { 
   Type, 
   AlignLeft, 
   Calendar, 
-  Loader2, 
-  AlertCircle, 
   Trash2, 
   Check, 
   RotateCcw, 
@@ -24,6 +22,7 @@ import { DynamicSearchSelect } from '../../../components/DynamicSearchSelect';
 import { useTareas } from '../context/useTareas';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { CrearTareaDTO } from '../types';
+import { toast } from 'sonner';
 
 interface Props {
   onSuccess: () => void;
@@ -43,8 +42,6 @@ const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
 export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => {
   const { clientes, propiedades } = useTareas();
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
@@ -107,21 +104,15 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
     };
   };
 
-  const { register, handleSubmit, watch, formState: { errors }, reset, control, setValue } = useForm<CrearTareaDTO>({
+  const { register, handleSubmit, formState: { errors }, reset, control, setValue } = useForm<CrearTareaDTO>({
     defaultValues: getInitialValues()
   });
 
-  const formData = watch();
-  const hasData = formData.titulo || formData.descripcion;
-
-  useEffect(() => {
-    // Solo guardamos título, descripción y tipo en el borrador
-    // EXCLUIMOS la fecha para que no se quede "pegada" la de sesiones anteriores
-    const rest = { ...formData };
-    // @ts-expect-error: Excluyendo intencionalmente para el localStorage
-    delete rest.fechaInicio;
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(rest));
-  }, [formData]);
+  const titulo = useWatch({ control, name: 'titulo' });
+  const descripcion = useWatch({ control, name: 'descripcion' });
+  const tipoTarea = useWatch({ control, name: 'tipoTarea' });
+  const propiedadId = useWatch({ control, name: 'propiedadId' });
+  const hasData = titulo || descripcion;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -144,29 +135,27 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
     setIsConfirmingClear(false);
   };
 
-  const onSubmit = async (data: CrearTareaDTO) => {
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      const payload = {
-        ...data,
-        fechaInicio: new Date(data.fechaInicio).toISOString()
-      };
+  const onSubmit = (data: CrearTareaDTO) => {
+    // FIRE AND FORGET: Respuesta instantánea
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    onSuccess(); // Cerramos el panel/formulario de inmediato
 
-      await crearTarea(payload);
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
-      reset(); 
-      onSuccess();
-    } catch (err: unknown) {
-      console.error('Error al crear tarea:', err);
-      setError('No se pudo programar la tarea. Verifica los datos o su conexión.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    const payload = {
+      ...data,
+      fechaInicio: new Date(data.fechaInicio).toISOString()
+    };
+
+    // Petición en background
+    crearTarea(payload).catch((err: unknown) => {
+      console.error('Error al crear tarea en background:', err);
+      // Notificación de error diferida
+      toast.error('No se pudo programar la tarea', {
+        description: 'Hubo un problema de conexión. Por favor revisa tu calendario en unos momentos.'
+      });
+    });
   };
 
-  const selectedTipo = TIPOS_TAREA.find(t => t.value === formData.tipoTarea) || TIPOS_TAREA[0];
+  const selectedTipo = TIPOS_TAREA.find(t => t.value === tipoTarea) || TIPOS_TAREA[0];
 
   return (
     <div className="flex flex-col h-full bg-white animate-in slide-in-from-right duration-300">
@@ -220,13 +209,6 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-10">
-          {error && (
-            <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center gap-3 text-rose-700 text-sm font-bold">
-              <AlertCircle className="h-5 w-5" />
-              {error}
-            </div>
-          )}
-
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título</label>
             <div className="relative">
@@ -340,7 +322,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
             )}
           />
 
-          {(formData.tipoTarea === 'Visita' || formData.tipoTarea === 'Reunión') && !formData.propiedadId && (
+          {(tipoTarea === 'Visita' || tipoTarea === 'Reunión') && !propiedadId && (
             <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Lugar</label>
               <div className="relative">
@@ -369,17 +351,9 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
 
           <button 
             type="submit"
-            disabled={isSubmitting}
-            className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] disabled:bg-slate-300 flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed"
+            className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer"
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Agendando...
-              </>
-            ) : (
-              'Guardar Tarea'
-            )}
+            Guardar Tarea
           </button>
         </form>
       </div>

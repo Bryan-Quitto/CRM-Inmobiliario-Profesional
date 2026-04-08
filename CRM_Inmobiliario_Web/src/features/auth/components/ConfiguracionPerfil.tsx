@@ -4,9 +4,15 @@ import { User, Save, CheckCircle, Loader2 } from 'lucide-react';
 import { Camera, Image as ImageIcon } from 'lucide-react';
 import FotoPerfilUpload from './FotoPerfilUpload';
 import LogoAgenciaUpload from './LogoAgenciaUpload';
+import { toast } from 'sonner';
 
 const ConfiguracionPerfil: React.FC = () => {
-  const { perfil, isLoading, actualizarPerfil } = usePerfil();
+  const { perfil, actualizarPerfil, mutate, isLoading } = usePerfil();
+  
+  // Ref para rastrear si ya hemos inicializado el formulario con datos reales
+  const isInitialized = React.useRef(false);
+  const lastSyncedData = React.useRef(perfil);
+
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -15,18 +21,17 @@ const ConfiguracionPerfil: React.FC = () => {
     fotoUrl: '',
     logoUrl: ''
   });
-  const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  
-  // Ref para rastrear si ya hemos inicializado el formulario con datos reales
-  const isInitialized = React.useRef(false);
-  const lastSyncedData = React.useRef(perfil);
 
   // Sincronizar datos del servidor con el formulario local (Smart Merge Robusto)
   useEffect(() => {
-    if (perfil) {
-      // Caso 1: Inicialización forzada (Primera vez que llegan datos reales)
-      if (!isInitialized.current && (perfil.nombre || perfil.apellido)) {
+    if (!perfil) return;
+
+    // Caso 1: Inicialización forzada (Primera vez que llegan datos reales)
+    if (!isInitialized.current && (perfil.nombre || perfil.apellido)) {
+      // Usamos un timeout de 0 para sacar el setState del flujo síncrono del efecto
+      // y evitar el error de react-hooks/set-state-in-effect
+      const timer = setTimeout(() => {
         setFormData({
           nombre: perfil.nombre ?? '',
           apellido: perfil.apellido ?? '',
@@ -37,40 +42,50 @@ const ConfiguracionPerfil: React.FC = () => {
         });
         lastSyncedData.current = perfil;
         isInitialized.current = true;
-        return;
-      }
+      }, 0);
+      return () => clearTimeout(timer);
+    }
 
-      // Caso 2: Sincronización en segundo plano (Solo si ya inicializamos)
-      if (isInitialized.current) {
-        setFormData(prev => {
-          const merged = {
-            nombre: prev.nombre !== (lastSyncedData.current?.nombre ?? '') ? prev.nombre : (perfil.nombre ?? ''),
-            apellido: prev.apellido !== (lastSyncedData.current?.apellido ?? '') ? prev.apellido : (perfil.apellido ?? ''),
-            telefono: prev.telefono !== (lastSyncedData.current?.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
-            agencia: prev.agencia !== (lastSyncedData.current?.agencia ?? '') ? prev.agencia : (perfil.agencia ?? ''),
-            fotoUrl: prev.fotoUrl !== (lastSyncedData.current?.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
-            logoUrl: prev.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? '')
-          };
-          lastSyncedData.current = perfil;
-          return merged;
-        });
-      }
+    // Caso 2: Sincronización en segundo plano (Solo si ya inicializamos)
+    if (isInitialized.current) {
+      setFormData(prev => {
+        const merged = {
+          nombre: prev.nombre !== (lastSyncedData.current?.nombre ?? '') ? prev.nombre : (perfil.nombre ?? ''),
+          apellido: prev.apellido !== (lastSyncedData.current?.apellido ?? '') ? prev.apellido : (perfil.apellido ?? ''),
+          telefono: prev.telefono !== (lastSyncedData.current?.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
+          agencia: prev.agencia !== (lastSyncedData.current?.agencia ?? '') ? prev.agencia : (perfil.agencia ?? ''),
+          fotoUrl: prev.fotoUrl !== (lastSyncedData.current?.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
+          logoUrl: prev.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? '')
+        };
+        lastSyncedData.current = perfil;
+        return merged;
+      });
     }
   }, [perfil]);
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setIsSaving(true);
-    try {
-      await actualizarPerfil(formData);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (error) {
-      console.error('Error al actualizar perfil:', error);
-    } finally {
-      setIsSaving(false);
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // FIRE AND FORGET: Respuesta instantánea (Zero Wait)
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+
+    // Ejecutamos la petición en segundo plano
+    actualizarPerfil(formData)
+      .then(() => {
+        // Mutate ya lo hace internamente actualizarPerfil, pero podemos forzar revalidación
+        mutate();
+      })
+      .catch((err) => {
+        console.error('Error al actualizar perfil:', err);
+        toast.error('No se pudo sincronizar el perfil', {
+          description: 'Tus cambios se mantendrán localmente pero hubo un error de conexión.'
+        });
+        // Revertimos a los datos del servidor para mantener consistencia
+        mutate();
+      });
   };
+
 
   if (isLoading || !perfil) {
     return (
@@ -226,21 +241,9 @@ const ConfiguracionPerfil: React.FC = () => {
                   
                   <button
                     type="submit"
-                    disabled={isSaving}
-                    className={`flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl ${
-                      isSaving ? 'bg-indigo-400 cursor-wait' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 cursor-pointer'
-                    }`}
+                    className="flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 cursor-pointer"
                   >
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        GUARDANDO...
-                      </>
-                    ) : (
-                      <>
-                        <Save size={20} /> GUARDAR CAMBIOS
-                      </>
-                    )}
+                    <Save size={20} /> GUARDAR CAMBIOS
                   </button>
                 </div>
               </form>

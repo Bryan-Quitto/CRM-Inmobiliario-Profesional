@@ -1,9 +1,10 @@
 import { useForm, Controller } from 'react-hook-form';
-import { User, Mail, Phone, Tag, Loader2, AlertCircle, X, Trash2, Check, RotateCcw, ChevronDown, Pencil } from 'lucide-react';
+import { User, Mail, Phone, Tag, X, Trash2, Check, RotateCcw, ChevronDown, Pencil } from 'lucide-react';
 import { crearCliente, type CrearClienteDTO } from '../api/crearCliente';
 import { actualizarCliente } from '../api/actualizarCliente';
 import { useState, useEffect, useRef } from 'react';
 import type { Cliente } from '../types';
+import { toast } from 'sonner';
 
 interface Props {
   initialData?: Cliente;
@@ -24,9 +25,7 @@ const DRAFT_STORAGE_KEY = 'crm_prospecto_draft';
 export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) => {
   const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
@@ -110,32 +109,30 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
     setIsConfirmingClear(false);
   };
 
-  const onSubmit = async (data: CrearClienteDTO) => {
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      if (isEditing) {
-        await actualizarCliente(initialData.id, data);
-      } else {
-        await crearCliente(data);
-      }
-      
-      // Transición Satisfy
-      setIsSuccess(true);
-      if (!isEditing) {
-        localStorage.removeItem(DRAFT_STORAGE_KEY);
-      }
-      
-      setTimeout(() => {
-        reset(); 
-        onSuccess();
-      }, 800);
-    } catch (err) {
-      console.error('Error al guardar cliente:', err);
-      setError(`No se pudo ${isEditing ? 'actualizar' : 'registrar'} al prospecto. Verifica la conexión.`);
-      setIsSubmitting(false);
+  const onSubmit = (data: CrearClienteDTO) => {
+    // FIRE AND FORGET: Respuesta instantánea
+    setIsSuccess(true);
+    if (!isEditing) {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
     }
+
+    // Cerramos el modal/formulario inmediatamente tras un breve feedback visual
+    setTimeout(() => {
+      onSuccess();
+    }, 600);
+
+    // Ejecutamos la petición en segundo plano
+    const action = isEditing 
+      ? actualizarCliente(initialData.id, data)
+      : crearCliente(data);
+
+    action.catch((err) => {
+      console.error('Error al guardar cliente en background:', err);
+      // Notificamos el error aunque hayamos cerrado el modal
+      toast.error(`Error al ${isEditing ? 'actualizar' : 'registrar'} cliente`, {
+        description: 'Hubo un problema de conexión. Por favor revisa tu lista de clientes en unos momentos.'
+      });
+    });
   };
 
   return (
@@ -195,14 +192,8 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && (
-          <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center gap-3 text-rose-700 text-sm font-bold">
-            <AlertCircle className="h-5 w-5" />
-            {error}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Nombre</label>
             <div className="relative">
@@ -315,14 +306,14 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
           <button 
             type="button"
             onClick={onCancel}
-            disabled={isSubmitting || isSuccess}
+            disabled={isSuccess}
             className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors cursor-pointer disabled:opacity-0"
           >
             Cancelar
           </button>
           <button 
             type="submit"
-            disabled={isSubmitting || isSuccess}
+            disabled={isSuccess}
             className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed ${
               isSuccess 
                 ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
@@ -334,11 +325,6 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
                 <Check className="h-5 w-5 stroke-[4px]" />
                 <span>¡{isEditing ? 'Actualizado' : 'Registrado'}!</span>
               </div>
-            ) : isSubmitting ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                {isEditing ? 'Actualizando...' : 'Registrando...'}
-              </>
             ) : (
               <div className="flex items-center gap-2">
                 {isEditing ? <Pencil className="h-4 w-4" /> : null}

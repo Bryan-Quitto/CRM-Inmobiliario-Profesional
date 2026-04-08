@@ -97,6 +97,32 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
   const descTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const descripcionRef = useRef(descripcion);
+  const nombreRef = useRef(nombre);
+  const isPendingSaveDesc = useRef(false);
+  const isSavingRef = useRef(isSavingDesc);
+
+  useEffect(() => {
+    descripcionRef.current = descripcion;
+    nombreRef.current = nombre;
+    // Marcamos como pendiente si el nombre o la descripción han cambiado respecto a las props
+    isPendingSaveDesc.current = descripcion !== (sectionDescripcion || '') || nombre !== sectionNombre;
+  }, [descripcion, nombre, sectionDescripcion, sectionNombre]);
+
+  useEffect(() => {
+    isSavingRef.current = isSavingDesc;
+  }, [isSavingDesc]);
+
+  // Guardado al desmontar (Fire and Forget)
+  useEffect(() => {
+    return () => {
+      // Solo disparamos si hay cambios pendientes, no se está guardando ya, y el ID es válido (no temporal)
+      if (isPendingSaveDesc.current && !isSavingRef.current && sectionId && onRenameSection && !sectionId.startsWith('temp-')) {
+        onRenameSection(sectionId, nombreRef.current, descripcionRef.current || null).catch(console.error);
+      }
+    };
+  }, [sectionId, onRenameSection]);
+
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -119,7 +145,10 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
 
   // Auto-save for section description
   useEffect(() => {
-    if (descripcion === (sectionDescripcion || '')) return;
+    if (descripcion === (sectionDescripcion || '')) {
+      isPendingSaveDesc.current = false;
+      return;
+    }
     if (!sectionId || !onRenameSection) return;
     
     // IMPORTANTE: No guardar si el ID es temporal (comienza con temp-)
@@ -145,6 +174,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
 
       try {
         await onRenameSection(sectionId, nombre, descripcion || null);
+        isPendingSaveDesc.current = false;
         setSaveDescSuccess(true);
         startTransition(() => {
           mutate(swrKey);
@@ -377,7 +407,6 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer border-t border-slate-50 ${
-            isUploading(propiedadId) ? 'opacity-50 cursor-not-allowed bg-slate-50' : 
             isDragging ? 'bg-indigo-600 text-white' : 'bg-slate-50/20 hover:bg-indigo-50/30'
           }`}
         >
@@ -387,12 +416,17 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
             className="hidden" 
             accept="image/*" 
             onChange={(e) => e.target.files && handleFiles(e.target.files)} 
-            disabled={isUploading(propiedadId)}
           />
           <div className="flex items-center gap-3">
-            <Upload size={18} className={isDragging ? 'animate-bounce' : 'text-indigo-600'} />
+            {isUploading(propiedadId, sectionId) ? (
+              <Loader2 size={18} className="text-indigo-600 animate-spin" />
+            ) : (
+              <Upload size={18} className={isDragging ? 'animate-bounce' : 'text-indigo-600'} />
+            )}
             <span className="text-[11px] font-black uppercase tracking-widest">
-              {isDragging ? '¡Suelta para subir!' : `Arrastra o haz clic para subir a ${sectionNombre}`}
+              {isDragging ? '¡Suelta para subir!' : 
+               isUploading(propiedadId, sectionId) ? `Subiendo a ${sectionNombre}... (Puedes añadir más)` :
+               `Arrastra o haz clic para subir a ${sectionNombre}`}
             </span>
           </div>
         </label>
@@ -416,7 +450,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
             />
           ))}
         </div>
-      ) : !isUploading(propiedadId) && (
+      ) : !isUploading(propiedadId, sectionId) && (
         <div className="py-20 bg-slate-50/30 border-2 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center justify-center text-slate-300">
           <ImageIcon size={48} className="mb-4 opacity-10" />
           <p className="text-xs font-black uppercase tracking-[0.3em]">Sección vacía</p>

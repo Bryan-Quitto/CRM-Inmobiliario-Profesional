@@ -7,7 +7,6 @@ import {
   Maximize, 
   BedDouble, 
   Bath, 
-  Loader2, 
   AlertCircle, 
   X, 
   Trash2, 
@@ -19,10 +18,12 @@ import {
   Pencil,
   Globe
 } from 'lucide-react';
-import { crearPropiedad, type CrearPropiedadDTO } from '../api/crearPropiedad';
+import { crearPropiedad } from '../api/crearPropiedad';
 import { actualizarPropiedad } from '../api/actualizarPropiedad';
 import { useState, useEffect, useRef } from 'react';
 import type { Propiedad } from '../types';
+import type { CrearPropiedadDTO } from '../api/crearPropiedad';
+import { toast } from 'sonner';
 
 interface Props {
   initialData?: Propiedad;
@@ -49,9 +50,7 @@ const DRAFT_STORAGE_KEY = 'crm_propiedad_draft';
 export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) => {
   const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   
   const [activeSelect, setActiveSelect] = useState<'tipo' | 'operacion' | null>(null);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -150,39 +149,38 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
     setIsConfirmingClear(false);
   };
 
-  const onSubmit = async (data: CrearPropiedadDTO) => {
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      const payload = {
-        ...data,
-        precio: Number(data.precio),
-        habitaciones: Number(data.habitaciones || 0),
-        banos: Number(data.banos || 0),
-        areaTotal: Number(data.areaTotal)
-      };
-
-      if (isEditing) {
-        await actualizarPropiedad(initialData.id, payload);
-      } else {
-        await crearPropiedad(payload);
-      }
-      
-      setIsSuccess(true);
-      if (!isEditing) {
-        localStorage.removeItem(DRAFT_STORAGE_KEY);
-      }
-      
-      setTimeout(() => {
-        reset(); 
-        onSuccess();
-      }, 800);
-    } catch (err) {
-      console.error('Error al guardar propiedad:', err);
-      setError(`No se pudo ${isEditing ? 'actualizar' : 'registrar'} la propiedad. Verifica la conexión.`);
-      setIsSubmitting(false);
+  const onSubmit = (data: CrearPropiedadDTO) => {
+    // FIRE AND FORGET: Respuesta instantánea
+    setIsSuccess(true);
+    if (!isEditing) {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
     }
+
+    // Cerramos el modal/formulario inmediatamente tras un breve feedback visual
+    setTimeout(() => {
+      onSuccess();
+    }, 600);
+
+    const payload = {
+      ...data,
+      precio: Number(data.precio),
+      habitaciones: Number(data.habitaciones || 0),
+      banos: Number(data.banos || 0),
+      areaTotal: Number(data.areaTotal)
+    };
+
+    // Ejecutamos la petición en segundo plano
+    const action = isEditing 
+      ? actualizarPropiedad(initialData.id, payload)
+      : crearPropiedad(payload);
+
+    action.catch((err) => {
+      console.error('Error al guardar propiedad en background:', err);
+      // Notificamos el error aunque hayamos cerrado el modal
+      toast.error(`Error al ${isEditing ? 'actualizar' : 'registrar'} propiedad`, {
+        description: 'Hubo un problema de conexión. Por favor revisa tu catálogo en unos momentos.'
+      });
+    });
   };
 
   return (
@@ -241,12 +239,6 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && (
-          <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center gap-3 text-rose-700 text-sm font-bold">
-            <AlertCircle className="h-5 w-5" />
-            {error}
-          </div>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
           {/* 1. TÍTULO */}
@@ -533,14 +525,14 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
           <button 
             type="button" 
             onClick={onCancel} 
-            disabled={isSubmitting || isSuccess}
+            disabled={isSuccess}
             className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors cursor-pointer disabled:opacity-0"
           >
             Cancelar
           </button>
           <button 
             type="submit"
-            disabled={isSubmitting || isSuccess || !tipoSeleccionado}
+            disabled={isSuccess || !tipoSeleccionado}
             className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed ${
               isSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700 disabled:bg-slate-300'
             }`}
@@ -550,11 +542,6 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                 <Check className="h-5 w-5 stroke-[4px]" />
                 <span>¡{isEditing ? 'Actualizada' : 'Registrada'}!</span>
               </div>
-            ) : isSubmitting ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                {isEditing ? 'Actualizando...' : 'Registrando...'}
-              </>
             ) : (
               <div className="flex items-center gap-2">
                 {isEditing ? <Pencil className="h-4 w-4" /> : null}

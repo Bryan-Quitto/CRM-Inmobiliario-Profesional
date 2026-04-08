@@ -58,7 +58,6 @@ interface AgendaPanelProps {
 
 export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   const { tareas: allTareas, loading, updateTareaEstado, refreshTareas } = useTareas();
-  const [completingId, setCompletingId] = useState<string | null>(null);
   const [view, setView] = useState<'list' | 'create' | 'edit' | 'detail'>('list');
   const [selectedTareaId, setSelectedTareaId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -69,32 +68,36 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     allTareas.find(t => t.id === selectedTareaId), 
   [allTareas, selectedTareaId]);
 
-  const handleCompletar = async (id: string) => {
-    try {
-      setCompletingId(id);
-      await updateTareaEstado(id, 'Completada');
-      await completarTarea(id);
-    } catch (err) {
-      console.error('Error al completar tarea:', err);
-    } finally {
-      setCompletingId(null);
-    }
+  const handleCompletar = (id: string) => {
+    // FIRE AND FORGET: Actualización inmediata en el contexto local (Context API)
+    updateTareaEstado(id, 'Completada');
+    
+    // Petición en background
+    completarTarea(id).catch((err) => {
+      console.error('Error al completar tarea en background:', err);
+      toast.error('No se pudo sincronizar la tarea');
+      // El contexto debería tener lógica de rollback o revalidación si fuera necesario
+      refreshTareas(); 
+    });
   };
 
-  const handleCancelar = async () => {
+  const handleCancelar = () => {
     if (!selectedTareaId) return;
-    try {
-      await updateTareaEstado(selectedTareaId, 'Cancelada');
-      await cancelarTarea(selectedTareaId);
-      toast.success('Tarea cancelada correctamente');
-      setView('list');
-      setSelectedTareaId(null);
-    } catch (err) {
-      console.error('Error al cancelar tarea:', err);
-      toast.error('No se pudo cancelar la tarea');
-    } finally {
-      setIsConfirmingCancel(false);
-    }
+    const id = selectedTareaId;
+
+    // FIRE AND FORGET: UI instantánea
+    updateTareaEstado(id, 'Cancelada');
+    setView('list');
+    setSelectedTareaId(null);
+    setIsConfirmingCancel(false);
+    toast.success('Tarea cancelada correctamente');
+
+    // Background process
+    cancelarTarea(id).catch((err) => {
+      console.error('Error al cancelar tarea en background:', err);
+      toast.error('No se pudo sincronizar la cancelación');
+      refreshTareas();
+    });
   };
 
   const tareasPendientes = useMemo(() => allTareas.filter(t => t.estado === 'Pendiente'), [allTareas]);
@@ -274,7 +277,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                         setSelectedTareaId(tarea.id);
                         setView('edit');
                       }}
-                      isCompleting={completingId === tarea.id}
+                      isCompleting={false}
                     />
                   ))}
                 </div>
@@ -302,7 +305,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                         setSelectedTareaId(tarea.id);
                         setView('edit');
                       }}
-                      isCompleting={completingId === tarea.id}
+                      isCompleting={false}
                     />
                   ))}
                 </div>
@@ -330,7 +333,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                         setSelectedTareaId(tarea.id);
                         setView('edit');
                       }}
-                      isCompleting={completingId === tarea.id}
+                      isCompleting={false}
                     />
                   ))}
                 </div>

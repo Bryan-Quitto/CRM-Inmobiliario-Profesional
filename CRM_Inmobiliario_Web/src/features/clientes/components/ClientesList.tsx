@@ -85,7 +85,6 @@ const ClientesContent = () => {
   const loading = !clientes.length && !syncing;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClienteForEdit, setSelectedClienteForEdit] = useState<Cliente | null>(null);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de cliente
   const dropdownRef = useRef<HTMLDivElement>(null);
   
@@ -149,29 +148,25 @@ const ClientesContent = () => {
     negociacion: clientes.filter(c => c.etapaEmbudo === 'En Negociación').length
   }), [clientes]);
 
-  const handleStageChange = async (id: string, nuevaEtapa: string) => {
+  const handleStageChange = (id: string, nuevaEtapa: string) => {
     setOpenDropdownId(null);
     const cliente = clientes.find(c => c.id === id);
     if (!cliente || cliente.etapaEmbudo === nuevaEtapa) return;
 
-    // 1. Actualización Optimista vía SWR
+    // 1. FIRE AND FORGET: Actualización Optimista inmediata vía SWR
     const optimisticData = clientes.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c);
+    mutate(optimisticData, false);
+    setNotification({ type: 'success', message: `Cliente movido a ${nuevaEtapa}` });
     
-    try {
-      setUpdatingId(id);
-      await mutate(actualizarEtapaCliente(id, nuevaEtapa).then(() => optimisticData), {
-        optimisticData,
-        rollbackOnError: true,
-        revalidate: true
+    // 2. Petición en background
+    actualizarEtapaCliente(id, nuevaEtapa)
+      .then(() => mutate()) // Revalidar silenciosamente
+      .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        console.error('Error al actualizar etapa:', err);
+        mutate(); // Revertir en caso de error
+        const msg = err.response?.data?.Message || 'No se pudo sincronizar el cambio de estado.';
+        setNotification({ type: 'error', message: msg });
       });
-      setNotification({ type: 'success', message: `Cliente movido a ${nuevaEtapa}` });
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      console.error(err);
-      const msg = err.response?.data?.Message || 'No se pudo actualizar el estado.';
-      setNotification({ type: 'error', message: msg });
-    } finally {
-      setUpdatingId(null);
-    }
   };
 
   const getEtapaStyles = (etapa: string) => {
@@ -320,23 +315,16 @@ const ClientesContent = () => {
                 </div>
                 
                 <div className="relative" ref={openDropdownId === cliente.id ? dropdownRef : null}>
-                  {updatingId === cliente.id ? (
-                    <div className="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full flex items-center gap-2">
-                      <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                      <span className="text-[10px] font-black text-slate-400">SYNC...</span>
-                    </div>
-                  ) : (
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenDropdownId(openDropdownId === cliente.id ? null : cliente.id);
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 ${getEtapaStyles(cliente.etapaEmbudo)}`}
-                    >
-                      {cliente.etapaEmbudo}
-                      <ChevronDown className={`h-3 w-3 transition-transform ${openDropdownId === cliente.id ? 'rotate-180' : ''}`} />
-                    </button>
-                  )}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenDropdownId(openDropdownId === cliente.id ? null : cliente.id);
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 ${getEtapaStyles(cliente.etapaEmbudo)}`}
+                  >
+                    {cliente.etapaEmbudo}
+                    <ChevronDown className={`h-3 w-3 transition-transform ${openDropdownId === cliente.id ? 'rotate-180' : ''}`} />
+                  </button>
 
                   {openDropdownId === cliente.id && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">

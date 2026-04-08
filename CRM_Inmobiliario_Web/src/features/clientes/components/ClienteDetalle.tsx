@@ -117,24 +117,24 @@ const ClienteDetalleContent = () => {
     window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
-  const handleStageChange = async (nuevaEtapa: string) => {
+  const handleStageChange = (nuevaEtapa: string) => {
     if (!cliente || !id || cliente.etapaEmbudo === nuevaEtapa) return;
     setShowEtapaDropdown(false);
     
     const optimisticData = { ...cliente, etapaEmbudo: nuevaEtapa };
     
-    try {
-      setUpdatingEtapa(true);
-      await mutate(actualizarEtapaCliente(id, nuevaEtapa).then(() => optimisticData), {
-        optimisticData,
-        rollbackOnError: true,
-        revalidate: true
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUpdatingEtapa(false);
-    }
+    // FIRE AND FORGET: Actualización instantánea del cache
+    mutate(optimisticData, { revalidate: false });
+
+    // Petición en background
+    setUpdatingEtapa(true);
+    actualizarEtapaCliente(id, nuevaEtapa)
+      .then(() => mutate()) // Revalidar silenciosamente
+      .catch((err) => {
+        console.error('Error al cambiar etapa:', err);
+        mutate(); // Revertir en error
+      })
+      .finally(() => setUpdatingEtapa(false));
   };
 
   const handleOpenVincular = async (interes?: Interes) => {
@@ -145,17 +145,7 @@ const ClienteDetalleContent = () => {
         id: interes.propiedadId, 
         titulo: interes.titulo, 
         precio: interes.precio, 
-        estadoComercial: interes.estadoComercial,
-        codigo: '', 
-        tipoInmueble: '',
-        ubicacion: '',
-        area: 0,
-        habitaciones: 0,
-        banos: 0,
-        parqueaderos: 0,
-        descripcion: '',
-        caracteristicas: [],
-        imagenes: []
+        estadoComercial: interes.estadoComercial
       } as unknown as Propiedad);
       setFiltroPropiedad(interes.titulo);
       setNivelInteres(interes.nivelInteres);
@@ -174,7 +164,7 @@ const ClienteDetalleContent = () => {
     }
   };
 
-  const handleVincular = async () => {
+  const handleVincular = () => {
     if (!propiedadSeleccionada || !cliente || !id) return;
     
     const nuevoInteres: Interes = {
@@ -200,20 +190,19 @@ const ClienteDetalleContent = () => {
     }
 
     const optimisticData = { ...cliente, intereses: nuevosIntereses };
-    setShowVincularModal(false);
     
-    try {
-      setVinculando(true);
-      await mutate(vincularPropiedad(id, propiedadSeleccionada.id, nivelInteres).then(() => optimisticData), {
-        optimisticData,
-        rollbackOnError: true,
-        revalidate: true
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setVinculando(false);
-    }
+    // FIRE AND FORGET: Cierre inmediato y actualización de cache
+    setShowVincularModal(false);
+    mutate(optimisticData, { revalidate: false });
+    
+    setVinculando(true);
+    vincularPropiedad(id, propiedadSeleccionada.id, nivelInteres)
+      .then(() => mutate())
+      .catch((err) => {
+        console.error('Error al vincular propiedad:', err);
+        mutate();
+      })
+      .finally(() => setVinculando(false));
   };
 
   const interesesFiltrados = useMemo(() => {
@@ -221,7 +210,7 @@ const ClienteDetalleContent = () => {
     return cliente.intereses.filter(i => 
       i.titulo.toLowerCase().includes(searchIntereses.toLowerCase())
     );
-  }, [cliente?.intereses, searchIntereses]);
+  }, [cliente, searchIntereses]);
 
   const historialFiltrado = useMemo(() => {
     if (!cliente?.interacciones) return [];
@@ -231,13 +220,15 @@ const ClienteDetalleContent = () => {
       const matchesTipo = filterTipoTimeline === 'Todos' || i.tipoInteraccion === filterTipoTimeline;
       return matchesSearch && matchesTipo;
     });
-  }, [cliente?.interacciones, searchHistorial, filterTipoTimeline]);
+  }, [cliente, searchHistorial, filterTipoTimeline]);
 
-  const propiedadesFiltradas = propiedadesDisponibles.filter(p => 
-    p.titulo.toLowerCase().includes(filtroPropiedad.toLowerCase())
-  );
+  const propiedadesFiltradas = useMemo(() => {
+    return propiedadesDisponibles.filter(p => 
+      p.titulo.toLowerCase().includes(filtroPropiedad.toLowerCase())
+    );
+  }, [propiedadesDisponibles, filtroPropiedad]);
 
-  const handleGuardarNota = async () => {
+  const handleGuardarNota = () => {
     if (!nuevaNota.trim() || !cliente || !id) return;
     const previousInteracciones = [...(cliente.interacciones || [])];
 
@@ -248,21 +239,20 @@ const ClienteDetalleContent = () => {
       const idNota = notaEnEdicion;
       const tipoParaActualizar = tipoNota;
       const notaParaActualizar = nuevaNota;
+      
+      // FIRE AND FORGET: Limpieza inmediata
       setNotaEnEdicion(null);
       setNuevaNota('');
+      mutate(optimisticData, { revalidate: false });
       
-      try {
-        setSending(true);
-        await mutate(actualizarInteraccion(idNota, notaParaActualizar, tipoParaActualizar).then(() => optimisticData), {
-          optimisticData,
-          rollbackOnError: true,
-          revalidate: true
-        });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setSending(false);
-      }
+      setSending(true);
+      actualizarInteraccion(idNota, notaParaActualizar, tipoParaActualizar)
+        .then(() => mutate())
+        .catch((err) => {
+          console.error('Error al actualizar nota:', err);
+          mutate();
+        })
+        .finally(() => setSending(false));
       return;
     }
 
@@ -275,24 +265,23 @@ const ClienteDetalleContent = () => {
     const optimisticData = { ...cliente, interacciones: [nuevaInteraccion, ...previousInteracciones] };
     const notaAGuardar = nuevaNota;
     const tipoAGuardar = tipoNota;
-    setNuevaNota('');
     
-    try {
-      setSending(true);
-      await mutate(registrarInteraccion({
-        clienteId: id,
-        tipoInteraccion: tipoAGuardar,
-        notas: notaAGuardar
-      }).then(() => optimisticData), {
-        optimisticData,
-        rollbackOnError: true,
-        revalidate: true
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSending(false);
-    }
+    // FIRE AND FORGET: Limpieza inmediata
+    setNuevaNota('');
+    mutate(optimisticData, { revalidate: false });
+    
+    setSending(true);
+    registrarInteraccion({
+      clienteId: id,
+      tipoInteraccion: tipoAGuardar,
+      notas: notaAGuardar
+    })
+      .then(() => mutate())
+      .catch((err) => {
+        console.error('Error al guardar nota:', err);
+        mutate();
+      })
+      .finally(() => setSending(false));
   };
 
   const handleEditarNota = (interaccion: Interaccion) => {
@@ -301,7 +290,7 @@ const ClienteDetalleContent = () => {
     setNuevaNota(interaccion.notas);
   };
 
-  const handleEliminarNota = async (interaccionId: string) => {
+  const handleEliminarNota = (interaccionId: string) => {
     if (!cliente || !id) return;
     const previousInteracciones = [...(cliente.interacciones || [])];
     const optimisticData = {
@@ -309,18 +298,18 @@ const ClienteDetalleContent = () => {
       interacciones: previousInteracciones.filter(i => i.id !== interaccionId)
     };
 
-    try {
-      await mutate(eliminarInteraccion(interaccionId).then(() => optimisticData), {
-        optimisticData,
-        rollbackOnError: true,
-        revalidate: true
+    // FIRE AND FORGET
+    mutate(optimisticData, { revalidate: false });
+
+    eliminarInteraccion(interaccionId)
+      .then(() => mutate())
+      .catch((err) => {
+        console.error('Error al eliminar nota:', err);
+        mutate();
       });
-    } catch (err) {
-      console.error(err);
-    }
   };
 
-  const handleDesvincularInteres = async (propiedadId: string) => {
+  const handleDesvincularInteres = (propiedadId: string) => {
     if (!cliente || !id) return;
     const previousIntereses = [...(cliente.intereses || [])];
     const optimisticData = {
@@ -328,15 +317,15 @@ const ClienteDetalleContent = () => {
       intereses: previousIntereses.filter(i => i.propiedadId !== propiedadId)
     };
 
-    try {
-      await mutate(desvincularPropiedad(id, propiedadId).then(() => optimisticData), {
-        optimisticData,
-        rollbackOnError: true,
-        revalidate: true
+    // FIRE AND FORGET
+    mutate(optimisticData, { revalidate: false });
+
+    desvincularPropiedad(id, propiedadId)
+      .then(() => mutate())
+      .catch((err) => {
+        console.error('Error al desvincular propiedad:', err);
+        mutate();
       });
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   const getEtapaStyles = (etapa: string) => {

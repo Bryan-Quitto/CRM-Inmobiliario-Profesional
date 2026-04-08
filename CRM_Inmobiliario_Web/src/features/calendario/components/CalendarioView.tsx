@@ -158,7 +158,7 @@ const CalendarioContent: React.FC = () => {
   };
 
   // Reprogramación rápida (Drag & Drop / Resizing) - Política Zero Wait
-  const handleEventChange = async (arg: EventChangeArg) => {
+  const handleEventChange = (arg: EventChangeArg) => {
     const { event } = arg;
     const newStart = event.start?.toISOString();
 
@@ -168,28 +168,30 @@ const CalendarioContent: React.FC = () => {
       ? Math.round((event.end.getTime() - event.start!.getTime()) / 60000) 
       : (event.extendedProps as CalendarEvent).duracionMinutos;
 
-    // Usamos listaEventos para asegurar el mapeo correcto
+    // 1. FIRE AND FORGET: Actualización Optimista inmediata del cache local
     const optimisticData = listaEventos.map(e => e.id === event.id ? { 
       ...e, 
       fechaInicio: newStart, 
       duracionMinutos: duracionNueva 
     } : e);
 
-    try {
-      await mutate(reprogramarEvento(event.id, {
-        fechaInicio: newStart,
-        duracionMinutos: duracionNueva
-      }).then(() => optimisticData), {
-        optimisticData,
-        rollbackOnError: true,
-        revalidate: true
+    mutate(optimisticData, false);
+    toast.success('Evento reprogramado localmente');
+
+    // 2. Petición en background
+    reprogramarEvento(event.id, {
+      fechaInicio: newStart,
+      duracionMinutos: duracionNueva
+    })
+      .then(() => {
+        mutate(); // Revalidar silenciosamente
+      })
+      .catch((error: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        console.error('Error al reprogramar evento:', error);
+        toast.error('Error al sincronizar el cambio. Revirtiendo...');
+        arg.revert(); 
+        mutate(); // Revertir cache local
       });
-      toast.success('Evento reprogramado exitosamente');
-    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      console.error('Error al reprogramar evento:', error);
-      toast.error('Error al sincronizar el cambio. Revirtiendo...');
-      arg.revert(); 
-    }
   };
 
   // Mapeo de eventos de negocio a formato FullCalendar

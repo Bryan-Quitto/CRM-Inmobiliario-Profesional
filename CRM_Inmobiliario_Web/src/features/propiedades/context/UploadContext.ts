@@ -1,17 +1,21 @@
 import { createContext } from 'react';
 
 interface UploadProcess {
+  id: string; // ID único para el proceso (propiedadId + sectionId)
   propiedadId: string;
+  sectionId?: string | null;
   nombrePropiedad: string;
   progreso: number;
   estado: 'loading' | 'completed' | 'error';
   totalFiles: number;
   completedFiles: number;
+  dismissed?: boolean;
 }
 
 interface UploadStatus {
   id: string;
   propiedadId: string;
+  sectionId?: string | null;
   fileName: string;
   progress: number;
   status: 'pending' | 'compressing' | 'uploading' | 'completed' | 'error';
@@ -39,7 +43,7 @@ export interface UploadContextType {
     onImageUploaded?: (result: UploadResult) => void,
     sectionId?: string | null
   ) => Promise<void>;
-  isUploading: (propiedadId: string) => boolean;
+  isUploading: (propiedadId: string, sectionId?: string | null) => boolean;
 }
 
 export const UploadContext = createContext<UploadContextType | undefined>(undefined);

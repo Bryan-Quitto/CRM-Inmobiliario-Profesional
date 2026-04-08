@@ -44,6 +44,28 @@ export const MediaCard = React.memo<MediaCardProps>(({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const isUserEditing = useRef(false);
+  const descripcionRef = useRef(descripcion);
+  const isPendingSave = useRef(false);
+  const isSavingRef = useRef(isSaving);
+
+  useEffect(() => {
+    descripcionRef.current = descripcion;
+    isPendingSave.current = descripcion !== (item.descripcion || '');
+  }, [descripcion, item.descripcion]);
+
+  useEffect(() => {
+    isSavingRef.current = isSaving;
+  }, [isSaving]);
+
+  // Guardado al desmontar (Fire and Forget)
+  useEffect(() => {
+    return () => {
+      if (isPendingSave.current && !isSavingRef.current) {
+        // Disparar sin esperar (el componente se está desmontando)
+        actualizarDescripcionMultimedia(item.id, descripcionRef.current || null).catch(console.error);
+      }
+    };
+  }, [item.id]);
 
   useEffect(() => {
     if (!isUserEditing.current && !isSaving) {
@@ -52,7 +74,10 @@ export const MediaCard = React.memo<MediaCardProps>(({
   }, [item.descripcion, isSaving]);
 
   useEffect(() => {
-    if (descripcion === (item.descripcion || '')) return;
+    if (descripcion === (item.descripcion || '')) {
+      isPendingSave.current = false;
+      return;
+    }
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
@@ -80,6 +105,7 @@ export const MediaCard = React.memo<MediaCardProps>(({
 
       try {
         await actualizarDescripcionMultimedia(item.id, descripcion || null);
+        isPendingSave.current = false;
         setSaveSuccess(true);
         isUserEditing.current = false;
         

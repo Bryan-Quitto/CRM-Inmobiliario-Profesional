@@ -194,6 +194,21 @@ const PropiedadesContent = () => {
 
     // CASO 2: Cambio con limpieza (Vendida/Inactiva) - Usar Deshacer
     let isCancelled = false;
+    const commitStatusChange = async () => {
+      if (isCancelled) return;
+
+      try {
+        setUpdatingId(id);
+        await actualizarEstadoPropiedad(id, nuevoEstado);
+        await limpiarImagenesPropiedad(id);
+        mutate();
+        toast.success(`Propiedad "${propiedad.titulo}" actualizada y depurada.`);
+      } catch {
+        toast.error("Error al procesar el cambio de estado masivo.");
+      } finally {
+        setUpdatingId(null);
+      }
+    };
 
     toast.warning(`Estado: ${nuevoEstado}`, {
       description: "La galería ha sido depurada. Puedes deshacer esta acción.",
@@ -206,21 +221,8 @@ const PropiedadesContent = () => {
         },
       },
       duration: 6000,
-      onAutoClose: async () => {
-        if (isCancelled) return;
-
-        try {
-          setUpdatingId(id);
-          await actualizarEstadoPropiedad(id, nuevoEstado);
-          await limpiarImagenesPropiedad(id);
-          mutate();
-          toast.success(`Propiedad "${propiedad.titulo}" actualizada y depurada.`);
-        } catch {
-          toast.error("Error al procesar el cambio de estado masivo.");
-        } finally {
-          setUpdatingId(null);
-        }
-      }
+      onAutoClose: commitStatusChange,
+      onDismiss: commitStatusChange
     });
     
     // Aplicamos cambio local visual inmediatamente mientras corre el timer del toast
