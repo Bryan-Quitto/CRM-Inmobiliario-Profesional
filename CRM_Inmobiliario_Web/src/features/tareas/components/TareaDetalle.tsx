@@ -13,8 +13,10 @@ import {
   CheckCircle2,
   XCircle,
   Trash2,
-  User
+  User,
+  ExternalLink
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { Tarea } from '../types';
 
 interface Props {
@@ -39,6 +41,7 @@ const TIPO_COLORES = {
 };
 
 export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => {
+  const navigate = useNavigate();
   const Icon = TIPO_ICONOS[tarea.tipoTarea] || Clock;
   const colorClass = TIPO_COLORES[tarea.tipoTarea] || 'text-slate-600 bg-slate-50';
   const isPending = tarea.estado === 'Pendiente';
@@ -51,6 +54,18 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
       hour: '2-digit',
       minute: '2-digit'
     }).format(new Date(dateStr));
+  };
+
+  const handleNavigateToClient = () => {
+    if (tarea.clienteId) {
+      navigate(`/prospectos/${tarea.clienteId}`);
+    }
+  };
+
+  const handleNavigateToProperty = () => {
+    if (tarea.propiedadId) {
+      navigate(`/propiedades?id=${tarea.propiedadId}`);
+    }
   };
 
   return (
@@ -155,30 +170,42 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
         {/* Relaciones */}
         <div className="space-y-4 pt-6 border-t border-slate-50">
           {tarea.clienteNombre && (
-            <div className="flex items-center gap-4 group">
+            <button 
+              onClick={handleNavigateToClient}
+              className="w-full flex items-center gap-4 group text-left hover:bg-slate-50 p-2 -m-2 rounded-2xl transition-all cursor-pointer"
+            >
               <div className="h-12 w-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform shadow-sm shadow-blue-100">
                 <User size={24} />
               </div>
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cliente Relacionado</p>
-                <p className="text-base font-black text-slate-900 leading-none mt-1">{tarea.clienteNombre}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  Cliente Relacionado
+                  <ExternalLink size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                </p>
+                <p className="text-base font-black text-slate-900 leading-none mt-1 truncate">{tarea.clienteNombre}</p>
               </div>
-            </div>
+            </button>
           )}
 
           {tarea.propiedadTitulo && (
-            <div className="flex items-center gap-4 group">
+            <button 
+              onClick={handleNavigateToProperty}
+              className="w-full flex items-center gap-4 group text-left hover:bg-slate-50 p-2 -m-2 rounded-2xl transition-all cursor-pointer"
+            >
               <div className="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform shadow-sm shadow-emerald-100">
                 <Home size={24} />
               </div>
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inmueble de Interés</p>
-                <p className="text-base font-black text-slate-900 leading-none mt-1">{tarea.propiedadTitulo}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  Inmueble de Interés
+                  <ExternalLink size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                </p>
+                <p className="text-base font-black text-slate-900 leading-none mt-1 truncate">{tarea.propiedadTitulo}</p>
               </div>
-            </div>
+            </button>
           )}
 
-          {(tarea.lugar || (tarea.propiedadTitulo && !tarea.lugar)) && (
+          {(tarea.lugar || tarea.propiedadDireccion) && (
             <div className="flex items-center gap-4 group">
               <div className="h-12 w-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform shadow-sm shadow-amber-100">
                 <MapPin size={24} />
@@ -186,7 +213,7 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ubicación de la Tarea</p>
                 <p className="text-base font-bold text-slate-700 leading-tight mt-1 truncate max-w-[200px]">
-                  {tarea.lugar || 'Ubicación de la propiedad'}
+                  {tarea.lugar || tarea.propiedadDireccion}
                 </p>
               </div>
             </div>

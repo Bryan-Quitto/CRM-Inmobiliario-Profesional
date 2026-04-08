@@ -23,7 +23,8 @@ public static class ObtenerTareaPorIdFeature
         string? PropiedadTitulo,
         Guid? ClienteId,
         Guid? PropiedadId,
-        string? Lugar);
+        string? Lugar,
+        string? PropiedadDireccion);
 
     public static RouteHandlerBuilder MapObtenerTareaPorIdEndpoint(this IEndpointRouteBuilder app)
     {
@@ -52,7 +53,8 @@ public static class ObtenerTareaPorIdFeature
                 tarea.Propiedad?.Titulo,
                 tarea.ClienteId,
                 tarea.PropiedadId,
-                tarea.Lugar
+                tarea.Lugar,
+                tarea.Propiedad?.Direccion
             );
 
             return Results.Ok(response);

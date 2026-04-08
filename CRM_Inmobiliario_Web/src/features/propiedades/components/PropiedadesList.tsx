@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import useSWR, { SWRConfig } from 'swr';
 import { 
   Home, 
@@ -106,15 +107,30 @@ const PropiedadesContent = () => {
   );
 
   const loading = !propiedades.length && !syncing;
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de propiedad
   const [statusConfirmation, setStatusConfirmation] = useState<{ id: string; nuevoEstado: string } | null>(null);
   const [closingPropiedad, setClosingPropiedad] = useState<{ propiedad: Propiedad; nuevoEstado: string } | null>(null);
-  const [selectedPropiedadId, setSelectedPropiedadId] = useState<string | null>(null);
+  
+  // SINGLE SOURCE OF TRUTH: El ID viene directamente de la URL
+  const selectedPropiedadId = searchParams.get('id');
   const [selectedPropiedadIdForEdit, setSelectedPropiedadIdForEdit] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenDetail = (id: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('id', id);
+    setSearchParams(newParams);
+  };
+
+  const handleCloseDetail = () => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('id');
+    setSearchParams(newParams);
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterEstado, setFilterEstado] = useState('Todos');
@@ -376,7 +392,7 @@ const PropiedadesContent = () => {
           {filteredPropiedades.map((p) => (
             <div 
               key={p.id} 
-              onClick={() => setSelectedPropiedadId(p.id)}
+              onClick={() => handleOpenDetail(p.id)}
               className={`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative cursor-pointer ${
                 openDropdownId === p.id ? 'z-[60]' : 'z-10'
               }`}
@@ -504,7 +520,7 @@ const PropiedadesContent = () => {
       {selectedPropiedadId && (
         <PropiedadDetalle 
           id={selectedPropiedadId} 
-          onClose={() => setSelectedPropiedadId(null)} 
+          onClose={handleCloseDetail} 
           onCoverUpdated={(url) => handleCoverUpdate(selectedPropiedadId, url)}
         />
       )}
