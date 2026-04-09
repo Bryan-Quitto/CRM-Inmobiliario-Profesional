@@ -16,7 +16,9 @@ import {
   Type,
   FileText,
   Pencil,
-  Globe
+  Globe,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { crearPropiedad } from '../api/crearPropiedad';
 import { actualizarPropiedad } from '../api/actualizarPropiedad';
@@ -72,7 +74,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
     };
   };
 
-  const { register, handleSubmit, formState: { errors, isDirty, dirtyFields }, reset, control, setValue } = useForm<CrearPropiedadDTO>({
+  const { register, handleSubmit, formState: { errors, isDirty, dirtyFields }, reset, control, setValue, getValues } = useForm<CrearPropiedadDTO>({
     defaultValues: getInitialValues() as CrearPropiedadDTO
   });
 
@@ -147,6 +149,81 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       areaTotal: 0
     });
     setIsConfirmingClear(false);
+  };
+
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<null | {
+    continuous: boolean;
+    interimResults: boolean;
+    lang: string;
+    onresult: (event: { results: { length: number; [key: number]: { length: number; [key: number]: { transcript: string } } } }) => void;
+    onerror: (event: { error: string }) => void;
+    onend: () => void;
+    start: () => void;
+    stop: () => void;
+  }>(null);
+
+  const toggleListening = () => {
+    const SpeechRecognition = (window as unknown as { 
+      SpeechRecognition: typeof recognitionRef.current; 
+      webkitSpeechRecognition: typeof recognitionRef.current; 
+    }).SpeechRecognition || (window as unknown as { 
+      SpeechRecognition: typeof recognitionRef.current; 
+      webkitSpeechRecognition: typeof recognitionRef.current; 
+    }).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast.error('Tu navegador no soporta el dictado por voz.');
+      return;
+    }
+
+    if (!recognitionRef.current) {
+      const RecognitionClass = SpeechRecognition as unknown as new () => NonNullable<typeof recognitionRef.current>;
+      recognitionRef.current = new RecognitionClass();
+      if (recognitionRef.current) {
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = 'es-ES';
+
+        recognitionRef.current.onresult = (event) => {
+          const lastResultIndex = event.results.length - 1;
+          const transcript = event.results[lastResultIndex][0].transcript;
+          
+          if (transcript) {
+            const currentDesc = getValues('descripcion') || '';
+            const formattedTranscript = transcript.trim().charAt(0).toUpperCase() + transcript.trim().slice(1);
+            const newDesc = currentDesc 
+              ? `${currentDesc.trim()} ${formattedTranscript}.` 
+              : `${formattedTranscript}.`;
+            
+            setValue('descripcion', newDesc, { shouldDirty: true, shouldValidate: true });
+          }
+        };
+
+        recognitionRef.current.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+          if (event.error === 'not-allowed') {
+            toast.error('Permiso de micrófono denegado.');
+          }
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+    }
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+    } else if (recognitionRef.current) {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (e) {
+        console.error('Error starting recognition:', e);
+      }
+    }
   };
 
   const onSubmit = (data: CrearPropiedadDTO) => {
@@ -259,7 +336,30 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
 
           {/* 2. DESCRIPCIÓN */}
           <div className="md:col-span-6 space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Descripción Detallada</label>
+            <div className="flex items-center justify-between pl-1">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Descripción Detallada</label>
+              <button
+                type="button"
+                onClick={toggleListening}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 cursor-pointer ${
+                  isListening 
+                    ? 'bg-rose-500 text-white animate-pulse' 
+                    : 'bg-slate-100 text-slate-500 hover:bg-blue-600 hover:text-white'
+                }`}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="h-3 w-3" />
+                    Detener dictado
+                  </>
+                ) : (
+                  <>
+                    <Mic className="h-3 w-3" />
+                    Dictar descripción
+                  </>
+                )}
+              </button>
+            </div>
             <div className="relative">
               <FileText className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />
               <textarea 
@@ -267,8 +367,17 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                 disabled={isSuccess}
                 placeholder="Describe las características principales, acabados, seguridad, etc."
                 rows={3}
-                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.descripcion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none resize-none disabled:opacity-50`}
+                className={`w-full pl-10 pr-12 py-3 bg-slate-50 border ${errors.descripcion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none resize-none disabled:opacity-50`}
               />
+              {isListening && (
+                <div className="absolute right-4 top-4">
+                  <div className="flex gap-1">
+                    <span className="w-1 h-3 bg-rose-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                    <span className="w-1 h-3 bg-rose-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                    <span className="w-1 h-3 bg-rose-500 rounded-full animate-bounce"></span>
+                  </div>
+                </div>
+              )}
             </div>
             {errors.descripcion && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.descripcion.message}</p>}
           </div>

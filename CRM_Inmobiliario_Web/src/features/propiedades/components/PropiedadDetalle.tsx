@@ -625,8 +625,8 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
               }
             ].filter(stat => stat.show).map((stat, i) => (
               <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3 group hover:border-indigo-100 transition-all">
-                <div className={`h-10 w-10 bg-${stat.color}-50 rounded-xl flex items-center justify-center text-${stat.color}-600 group-hover:bg-${stat.color}-600 group-hover:text-white transition-all`}><stat.icon className="h-5 w-5" /></div>
-                <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p><p className="text-lg font-black text-slate-900 truncate" title={stat.value.toString()}>{stat.value}</p></div>
+                <div className={`h-10 w-10 bg-${stat.color}-50 rounded-xl flex items-center justify-center text-${stat.color}-600 transition-all`}><stat.icon className="h-5 w-5" /></div>
+                <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p><p className="text-lg font-black text-slate-900 leading-tight" title={stat.value.toString()}>{stat.value}</p></div>
               </div>
             ))}
           </div>
