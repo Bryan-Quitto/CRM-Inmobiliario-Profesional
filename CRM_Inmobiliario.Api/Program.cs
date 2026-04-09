@@ -143,7 +143,7 @@ app.UseAuthorization();
 app.UseOutputCache();
 
 // Grupos de Endpoints
-var apiGroup = app.MapGroup("/api").RequireAuthorization();
+var apiGroup = app.MapGroup("/api").RequireAuthorization(); 
 
 // Clientes
 apiGroup.MapRegistrarClienteEndpoint();

@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import useSWR, { SWRConfig } from 'swr';
+import { useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Users, 
@@ -7,7 +8,10 @@ import {
   TrendingUp, 
   ArrowUpRight,
   Loader2,
-  Filter
+  Filter,
+  ChevronDown,
+  ChevronRight,
+  User
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -21,7 +25,8 @@ import {
 } from 'recharts';
 import { getDashboardKpis } from '../api/getDashboardKpis';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
-import type { DashboardKpis } from '../types';
+import { usePerfil } from '../../auth/api/perfil';
+import type { DashboardKpis, LeadDashboardItem } from '../types';
 
 const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#94a3b8'];
 
@@ -36,7 +41,20 @@ const ORDEN_EMBUDO: Record<string, number> = {
   'Perdido': 7
 };
 
+const LeadAvatar = ({ nombre, apellido }: { nombre: string, apellido: string }) => {
+  const iniciales = `${nombre[0] || ''}${apellido[0] || ''}`.toUpperCase();
+  return (
+    <div className="h-8 w-8 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 border border-blue-200">
+      {iniciales || <User className="h-3 w-3" />}
+    </div>
+  );
+};
+
 const DashboardContent: React.FC = () => {
+  const navigate = useNavigate();
+  const { perfil } = usePerfil();
+  const [isSeguimientoOpen, setIsSeguimientoOpen] = useState(false);
+  
   const { data: rawData, isValidating: syncing } = useSWR<DashboardKpis>(
     '/dashboard/kpis', 
     getDashboardKpis, 
@@ -88,13 +106,17 @@ const DashboardContent: React.FC = () => {
       description: 'En seguimiento actual'
     },
     {
-      title: 'Tareas Hoy',
+      title: 'Tareas Hoy y Vencidas',
       value: data.tareasPendientesHoy,
       icon: <Calendar className="h-6 w-6" />,
       color: 'bg-emerald-50 text-emerald-600',
       description: 'Pendientes por completar'
     }
   ];
+
+  const greeting = perfil?.nombre && perfil?.apellido 
+    ? `${perfil.nombre} ${perfil.apellido}`
+    : 'Agente';
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
@@ -111,7 +133,7 @@ const DashboardContent: React.FC = () => {
       {/* Welcome Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-          Hola de nuevo, <span className="text-blue-600">Agente</span>.
+          Hola de nuevo, <span className="text-blue-600">{greeting}</span>.
         </h1>
         <p className="text-slate-500 font-medium">Aquí está el resumen estratégico de tu negocio hoy.</p>
       </div>
@@ -148,9 +170,59 @@ const DashboardContent: React.FC = () => {
         ))}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
+      {/* Row 2: Seguimiento Crítico (Nueva) & Embudo */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Seguimiento Crítico Card */}
+        <div className="lg:col-span-4 bg-rose-50 border-2 border-rose-100 rounded-[32px] overflow-hidden group shadow-sm hover:shadow-md transition-all">
+          <div 
+            className="p-8 cursor-pointer relative"
+            onClick={() => setIsSeguimientoOpen(!isSeguimientoOpen)}
+          >
+            <Users className="absolute -right-4 -bottom-4 h-24 w-24 text-rose-500/10 group-hover:scale-110 transition-transform" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em]">Seguimiento Crítico</p>
+                <ChevronDown className={`h-4 w-4 text-rose-400 transition-transform duration-300 ${isSeguimientoOpen ? 'rotate-180' : ''}`} />
+              </div>
+              <h3 className="text-5xl font-black text-rose-600 tracking-tighter">{data.seguimientoRequerido}</h3>
+              <p className="text-[11px] font-bold text-rose-500/70 mt-2">Leads nuevos con interés Alto/Medio</p>
+            </div>
+          </div>
+
+          {isSeguimientoOpen && (
+            <div className="px-4 pb-6 animate-in slide-in-from-top-2 duration-300">
+              <div className="bg-white/50 backdrop-blur-sm rounded-[24px] border border-rose-200/50 overflow-hidden">
+                {data.leadsSeguimiento.length === 0 ? (
+                  <p className="text-center py-6 text-[10px] font-bold text-rose-400 uppercase italic">Sin pendientes críticos</p>
+                ) : (
+                  <div className="divide-y divide-rose-100">
+                    {data.leadsSeguimiento.map((lead: LeadDashboardItem) => (
+                      <div 
+                        key={lead.id}
+                        onClick={() => navigate(`/prospectos/${lead.id}`)}
+                        className="p-4 hover:bg-white transition-all cursor-pointer flex items-center gap-3 group/item"
+                      >
+                        <LeadAvatar nombre={lead.nombre} apellido={lead.apellido} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-black text-slate-900 truncate uppercase tracking-tight">
+                            {lead.nombre} {lead.apellido}
+                          </p>
+                          <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest">
+                            {lead.etapaEmbudo}
+                          </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-rose-300 group-hover/item:translate-x-1 transition-transform" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Embudo de Ventas Card */}
+        <div className="lg:col-span-8 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm relative overflow-hidden">
           {syncing && <div className="absolute inset-0 bg-white/10 backdrop-blur-[0.5px] pointer-events-none" />}
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -165,7 +237,7 @@ const DashboardContent: React.FC = () => {
             </div>
           </div>
 
-          <div className="h-[400px] w-full mt-4">
+          <div className="h-[300px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
                 data={data.embudoVentas} 
