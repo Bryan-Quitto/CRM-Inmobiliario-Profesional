@@ -12,6 +12,8 @@ export interface TareasContextType {
   loadingPropiedades: boolean;
   refreshTareas: () => Promise<void>;
   updateTareaEstado: (id: string, nuevoEstado: 'Pendiente' | 'Completada' | 'Cancelada') => Promise<void>;
+  updateTarea: (id: string, data: Partial<Tarea>, savePromise: Promise<unknown>) => Promise<void>;
+  addTarea: (nuevaTarea: Tarea, savePromise: Promise<unknown>) => Promise<void>;
   urgentesCount: number;
 }
 

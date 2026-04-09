@@ -41,8 +41,15 @@ const TIPOS_TAREA = [
   { label: 'Trámite', value: 'Trámite', icon: Briefcase, color: 'text-amber-600 bg-amber-50' },
 ];
 
+const toLocalISOString = (dateInput: string | Date) => {
+  const date = new Date(dateInput);
+  const tzOffset = date.getTimezoneOffset() * 60000; // offset en milisegundos
+  const localISOTime = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  return localISOTime;
+};
+
 export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onCancelTask }: Props) => {
-  const { clientes, propiedades } = useTareas();
+  const { clientes, propiedades, updateTarea } = useTareas();
   // Si tenemos initialData, empezamos con isLoading en false para carga instantánea
   const [isLoading, setIsLoading] = useState(!initialData);
   const [isSyncing, setIsSyncing] = useState(!!initialData); // Indica si estamos validando con el servidor
@@ -60,12 +67,12 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
     [propiedades]
   );
 
-  const { register, handleSubmit, watch, formState: { errors, isDirty, dirtyFields }, reset, control, setValue } = useForm<ActualizarTareaDTO & { clienteNombre?: string; propiedadTitulo?: string }>({
+  const { register, handleSubmit, watch, formState: { errors }, control, setValue, getValues } = useForm<ActualizarTareaDTO & { clienteNombre?: string; propiedadTitulo?: string }>({
     defaultValues: initialData ? {
       titulo: initialData.titulo,
       descripcion: initialData.descripcion || '',
       tipoTarea: initialData.tipoTarea,
-      fechaInicio: new Date(initialData.fechaInicio).toISOString().slice(0, 16),
+      fechaInicio: toLocalISOString(initialData.fechaInicio),
       clienteId: initialData.clienteId,
       propiedadId: initialData.propiedadId,
       lugar: initialData.lugar,
@@ -75,8 +82,6 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
     } : undefined
   });
 
-  const currentValues = watch();
-
   useEffect(() => {
     const fetchTarea = async () => {
       try {
@@ -85,40 +90,54 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
         else setIsSyncing(true);
 
         const data = await getTareaById(tareaId);
-        const fechaLocal = new Date(data.fechaInicio).toISOString().slice(0, 16);
+        const fechaLocal = toLocalISOString(data.fechaInicio);
+        const initialFechaLocal = initialData ? toLocalISOString(initialData.fechaInicio) : '';
         
         setIsReadOnly(data.estado !== 'Pendiente');
 
-        // SMART MERGE: Solo actualizamos lo que el usuario NO ha tocado
-        // Si el formulario es "dirty", tenemos que tener cuidado
-        if (isDirty) {
-          const mergedValues = {
-            titulo: dirtyFields.titulo ? currentValues.titulo : data.titulo,
-            descripcion: dirtyFields.descripcion ? currentValues.descripcion : (data.descripcion || ''),
-            tipoTarea: dirtyFields.tipoTarea ? currentValues.tipoTarea : (data.tipoTarea as Tarea['tipoTarea']),
-            fechaInicio: dirtyFields.fechaInicio ? currentValues.fechaInicio : fechaLocal,
-            clienteId: dirtyFields.clienteId ? currentValues.clienteId : data.clienteId,
-            propiedadId: dirtyFields.propiedadId ? currentValues.propiedadId : data.propiedadId,
-            lugar: dirtyFields.lugar ? currentValues.lugar : data.lugar,
-            clienteNombre: dirtyFields.clienteId ? currentValues.clienteNombre : data.clienteNombre,
-            propiedadTitulo: dirtyFields.propiedadId ? currentValues.propiedadTitulo : data.propiedadTitulo,
-            duracionMinutos: 30
-          };
-          reset(mergedValues);
-        } else {
-          // Si no está sucio, podemos resetear todo tranquilamente
-          reset({
-            titulo: data.titulo,
-            descripcion: data.descripcion || '',
-            tipoTarea: data.tipoTarea as Tarea['tipoTarea'],
-            fechaInicio: fechaLocal,
-            clienteId: data.clienteId,
-            propiedadId: data.propiedadId,
-            lugar: data.lugar,
-            clienteNombre: data.clienteNombre,
-            propiedadTitulo: data.propiedadTitulo,
-            duracionMinutos: 30
-          });
+        // IDENTITY-BASED SHIELD (Escudo de Identidad)
+        // Obtenemos los valores actuales del formulario de forma sincrónica.
+        const currentForm = getValues();
+
+        /**
+         * Verificamos campo por campo. Si el valor actual es DIFERENTE al inicial,
+         * significa que el usuario ya empezó a interactuar, por lo que NO tocamos ese campo.
+         */
+        const shouldUpdate = (fieldName: keyof typeof currentForm, serverValue: unknown, initialValue: unknown) => {
+          // Si el valor actual en el form es distinto al valor con el que se abrió, el usuario ganó.
+          if (currentForm[fieldName] !== initialValue) return false;
+          // Si el valor actual es igual al inicial, pero el servidor tiene algo nuevo, actualizamos.
+          return currentForm[fieldName] !== serverValue;
+        };
+
+        if (shouldUpdate('titulo', data.titulo, initialData?.titulo)) {
+          setValue('titulo', data.titulo);
+        }
+        
+        if (shouldUpdate('descripcion', data.descripcion || '', initialData?.descripcion || '')) {
+          setValue('descripcion', data.descripcion || '');
+        }
+        
+        if (shouldUpdate('tipoTarea', data.tipoTarea, initialData?.tipoTarea)) {
+          setValue('tipoTarea', data.tipoTarea as Tarea['tipoTarea']);
+        }
+        
+        if (shouldUpdate('fechaInicio', fechaLocal, initialFechaLocal)) {
+          setValue('fechaInicio', fechaLocal);
+        }
+
+        if (shouldUpdate('clienteId', data.clienteId, initialData?.clienteId)) {
+          setValue('clienteId', data.clienteId);
+          setValue('clienteNombre', data.clienteNombre);
+        }
+
+        if (shouldUpdate('propiedadId', data.propiedadId, initialData?.propiedadId)) {
+          setValue('propiedadId', data.propiedadId);
+          setValue('propiedadTitulo', data.propiedadTitulo);
+        }
+
+        if (shouldUpdate('lugar', data.lugar, initialData?.lugar)) {
+          setValue('lugar', data.lugar);
         }
         
         // Guardar en cache local para futuras aperturas rápidas
@@ -149,23 +168,38 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
   const onSubmit = (data: ActualizarTareaDTO) => {
     if (isReadOnly) return;
     
+    // Forzamos la obtención de valores actuales para asegurar que el input de fecha esté sincronizado
+    const values = getValues();
+    
     // FIRE AND FORGET: Respuesta instantánea
     localStorage.removeItem(`tarea_cache_${tareaId}`);
-    onSuccess(); // Cerramos el panel/formulario de inmediato
+
+    // Crear objeto de tarea optimista para visualización inmediata
+    const cliente = values.clienteId ? clientes.find(c => c.id === values.clienteId) : null;
+    const propiedad = values.propiedadId ? propiedades.find(p => p.id === values.propiedadId) : null;
+
+    const updatedFields: Partial<Tarea> = {
+      ...values,
+      tipoTarea: values.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
+      fechaInicio: new Date(values.fechaInicio).toISOString(),
+      clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : undefined,
+      propiedadTitulo: propiedad ? propiedad.titulo : undefined
+    };
 
     const payload = {
       ...data,
-      fechaInicio: new Date(data.fechaInicio).toISOString()
+      fechaInicio: new Date(values.fechaInicio).toISOString()
     };
 
-    // Petición en background
-    actualizarTarea(tareaId, payload).catch((err) => {
-      console.error('Error al actualizar tarea en background:', err);
-      // Notificación de error diferida
-      toast.error('No se pudo actualizar la tarea', {
-        description: 'Hubo un problema de conexión. Por favor revisa tu calendario en unos momentos.'
-      });
+    // Lanzamos la mutación optimista vinculada a la promesa de actualización
+    const savePromise = actualizarTarea(tareaId, payload);
+    
+    updateTarea(tareaId, updatedFields, savePromise).catch(err => {
+      console.error('Error en sync de updateTarea:', err);
+      toast.error('No se pudo sincronizar el cambio');
     });
+
+    onSuccess(); // Cerramos el panel/formulario de inmediato
   };
 
   const formData = watch();
