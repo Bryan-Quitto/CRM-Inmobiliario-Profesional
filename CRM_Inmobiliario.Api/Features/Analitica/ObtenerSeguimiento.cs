@@ -9,7 +9,8 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.Analitica;
 
-public record SeguimientoResponse(int SeguimientoRequerido);
+public record LeadSeguimientoItem(Guid Id, string Nombre, string Apellido, string EtapaEmbudo);
+public record SeguimientoResponse(int SeguimientoRequerido, List<LeadSeguimientoItem> Leads);
 
 public static class ObtenerSeguimientoEndpoint
 {
@@ -33,7 +34,7 @@ public static class ObtenerSeguimientoEndpoint
                 .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && !etapasExcluidas.Contains(l.EtapaEmbudo))
                 .Where(l => l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
-                .Select(l => new { l.Nombre, l.Apellido, l.EtapaEmbudo })
+                .Select(l => new LeadSeguimientoItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
                 .ToListAsync();
 
             logger.LogInformation("--- Analizando Seguimiento Crítico (Filtrado) ---");
@@ -43,7 +44,7 @@ public static class ObtenerSeguimientoEndpoint
             }
             logger.LogInformation("Total Seguimiento Crítico: {Total}", leadsConInteres.Count);
 
-            return Results.Ok(new SeguimientoResponse(leadsConInteres.Count));
+            return Results.Ok(new SeguimientoResponse(leadsConInteres.Count, leadsConInteres));
         })
         .WithTags("Analitica")
         .WithName("ObtenerSeguimiento")

@@ -4,7 +4,6 @@ import {
   CheckCircle2, 
   Handshake, 
   FileText, 
-  Users, 
   Loader2,
   TrendingUp,
   Calendar,
@@ -30,7 +29,7 @@ import {
 } from 'recharts';
 import { api } from '../../../lib/axios';
 import { localStorageProvider } from '../../../lib/swr';
-import type { ActividadAnalitica, SeguimientoAnalitica, ProyeccionAnalitica, EficienciaAnalitica } from '../types';
+import type { ActividadAnalitica, ProyeccionAnalitica, EficienciaAnalitica } from '../types';
 
 // Fetcher genérico para SWR usando Axios
 const fetcher = (url: string, params?: Record<string, unknown>) => api.get(url, { params }).then(res => res.data);
@@ -120,7 +119,6 @@ const AnaliticaContent: React.FC = () => {
     keepPreviousData: true
   };
 
-  const { data: seguimiento } = useSWR<SeguimientoAnalitica>('/analitica/seguimiento', fetcher, swrConfig);
   const { data: proyeccion } = useSWR<ProyeccionAnalitica>('/analitica/proyecciones', fetcher, swrConfig);
   const { data: eficiencia } = useSWR<EficienciaAnalitica>('/analitica/eficiencia', fetcher, swrConfig);
 
@@ -134,7 +132,7 @@ const AnaliticaContent: React.FC = () => {
     swrConfig
   );
 
-  const initialLoading = !actividad && !seguimiento && !proyeccion;
+  const initialLoading = !actividad && !proyeccion;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -225,12 +223,14 @@ const AnaliticaContent: React.FC = () => {
           </div>
 
           <div className="lg:col-span-4 grid grid-cols-1 gap-6">
-            <div className="bg-rose-50 border-2 border-rose-100 rounded-[32px] p-8 relative overflow-hidden group">
-              <Users className="absolute -right-4 -bottom-4 h-24 w-24 text-rose-500/10 group-hover:scale-110 transition-transform" />
-              <div className="relative z-10">
-                <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em] mb-1">Seguimiento Crítico</p>
-                <h3 className="text-5xl font-black text-rose-600 tracking-tighter">{seguimiento?.seguimientoRequerido ?? 0}</h3>
-                <p className="text-[11px] font-bold text-rose-500/70 mt-2">Leads nuevos con interés Alto/Medio</p>
+            <div className="bg-indigo-600 rounded-[32px] p-8 text-white flex flex-col justify-between shadow-xl shadow-indigo-200 group relative overflow-hidden">
+              <Clock className="absolute -right-4 -bottom-4 h-24 w-24 text-white/10 group-hover:scale-110 transition-transform" />
+              <div className="relative z-10 h-full flex flex-col justify-between">
+                <div>
+                  <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] mb-1">Velocidad de Cierre</p>
+                  <h3 className="text-5xl font-black tracking-tighter">{eficiencia?.tiempoPromedioCierreDias ?? 0} <span className="text-2xl opacity-50 italic">días</span></h3>
+                </div>
+                <p className="text-indigo-100/70 text-[11px] font-bold leading-tight mt-4 italic">Promedio histórico de éxito comercial.</p>
               </div>
             </div>
             
@@ -308,8 +308,8 @@ const AnaliticaContent: React.FC = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm relative overflow-hidden">
+        <div className="grid grid-cols-1 gap-6">
+          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm relative overflow-hidden">
             {loadingActividad && (
               <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center animate-in fade-in duration-500">
                  <div className="bg-white p-4 rounded-full shadow-xl border border-slate-100">
@@ -341,23 +341,6 @@ const AnaliticaContent: React.FC = () => {
                   <Area type="monotone" dataKey="captaciones" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorCaptaciones)" />
                 </AreaChart>
               </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-indigo-600 rounded-[40px] p-8 text-white flex flex-col justify-between shadow-xl shadow-indigo-200">
-            <div className="h-14 w-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10 mb-6">
-              <Clock className="h-7 w-7 text-indigo-200" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] mb-1">Velocidad de Cierre</p>
-              <h3 className="text-5xl font-black tracking-tighter mb-2">{eficiencia?.tiempoPromedioCierreDias ?? 0} <span className="text-2xl opacity-50 italic">días</span></h3>
-              <p className="text-indigo-100/70 text-sm font-medium leading-relaxed">Promedio histórico desde el registro del prospecto hasta el éxito comercial.</p>
-            </div>
-            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Ciclo de Venta</span>
-              <div className="flex gap-1">
-                {[1,2,3].map(i => <div key={i} className="w-1 h-3 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: `${i*0.2}s` }}></div>)}
-              </div>
             </div>
           </div>
         </div>
