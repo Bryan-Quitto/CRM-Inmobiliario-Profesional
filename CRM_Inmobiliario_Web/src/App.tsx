@@ -49,8 +49,23 @@ const SidebarLoader = () => (
 );
 
 function AppContent({ session }: { session: Session | null }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isAgendaOpen, setIsAgendaOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    const saved = localStorage.getItem('crm_sidebar_state');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [isAgendaOpen, setIsAgendaOpen] = useState(() => {
+    const saved = localStorage.getItem('crm_agenda_state');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('crm_sidebar_state', JSON.stringify(isSidebarOpen));
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('crm_agenda_state', JSON.stringify(isAgendaOpen));
+  }, [isAgendaOpen]);
+
   const { urgentesCount } = useTareas();
   const { perfil } = usePerfil();
   const location = useLocation();

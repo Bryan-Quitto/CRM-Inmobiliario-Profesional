@@ -40,7 +40,7 @@ const TIPOS_TAREA = [
 const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
 
 export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => {
-  const { clientes, propiedades } = useTareas();
+  const { clientes, propiedades, addTarea } = useTareas();
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -138,21 +138,37 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
   const onSubmit = (data: CrearTareaDTO) => {
     // FIRE AND FORGET: Respuesta instantánea
     localStorage.removeItem(DRAFT_STORAGE_KEY);
-    onSuccess(); // Cerramos el panel/formulario de inmediato
+    
+    // Crear objeto de tarea optimista para visualización inmediata
+    const tempId = `temp-${new Date().getTime()}`;
+    const cliente = data.clienteId ? clientes.find(c => c.id === data.clienteId) : null;
+    const propiedad = data.propiedadId ? propiedades.find(p => p.id === data.propiedadId) : null;
+    
+    const nuevaTareaOptimista = {
+      id: tempId,
+      ...data,
+      tipoTarea: data.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
+      estado: 'Pendiente' as const,
+      fechaInicio: new Date(data.fechaInicio).toISOString(),
+      clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : undefined,
+      propiedadTitulo: propiedad ? propiedad.titulo : undefined
+    };
 
     const payload = {
       ...data,
       fechaInicio: new Date(data.fechaInicio).toISOString()
     };
 
-    // Petición en background
-    crearTarea(payload).catch((err: unknown) => {
-      console.error('Error al crear tarea en background:', err);
-      // Notificación de error diferida
-      toast.error('No se pudo programar la tarea', {
-        description: 'Hubo un problema de conexión. Por favor revisa tu calendario en unos momentos.'
-      });
+    // Lanzamos la mutación optimista vinculada a la promesa de creación
+    // Esto previene el flicker porque SWR sabe que debe esperar a la promesa para revalidar
+    const savePromise = crearTarea(payload);
+    
+    addTarea(nuevaTareaOptimista, savePromise).catch(err => {
+      console.error('Error en sync de addTarea:', err);
+      toast.error('No se pudo sincronizar la tarea');
     });
+
+    onSuccess(); // Cerramos el panel/formulario de inmediato
   };
 
   const selectedTipo = TIPOS_TAREA.find(t => t.value === tipoTarea) || TIPOS_TAREA[0];

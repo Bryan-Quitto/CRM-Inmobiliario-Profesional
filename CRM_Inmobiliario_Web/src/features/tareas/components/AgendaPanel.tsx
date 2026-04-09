@@ -49,7 +49,9 @@ const formatDateTime = (dateString: string) => {
 };
 
 const isExpired = (dateString: string) => {
-  return new Date(dateString) < new Date();
+  const hoy = new Date();
+  hoy.setHours(23, 59, 59, 999);
+  return new Date(dateString) <= hoy;
 };
 
 interface AgendaPanelProps {
@@ -63,6 +65,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   const [showHistory, setShowHistory] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
   const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
+  const [isFuturasExpanded, setIsFuturasExpanded] = useState(false);
 
   const selectedTarea = useMemo(() => 
     allTareas.find(t => t.id === selectedTareaId), 
@@ -73,10 +76,14 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     updateTareaEstado(id, 'Completada');
     
     // Petición en background
-    completarTarea(id).catch((err) => {
+    completarTarea(id).then(() => {
+      // Esperar un momento antes de revalidar para evitar flicker
+      setTimeout(() => {
+        refreshTareas();
+      }, 1500);
+    }).catch((err) => {
       console.error('Error al completar tarea en background:', err);
       toast.error('No se pudo sincronizar la tarea');
-      // El contexto debería tener lógica de rollback o revalidación si fuera necesario
       refreshTareas(); 
     });
   };
@@ -93,7 +100,11 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     toast.success('Tarea cancelada correctamente');
 
     // Background process
-    cancelarTarea(id).catch((err) => {
+    cancelarTarea(id).then(() => {
+      setTimeout(() => {
+        refreshTareas();
+      }, 1500);
+    }).catch((err) => {
       console.error('Error al cancelar tarea en background:', err);
       toast.error('No se pudo sincronizar la cancelación');
       refreshTareas();
@@ -315,28 +326,41 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
             {/* Sección Próximamente */}
             {tareasFuturas.length > 0 && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 px-2">
-                  <span className="h-1.5 w-1.5 bg-slate-200 rounded-full"></span>
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Próximamente</h3>
-                </div>
-                <div className="space-y-3">
-                  {tareasFuturas.map((tarea) => (
-                    <TaskCard 
-                      key={tarea.id} 
-                      tarea={tarea} 
-                      onComplete={handleCompletar}
-                      onClick={() => {
-                        setSelectedTareaId(tarea.id);
-                        setView('detail');
-                      }}
-                      onEdit={() => {
-                        setSelectedTareaId(tarea.id);
-                        setView('edit');
-                      }}
-                      isCompleting={false}
-                    />
-                  ))}
-                </div>
+                <button 
+                  onClick={() => setIsFuturasExpanded(!isFuturasExpanded)}
+                  className="w-full flex items-center justify-between px-2 group cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 bg-slate-200 rounded-full"></span>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">
+                      Próximamente ({tareasFuturas.length})
+                    </h3>
+                  </div>
+                  <ChevronRight 
+                    className={`h-3 w-3 text-slate-300 transition-transform duration-300 ${isFuturasExpanded ? 'rotate-90' : ''}`} 
+                  />
+                </button>
+                
+                {isFuturasExpanded && (
+                  <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
+                    {tareasFuturas.map((tarea) => (
+                      <TaskCard 
+                        key={tarea.id} 
+                        tarea={tarea} 
+                        onComplete={handleCompletar}
+                        onClick={() => {
+                          setSelectedTareaId(tarea.id);
+                          setView('detail');
+                        }}
+                        onEdit={() => {
+                          setSelectedTareaId(tarea.id);
+                          setView('edit');
+                        }}
+                        isCompleting={false}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </>

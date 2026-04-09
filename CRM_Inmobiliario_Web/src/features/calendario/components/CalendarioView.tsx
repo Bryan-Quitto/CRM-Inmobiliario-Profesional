@@ -217,7 +217,11 @@ const CalendarioContent: React.FC = () => {
     const props = eventInfo.event.extendedProps as CalendarEvent;
     const isCompleted = props.estado === 'Completada';
     const isCancelled = props.estado === 'Cancelada';
-    const isOverdue = !isCompleted && !isCancelled && new Date(props.fechaInicio) < new Date();
+    
+    // El pin rojo solo se muestra para tareas PENDIENTES que sean de HOY o VENCIDAS
+    const finDeHoy = new Date();
+    finDeHoy.setHours(23, 59, 59, 999);
+    const isOverdueOrToday = props.estado === 'Pendiente' && new Date(props.fechaInicio) <= finDeHoy;
     
     const activeColor = isCompleted ? '#64748b' : (props.colorHex || '#3b82f6');
     
@@ -257,7 +261,7 @@ const CalendarioContent: React.FC = () => {
           </div>
         )}
 
-        {isOverdue && (
+        {isOverdueOrToday && (
           <div className="absolute top-1 right-1 flex h-1.5 w-1.5">
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
           </div>
