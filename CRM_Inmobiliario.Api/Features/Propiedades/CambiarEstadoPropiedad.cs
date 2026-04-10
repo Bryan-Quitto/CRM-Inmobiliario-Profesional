@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
@@ -23,6 +24,7 @@ public static class CambiarEstadoPropiedadFeature
             ClaimsPrincipal user, 
             CrmDbContext context,
             ILoggerFactory loggerFactory,
+            IOutputCacheStore cacheStore,
             CancellationToken ct) =>
         {
             var logger = loggerFactory.CreateLogger("CambiarEstadoPropiedad");
@@ -83,6 +85,10 @@ public static class CambiarEstadoPropiedadFeature
                 logger.LogInformation("💾 [ESTADO] Ejecutando SaveChangesAsync...");
                 await context.SaveChangesAsync(CancellationToken.None);
                 
+                // Invalidar caches proactivamente
+                await cacheStore.EvictByTagAsync("dashboard-data", ct);
+                await cacheStore.EvictByTagAsync("analytics-data", ct);
+
                 logger.LogInformation("🏁 [ESTADO] Proceso completado exitosamente para {Id}", id);
                 return Results.NoContent();
             }

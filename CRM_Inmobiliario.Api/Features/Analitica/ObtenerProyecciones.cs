@@ -54,6 +54,6 @@ public static class ObtenerProyeccionesEndpoint
         })
         .WithTags("Analitica")
         .WithName("ObtenerProyecciones")
-        .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization"));
+        .CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
     }
 }

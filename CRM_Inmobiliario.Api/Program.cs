@@ -149,7 +149,7 @@ var apiGroup = app.MapGroup("/api").RequireAuthorization();
 apiGroup.MapRegistrarClienteEndpoint();
 apiGroup.MapBuscarClientesEndpoint();
 apiGroup.MapListarClientesEndpoint().CacheOutput();
-apiGroup.MapObtenerClientePorIdEndpoint().CacheOutput();
+apiGroup.MapObtenerClientePorIdEndpoint();
 apiGroup.MapActualizarClienteEndpoint();
 apiGroup.MapCambiarEtapaClienteEndpoint();
 
@@ -157,47 +157,30 @@ apiGroup.MapCambiarEtapaClienteEndpoint();
 apiGroup.MapRegistrarPropiedadEndpoint();
 apiGroup.MapBuscarPropiedadesEndpoint();
 apiGroup.MapListarPropiedadesEndpoint().CacheOutput();
-apiGroup.MapObtenerPropiedadPorIdEndpoint().CacheOutput();
+apiGroup.MapObtenerPropiedadPorIdEndpoint();
 apiGroup.MapActualizarPropiedadEndpoint();
 apiGroup.MapCambiarEstadoPropiedadEndpoint();
-apiGroup.MapSubirImagenPropiedadEndpoint();
-apiGroup.MapEstablecerImagenPrincipalEndpoint();
 apiGroup.MapEliminarImagenPropiedadEndpoint();
+apiGroup.MapSubirImagenPropiedadEndpoint();
 apiGroup.MapEliminarTodasLasImagenesEndpoint();
-apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
+apiGroup.MapEstablecerImagenPrincipalEndpoint();
 apiGroup.MapLimpiarImagenesPropiedadEndpoint();
-
-// Secciones de Galería
-apiGroup.MapPost("/propiedades/{id:guid}/generar-pdf", async (Guid id, IPdfGeneratorQueue pdfQueue) => 
-{
-    await pdfQueue.QueuePdfGenerationAsync(id);
-    return Results.Accepted();
-});
-
-apiGroup.MapGet("/propiedades/{id:guid}/pdf-status", (Guid id, IPdfGeneratorQueue pdfQueue) => 
-{
-    return Results.Ok(new { isGenerating = pdfQueue.IsGenerating(id) });
-});
-
-apiGroup.MapPost("/propiedades/{id:guid}/confirmar-descarga", async (Guid id, IPdfCleanupQueue cleanupQueue) => 
-{
-    // Programamos la eliminación para dentro de 30 segundos
-    await cleanupQueue.QueueDeletionAsync(id, TimeSpan.FromSeconds(30));
-    return Results.Ok();
-});
-apiGroup.MapRegistrarSeccionEndpoint();
-apiGroup.MapActualizarSeccionEndpoint();
-apiGroup.MapReordenarSeccionesEndpoint();
-apiGroup.MapEliminarSeccionEndpoint();
-apiGroup.MapActualizarDescripcionMultimediaEndpoint();
+apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
 
 // Tareas
 apiGroup.MapRegistrarTareaEndpoint();
 apiGroup.MapListarTareasEndpoint().CacheOutput();
-apiGroup.MapObtenerTareaPorIdEndpoint().CacheOutput();
+apiGroup.MapObtenerTareaPorIdEndpoint();
 apiGroup.MapActualizarTareaEndpoint();
 apiGroup.MapCompletarTareaEndpoint();
 apiGroup.MapCancelarTareaEndpoint();
+
+// Secciones de Galería
+apiGroup.MapRegistrarSeccionEndpoint();
+apiGroup.MapActualizarSeccionEndpoint();
+apiGroup.MapEliminarSeccionEndpoint();
+apiGroup.MapReordenarSeccionesEndpoint();
+apiGroup.MapActualizarDescripcionMultimediaEndpoint();
 
 // Interacciones
 apiGroup.MapRegistrarInteraccionEndpoint();
@@ -220,9 +203,9 @@ apiGroup.MapListarEventosEndpoint().CacheOutput();
 apiGroup.MapReprogramarEventoEndpoint();
 
 // Analítica
-apiGroup.MapObtenerActividadEndpoint().CacheOutput(p => p.Tag("Actividad").SetVaryByHeader("Authorization").SetVaryByQuery("agenteId"));
-apiGroup.MapObtenerSeguimientoEndpoint().CacheOutput();
-apiGroup.MapObtenerProyeccionesEndpoint().CacheOutput();
-apiGroup.MapObtenerEficienciaEndpoint().CacheOutput();
+apiGroup.MapObtenerActividadEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization").SetVaryByQuery("inicio", "fin"));
+apiGroup.MapObtenerSeguimientoEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
+apiGroup.MapObtenerProyeccionesEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
+apiGroup.MapObtenerEficienciaEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
 
 app.Run();

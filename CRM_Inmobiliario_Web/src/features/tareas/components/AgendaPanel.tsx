@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSWRConfig } from 'swr';
 import { 
   Users, 
   Phone, 
@@ -59,6 +60,7 @@ interface AgendaPanelProps {
 }
 
 export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
+  const { mutate } = useSWRConfig();
   const { tareas: allTareas, loading, updateTareaEstado, refreshTareas } = useTareas();
   const [view, setView] = useState<'list' | 'create' | 'edit' | 'detail'>('list');
   const [selectedTareaId, setSelectedTareaId] = useState<string | null>(null);
@@ -77,6 +79,10 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     
     // Petición en background
     completarTarea(id).then(() => {
+      // Revalidación proactiva de analíticas y dashboard (UPSP)
+      mutate('/dashboard/kpis');
+      mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      
       // Esperar un momento antes de revalidar para evitar flicker
       setTimeout(() => {
         refreshTareas();
@@ -101,6 +107,10 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
 
     // Background process
     cancelarTarea(id).then(() => {
+      // Revalidación proactiva de analíticas y dashboard (UPSP)
+      mutate('/dashboard/kpis');
+      mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+
       setTimeout(() => {
         refreshTareas();
       }, 1500);
@@ -182,7 +192,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
 
   if (view === 'edit' && selectedTareaId) {
     return (
-      <div className="w-80 h-full border-l border-slate-100 shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)]">
+      <div className="w-80 h-full border-l border-slate-100 shadow-[-10px_0_30_px_-15px_rgba(0,0,0,0.05)]">
         <EditarTareaForm 
           tareaId={selectedTareaId}
           initialData={selectedTarea}

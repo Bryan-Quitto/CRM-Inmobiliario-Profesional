@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Interacciones;
 
@@ -14,7 +15,7 @@ public static class ActualizarInteraccionFeature
 
     public static void MapActualizarInteraccionEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/interacciones/{id:guid}", async (Guid id, Request request, ClaimsPrincipal user, CrmDbContext context) =>
+        app.MapPut("/interacciones/{id:guid}", async (Guid id, Request request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -22,9 +23,13 @@ public static class ActualizarInteraccionFeature
                 .Where(i => i.Id == id && i.AgenteId == agenteId)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(p => p.Notas, request.Notas)
-                    .SetProperty(p => p.TipoInteraccion, request.TipoInteraccion));
+                    .SetProperty(p => p.TipoInteraccion, request.TipoInteraccion), ct);
 
             if (rowsAffected == 0) return Results.NotFound("Interacción no encontrada o no te pertenece.");
+
+            // Invalidar caches proactivamente
+            await cacheStore.EvictByTagAsync("dashboard-data", ct);
+            await cacheStore.EvictByTagAsync("analytics-data", ct);
 
             return Results.NoContent();
         })

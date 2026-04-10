@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Interacciones;
 
@@ -25,7 +26,7 @@ public static class RegistrarInteraccionFeature
 
     public static void MapRegistrarInteraccionEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/interacciones", async (Command command, ClaimsPrincipal user, CrmDbContext context) =>
+        app.MapPost("/interacciones", async (Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -46,6 +47,10 @@ public static class RegistrarInteraccionFeature
 
             context.Interactions.Add(interaccion);
             await context.SaveChangesAsync();
+
+            // Invalidar caches proactivamente
+            await cacheStore.EvictByTagAsync("dashboard-data", ct);
+            await cacheStore.EvictByTagAsync("analytics-data", ct);
 
             var response = new Response(
                 interaccion.Id,

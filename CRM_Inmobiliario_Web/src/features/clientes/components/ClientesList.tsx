@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useSWR, { SWRConfig } from 'swr';
+import useSWR, { SWRConfig, useSWRConfig } from 'swr';
 import { Mail, Phone, Loader2, AlertCircle, Plus, Search, Filter as FilterIcon, X, CheckCircle2, ChevronDown, Check, Clock, LayoutGrid, List, Pencil } from 'lucide-react';
 import Fuse from 'fuse.js';
 import { getClientes } from '../api/getClientes';
@@ -76,6 +76,7 @@ const VIEW_MODE_KEY = 'crm_clientes_view_mode';
 
 const ClientesContent = () => {
   const navigate = useNavigate();
+  const { mutate: globalMutate } = useSWRConfig();
   const { data: clientes = [], isValidating: syncing, mutate } = useSWR<Cliente[]>(
     '/clientes',
     getClientes,
@@ -160,7 +161,13 @@ const ClientesContent = () => {
     
     // 2. Petición en background
     actualizarEtapaCliente(id, nuevaEtapa)
-      .then(() => mutate()) // Revalidar silenciosamente
+      .then(() => {
+        mutate(); // Revalidar lista de clientes
+        
+        // Revalidación proactiva de analíticas y dashboard (UPSP)
+        globalMutate('/dashboard/kpis');
+        globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      })
       .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Error al actualizar etapa:', err);
         mutate(); // Revertir en caso de error

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Tareas;
 
@@ -23,7 +24,7 @@ public static class ActualizarTareaFeature
 
     public static void MapActualizarTareaEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/tareas/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context) =>
+        app.MapPut("/tareas/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -59,6 +60,10 @@ public static class ActualizarTareaFeature
             tarea.Lugar = command.Lugar;
 
             await context.SaveChangesAsync();
+
+            // Invalidar caches proactivamente
+            await cacheStore.EvictByTagAsync("dashboard-data", ct);
+            await cacheStore.EvictByTagAsync("analytics-data", ct);
 
             return Results.NoContent();
         })

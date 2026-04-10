@@ -1,4 +1,5 @@
 import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useSWRConfig } from 'swr';
 import { 
   Type, 
   AlignLeft, 
@@ -40,6 +41,7 @@ const TIPOS_TAREA = [
 const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
 
 export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => {
+  const { mutate } = useSWRConfig();
   const { clientes, propiedades, addTarea } = useTareas();
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
@@ -167,6 +169,10 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
       console.error('Error en sync de addTarea:', err);
       toast.error('No se pudo sincronizar la tarea');
     });
+
+    // Revalidación proactiva de analíticas y dashboard (UPSP)
+    mutate('/dashboard/kpis');
+    mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
 
     onSuccess(); // Cerramos el panel/formulario de inmediato
   };

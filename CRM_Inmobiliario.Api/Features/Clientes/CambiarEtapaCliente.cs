@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Clientes;
 
@@ -15,7 +16,7 @@ public static class CambiarEtapaClienteFeature
 
     public static void MapCambiarEtapaClienteEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPatch("/clientes/{id:guid}/etapa", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context) =>
+        app.MapPatch("/clientes/{id:guid}/etapa", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -67,6 +68,11 @@ public static class CambiarEtapaClienteFeature
             }
 
             await context.SaveChangesAsync();
+
+            // Invalidar caches proactivamente
+            await cacheStore.EvictByTagAsync("dashboard-data", ct);
+            await cacheStore.EvictByTagAsync("analytics-data", ct);
+
             return Results.NoContent();
         })
         .WithTags("Clientes")

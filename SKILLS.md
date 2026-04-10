@@ -58,9 +58,11 @@ All new features and refactors MUST implement these zero-latency patterns:
 - **Background Operations:** Heavy tasks (file uploads, complex processing) must run in global background queues (e.g., `UploadContext`) to allow continued navigation.
 
 ### Backend Optimization & Scalability
+- **The One Trip Pattern:** Debido a la latencia de red (~1.3s por round-trip con bases de datos remotas), queda ESTRICTAMENTE PROHIBIDO realizar múltiples consultas `await` secuenciales en endpoints de lectura pesados (Dashboard, Analítica, Reportes). Se debe consolidar toda la información en una única proyección LINQ (`.Select(...)`) para que el servidor SQL procese todo en un solo viaje. El procesamiento de datos crudos (agrupaciones por fecha, formateo) debe hacerse en memoria en el servidor C# tras el "único viaje".
+- **Stable Cache Keys:** Los parámetros de fecha enviados desde el cliente (`clientDate`, `inicio`, `fin`) deben redondearse al minuto en el frontend para asegurar que la `OutputCache` sea efectiva y no varíe por milisegundos irrelevantes.
 - **OutputCaching (.NET 10):** Heavy read endpoints (Analytics, Large Lists) MUST implement `OutputCache` (10-30s).
 - **Security Isolation:** Cache MUST vary by authorization token (`VaryByValue` using the `Authorization` header) to ensure data isolation.
-- **Query Precision:** Cache MUST vary by all query parameters (`SetVaryByQuery`) to prevent data collisions.
+- **Query Precision:** Cache MUST vary by all query parameters (`SetVaryByQuery`) para prevenir colisiones de datos.
 - **Rule:** Minimize database round-trips. Group multiple checks into a single `Select` using EF Core.
 - **Rule:** Use `ExecuteUpdateAsync` or `ExecuteDeleteAsync` for direct updates/deletes to bypass object loading whenever possible.
 

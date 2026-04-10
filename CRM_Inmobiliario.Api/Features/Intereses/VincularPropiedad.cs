@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Intereses;
 
@@ -15,7 +16,7 @@ public static class VincularPropiedadFeature
 
     public static void MapVincularPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/clientes/{clienteId:guid}/intereses", async (Guid clienteId, Request request, ClaimsPrincipal user, CrmDbContext context) =>
+        app.MapPost("/clientes/{clienteId:guid}/intereses", async (Guid clienteId, Request request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -29,7 +30,7 @@ public static class VincularPropiedadFeature
                     InteresExistente = context.LeadPropertyInterests
                         .FirstOrDefault(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId)
                 })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(ct);
 
             if (data is null) return Results.NotFound("Cliente no encontrado o no te pertenece.");
             if (!data.PropiedadExiste) return Results.NotFound("Propiedad no encontrada o no te pertenece.");
@@ -43,7 +44,7 @@ public static class VincularPropiedadFeature
 
             // 3. Aplicar cambios (Upsert)
             var interesExistente = await context.LeadPropertyInterests
-                .FirstOrDefaultAsync(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId);
+                .FirstOrDefaultAsync(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId, ct);
 
             if (interesExistente is not null)
             {
@@ -62,7 +63,11 @@ public static class VincularPropiedadFeature
                 context.LeadPropertyInterests.Add(nuevoInteres);
             }
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(ct);
+
+            // Invalidar caches proactivamente (Afecta dashboard y analítica)
+            await cacheStore.EvictByTagAsync("dashboard-data", ct);
+            await cacheStore.EvictByTagAsync("analytics-data", ct);
 
             return Results.Ok();
         })

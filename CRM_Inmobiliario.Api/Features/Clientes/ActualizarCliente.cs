@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Clientes;
 
@@ -19,7 +20,7 @@ public static class ActualizarClienteFeature
 
     public static void MapActualizarClienteEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/clientes/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context) =>
+        app.MapPut("/clientes/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -38,6 +39,10 @@ public static class ActualizarClienteFeature
             cliente.Origen = command.Origen;
 
             await context.SaveChangesAsync();
+
+            // Invalidar caches proactivamente
+            await cacheStore.EvictByTagAsync("dashboard-data", ct);
+            await cacheStore.EvictByTagAsync("analytics-data", ct);
 
             return Results.NoContent();
         })

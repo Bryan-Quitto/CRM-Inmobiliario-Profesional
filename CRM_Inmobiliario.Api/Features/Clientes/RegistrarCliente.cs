@@ -5,6 +5,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Clientes;
 
@@ -14,7 +15,7 @@ public static class RegistrarClienteFeature
 
     public static void MapRegistrarClienteEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/clientes", async (Command command, ClaimsPrincipal user, CrmDbContext context) =>
+        app.MapPost("/clientes", async (Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -33,6 +34,10 @@ public static class RegistrarClienteFeature
 
             context.Leads.Add(lead);
             await context.SaveChangesAsync();
+
+            // Invalidar caches proactivamente
+            await cacheStore.EvictByTagAsync("dashboard-data", ct);
+            await cacheStore.EvictByTagAsync("analytics-data", ct);
 
             return Results.Created($"/clientes/{lead.Id}", lead);
         })
