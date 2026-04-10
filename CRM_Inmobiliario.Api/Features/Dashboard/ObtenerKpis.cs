@@ -26,10 +26,18 @@ public static class ObtenerKpisEndpoint
 {
     public static RouteHandlerBuilder MapObtenerKpisEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/dashboard/kpis", async (DateTimeOffset? clientDate, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/dashboard/kpis", async (DateTimeOffset? clientDate, ClaimsPrincipal user, CrmDbContext context, IKpiWarmingService warmingService) =>
         {
             var swTotal = Stopwatch.StartNew();
             var agenteId = user.GetRequiredUserId();
+
+            // 1. Intentar obtener desde la Cache Interna de Warming
+            if (warmingService.TryGetKpis(agenteId, out var cachedKpis))
+            {
+                swTotal.Stop();
+                Console.WriteLine($"\n🚀 [KPI CACHE HIT] Agente: {agenteId} | Latencia: {swTotal.ElapsedMilliseconds}ms\n");
+                return Results.Ok(cachedKpis);
+            }
             
             var baseDate = clientDate ?? DateTimeOffset.UtcNow;
             var limiteHoyUtc = new DateTimeOffset(baseDate.Year, baseDate.Month, baseDate.Day, 23, 59, 59, baseDate.Offset).ToUniversalTime();
@@ -71,15 +79,6 @@ public static class ObtenerKpisEndpoint
                 .Select(x => new EtapaEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad))
                 .ToList();
 
-            swTotal.Stop();
-
-            // IMPRESIÓN DE DIAGNÓSTICO EN TERMINAL
-            Console.WriteLine("\n⚡ [PERFORMANCE: THE ONE TRIP]");
-            Console.WriteLine($"   |-- 📡 Latencia Única DB: {swQuery.ElapsedMilliseconds}ms (Incluye Network + Query)");
-            Console.WriteLine($"   |-- 🧠 Procesamiento:    {swTotal.ElapsedMilliseconds - swQuery.ElapsedMilliseconds}ms");
-            Console.WriteLine($"   |-- ✅ TIEMPO TOTAL:     {swTotal.ElapsedMilliseconds}ms");
-            Console.WriteLine("---------------------------------------\n");
-
             var kpis = new DashboardKpisResponse(
                 megaData.Propiedades,
                 megaData.Prospectos,
@@ -88,6 +87,17 @@ public static class ObtenerKpisEndpoint
                 megaData.LeadsSeguimiento,
                 embudoFinal
             );
+
+            // Actualizar la cache para la próxima vez
+            warmingService.UpdateKpiCache(agenteId, kpis);
+
+            swTotal.Stop();
+
+            // IMPRESIÓN DE DIAGNÓSTICO EN TERMINAL
+            Console.WriteLine("\n⚡ [PERFORMANCE: THE ONE TRIP (FALLBACK)]");
+            Console.WriteLine($"   |-- 📡 Latencia Única DB: {swQuery.ElapsedMilliseconds}ms");
+            Console.WriteLine($"   |-- ✅ TIEMPO TOTAL:     {swTotal.ElapsedMilliseconds}ms");
+            Console.WriteLine("---------------------------------------\n");
 
             return Results.Ok(kpis);
         })

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Features.Dashboard;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -23,7 +24,7 @@ public static class RegistrarTareaFeature
 
     public static void MapRegistrarTareaEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/tareas", async (Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
+        app.MapPost("/tareas", async (Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -66,6 +67,9 @@ public static class RegistrarTareaFeature
 
             context.Tasks.Add(tarea);
             await context.SaveChangesAsync();
+
+            // Notificar al servicio de Warming proactivamente
+            warmingService.NotifyChange(agenteId);
 
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);

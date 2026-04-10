@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Features.Dashboard;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -25,6 +26,7 @@ public static class CambiarEstadoPropiedadFeature
             CrmDbContext context,
             ILoggerFactory loggerFactory,
             IOutputCacheStore cacheStore,
+            IKpiWarmingService warmingService,
             CancellationToken ct) =>
         {
             var logger = loggerFactory.CreateLogger("CambiarEstadoPropiedad");
@@ -85,6 +87,9 @@ public static class CambiarEstadoPropiedadFeature
                 logger.LogInformation("💾 [ESTADO] Ejecutando SaveChangesAsync...");
                 await context.SaveChangesAsync(CancellationToken.None);
                 
+                // Notificar al servicio de Warming proactivamente
+                warmingService.NotifyChange(agenteId);
+
                 // Invalidar caches proactivamente
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
                 await cacheStore.EvictByTagAsync("analytics-data", ct);

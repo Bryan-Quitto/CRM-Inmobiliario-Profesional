@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Diagnostics;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Features.Dashboard;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -98,5 +99,131 @@ public static class ObtenerActividadEndpoint
         .WithTags("Analitica")
         .WithName("ObtenerActividad")
         .CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization").SetVaryByQuery("inicio", "fin"));
+    }
+
+    public static RouteHandlerBuilder MapObtenerVentasMensualesEndpoint(this IEndpointRouteBuilder app)
+    {
+        return app.MapGet("/analitica/ventas-mensuales", async (ClaimsPrincipal user, CrmDbContext context, IKpiWarmingService warmingService) =>
+        {
+            var swTotal = Stopwatch.StartNew();
+            var agenteId = user.GetRequiredUserId();
+
+            // 1. Intentar obtener desde la Cache Interna de Warming
+            if (warmingService.TryGetMonthlySales(agenteId, out var cachedSales))
+            {
+                swTotal.Stop();
+                Console.WriteLine($"\n🚀 [SALES CACHE HIT] Agente: {agenteId} | Latencia: {swTotal.ElapsedMilliseconds}ms\n");
+                return Results.Ok(cachedSales);
+            }
+
+            // 2. Fallback: Cálculo manual para el mes actual (USANDO OFFSET ECUADOR)
+            var ecuadorOffset = TimeSpan.FromHours(-5);
+            var nowEcuador = DateTimeOffset.UtcNow.ToOffset(ecuadorOffset);
+
+            var inicioMesEcuador = new DateTimeOffset(nowEcuador.Year, nowEcuador.Month, 1, 0, 0, 0, ecuadorOffset);
+            var finMesEcuador = inicioMesEcuador.AddMonths(1).AddTicks(-1);
+            
+            var inicioMesUtc = inicioMesEcuador.ToUniversalTime();
+            var finMesUtc = finMesEcuador.ToUniversalTime();
+            
+            var etapasVenta = new[] { "Cerrado", "Ganado" };
+
+            var megaData = await context.Agents
+                .AsNoTracking()
+                .Where(a => a.Id == agenteId)
+                .Select(a => new
+                {
+                    Visitas = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc),
+                    Cierres = a.Leads.Count(l => etapasVenta.Contains(l.EtapaEmbudo) && ((l.FechaCierre != null && l.FechaCierre >= inicioMesUtc && l.FechaCierre <= finMesUtc) || (l.FechaCierre == null && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc))),
+                    Ofertas = a.Leads.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc),
+                    Captaciones = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicioMesUtc && p.FechaIngreso <= finMesUtc),
+
+                    RawVisitas = a.Tasks
+                        .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc)
+                        .Select(t => t.FechaInicio)
+                        .ToList(),
+                    RawCierres = a.Leads
+                        .Where(l => etapasVenta.Contains(l.EtapaEmbudo) && ((l.FechaCierre != null && l.FechaCierre >= inicioMesUtc && l.FechaCierre <= finMesUtc) || (l.FechaCierre == null && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc)))
+                        .Select(l => l.FechaCierre ?? l.FechaCreacion)
+                        .ToList(),
+                    RawCaptaciones = a.Properties
+                        .Where(p => p.EsCaptacionPropia && p.FechaIngreso >= inicioMesUtc && p.FechaIngreso <= finMesUtc)
+                        .Select(p => p.FechaIngreso)
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (megaData == null) return Results.NotFound("Agente no encontrado");
+
+            // 3. PROCESAR ANALÍTICA MENSUAL (Lógica dinámica de semanas)
+            var semanas = new List<(DateTime Inicio, DateTime Fin)>();
+            var primerDia = new DateTime(nowEcuador.Year, nowEcuador.Month, 1);
+            var ultimoDiaMes = primerDia.AddMonths(1).AddDays(-1);
+
+            var curr = primerDia;
+            while (curr <= ultimoDiaMes)
+            {
+                var inicioSemana = curr;
+                int diasHastaDomingo = (int)DayOfWeek.Sunday - (int)inicioSemana.DayOfWeek;
+                if (diasHastaDomingo < 0) diasHastaDomingo += 7;
+
+                var finSemana = inicioSemana.AddDays(diasHastaDomingo);
+                if (finSemana > ultimoDiaMes) finSemana = ultimoDiaMes;
+
+                semanas.Add((inicioSemana, finSemana));
+                curr = finSemana.AddDays(1);
+            }
+
+            var semanasFinales = new List<(DateTime Inicio, DateTime Fin)>();
+            for (int i = 0; i < semanas.Count; i++)
+            {
+                var s = semanas[i];
+                var duracion = (s.Fin - s.Inicio).Days + 1;
+
+                if (i == 0 && duracion < 4 && semanas.Count > 1)
+                {
+                    semanas[i + 1] = (s.Inicio, semanas[i + 1].Fin);
+                    continue;
+                }
+                if (i == semanas.Count - 1 && duracion < 4 && semanasFinales.Count > 0)
+                {
+                    var anterior = semanasFinales[^1];
+                    semanasFinales[^1] = (anterior.Inicio, s.Fin);
+                    continue;
+                }
+
+                semanasFinales.Add(s);
+            }
+
+            var trendSemanas = new List<WeeklyTrendPoint>();
+            for (int i = 0; i < semanasFinales.Count; i++)
+            {
+                var s = semanasFinales[i];
+                var vCount = megaData.RawVisitas.Count(x => x.ToOffset(ecuadorOffset).Date >= s.Inicio.Date && x.ToOffset(ecuadorOffset).Date <= s.Fin.Date);
+                var cCount = megaData.RawCierres.Count(x => x.ToOffset(ecuadorOffset).Date >= s.Inicio.Date && x.ToOffset(ecuadorOffset).Date <= s.Fin.Date);
+                var capCount = megaData.RawCaptaciones.Count(x => x.ToOffset(ecuadorOffset).Date >= s.Inicio.Date && x.ToOffset(ecuadorOffset).Date <= s.Fin.Date);
+
+                trendSemanas.Add(new WeeklyTrendPoint($"S{i + 1}", vCount, cCount, capCount));
+            }
+
+            var sales = new VentasMensualesResponse(
+                megaData.Visitas,
+                megaData.Cierres,
+                megaData.Ofertas,
+                megaData.Captaciones,
+                trendSemanas
+            );
+
+            // Actualizar la cache para la próxima vez
+            warmingService.UpdateSalesCache(agenteId, sales);
+
+            swTotal.Stop();
+            Console.WriteLine($"\n⚡ [SALES FALLBACK] Agente: {agenteId} | Latencia: {swTotal.ElapsedMilliseconds}ms\n");
+
+            return Results.Ok(sales);
+        })
+        .WithTags("Analitica")
+        .WithName("ObtenerVentasMensuales")
+        .CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
     }
 }

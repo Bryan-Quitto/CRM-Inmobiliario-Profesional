@@ -44,10 +44,17 @@ This file defines the strict technical standards and architectural rules for the
 - **Standard:** Migrations should be managed through EF Core CLI. Ensure `GssEncryptionMode=Disable;` is present in the `DATABASE_URL` within the `.env` file to avoid connection issues.
 - **Reason:** Ensuring environmental consistency and allowing automated schema updates.
 
-## World-Class Performance & UX Standards
+### World-Class Performance & UX Standards
 All new features and refactors MUST implement these zero-latency patterns:
 
+### Temporal & Geographic Standards (Ecuador UTC-5)
+- **Rule:** The system MUST operate under Ecuador's timezone (UTC-5) for all business logic, regardless of server or database (Supabase) location.
+- **Handling:** When calculating boundaries like "Today", "Current Month", or "Weekly Groupings", always use `.ToOffset(TimeSpan.FromHours(-5))` before applying date logic.
+- **Consistency:** Background services (Warming) and API Endpoints MUST use the same offset to ensure cache consistency and prevent data jumping between days due to UTC-0 mismatches.
+- **Reason:** Users in Ecuador must see their data reflected according to their local calendar, especially during late-night operations where UTC-0 is already the next day.
+
 ### Frontend Velocity (The "Zero Wait" Policy)
+
 - **Ultra-Premium Sync Pattern (UPSP) (Read CRM Inmobiliario Profesional\CRM_Inmobiliario_Web\src\lib\swr.ts):** 
     - **Disk Persistence:** Implement `localStorageProvider` in SWR to cache metrics and lists permanently across sessions.
     - **Zero Flicker:** Use `keepPreviousData: true` to maintain old data visible while fetching fresh updates.

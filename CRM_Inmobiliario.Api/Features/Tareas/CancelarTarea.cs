@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Features.Dashboard;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -13,7 +14,7 @@ public static class CancelarTareaFeature
 {
     public static void MapCancelarTareaEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPatch("/tareas/{id:guid}/cancelar", async (Guid id, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
+        app.MapPatch("/tareas/{id:guid}/cancelar", async (Guid id, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -24,6 +25,9 @@ public static class CancelarTareaFeature
 
             tarea.Estado = "Cancelada";
             await context.SaveChangesAsync();
+
+            // Notificar al servicio de Warming proactivamente
+            warmingService.NotifyChange(agenteId);
 
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);

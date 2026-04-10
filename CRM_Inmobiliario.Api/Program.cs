@@ -108,13 +108,15 @@ builder.Services.AddOutputCache(options => {
 // Infraestructura de Red
 builder.Services.AddHttpClient();
 
-// Fase 1: Cola de Generación de PDFs
+// Fase 1: Cola de Generación de PDFs y Warming de KPIs
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
 builder.Services.AddSingleton<IPdfCleanupQueue, PdfCleanupQueue>();
+builder.Services.AddSingleton<IKpiWarmingService, KpiWarmingService>();
 
-// Fase 2: Background Service (El Obrero)
+// Fase 2: Background Services (Los Obreros)
 builder.Services.AddHostedService<PdfWorker>();
 builder.Services.AddHostedService<PdfCleanupWorker>();
+builder.Services.AddHostedService<KpiWarmingBackgroundService>();
 
 // Configuración de QuestPDF (Licencia Comunitaria)
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
@@ -204,6 +206,7 @@ apiGroup.MapReprogramarEventoEndpoint();
 
 // Analítica
 apiGroup.MapObtenerActividadEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization").SetVaryByQuery("inicio", "fin"));
+apiGroup.MapObtenerVentasMensualesEndpoint();
 apiGroup.MapObtenerSeguimientoEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
 apiGroup.MapObtenerProyeccionesEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
 apiGroup.MapObtenerEficienciaEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
