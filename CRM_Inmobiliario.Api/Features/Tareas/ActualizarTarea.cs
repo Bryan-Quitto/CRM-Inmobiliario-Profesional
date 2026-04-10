@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Features.Dashboard;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -24,7 +25,7 @@ public static class ActualizarTareaFeature
 
     public static void MapActualizarTareaEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/tareas/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
+        app.MapPut("/tareas/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -60,6 +61,9 @@ public static class ActualizarTareaFeature
             tarea.Lugar = command.Lugar;
 
             await context.SaveChangesAsync();
+
+            // Notificar al servicio de Warming proactivamente
+            warmingService.NotifyChange(agenteId);
 
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
