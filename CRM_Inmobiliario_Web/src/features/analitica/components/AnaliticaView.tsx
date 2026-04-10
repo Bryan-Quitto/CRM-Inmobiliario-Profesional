@@ -269,7 +269,7 @@ const AnaliticaContent: React.FC = () => {
               <button onClick={() => setShowMesDropdown(!showMesDropdown)} className="bg-white border-2 border-slate-100 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:border-blue-300 focus:ring-4 focus:ring-blue-50/50 transition-all cursor-pointer outline-none shadow-md flex items-center gap-3 min-w-[140px] justify-between">{MESES[mesSeleccionado]}<ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${showMesDropdown ? 'rotate-180' : ''}`} /></button>
               {showMesDropdown && (
                 <div className="absolute left-0 mt-3 w-48 bg-white border-2 border-slate-50 rounded-[24px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left overflow-hidden backdrop-blur-xl bg-white/95">
-                  {MESES.map((mes, idx) => (
+                  {MESES.slice(0, new Date().getMonth() + 1).map((mes, idx) => (
                     <button key={idx} onClick={() => { setMesSeleccionado(idx); setSemanaIndice('total'); setShowMesDropdown(false); }} className={`w-full px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${mesSeleccionado === idx ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'}`}>{mes}{mesSeleccionado === idx && <Check className="h-3 w-3" />}</button>
                   ))}
                 </div>

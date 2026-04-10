@@ -48,6 +48,6 @@ public static class ObtenerSeguimientoEndpoint
         })
         .WithTags("Analitica")
         .WithName("ObtenerSeguimiento")
-        .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization"));
+        .CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
     }
 }

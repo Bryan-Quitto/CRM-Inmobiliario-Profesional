@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import useSWR, { SWRConfig } from 'swr';
+import useSWR, { SWRConfig, useSWRConfig } from 'swr';
 import Fuse from 'fuse.js';
 import { 
   Home, 
@@ -101,6 +101,7 @@ const PropertyStats = ({ total, venta, alquiler }: { total: number, venta: numbe
 );
 
 const PropiedadesContent = () => {
+  const { mutate: globalMutate } = useSWRConfig();
   const { data: propiedades = [], isValidating: syncing, mutate } = useSWR<Propiedad[]>(
     '/propiedades',
     getPropiedades,
@@ -184,6 +185,10 @@ const PropiedadesContent = () => {
           revalidate: true
         });
         toast.success(`Inmueble marcado como ${nuevoEstado}`);
+        
+        // Revalidación proactiva de analíticas y dashboard (UPSP)
+        globalMutate('/dashboard/kpis');
+        globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
       } catch {
         toast.error('No se pudo actualizar el estado.');
       } finally {
@@ -202,6 +207,11 @@ const PropiedadesContent = () => {
         await actualizarEstadoPropiedad(id, nuevoEstado);
         await limpiarImagenesPropiedad(id);
         mutate();
+        
+        // Revalidación proactiva de analíticas y dashboard (UPSP)
+        globalMutate('/dashboard/kpis');
+        globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+
         toast.success(`Propiedad "${propiedad.titulo}" actualizada y depurada.`);
       } catch {
         toast.error("Error al procesar el cambio de estado masivo.");
@@ -243,6 +253,11 @@ const PropiedadesContent = () => {
       }
       
       await mutate();
+      
+      // Revalidación proactiva de analíticas y dashboard (UPSP)
+      globalMutate('/dashboard/kpis');
+      globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+
       toast.success(`Propiedad ${nuevoEstado === 'Vendida' ? 'vendida' : 'alquilada'} con éxito`);
     } catch (error) {
       console.error('Error al cerrar:', error);

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Diagnostics;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -27,62 +28,71 @@ public static class ObtenerKpisEndpoint
     {
         return app.MapGet("/dashboard/kpis", async (DateTimeOffset? clientDate, ClaimsPrincipal user, CrmDbContext context) =>
         {
+            var swTotal = Stopwatch.StartNew();
             var agenteId = user.GetRequiredUserId();
             
-            // Si el cliente no manda fecha, usamos su UTC "actual"
             var baseDate = clientDate ?? DateTimeOffset.UtcNow;
-            
-            // Definimos el límite de "Hoy" para ese cliente (usamos el final del día siguiente para ser permisivos con zonas horarias)
-            var limiteHoy = new DateTimeOffset(baseDate.Year, baseDate.Month, baseDate.Day, 23, 59, 59, baseDate.Offset).AddDays(1);
-            
-            var limiteHoyUtc = limiteHoy.ToUniversalTime();
+            var limiteHoyUtc = new DateTimeOffset(baseDate.Year, baseDate.Month, baseDate.Day, 23, 59, 59, baseDate.Offset).ToUniversalTime();
 
-            // 1. Ejecución secuencial (EF Core no permite paralelismo en el mismo DbContext)
-            // Se usa AsNoTracking para maximizar el rendimiento.
-            var propiedadesCount = await context.Properties
-                .AsNoTracking()
-                .CountAsync(p => p.AgenteId == agenteId && p.EstadoComercial == "Disponible");
-
-            var prospectosCount = await context.Leads
-                .AsNoTracking()
-                .CountAsync(l => l.AgenteId == agenteId && l.EtapaEmbudo != "Perdido");
-
-            // ACTUALIZAMOS LA CONSULTA PARA USAR limiteHoyUtc y ToLower() para el Estado
-            var tareasCount = await context.Tasks
-                .AsNoTracking()
-                .CountAsync(t => t.AgenteId == agenteId && 
-                                 t.Estado.ToLower() == "pendiente" && 
-                                 t.FechaInicio <= limiteHoyUtc);
-
-            // Seguimiento Crítico
             var etapasExcluidas = new[] { "En Negociación", "Cerrado", "Perdido" };
-            var leadsSeguimiento = await context.Leads
-                .AsNoTracking()
-                .Where(l => l.AgenteId == agenteId && !etapasExcluidas.Contains(l.EtapaEmbudo))
-                .Where(l => l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
-                .Select(l => new LeadDashboardItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
-                .ToListAsync();
 
-            var embudo = await context.Leads
+            // OPTIMIZACIÓN SUPREMA: "THE ONE TRIP PATTERN"
+            // Agrupamos TODOS los cálculos en un solo comando SQL para minimizar el impacto 
+            // de la latencia de red (1.3s por round-trip detectado).
+            
+            var swQuery = Stopwatch.StartNew();
+            var megaData = await context.Agents
                 .AsNoTracking()
-                .Where(l => l.AgenteId == agenteId)
-                .GroupBy(l => l.EtapaEmbudo)
-                .Select(g => new EtapaEmbudoItem(g.Key ?? "Sin Etapa", g.Count()))
-                .ToListAsync();
+                .Where(a => a.Id == agenteId)
+                .Select(a => new
+                {
+                    Propiedades = a.Properties.Count(p => p.EstadoComercial == "Disponible"),
+                    Prospectos = a.Leads.Count(l => l.EtapaEmbudo != "Perdido"),
+                    Tareas = a.Tasks.Count(t => t.Estado == "Pendiente" && t.FechaInicio <= limiteHoyUtc),
+                    
+                    // Seguimiento (Proyectamos solo lo necesario)
+                    LeadsSeguimiento = a.Leads
+                        .Where(l => !etapasExcluidas.Contains(l.EtapaEmbudo) && l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
+                        .Select(l => new LeadDashboardItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
+                        .ToList(),
+
+                    // Embudo (Agrupación en memoria tras traer el resumen por etapa)
+                    EmbudoRaw = a.Leads
+                        .GroupBy(l => l.EtapaEmbudo)
+                        .Select(g => new { Etapa = g.Key, Cantidad = g.Count() })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+            swQuery.Stop();
+
+            if (megaData == null) return Results.NotFound("Agente no encontrado");
+
+            var embudoFinal = megaData.EmbudoRaw
+                .Select(x => new EtapaEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad))
+                .ToList();
+
+            swTotal.Stop();
+
+            // IMPRESIÓN DE DIAGNÓSTICO EN TERMINAL
+            Console.WriteLine("\n⚡ [PERFORMANCE: THE ONE TRIP]");
+            Console.WriteLine($"   |-- 📡 Latencia Única DB: {swQuery.ElapsedMilliseconds}ms (Incluye Network + Query)");
+            Console.WriteLine($"   |-- 🧠 Procesamiento:    {swTotal.ElapsedMilliseconds - swQuery.ElapsedMilliseconds}ms");
+            Console.WriteLine($"   |-- ✅ TIEMPO TOTAL:     {swTotal.ElapsedMilliseconds}ms");
+            Console.WriteLine("---------------------------------------\n");
 
             var kpis = new DashboardKpisResponse(
-                propiedadesCount,
-                prospectosCount,
-                tareasCount,
-                leadsSeguimiento.Count,
-                leadsSeguimiento,
-                embudo
+                megaData.Propiedades,
+                megaData.Prospectos,
+                megaData.Tareas,
+                megaData.LeadsSeguimiento.Count,
+                megaData.LeadsSeguimiento,
+                embudoFinal
             );
 
             return Results.Ok(kpis);
         })
         .WithTags("Dashboard")
         .WithName("ObtenerKpis")
-        .CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization"));
+        .CacheOutput(p => p.Tag("dashboard-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization").SetVaryByQuery("clientDate"));
     }
 }

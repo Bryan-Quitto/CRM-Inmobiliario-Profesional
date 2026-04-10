@@ -1,4 +1,5 @@
 import { useForm, Controller } from 'react-hook-form';
+import { useSWRConfig } from 'swr';
 import { 
   Type, 
   AlignLeft, 
@@ -49,6 +50,7 @@ const toLocalISOString = (dateInput: string | Date) => {
 };
 
 export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onCancelTask }: Props) => {
+  const { mutate } = useSWRConfig();
   const { clientes, propiedades, updateTarea } = useTareas();
   // Si tenemos initialData, empezamos con isLoading en false para carga instantánea
   const [isLoading, setIsLoading] = useState(!initialData);
@@ -198,6 +200,10 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
       console.error('Error en sync de updateTarea:', err);
       toast.error('No se pudo sincronizar el cambio');
     });
+
+    // Revalidación proactiva de analíticas y dashboard (UPSP)
+    mutate('/dashboard/kpis');
+    mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
 
     onSuccess(); // Cerramos el panel/formulario de inmediato
   };

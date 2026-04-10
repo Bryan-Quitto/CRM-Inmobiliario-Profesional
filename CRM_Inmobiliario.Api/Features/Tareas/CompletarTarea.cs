@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CRM_Inmobiliario.Api.Features.Tareas;
 
@@ -12,15 +13,23 @@ public static class CompletarTareaFeature
 {
     public static void MapCompletarTareaEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPatch("/tareas/{id:guid}/completar", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
+        app.MapPatch("/tareas/{id:guid}/completar", async (Guid id, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
             var rowsAffected = await context.Tasks
                 .Where(t => t.Id == id && t.AgenteId == agenteId)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(t => t.Estado, "Completada"));
+                .ExecuteUpdateAsync(setters => setters.SetProperty(t => t.Estado, "Completada"), ct);
 
-            return rowsAffected > 0 ? Results.NoContent() : Results.NotFound();
+            if (rowsAffected > 0)
+            {
+                // Invalidar caches proactivamente
+                await cacheStore.EvictByTagAsync("dashboard-data", ct);
+                await cacheStore.EvictByTagAsync("analytics-data", ct);
+                return Results.NoContent();
+            }
+
+            return Results.NotFound();
         })
         .WithTags("Tareas")
         .WithName("CompletarTarea");

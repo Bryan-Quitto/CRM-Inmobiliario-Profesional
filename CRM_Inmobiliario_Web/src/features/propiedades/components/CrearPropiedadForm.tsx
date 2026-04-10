@@ -1,4 +1,5 @@
 import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useSWRConfig } from 'swr';
 import { 
   Home, 
   Tag, 
@@ -50,6 +51,7 @@ const OPERACIONES = [
 const DRAFT_STORAGE_KEY = 'crm_propiedad_draft';
 
 export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) => {
+  const { mutate } = useSWRConfig();
   const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -251,7 +253,11 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       ? actualizarPropiedad(initialData.id, payload)
       : crearPropiedad(payload);
 
-    action.catch((err) => {
+    action.then(() => {
+      // Revalidación proactiva de analíticas y dashboard (UPSP)
+      mutate('/dashboard/kpis');
+      mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+    }).catch((err) => {
       console.error('Error al guardar propiedad en background:', err);
       // Notificamos el error aunque hayamos cerrado el modal
       toast.error(`Error al ${isEditing ? 'actualizar' : 'registrar'} propiedad`, {

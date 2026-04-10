@@ -1,4 +1,5 @@
 import { useForm, Controller } from 'react-hook-form';
+import { useSWRConfig } from 'swr';
 import { User, Mail, Phone, Tag, X, Trash2, Check, RotateCcw, ChevronDown, Pencil } from 'lucide-react';
 import { crearCliente, type CrearClienteDTO } from '../api/crearCliente';
 import { actualizarCliente } from '../api/actualizarCliente';
@@ -23,6 +24,7 @@ const ORIGENES = [
 const DRAFT_STORAGE_KEY = 'crm_prospecto_draft';
 
 export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) => {
+  const { mutate } = useSWRConfig();
   const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -126,7 +128,11 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
       ? actualizarCliente(initialData.id, data)
       : crearCliente(data);
 
-    action.catch((err) => {
+    action.then(() => {
+      // Revalidación proactiva de analíticas y dashboard (UPSP)
+      mutate('/dashboard/kpis');
+      mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+    }).catch((err) => {
       console.error('Error al guardar cliente en background:', err);
       // Notificamos el error aunque hayamos cerrado el modal
       toast.error(`Error al ${isEditing ? 'actualizar' : 'registrar'} cliente`, {

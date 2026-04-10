@@ -43,6 +43,10 @@ public sealed class CrmDbContext : DbContext
             entity.Property(e => e.Origen).HasMaxLength(50);
             entity.Property(e => e.EtapaEmbudo).HasMaxLength(50);
 
+            // ÍNDICE DE RENDIMIENTO: Búsqueda y conteo por agente, etapa y fechas
+            entity.HasIndex(e => new { e.AgenteId, e.EtapaEmbudo, e.FechaCierre, e.FechaCreacion })
+                  .HasDatabaseName("IX_Leads_Performance_AgenteEtapaFecha");
+
             entity.HasOne(d => d.Agente)
                 .WithMany(p => p.Leads)
                 .HasForeignKey(d => d.AgenteId)
@@ -65,6 +69,10 @@ public sealed class CrmDbContext : DbContext
             entity.Property(e => e.PrecioCierre).HasColumnType("decimal(12,2)");
             entity.Property(e => e.Banos).HasColumnType("decimal(3,1)");
             entity.Property(e => e.AreaTotal).HasColumnType("decimal(10,2)");
+
+            // ÍNDICE DE RENDIMIENTO: Conteo por agente, estado, captación y fecha ingreso
+            entity.HasIndex(e => new { e.AgenteId, e.EstadoComercial, e.EsCaptacionPropia, e.FechaIngreso })
+                  .HasDatabaseName("IX_Properties_Performance_AgenteEstadoCaptacion");
 
             entity.HasOne(d => d.Agente)
                 .WithMany(p => p.Properties)
@@ -132,6 +140,10 @@ public sealed class CrmDbContext : DbContext
             entity.Property(e => e.Estado).HasMaxLength(50);
             entity.Property(e => e.ColorHex).HasMaxLength(7);
             entity.Property(e => e.DuracionMinutos).IsRequired();
+
+            // ÍNDICE DE RENDIMIENTO: Conteo por agente, estado, tipo y fecha inicio
+            entity.HasIndex(e => new { e.AgenteId, e.Estado, e.TipoTarea, e.FechaInicio })
+                  .HasDatabaseName("IX_Tasks_Performance_AgenteEstadoTipoFecha");
 
             entity.HasOne(d => d.Agente)
                 .WithMany(p => p.Tasks)

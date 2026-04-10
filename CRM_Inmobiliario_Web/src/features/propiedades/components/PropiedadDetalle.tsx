@@ -413,8 +413,59 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
   const handleWhatsAppShare = () => {
     if (!propiedad) return;
-    const text = encodeURIComponent(`Mira esta increíble propiedad: ${propiedad.titulo} por ${formatCurrency(propiedad.precio)}. Te envío la ficha técnica...`);
-    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+
+    // Usamos secuencias de escape Unicode para evitar problemas de codificación (UTF-8/ISO mismatch)
+    const emojiMap: Record<string, string> = {
+      'Casa': '\u{1F3E0}',            // 🏠
+      'Departamento': '\u{1F3E2}',    // 🏢
+      'Oficina': '\u{1F4BC}',         // 💼
+      'Terreno': '\u{1F4D0}',         // 📐
+      'Local Comercial': '\u{1F3EA}', // 🏪
+      'Suite': '\u{2728}'             // ✨
+    };
+
+    const emojiTipo = emojiMap[propiedad.tipoPropiedad] || '\u{1F3E0}';
+    
+    // Emojis auxiliares
+    const e = {
+      wave: '\u{1F44B}',     // 👋
+      sparkle: '\u{2728}',   // ✨
+      money: '\u{1F4B0}',    // 💰
+      pin: '\u{1F4CD}',      // 📍
+      clipboard: '\u{1F4CB}',// 📋
+      bed: '\u{1F6CF}',      // 🛌
+      bath: '\u{1F6C1}',     // 🛀
+      ruler: '\u{1F4CF}',    // 📏
+      smile: '\u{1F60A}'     // 😊
+    };
+
+    let message = `¡Hola! ${e.wave} Mira esta increíble propiedad que te puede interesar:\n\n`;
+    message += `*${propiedad.titulo.toUpperCase()}* ${emojiTipo}${e.sparkle}\n\n`;
+    
+    message += `${e.money} *Precio:* ${formatCurrency(propiedad.precio)}\n`;
+    message += `${e.pin} *Ubicación:* ${propiedad.sector}, ${propiedad.ciudad}\n`;
+    message += `${e.clipboard} *Operación:* ${propiedad.operacion}\n`;
+
+    if (['Casa', 'Departamento', 'Suite'].includes(propiedad.tipoPropiedad)) {
+      message += `${e.bed} *Habitaciones:* ${propiedad.habitaciones}\n`;
+      message += `${e.bath} *Baños:* ${propiedad.banos}\n`;
+    } else if (['Oficina', 'Local Comercial'].includes(propiedad.tipoPropiedad)) {
+      if (propiedad.banos > 0) message += `${e.bath} *Baños:* ${propiedad.banos}\n`;
+    }
+
+    message += `${e.ruler} *Área Total:* ${propiedad.areaTotal} m²\n`;
+
+    if (propiedad.tipoPropiedad === 'Terreno') {
+      message += `${emojiTipo} Ideal para construir el proyecto de tus sueños.\n`;
+    }
+
+    message += `\nTe envío la ficha técnica con fotos y más detalles. ¿Te gustaría agendar una visita? ${e.smile}`;
+
+    // Usamos api.whatsapp.com que suele ser más estable para mensajes largos
+    const text = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${text}`;
+    
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleMoveSection = (index: number, direction: 'up' | 'down', customTargetIndex?: number) => {
