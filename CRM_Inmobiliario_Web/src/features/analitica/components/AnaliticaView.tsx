@@ -115,7 +115,7 @@ const AnaliticaContent: React.FC = () => {
   const swrConfig = { 
     dedupingInterval: 10000, 
     revalidateOnFocus: false,
-    revalidateIfStale: false,
+    revalidateIfStale: true,
     keepPreviousData: true
   };
 

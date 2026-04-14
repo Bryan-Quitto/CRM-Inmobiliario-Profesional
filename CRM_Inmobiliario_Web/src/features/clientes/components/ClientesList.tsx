@@ -77,13 +77,13 @@ const VIEW_MODE_KEY = 'crm_clientes_view_mode';
 const ClientesContent = () => {
   const navigate = useNavigate();
   const { mutate: globalMutate } = useSWRConfig();
-  const { data: clientes = [], isValidating: syncing, mutate } = useSWR<Cliente[]>(
+  const { data: clientes = [], isLoading, isValidating: syncing, mutate } = useSWR<Cliente[]>(
     '/clientes',
     getClientes,
     swrDefaultConfig
   );
   
-  const loading = !clientes.length && !syncing;
+  const loading = isLoading;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClienteForEdit, setSelectedClienteForEdit] = useState<Cliente | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de cliente

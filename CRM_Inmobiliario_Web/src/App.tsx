@@ -33,7 +33,8 @@ const ClienteDetalle = lazy(() => import('./features/clientes/components/Cliente
 const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
 const AnaliticaView = lazy(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView })));
 const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
-const ConfiguracionPerfil = lazy(() => import('./features/auth/components/ConfiguracionPerfil'));
+const ConfiguracionView = lazy(() => import('./features/configuracion/components/ConfiguracionView'));
+const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
 
 const PageLoader = () => (
   <div className="flex flex-col items-center justify-center h-[60vh] animate-in fade-in duration-500">
@@ -84,6 +85,7 @@ function AppContent({ session }: { session: Session | null }) {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
+      localStorage.removeItem('crm-swr-cache');
       toast.success('Sesión cerrada correctamente');
     } catch {
       toast.error('Error al cerrar sesión');
@@ -233,7 +235,8 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/prospectos/:id" element={<ClienteDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
               <Route path="/kpis" element={<AnaliticaView />} />
-              <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionPerfil /></Suspense>} />
+              <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionView /></Suspense>} />
+              <Route path="/confirmar-password" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
             </Routes>
           </Suspense>
         </main>
@@ -265,18 +268,19 @@ function AppContent({ session }: { session: Session | null }) {
   );
 }
 
-function App() {
+function MainApp() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Extraemos el hash inicial antes de que React Router lo manipule
+  const [initialHash] = useState(() => window.location.hash);
 
   useEffect(() => {
-    // Obtener sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // Escuchar cambios en la autenticación
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -286,6 +290,9 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Verificar si venimos de un link de invitación
+  const isInviteFlow = initialHash.includes('type=invite') || initialHash.includes('type=recovery');
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -294,14 +301,28 @@ function App() {
     );
   }
 
-  if (!session) {
+  // Si no hay sesión (o estamos en flujo de invitación), mostramos las rutas públicas
+  if (!session || isInviteFlow) {
     return (
       <GlobalErrorBoundary>
-        <LoginForm />
+        <Routes>
+          {/* Si venimos de un invite, mostramos Confirmar, sino Login */}
+          <Route 
+            path="*" 
+            element={isInviteFlow ? (
+              <Suspense fallback={<PageLoader />}>
+                <ConfirmarInvitacion />
+              </Suspense>
+            ) : (
+              <LoginForm />
+            )} 
+          />
+        </Routes>
       </GlobalErrorBoundary>
     );
   }
 
+  // Si hay sesión y NO es un flujo de invitación, mostramos la app principal
   return (
     <GlobalErrorBoundary>
       <NetworkStatusListener />
@@ -312,6 +333,10 @@ function App() {
       </TareasProvider>
     </GlobalErrorBoundary>
   );
+}
+
+function App() {
+  return <MainApp />;
 }
 
 export default App;
