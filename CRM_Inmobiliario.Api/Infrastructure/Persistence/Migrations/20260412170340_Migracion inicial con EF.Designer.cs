@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    [Migration("20260403221623_AgregarCaptacionPropiaPropiedad")]
-    partial class AgregarCaptacionPropiaPropiedad
+    [Migration("20260412170340_Migracion inicial con EF")]
+    partial class MigracioninicialconEF
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -34,6 +34,10 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Agencia")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Apellido")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -46,6 +50,14 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTimeOffset>("FechaCreacion")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FotoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -155,7 +167,8 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AgenteId");
+                    b.HasIndex("AgenteId", "EtapaEmbudo", "FechaCierre", "FechaCreacion")
+                        .HasDatabaseName("IX_Leads_Performance_AgenteEtapaFecha");
 
                     b.ToTable("Leads");
                 });
@@ -198,6 +211,9 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("Banos")
                         .HasColumnType("decimal(3,1)");
 
+                    b.Property<Guid?>("CerradoConId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Ciudad")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -226,6 +242,9 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("FechaIngreso")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("GoogleMapsUrl")
+                        .HasColumnType("text");
+
                     b.Property<int>("Habitaciones")
                         .HasColumnType("integer");
 
@@ -233,6 +252,9 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<decimal>("PorcentajeComision")
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("Precio")
                         .HasColumnType("decimal(12,2)");
@@ -260,11 +282,45 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AgenteId");
+                    b.HasIndex("CerradoConId");
 
                     b.HasIndex("PropietarioId");
 
+                    b.HasIndex("AgenteId", "EstadoComercial", "EsCaptacionPropia", "FechaIngreso")
+                        .HasDatabaseName("IX_Properties_Performance_AgenteEstadoCaptacion");
+
                     b.ToTable("Properties");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PropiedadId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PropiedadId");
+
+                    b.ToTable("PropertyGallerySections");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyMedia", b =>
@@ -273,6 +329,10 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<bool>("EsPrincipal")
                         .HasColumnType("boolean");
 
@@ -280,6 +340,9 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer");
 
                     b.Property<Guid>("PropiedadId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SectionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("StoragePath")
@@ -298,6 +361,8 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PropiedadId");
+
+                    b.HasIndex("SectionId");
 
                     b.ToTable("PropertyMedia");
                 });
@@ -332,6 +397,10 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("FechaInicio")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Lugar")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<Guid?>("PropiedadId")
                         .HasColumnType("uuid");
 
@@ -347,11 +416,12 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AgenteId");
-
                     b.HasIndex("ClienteId");
 
                     b.HasIndex("PropiedadId");
+
+                    b.HasIndex("AgenteId", "Estado", "TipoTarea", "FechaInicio")
+                        .HasDatabaseName("IX_Tasks_Performance_AgenteEstadoTipoFecha");
 
                     b.ToTable("Tasks");
                 });
@@ -419,6 +489,10 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Lead", "CerradoCon")
+                        .WithMany()
+                        .HasForeignKey("CerradoConId");
+
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Lead", "Propietario")
                         .WithMany("PropertiesOwned")
                         .HasForeignKey("PropietarioId")
@@ -426,7 +500,20 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Agente");
 
+                    b.Navigation("CerradoCon");
+
                     b.Navigation("Propietario");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
+                {
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Propiedad")
+                        .WithMany("GallerySections")
+                        .HasForeignKey("PropiedadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Propiedad");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyMedia", b =>
@@ -437,7 +524,14 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", "Section")
+                        .WithMany("Media")
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.Navigation("Propiedad");
+
+                    b.Navigation("Section");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.TaskItem", b =>
@@ -489,6 +583,8 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Property", b =>
                 {
+                    b.Navigation("GallerySections");
+
                     b.Navigation("Interactions");
 
                     b.Navigation("LeadInterests");
@@ -496,6 +592,11 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Media");
 
                     b.Navigation("Tasks");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
+                {
+                    b.Navigation("Media");
                 });
 #pragma warning restore 612, 618
         }

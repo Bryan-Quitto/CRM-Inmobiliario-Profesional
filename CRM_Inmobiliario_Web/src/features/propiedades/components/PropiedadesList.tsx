@@ -102,13 +102,13 @@ const PropertyStats = ({ total, venta, alquiler }: { total: number, venta: numbe
 
 const PropiedadesContent = () => {
   const { mutate: globalMutate } = useSWRConfig();
-  const { data: propiedades = [], isValidating: syncing, mutate } = useSWR<Propiedad[]>(
+  const { data: propiedades = [], isLoading, isValidating: syncing, mutate } = useSWR<Propiedad[]>(
     '/propiedades',
     getPropiedades,
     swrDefaultConfig
   );
 
-  const loading = !propiedades.length && !syncing;
+  const loading = isLoading;
   const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);

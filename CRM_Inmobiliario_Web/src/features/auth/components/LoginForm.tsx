@@ -15,6 +15,7 @@ export const LoginForm: React.FC = () => {
     setError(null);
 
     try {
+      localStorage.removeItem('crm-swr-cache');
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,

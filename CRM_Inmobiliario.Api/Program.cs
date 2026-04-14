@@ -199,6 +199,7 @@ apiGroup.MapObtenerKpisEndpoint();
 // Configuracion
 apiGroup.MapObtenerPerfilEndpoint();
 apiGroup.MapActualizarPerfilEndpoint();
+apiGroup.MapInvitarAgenteEndpoint();
 
 // Calendario
 apiGroup.MapListarEventosEndpoint().CacheOutput();
