@@ -1,12 +1,10 @@
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { useSWRConfig } from 'swr';
 import { 
-  Home, 
-  Tag, 
-  MapPin, 
-  DollarSign, 
-  Maximize, 
-  BedDouble, 
+  Building, 
+  Coins, 
+  Ruler, 
+  Bed, 
   Bath, 
   AlertCircle, 
   X, 
@@ -14,15 +12,27 @@ import {
   Check, 
   RotateCcw, 
   ChevronDown,
-  Type,
-  FileText,
+  PenLine,
+  AlignLeft,
   Pencil,
   Globe,
   Mic,
-  MicOff
+  MicOff,
+  Wand2,
+  Loader2,
+  Navigation,
+  Map,
+  Building2,
+  LandPlot,
+  Box,
+  CarFront,
+  Clock,
+  Droplet,
+  KeySquare
 } from 'lucide-react';
 import { crearPropiedad } from '../api/crearPropiedad';
 import { actualizarPropiedad } from '../api/actualizarPropiedad';
+import { importarPropiedadRemax } from '../api/importarPropiedadRemax';
 import { useState, useEffect, useRef } from 'react';
 import type { Propiedad } from '../types';
 import type { CrearPropiedadDTO } from '../api/crearPropiedad';
@@ -58,6 +68,8 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
   const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isScraping, setIsScraping] = useState(false);
+  const [missedFields, setMissedFields] = useState<string[]>([]);
   
   const [activeSelect, setActiveSelect] = useState<'tipo' | 'operacion' | null>(null);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -76,6 +88,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
     return {
       tipoPropiedad: '',
       operacion: '',
+      urlRemax: '',
     };
   };
 
@@ -149,6 +162,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       sector: '',
       ciudad: '',
       googleMapsUrl: '',
+      urlRemax: '',
       habitaciones: 0,
       banos: 0,
       areaTotal: 0
@@ -231,6 +245,52 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
     }
   };
 
+  const handleImportar = async () => {
+    const url = getValues('urlRemax');
+    if (!url || !url.includes('remax.com.ec')) {
+      toast.error('Por favor ingresa una URL válida de remax.com.ec');
+      return;
+    }
+    
+    setIsScraping(true);
+    setMissedFields([]);
+    
+    try {
+      const data = await importarPropiedadRemax(url);
+      const newMissed: string[] = [];
+      
+      if (data.titulo) setValue('titulo', data.titulo, { shouldValidate: true, shouldDirty: true }); else newMissed.push('titulo');
+      if (data.descripcion) setValue('descripcion', data.descripcion, { shouldValidate: true, shouldDirty: true }); else newMissed.push('descripcion');
+      if (data.precio > 0) setValue('precio', data.precio, { shouldValidate: true, shouldDirty: true }); else newMissed.push('precio');
+      
+      if (data.tipoPropiedad) setValue('tipoPropiedad', data.tipoPropiedad, { shouldValidate: true, shouldDirty: true });
+      if (data.operacion) setValue('operacion', data.operacion, { shouldValidate: true, shouldDirty: true });
+      if (data.ciudad) setValue('ciudad', data.ciudad, { shouldDirty: true }); else newMissed.push('ciudad');
+      if (data.sector) setValue('sector', data.sector, { shouldDirty: true }); else newMissed.push('sector');
+      if (data.direccionCompleta) setValue('direccion', data.direccionCompleta, { shouldValidate: true, shouldDirty: true }); else newMissed.push('direccion');
+
+      if (['Casa', 'Departamento', 'Suite', 'Hotel'].includes(data.tipoPropiedad)) {
+        if (data.habitaciones > 0) setValue('habitaciones', data.habitaciones, { shouldValidate: true, shouldDirty: true }); else newMissed.push('habitaciones');
+        if (data.banos > 0) setValue('banos', data.banos, { shouldValidate: true, shouldDirty: true }); else newMissed.push('banos');
+      }
+
+      if (data.areaTotal > 0) setValue('areaTotal', data.areaTotal, { shouldValidate: true, shouldDirty: true }); else newMissed.push('areaTotal');
+      
+      if (data.areaTerreno) setValue('areaTerreno', data.areaTerreno, { shouldValidate: true, shouldDirty: true }); else newMissed.push('areaTerreno');
+      if (data.areaConstruccion) setValue('areaConstruccion', data.areaConstruccion, { shouldValidate: true, shouldDirty: true }); else newMissed.push('areaConstruccion');
+      if (data.estacionamientos !== null && data.estacionamientos !== undefined) setValue('estacionamientos', data.estacionamientos, { shouldValidate: true, shouldDirty: true }); else newMissed.push('estacionamientos');
+      if (data.mediosBanos !== null && data.mediosBanos !== undefined) setValue('mediosBanos', data.mediosBanos, { shouldValidate: true, shouldDirty: true }); else newMissed.push('mediosBanos');
+      if (data.aniosAntiguedad !== null && data.aniosAntiguedad !== undefined) setValue('aniosAntiguedad', data.aniosAntiguedad, { shouldValidate: true, shouldDirty: true }); else newMissed.push('aniosAntiguedad');
+
+      setMissedFields(newMissed);
+      toast.success('¡Datos importados con éxito!', { description: 'Revisa las casillas resaltadas en amarillo por autocompletar.' });
+    } catch {
+      toast.error('Error al importar', { description: 'Verifica la URL o intenta manualmente.' });
+    } finally {
+      setIsScraping(false);
+    }
+  };
+
   const onSubmit = (data: CrearPropiedadDTO) => {
     // FIRE AND FORGET: Respuesta instantánea
     setIsSuccess(true);
@@ -248,7 +308,12 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       precio: Number(data.precio),
       habitaciones: Number(data.habitaciones || 0),
       banos: Number(data.banos || 0),
-      areaTotal: Number(data.areaTotal)
+      areaTotal: Number(data.areaTotal || 0),
+      areaTerreno: data.areaTerreno ? Number(data.areaTerreno) : undefined,
+      areaConstruccion: data.areaConstruccion ? Number(data.areaConstruccion) : undefined,
+      estacionamientos: data.estacionamientos ? Number(data.estacionamientos) : undefined,
+      mediosBanos: data.mediosBanos ? Number(data.mediosBanos) : undefined,
+      aniosAntiguedad: data.aniosAntiguedad ? Number(data.aniosAntiguedad) : undefined,
     };
 
     // Ejecutamos la petición en segundo plano
@@ -327,11 +392,45 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
         <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+
+          {/* IMPORTAR DESDE REMAX */}
+          <div className="md:col-span-6 space-y-2 mb-2 p-4 bg-blue-50/50 rounded-2xl border-2 border-blue-100/50 border-dashed">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-black text-blue-800 uppercase tracking-widest pl-1 flex items-center gap-2">
+                <Globe className="h-4 w-4" /> Importación Inteligente (Remax)
+              </label>
+            </div>
+            <div className="flex gap-2 relative">
+              <input 
+                {...register('urlRemax')}
+                type="url" 
+                disabled={isSuccess || isScraping}
+                placeholder="https://www.remax.com.ec/listings/..."
+                className="flex-1 px-4 py-3 bg-white border border-blue-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+              />
+              <button
+                type="button"
+                onClick={handleImportar}
+                disabled={isSuccess || isScraping}
+                className="px-5 py-3 bg-blue-600 text-white font-black text-sm uppercase tracking-tight rounded-xl hover:bg-blue-700 transition-all cursor-pointer shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isScraping ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Importando...</>
+                ) : (
+                  <><Wand2 className="h-4 w-4" /> Autocompletar</>
+                )}
+              </button>
+            </div>
+            <p className="text-[10px] text-blue-500 font-bold uppercase pl-1 opacity-80">
+              Pega una URL para extraer precio, título, cuartos y descripción.
+            </p>
+          </div>
+
           {/* 1. TÍTULO */}
           <div className="md:col-span-6 space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título de la Propiedad</label>
             <div className="relative">
-              <Type className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <PenLine className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input 
                 {...register('titulo', { required: 'El título es obligatorio' })}
                 type="text" 
@@ -370,7 +469,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
               </button>
             </div>
             <div className="relative">
-              <FileText className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />
+              <AlignLeft className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />
               <textarea 
                 {...register('descripcion', { required: 'La descripción es obligatoria' })}
                 disabled={isSuccess}
@@ -395,7 +494,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
           <div className="md:col-span-6 space-y-2">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Tipo de Propiedad</label>
             <div className="relative" ref={activeSelect === 'tipo' ? selectRef : null}>
-              <Home className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Controller
                 name="tipoPropiedad"
                 control={control}
@@ -439,22 +538,21 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
           {tipoSeleccionado && (
             <div className="md:col-span-6 grid grid-cols-1 md:grid-cols-6 gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
               
-              {/* Operación */}
               <div className="md:col-span-3 space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Operación</label>
-                <div className="relative">
-                  <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <div className="relative" ref={activeSelect === 'operacion' ? selectRef : null}>
+                  <KeySquare className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10 pointer-events-none" />
                   <Controller
                     name="operacion"
                     control={control}
                     rules={{ required: 'Selecciona operación' }}
                     render={({ field }) => (
-                      <div className="relative" ref={activeSelect === 'operacion' ? selectRef : null}>
+                      <>
                         <button
                           type="button"
                           disabled={isSuccess}
                           onClick={() => setActiveSelect(activeSelect === 'operacion' ? null : 'operacion')}
-                          className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.operacion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50`}
+                          className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.operacion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50 relative`}
                         >
                           <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
                             {field.value || 'Seleccionar...'}
@@ -462,31 +560,32 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                           <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${activeSelect === 'operacion' ? 'rotate-180' : ''}`} />
                         </button>
                         {activeSelect === 'operacion' && (
-                          <div className="absolute w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200 origin-top">
-                            {OPERACIONES.map((opt) => (
+                          <div className="absolute w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200 origin-top max-h-48 overflow-y-auto">
+                            {['Venta', 'Alquiler', 'Anticresis'].map((opt) => (
                               <button
-                                key={opt.value}
+                                key={opt}
                                 type="button"
-                                onClick={() => { setValue('operacion', opt.value, { shouldValidate: true }); setActiveSelect(null); }}
-                                className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'}`}
+                                onClick={() => { setValue('operacion', opt as any, { shouldValidate: true }); setActiveSelect(null); }}
+                                className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${field.value === opt ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'}`}
                               >
-                                {opt.label}
-                                {field.value === opt.value && <Check className="h-4 w-4" />}
+                                {opt}
+                                {field.value === opt && <Check className="h-4 w-4" />}
                               </button>
                             ))}
                           </div>
                         )}
-                      </div>
+                      </>
                     )}
                   />
                 </div>
+                {errors.operacion && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.operacion.message}</p>}
               </div>
 
               {/* Precio */}
               <div className="md:col-span-3 space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Precio ($)</label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input 
                     {...register('precio', { required: 'Requerido', min: 1 })}
                     type="number" 
@@ -497,35 +596,40 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                 </div>
               </div>
 
-              {/* Sector */}
               <div className="md:col-span-3 space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Sector</label>
-                <input 
-                  {...register('sector', { required: 'Requerido' })}
-                  type="text" 
-                  disabled={isSuccess}
-                  placeholder="Ej. La Carolina"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-                />
+                <div className="relative">
+                  <Map className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    {...register('sector', { required: 'Requerido' })}
+                    type="text" 
+                    disabled={isSuccess}
+                    placeholder="Ej. La Carolina"
+                    className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+                  />
+                </div>
               </div>
 
               {/* Ciudad */}
               <div className="md:col-span-3 space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Ciudad</label>
-                <input 
-                  {...register('ciudad', { required: 'Requerido' })}
-                  type="text" 
-                  disabled={isSuccess}
-                  placeholder="Ej. Quito"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-                />
+                <div className="relative">
+                  <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    {...register('ciudad', { required: 'Requerido' })}
+                    type="text" 
+                    disabled={isSuccess}
+                    placeholder="Ej. Quito"
+                    className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+                  />
+                </div>
               </div>
 
               {/* Dirección Exacta */}
               <div className="md:col-span-6 space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Dirección Exacta</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Navigation className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input 
                     {...register('direccion', { required: 'La dirección es obligatoria' })}
                     type="text" 
@@ -560,30 +664,72 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
 
               {/* Área Total */}
               <div className="md:col-span-2 space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Área Total (m²)</label>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                  Área Total (m²) {missedFields.includes('areaTotal') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+                </label>
                 <div className="relative">
-                  <Maximize className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Ruler className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input 
                     {...register('areaTotal', { required: 'Requerido', min: 1 })}
                     type="number" 
                     disabled={isSuccess}
                     step="any"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
+                    className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('areaTotal') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
                   />
                 </div>
               </div>
 
+              {/* Área Terreno */}
+              {['Casa', 'Terreno', 'Galpón', 'Bodega', 'Local Comercial', 'Hotel'].includes(tipoSeleccionado) && (
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Área Terreno (m²) {missedFields.includes('areaTerreno') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+                  </label>
+                  <div className="relative">
+                    <LandPlot className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input 
+                      {...register('areaTerreno')}
+                      type="number" 
+                      disabled={isSuccess}
+                      step="any"
+                      className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('areaTerreno') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Área Construcción */}
+              {['Casa', 'Galpón', 'Bodega', 'Hotel'].includes(tipoSeleccionado) && (
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Área Cubierta (m²) {missedFields.includes('areaConstruccion') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+                  </label>
+                  <div className="relative">
+                    <Box className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input 
+                      {...register('areaConstruccion')}
+                      type="number" 
+                      disabled={isSuccess}
+                      step="any"
+                      className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('areaConstruccion') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Habitaciones - Solo Vivienda u Hoteles */}
               {['Casa', 'Departamento', 'Suite', 'Hotel'].includes(tipoSeleccionado) && (
                 <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Habitaciones</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Habitaciones {missedFields.includes('habitaciones') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+                  </label>
                   <div className="relative">
-                    <BedDouble className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Bed className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input 
                       {...register('habitaciones', { min: 0 })}
                       type="number" 
                       disabled={isSuccess}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('habitaciones') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
                     />
                   </div>
                 </div>
@@ -592,7 +738,9 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
               {/* Baños - Todos menos Terreno */}
               {tipoSeleccionado !== 'Terreno' && (
                 <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Baños</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Baños {missedFields.includes('banos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+                  </label>
                   <div className="relative">
                     <Bath className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input 
@@ -600,7 +748,61 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                       type="number" 
                       disabled={isSuccess}
                       step="0.5"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50"
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('banos') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Medios Baños */}
+              {tipoSeleccionado !== 'Terreno' && (
+                <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Medios Baños {missedFields.includes('mediosBanos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+                  </label>
+                  <div className="relative">
+                    <Droplet className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input 
+                      {...register('mediosBanos')}
+                      type="number" 
+                      disabled={isSuccess}
+                      className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('mediosBanos') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Estacionamientos */}
+              {tipoSeleccionado !== 'Terreno' && (
+                <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Parqueaderos {missedFields.includes('estacionamientos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+                  </label>
+                  <div className="relative">
+                    <CarFront className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input 
+                      {...register('estacionamientos')}
+                      type="number" 
+                      disabled={isSuccess}
+                      className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('estacionamientos') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Antigüedad */}
+              {tipoSeleccionado !== 'Terreno' && (
+                <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Antigüedad (Años) {missedFields.includes('aniosAntiguedad') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+                  </label>
+                  <div className="relative">
+                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input 
+                      {...register('aniosAntiguedad')}
+                      type="number" 
+                      disabled={isSuccess}
+                      className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('aniosAntiguedad') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
                     />
                   </div>
                 </div>

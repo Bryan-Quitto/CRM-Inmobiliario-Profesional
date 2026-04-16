@@ -168,6 +168,7 @@ apiGroup.MapEliminarTodasLasImagenesEndpoint();
 apiGroup.MapEstablecerImagenPrincipalEndpoint();
 apiGroup.MapLimpiarImagenesPropiedadEndpoint();
 apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
+apiGroup.MapImportarRemaxEndpoint();
 
 // Tareas
 apiGroup.MapRegistrarTareaEndpoint();

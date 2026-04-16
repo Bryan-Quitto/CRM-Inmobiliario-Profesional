@@ -21,9 +21,15 @@ public static class ActualizarPropiedadFeature
         string Sector,
         string Ciudad,
         string? GoogleMapsUrl,
+        string? UrlRemax,
         int Habitaciones,
         decimal Banos,
         decimal AreaTotal,
+        decimal? AreaTerreno,
+        decimal? AreaConstruccion,
+        int? Estacionamientos,
+        int? MediosBanos,
+        int? AniosAntiguedad,
         bool EsCaptacionPropia,
         decimal PorcentajeComision);
 
@@ -50,9 +56,15 @@ public static class ActualizarPropiedadFeature
             propiedad.Sector = command.Sector;
             propiedad.Ciudad = command.Ciudad;
             propiedad.GoogleMapsUrl = command.GoogleMapsUrl;
+            propiedad.UrlRemax = command.UrlRemax;
             propiedad.Habitaciones = command.Habitaciones;
             propiedad.Banos = command.Banos;
             propiedad.AreaTotal = command.AreaTotal;
+            propiedad.AreaTerreno = command.AreaTerreno;
+            propiedad.AreaConstruccion = command.AreaConstruccion;
+            propiedad.Estacionamientos = command.Estacionamientos;
+            propiedad.MediosBanos = command.MediosBanos;
+            propiedad.AniosAntiguedad = command.AniosAntiguedad;
             propiedad.EsCaptacionPropia = command.EsCaptacionPropia;
             propiedad.PorcentajeComision = command.PorcentajeComision;
 

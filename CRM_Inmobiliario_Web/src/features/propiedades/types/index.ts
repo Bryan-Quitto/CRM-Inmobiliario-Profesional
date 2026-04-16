@@ -28,9 +28,15 @@ export interface Propiedad {
   sector: string;
   ciudad: string;
   googleMapsUrl?: string;
+  urlRemax?: string;
   habitaciones: number;
   banos: number;
   areaTotal: number;
+  areaTerreno?: number;
+  areaConstruccion?: number;
+  estacionamientos?: number;
+  mediosBanos?: number;
+  aniosAntiguedad?: number;
   estadoComercial: string;
   esCaptacionPropia: boolean;
   porcentajeComision: number;
