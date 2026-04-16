@@ -29,6 +29,7 @@ This file defines the strict technical standards and architectural rules for the
 - **Rule:** STRICT prohibition of inline styles (`style={{...}}`).
 - **Standard:** Use exclusively Tailwind utility classes (`className="..."`).
 - **Files:** No separate `.css` files for components. Only use global CSS for Tailwind directives and base variables.
+- **Interactive Elements (Cursors):** ALL interactive elements (buttons, custom dropdowns, clickable pills, etc.) MUST explicitly include the `cursor-pointer` utility class to prevent UX ambiguity.
 
 ### Code Documentation
 - **Rule:** Formal and professional technical comments only.
@@ -72,6 +73,7 @@ All new features and refactors MUST implement these zero-latency patterns:
 - **Query Precision:** Cache MUST vary by all query parameters (`SetVaryByQuery`) para prevenir colisiones de datos.
 - **Rule:** Minimize database round-trips. Group multiple checks into a single `Select` using EF Core.
 - **Rule:** Use `ExecuteUpdateAsync` or `ExecuteDeleteAsync` for direct updates/deletes to bypass object loading whenever possible.
+- **Database Connections (.NET + Supabase):** The CRM is a .NET Core WebAPI (a stateful daemon), NOT a serverless architecture. Therefore, it MUST bypass the Supabase transaction pooler (port `6543`) and connect DIRECTLY to the PostgreSQL instance on native port `5432`. DO NOT set `Pooling=false`. You MUST use Npgsql's internal pooling (`Pooling=true;Keepalive=1;`) to keep TCP/TLS channels warm and slash latency drops by over 80%.
 
 ## Agent Behavior
 - **Role:** Senior Software Architect and Tech Lead.
