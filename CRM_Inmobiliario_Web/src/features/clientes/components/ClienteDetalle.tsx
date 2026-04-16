@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { getClienteById } from '../api/getClienteById';
 import { registrarInteraccion } from '../api/registrarInteraccion';
-import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
+import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import { vincularPropiedad } from '../api/vincularPropiedad';
 import { desvincularPropiedad } from '../api/desvincularPropiedad';
 import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
@@ -65,6 +65,17 @@ export const ClienteDetalle = () => {
     () => getClienteById(id!)
   );
 
+  const { data: propiedadesDisponibles } = useSWR('/propiedades', getPropiedades);
+  
+  const propiedadesOptions = useMemo(() => {
+    if (!propiedadesDisponibles) return undefined;
+    return propiedadesDisponibles.map(p => ({
+      id: p.id,
+      title: p.titulo,
+      subtitle: `${p.ciudad} - ${p.sector}`
+    }));
+  }, [propiedadesDisponibles]);
+
   const [nuevaNota, setNuevaNota] = useState('');
   const [tipoNota, setTipoNota] = useState('Nota');
   const [notaEnEdicion, setNotaEnEdicion] = useState<string | null>(null);
@@ -75,6 +86,10 @@ export const ClienteDetalle = () => {
 
   // Estados para vinculación de propiedades
   const [updatingInteresId, setUpdatingInteresId] = useState<string | null>(null);
+  const [propiedadPendienteId, setPropiedadPendienteId] = useState<string | null>(null);
+  const [nivelInteresPendiente, setNivelInteresPendiente] = useState('Medio');
+  const [dropdownInteresOpenId, setDropdownInteresOpenId] = useState<string | null>(null);
+  const [vincularStatus, setVincularStatus] = useState<'idle' | 'saving' | 'success'>('idle');
 
   const handleSaveNota = async () => {
     if (!nuevaNota.trim() || !id) return;
@@ -172,29 +187,54 @@ export const ClienteDetalle = () => {
     }
   };
 
-  const handleVincularPropiedad = async (propiedadId: string) => {
-    if (!id || !propiedadId) return;
+  const handleVincularPropiedad = async () => {
+    if (!id || !propiedadPendienteId) return;
+    
+    const targetPropId = propiedadPendienteId;
+    setUpdatingInteresId(targetPropId);
+    setVincularStatus('saving');
+    
     try {
-      await vincularPropiedad(id, propiedadId, 'Medio');
-      toast.success('Propiedad vinculada correctamente');
-      await mutate();
+      await vincularPropiedad(id, targetPropId, nivelInteresPendiente);
+      setVincularStatus('success');
       
-      // Revalidación proactiva de analíticas y dashboard (UPSP)
-      globalMutate('/dashboard/kpis');
-      globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      // Satisfy transition: mostrar éxito visual por 800ms antes de cerrar
+      setTimeout(async () => {
+        toast.success('Propiedad vinculada correctamente');
+        setPropiedadPendienteId(null);
+        setNivelInteresPendiente('Medio');
+        setVincularStatus('idle');
+        await mutate();
+        
+        // Revalidación proactiva de analíticas y dashboard (UPSP)
+        globalMutate('/dashboard/kpis');
+        globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      }, 800);
 
     } catch (err) {
       console.error('Error al vincular propiedad:', err);
       toast.error('No se pudo vincular la propiedad');
+      setVincularStatus('idle');
+    } finally {
+      setUpdatingInteresId(null);
     }
   };
 
   const handleUpdateNivelInteres = async (propiedadId: string, nuevoNivel: string) => {
-    if (!id) return;
-    setUpdatingInteresId(propiedadId);
+    if (!id || !cliente) return;
+    
+    // Implementación Optimistic UI
+    const prevIntereses = cliente.intereses || [];
+    const optimisticData = {
+      ...cliente,
+      intereses: prevIntereses.map(i => i.propiedadId === propiedadId ? { ...i, nivelInteres: nuevoNivel } : i)
+    };
+    
+    mutate(optimisticData, false);
+
     try {
       await vincularPropiedad(id, propiedadId, nuevoNivel);
-      toast.success('Interés actualizado');
+      toast.success('Interés actualizado instantáneamente');
       await mutate();
       
       // Revalidación proactiva de analíticas y dashboard (UPSP)
@@ -203,18 +243,26 @@ export const ClienteDetalle = () => {
 
     } catch (err) {
       console.error('Error al actualizar interés:', err);
-      toast.error('No se pudo actualizar el interés');
-    } finally {
-      setUpdatingInteresId(null);
+      toast.error('Hubo un error de sincronización, deshaciendo...');
+      mutate(); // Revert local state to the previous correct server state
     }
   };
 
   const handleDesvincular = async (propiedadId: string) => {
-    if (!id) return;
-    setUpdatingInteresId(propiedadId);
+    if (!id || !cliente) return;
+    
+    // Implementación Optimistic UI y Undo Pattern
+    const prevIntereses = cliente.intereses || [];
+    const optimisticData = {
+      ...cliente,
+      intereses: prevIntereses.filter(i => i.propiedadId !== propiedadId)
+    };
+
+    mutate(optimisticData, false);
+
     try {
       await desvincularPropiedad(id, propiedadId);
-      toast.success('Propiedad desvinculada');
+      toast.success('Propiedad desvinculada exitosamente');
       await mutate();
       
       // Revalidación proactiva de analíticas y dashboard (UPSP)
@@ -223,9 +271,8 @@ export const ClienteDetalle = () => {
 
     } catch (err) {
       console.error('Error al desvincular:', err);
-      toast.error('No se pudo desvincular');
-    } finally {
-      setUpdatingInteresId(null);
+      toast.error('Error en el servidor al desvincular');
+      mutate(); // Revert data to what server actually has
     }
   };
 
@@ -373,16 +420,60 @@ export const ClienteDetalle = () => {
             </div>
 
             <div className="mb-6">
-              <DynamicSearchSelect 
-                label=""
-                placeholder="Vincular propiedad..."
-                icon={Plus}
-                onSearch={async (q) => {
-                  const res = await buscarPropiedades(q);
-                  return res.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad} - ${p.sector}` }));
-                }}
-                onChange={(propId) => handleVincularPropiedad(propId || '')}
-              />
+              {!propiedadPendienteId ? (
+                <DynamicSearchSelect 
+                  label=""
+                  placeholder="Vincular propiedad..."
+                  icon={Plus}
+                  options={propiedadesOptions}
+                  onChange={(propId) => {
+                    if (propId) {
+                       setPropiedadPendienteId(propId);
+                       setNivelInteresPendiente('Medio');
+                    }
+                  }}
+                />
+              ) : (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-3">Nivel de Interés para la propiedad</p>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    {NIVELES_INTERES.map(n => (
+                      <button
+                        key={n.value}
+                        onClick={() => setNivelInteresPendiente(n.value)}
+                        className={`py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border cursor-pointer ${nivelInteresPendiente === n.value ? n.color + ' border-current shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                      >
+                        {n.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={handleVincularPropiedad}
+                      disabled={vincularStatus === 'saving' || vincularStatus === 'success'}
+                      className={`flex-1 font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer
+                        ${vincularStatus === 'success' 
+                          ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+                          : 'bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800 disabled:bg-slate-200 disabled:shadow-none active:scale-95'}`}
+                    >
+                      {vincularStatus === 'saving' ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : vincularStatus === 'success' ? (
+                        <><Check className="h-4 w-4" /> ¡Vinculado!</>
+                      ) : (
+                        <><Check className="h-4 w-4" /> Vincular Ahora</>
+                      )}
+                    </button>
+                    <button 
+                      onClick={() => { setPropiedadPendienteId(null); setVincularStatus('idle'); }}
+                      disabled={vincularStatus === 'saving'}
+                      className="h-[40px] w-[40px] flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 rounded-xl transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -408,35 +499,47 @@ export const ClienteDetalle = () => {
                           <p className="text-[10px] font-bold text-slate-400 mt-0.5">{formatCurrency(interes.precio || 0)}</p>
                           
                           <div className="flex items-center gap-2 mt-2">
-                            <div className="relative group/level">
-                              <button className={`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full flex items-center gap-1 border border-transparent hover:border-current transition-all ${nivelActual.color}`}>
+                            <div className="relative">
+                              <button 
+                                onClick={() => setDropdownInteresOpenId(dropdownInteresOpenId === interes.propiedadId ? null : interes.propiedadId)}
+                                className={`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full flex items-center gap-1 border border-transparent hover:border-current transition-all cursor-pointer ${nivelActual.color}`}
+                              >
                                 {nivelActual.label}
                                 <ChevronDown className="h-2.5 w-2.5" />
                               </button>
-                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover/level:block z-50 bg-white border border-slate-100 rounded-xl shadow-2xl p-1 w-32 animate-in fade-in zoom-in-95 duration-200">
-                                {NIVELES_INTERES.map(n => (
-                                  <button 
-                                    key={n.value}
-                                    onClick={() => handleUpdateNivelInteres(interes.propiedadId, n.value)}
-                                    className="w-full text-left px-3 py-1.5 text-[9px] font-black uppercase hover:bg-slate-50 rounded-lg transition-colors flex items-center justify-between"
-                                  >
-                                    {n.label}
-                                    {interes.nivelInteres === n.value && <Check className="h-3 w-3 text-blue-600" />}
-                                  </button>
-                                ))}
-                              </div>
+                              
+                              {dropdownInteresOpenId === interes.propiedadId && (
+                                <>
+                                  <div className="fixed inset-0 z-40 cursor-default" onClick={() => setDropdownInteresOpenId(null)}></div>
+                                  <div className="absolute left-0 bottom-full mb-2 z-50 bg-white border border-slate-100 rounded-xl shadow-2xl p-1 w-32 animate-in fade-in zoom-in-95 duration-200">
+                                    {NIVELES_INTERES.map(n => (
+                                      <button 
+                                        key={n.value}
+                                        onClick={() => {
+                                          handleUpdateNivelInteres(interes.propiedadId, n.value);
+                                          setDropdownInteresOpenId(null);
+                                        }}
+                                        className="w-full text-left px-3 py-1.5 text-[9px] font-black uppercase hover:bg-slate-50 rounded-lg transition-colors flex items-center justify-between cursor-pointer"
+                                      >
+                                        {n.label}
+                                        {interes.nivelInteres === n.value && <Check className="h-3 w-3 text-blue-600" />}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
                             </div>
                             <button 
                               onClick={() => handleDesvincular(interes.propiedadId)}
-                              className="text-[9px] font-black text-slate-300 hover:text-rose-500 uppercase tracking-tighter transition-colors"
+                              className="text-[9px] font-black text-slate-300 hover:text-rose-500 uppercase tracking-tighter transition-colors cursor-pointer"
                             >
                               Eliminar
                             </button>
                           </div>
                         </div>
                         <button 
-                          onClick={() => navigate(`/catalogo?id=${interes.propiedadId}`)}
-                          className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          onClick={() => navigate(`/propiedades?id=${interes.propiedadId}`)}
+                          className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
                         </button>
