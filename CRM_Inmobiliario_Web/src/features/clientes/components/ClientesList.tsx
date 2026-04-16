@@ -161,8 +161,9 @@ const ClientesContent = () => {
     
     // 2. Petición en background
     actualizarEtapaCliente(id, nuevaEtapa)
-      .then(() => {
-        mutate(); // Revalidar lista de clientes
+      .then(async () => {
+        // Revalidar lista de clientes, pero asegurando que la data optimista se mantiene hasta que termine
+        await mutate(); 
         
         // Revalidación proactiva de analíticas y dashboard (UPSP)
         globalMutate('/dashboard/kpis');

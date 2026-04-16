@@ -41,6 +41,9 @@ const TIPOS_PROPIEDAD = [
   { label: 'Terreno', value: 'Terreno' },
   { label: 'Local Comercial', value: 'Local Comercial' },
   { label: 'Suite', value: 'Suite' },
+  { label: 'Galpón', value: 'Galpón' },
+  { label: 'Bodega', value: 'Bodega' },
+  { label: 'Hotel', value: 'Hotel' },
 ];
 
 const OPERACIONES = [
@@ -570,8 +573,8 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                 </div>
               </div>
 
-              {/* Habitaciones - Solo Vivienda */}
-              {['Casa', 'Departamento', 'Suite'].includes(tipoSeleccionado) && (
+              {/* Habitaciones - Solo Vivienda u Hoteles */}
+              {['Casa', 'Departamento', 'Suite', 'Hotel'].includes(tipoSeleccionado) && (
                 <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Habitaciones</label>
                   <div className="relative">
