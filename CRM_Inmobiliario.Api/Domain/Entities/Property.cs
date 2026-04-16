@@ -42,11 +42,24 @@ public sealed class Property
 
     public string? GoogleMapsUrl { get; set; }
 
+    [MaxLength(1000)]
+    public string? UrlRemax { get; set; }
+
     public int Habitaciones { get; set; }
 
     public decimal Banos { get; set; }
 
     public decimal AreaTotal { get; set; }
+
+    public decimal? AreaTerreno { get; set; }
+
+    public decimal? AreaConstruccion { get; set; }
+
+    public int? Estacionamientos { get; set; }
+
+    public int? MediosBanos { get; set; }
+
+    public int? AniosAntiguedad { get; set; }
 
     [Required]
     [MaxLength(50)]

@@ -26,7 +26,9 @@ _Nota: Esta sección se actualizará conforme avance el desarrollo del proyecto.
 - **Autenticación y Seguridad (`auth`):** Inicio de sesión, registro (posiblemente B2B) y manejo de tokens integrados a Supabase.
 - **Dashboard Principal (`dashboard`):** Vista panorámica de KPIs e indicadores rápidos de gestión del asesor inmobiliario.
 - **Analítica de Negocios (`analitica`):** Reportes y estadísticas detalladas sobre cierres, rendimiento, conversión y estado del portafolio.
-- **Gestión de Propiedades (`propiedades`):** ABM (Alta, Baja, Modificación) del inventario inmobiliario, categorías, estados transaccionales (Alquiler, Venta, Reservado) e información financiera clave.
+- **Gestión de Propiedades (`propiedades`):** ABM (Alta, Baja, Modificación) del inventario inmobiliario, categorías, estados transaccionales (Alquiler, Venta, Reservado) e-información financiera clave.
+  - *Scraper Avanzado Remax:* Motor de extracción optimizado para sortear el HTML dinámico de Angular usando Ejes XPath direccionales (`following::*`) y `Regex Fallbacks`. Extrae minuciosamente métricas técnicas e inyecta la data en tiempo real. 
+  - *Smart-Fill UX:* Sistema reactivo que rastrea y resalta visualmente en amarillo advertencia cualquier recuadro que el scraper no pudo autocompletar, reduciendo fricción y pidiendo al usuario solo que cierre los vacíos.
 - **Clientes y Contactos (`clientes`):** Listado y gestión de perfiles de clientes, tanto vendedores como compradores/arrendatarios, con un historial sólido.
   - *Módulo ClienteDetalle:* Implementa la política Zero-Wait para vinculación, edición y eliminación de Inmuebles de Interés utilizando "Optimistic UI" para que los elementos reaccionen instantáneamente (0ms) en la pantalla.
   - *Búsqueda Difusa Integrada:* Selección de propiedades motorizada por `fuse.js` alimentado por el estado base general de SWR para una experiencia nativa sin demoras de red.
