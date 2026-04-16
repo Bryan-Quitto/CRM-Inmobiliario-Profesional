@@ -421,7 +421,10 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       'Oficina': '\u{1F4BC}',         // 💼
       'Terreno': '\u{1F4D0}',         // 📐
       'Local Comercial': '\u{1F3EA}', // 🏪
-      'Suite': '\u{2728}'             // ✨
+      'Suite': '\u{2728}',            // ✨
+      'Galpón': '\u{1F3ED}',          // 🏭
+      'Bodega': '\u{1F4E6}',          // 📦
+      'Hotel': '\u{1F3E8}'            // 🏨
     };
 
     const emojiTipo = emojiMap[propiedad.tipoPropiedad] || '\u{1F3E0}';
@@ -446,10 +449,10 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     message += `${e.pin} *Ubicación:* ${propiedad.sector}, ${propiedad.ciudad}\n`;
     message += `${e.clipboard} *Operación:* ${propiedad.operacion}\n`;
 
-    if (['Casa', 'Departamento', 'Suite'].includes(propiedad.tipoPropiedad)) {
+    if (['Casa', 'Departamento', 'Suite', 'Hotel'].includes(propiedad.tipoPropiedad)) {
       message += `${e.bed} *Habitaciones:* ${propiedad.habitaciones}\n`;
       message += `${e.bath} *Baños:* ${propiedad.banos}\n`;
-    } else if (['Oficina', 'Local Comercial'].includes(propiedad.tipoPropiedad)) {
+    } else if (['Oficina', 'Local Comercial', 'Galpón', 'Bodega'].includes(propiedad.tipoPropiedad)) {
       if (propiedad.banos > 0) message += `${e.bath} *Baños:* ${propiedad.banos}\n`;
     }
 
@@ -631,7 +634,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           {/* Estadísticas Inteligentes */}
           <div className={`grid grid-cols-2 ${
             [
-              ['Casa', 'Departamento', 'Suite'].includes(propiedad.tipoPropiedad),
+              ['Casa', 'Departamento', 'Suite', 'Hotel'].includes(propiedad.tipoPropiedad),
               propiedad.tipoPropiedad !== 'Terreno',
               true, // Área
               true, // Comisión
@@ -644,7 +647,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                 value: propiedad.habitaciones, 
                 icon: Bed, 
                 color: 'blue',
-                show: ['Casa', 'Departamento', 'Suite'].includes(propiedad.tipoPropiedad)
+                show: ['Casa', 'Departamento', 'Suite', 'Hotel'].includes(propiedad.tipoPropiedad)
               },
               { 
                 label: 'Baños', 
