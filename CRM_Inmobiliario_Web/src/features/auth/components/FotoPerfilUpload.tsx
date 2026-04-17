@@ -123,7 +123,7 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
         </div>
 
         <label 
-          className={`absolute bottom-0 right-0 p-2 bg-indigo-600 text-white rounded-full shadow-lg cursor-pointer hover:bg-indigo-700 transition-all transform hover:scale-110 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`absolute bottom-0 right-0 p-2 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-110 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
           title="Cambiar foto"
         >
           <Camera size={20} />

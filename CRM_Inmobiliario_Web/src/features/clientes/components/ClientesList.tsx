@@ -208,7 +208,7 @@ const ClientesContent = () => {
         }`}>
           {notification.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
           <span className="font-bold text-sm tracking-tight">{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all">
+          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all cursor-pointer">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -224,18 +224,18 @@ const ClientesContent = () => {
           <div className="flex bg-white p-1 border border-slate-200 rounded-xl shadow-sm mr-2">
             <button 
               onClick={() => setViewMode('list')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                viewMode === 'list' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'
-              }`}
+              className={`cursor-pointer ${`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                                viewMode === 'list' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'
+                                                              }`}`}
             >
               <List className="h-4 w-4" />
               Lista
             </button>
             <button 
               onClick={() => setViewMode('kanban')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                viewMode === 'kanban' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'
-              }`}
+              className={`cursor-pointer ${`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                                viewMode === 'kanban' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'
+                                                              }`}`}
             >
               <LayoutGrid className="h-4 w-4" />
               Tablero
@@ -269,9 +269,9 @@ const ClientesContent = () => {
                   <button
                     key={option.value}
                     onClick={() => { setFilterEtapa(option.value); setOpenDropdownId(null); }}
-                    className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 cursor-pointer ${
-                      filterEtapa === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
-                    }`}
+                    className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                                                                  filterEtapa === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                                                                }`}`}
                   >
                     {option.label}
                     {filterEtapa === option.value && <Check className="h-4 w-4" />}
@@ -313,7 +313,7 @@ const ClientesContent = () => {
             <div 
               key={cliente.id} 
               onClick={() => navigate(`/prospectos/${cliente.id}`)}
-              className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer relative overflow-hidden"
+              className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 group relative overflow-hidden cursor-pointer"
             >
               {syncing && <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px] pointer-events-none" />}
               
@@ -328,7 +328,7 @@ const ClientesContent = () => {
                       e.stopPropagation();
                       setOpenDropdownId(openDropdownId === cliente.id ? null : cliente.id);
                     }}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 ${getEtapaStyles(cliente.etapaEmbudo)}`}
+                    className={`cursor-pointer ${`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all flex items-center gap-2 ${getEtapaStyles(cliente.etapaEmbudo)}`}`}
                   >
                     {cliente.etapaEmbudo}
                     <ChevronDown className={`h-3 w-3 transition-transform ${openDropdownId === cliente.id ? 'rotate-180' : ''}`} />
@@ -343,9 +343,9 @@ const ClientesContent = () => {
                             e.stopPropagation();
                             handleStageChange(cliente.id, etapa.value);
                           }}
-                          className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
-                            cliente.etapaEmbudo === etapa.value ? 'text-blue-600' : 'text-slate-600'
-                          }`}
+                          className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
+                                                                                    cliente.etapaEmbudo === etapa.value ? 'text-blue-600' : 'text-slate-600'
+                                                                                  }`}`}
                         >
                           {etapa.label}
                           {cliente.etapaEmbudo === etapa.value && <Check className="h-3.5 w-3.5" />}

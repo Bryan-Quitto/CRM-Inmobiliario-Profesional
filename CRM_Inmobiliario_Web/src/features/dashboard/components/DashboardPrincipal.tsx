@@ -175,7 +175,7 @@ const DashboardContent: React.FC = () => {
         {/* Seguimiento Crítico Card */}
         <div className="lg:col-span-4 bg-rose-50 border-2 border-rose-100 rounded-[32px] overflow-hidden group shadow-sm hover:shadow-md transition-all">
           <div 
-            className="p-8 cursor-pointer relative"
+            className="p-8 relative cursor-pointer"
             onClick={() => setIsSeguimientoOpen(!isSeguimientoOpen)}
           >
             <Users className="absolute -right-4 -bottom-4 h-24 w-24 text-rose-500/10 group-hover:scale-110 transition-transform" />
@@ -200,7 +200,7 @@ const DashboardContent: React.FC = () => {
                       <div 
                         key={lead.id}
                         onClick={() => navigate(`/prospectos/${lead.id}`)}
-                        className="p-4 hover:bg-white transition-all cursor-pointer flex items-center gap-3 group/item"
+                        className="p-4 hover:bg-white transition-all flex items-center gap-3 group/item cursor-pointer"
                       >
                         <LeadAvatar nombre={lead.nombre} apellido={lead.apellido} />
                         <div className="flex-1 min-w-0">

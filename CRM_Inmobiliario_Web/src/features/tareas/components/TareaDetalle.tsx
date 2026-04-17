@@ -90,14 +90,14 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
               <button 
                 onClick={onCancelTask}
                 title="Cancelar Tarea"
-                className="p-2.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-rose-100"
+                className="p-2.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
               >
                 <Trash2 className="h-5 w-5" />
               </button>
               <button 
                 onClick={onEdit}
                 title="Editar Tarea"
-                className="p-2.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-blue-100"
+                className="p-2.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100 cursor-pointer"
               >
                 <Pencil className="h-5 w-5" />
               </button>

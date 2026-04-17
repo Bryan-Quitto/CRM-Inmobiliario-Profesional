@@ -275,7 +275,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
                               onMoveTo?.(i);
                               setIsOrderDropdownOpen(false);
                             }}
-                            className={`w-full py-1.5 text-center text-[11px] font-black transition-colors hover:bg-indigo-50 cursor-pointer ${i === index ? 'bg-indigo-600 text-white' : 'text-slate-600'}`}
+                            className={`cursor-pointer ${`w-full py-1.5 text-center text-[11px] font-black transition-colors hover:bg-indigo-50 ${i === index ? 'bg-indigo-600 text-white' : 'text-slate-600'}`}`}
                           >
                             {i + 1}
                           </button>
@@ -331,7 +331,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
                   <div className="flex items-center gap-3 group">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">{sectionNombre}</h3>
                     {sectionId && (
-                      <button onClick={() => setIsEditingName(true)} className="p-2 text-slate-300 hover:text-indigo-600 transition-all cursor-pointer opacity-0 group-hover:opacity-100">
+                      <button onClick={() => setIsEditingName(true)} className="p-2 text-slate-300 hover:text-indigo-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer">
                         <Pencil size={16} />
                       </button>
                     )}
@@ -357,7 +357,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
                       : media;
                     handleBulkDownload(toDownload, `${sectionNombre}_${propiedadId.split('-')[0]}`);
                   }}
-                  className="flex items-center gap-3 px-6 py-3 bg-slate-50 text-slate-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-3 px-6 py-3 bg-slate-50 text-slate-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />}
                   {selectedMediaIds.size > 0 ? `Bajar (${selectedMediaIds.size})` : 'Descargar ZIP'}
@@ -406,7 +406,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
-          className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer border-t border-slate-50 ${
+          className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all border-t border-slate-50 ${
             isDragging ? 'bg-indigo-600 text-white' : 'bg-slate-50/20 hover:bg-indigo-50/30'
           }`}
         >

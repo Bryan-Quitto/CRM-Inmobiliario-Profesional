@@ -89,7 +89,7 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
                     </div>
                     <button 
                       onClick={() => toggleColumn(etapa.value)}
-                      className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-50 transition-colors shrink-0"
+                      className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-50 transition-colors shrink-0 cursor-pointer"
                     >
                       <Minimize2 className="h-3 w-3" />
                     </button>
@@ -97,7 +97,7 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
                 ) : (
                   <button 
                     onClick={() => toggleColumn(etapa.value)}
-                    className="w-full flex flex-col items-center py-4 px-1 gap-8 h-full"
+                    className="w-full flex flex-col items-center py-4 px-1 gap-8 h-full cursor-pointer"
                   >
                     <div className="flex flex-col items-center gap-2">
                       <Maximize2 className="h-3.5 w-3.5 text-slate-400 hover:text-blue-600 transition-colors" />
@@ -134,11 +134,11 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                               onClick={() => !snapshot.isDragging && onNavigate(cliente.id)}
-                              className={`bg-white p-3 rounded-xl shadow-sm border mb-2 transition-all group cursor-grab active:cursor-grabbing ${
-                                snapshot.isDragging 
-                                  ? 'rotate-1 scale-105 shadow-xl border-blue-400 z-50 ring-2 ring-blue-500/10' 
-                                  : 'border-slate-100 hover:border-blue-200 hover:shadow-md'
-                              }`}
+                              className={`cursor-pointer ${`bg-white p-3 rounded-xl shadow-sm border mb-2 transition-all group cursor-grab active:cursor-grabbing ${
+                                                                                                        snapshot.isDragging 
+                                                                                                          ? 'rotate-1 scale-105 shadow-xl border-blue-400 z-50 ring-2 ring-blue-500/10' 
+                                                                                                          : 'border-slate-100 hover:border-blue-200 hover:shadow-md'
+                                                                                                      }`}`}
                             >
                               <div className="flex items-center gap-3 mb-2">
                                 <div className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-[10px] group-hover:bg-blue-600 transition-colors shrink-0">

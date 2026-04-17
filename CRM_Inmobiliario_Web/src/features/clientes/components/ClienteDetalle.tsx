@@ -315,7 +315,7 @@ export const ClienteDetalle = () => {
         <p className="text-slate-500 max-w-xs mb-8">El prospecto que buscas no existe o ha sido eliminado.</p>
         <button 
           onClick={() => navigate('/prospectos')}
-          className="px-8 py-3 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all"
+          className="px-8 py-3 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
         >
           Volver a Cartera
         </button>
@@ -349,11 +349,11 @@ export const ClienteDetalle = () => {
         <div className="flex items-center gap-2">
           <a 
             href={`tel:${cliente.telefono}`}
-            className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm border border-emerald-100"
+            className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm border border-emerald-100 cursor-pointer"
           >
             <PhoneCall className="h-5 w-5" />
           </a>
-          <button className="h-10 px-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">
+          <button className="h-10 px-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 cursor-pointer">
             Acciones
           </button>
         </div>
@@ -441,7 +441,7 @@ export const ClienteDetalle = () => {
                       <button
                         key={n.value}
                         onClick={() => setNivelInteresPendiente(n.value)}
-                        className={`py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border cursor-pointer ${nivelInteresPendiente === n.value ? n.color + ' border-current shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                        className={`cursor-pointer ${`py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${nivelInteresPendiente === n.value ? n.color + ' border-current shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}`}
                       >
                         {n.label}
                       </button>
@@ -451,10 +451,10 @@ export const ClienteDetalle = () => {
                     <button 
                       onClick={handleVincularPropiedad}
                       disabled={vincularStatus === 'saving' || vincularStatus === 'success'}
-                      className={`flex-1 font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer
+                      className={`cursor-pointer ${`flex-1 font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2
                         ${vincularStatus === 'success' 
-                          ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
-                          : 'bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800 disabled:bg-slate-200 disabled:shadow-none active:scale-95'}`}
+                                                                                                                  ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+                                                                                                                  : 'bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800 disabled:bg-slate-200 disabled:shadow-none active:scale-95'}`}`}
                     >
                       {vincularStatus === 'saving' ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -467,7 +467,7 @@ export const ClienteDetalle = () => {
                     <button 
                       onClick={() => { setPropiedadPendienteId(null); setVincularStatus('idle'); }}
                       disabled={vincularStatus === 'saving'}
-                      className="h-[40px] w-[40px] flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 rounded-xl transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                      className="h-[40px] w-[40px] flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 rounded-xl transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -502,7 +502,7 @@ export const ClienteDetalle = () => {
                             <div className="relative">
                               <button 
                                 onClick={() => setDropdownInteresOpenId(dropdownInteresOpenId === interes.propiedadId ? null : interes.propiedadId)}
-                                className={`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full flex items-center gap-1 border border-transparent hover:border-current transition-all cursor-pointer ${nivelActual.color}`}
+                                className={`cursor-pointer ${`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full flex items-center gap-1 border border-transparent hover:border-current transition-all ${nivelActual.color}`}`}
                               >
                                 {nivelActual.label}
                                 <ChevronDown className="h-2.5 w-2.5" />
@@ -572,7 +572,7 @@ export const ClienteDetalle = () => {
               {notaEnEdicion && (
                 <button 
                   onClick={() => { setNotaEnEdicion(null); setNuevaNota(''); setTipoNota('Nota'); }}
-                  className="text-[10px] font-black text-rose-500 uppercase hover:underline"
+                  className="text-[10px] font-black text-rose-500 uppercase hover:underline cursor-pointer"
                 >
                   Cancelar Edición
                 </button>
@@ -585,7 +585,7 @@ export const ClienteDetalle = () => {
                   <button 
                     key={opt.value}
                     onClick={() => setTipoNota(opt.value)}
-                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tipoNota === opt.value ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${tipoNota === opt.value ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
                   >
                     {opt.label}
                   </button>
@@ -602,7 +602,7 @@ export const ClienteDetalle = () => {
                 <button 
                   onClick={handleSaveNota}
                   disabled={isSavingNota || !nuevaNota.trim()}
-                  className="absolute bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:bg-slate-200 disabled:shadow-none active:scale-95"
+                  className="absolute bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:bg-slate-200 disabled:shadow-none active:scale-95 cursor-pointer"
                 >
                   {isSavingNota ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                   {notaEnEdicion ? 'Actualizar' : 'Guardar'}
@@ -631,13 +631,13 @@ export const ClienteDetalle = () => {
                   />
                 </div>
                 <div className="relative group/filter">
-                  <button className="h-9 w-9 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all shadow-sm">
+                  <button className="h-9 w-9 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all shadow-sm cursor-pointer">
                     <FilterIcon className="h-4 w-4" />
                   </button>
                   <div className="absolute right-0 top-full mt-2 hidden group-hover/filter:block z-50 bg-white border border-slate-100 rounded-2xl shadow-2xl p-2 w-40 animate-in fade-in zoom-in-95 duration-200">
-                    <button onClick={() => setFilterTipoTimeline('Todos')} className="w-full text-left px-4 py-2 text-[10px] font-black uppercase hover:bg-slate-50 rounded-xl transition-colors">Todos</button>
+                    <button onClick={() => setFilterTipoTimeline('Todos')} className="w-full text-left px-4 py-2 text-[10px] font-black uppercase hover:bg-slate-50 rounded-xl transition-colors cursor-pointer">Todos</button>
                     {TIPO_NOTA_OPCIONES.map(opt => (
-                      <button key={opt.value} onClick={() => setFilterTipoTimeline(opt.value)} className="w-full text-left px-4 py-2 text-[10px] font-black uppercase hover:bg-slate-50 rounded-xl transition-colors">{opt.label}</button>
+                      <button key={opt.value} onClick={() => setFilterTipoTimeline(opt.value)} className="w-full text-left px-4 py-2 text-[10px] font-black uppercase hover:bg-slate-50 rounded-xl transition-colors cursor-pointer">{opt.label}</button>
                     ))}
                   </div>
                 </div>

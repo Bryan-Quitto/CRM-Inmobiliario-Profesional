@@ -66,7 +66,7 @@ export const OfflinePage: React.FC<OfflinePageProps> = ({
         <div className="flex flex-col gap-3 pt-4">
           <button
             onClick={handleRetry}
-            className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white transition-all active:scale-95 shadow-lg ${
+            className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white transition-all active:scale-95 shadow-lg cursor-pointer ${
               isError 
                 ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' 
                 : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
@@ -78,7 +78,7 @@ export const OfflinePage: React.FC<OfflinePageProps> = ({
           
           <button
             onClick={handleGoHome}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
           >
             <Home className="h-5 w-5" />
             Volver al Inicio

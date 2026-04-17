@@ -135,7 +135,7 @@ export const MediaCard = React.memo<MediaCardProps>(({
     }`}>
       {/* Visualización de Imagen */}
       <div 
-        className="relative aspect-[4/5] cursor-pointer overflow-hidden"
+        className="relative aspect-[4/5] overflow-hidden cursor-pointer"
         onClick={() => onToggleSelection(item.id)}
       >
         <img 

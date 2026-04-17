@@ -253,7 +253,7 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
               type="button"
               onClick={onCancelTask}
               title="Cancelar Tarea"
-              className="p-2.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-rose-100"
+              className="p-2.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
             >
               <Trash2 className="h-5 w-5" />
             </button>
@@ -305,7 +305,7 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
                       type="button"
                       disabled={isReadOnly}
                       onClick={() => setIsSelectOpen(!isSelectOpen)}
-                      className={`w-full px-4 py-3 bg-slate-50 border text-left ${errors.tipoTarea ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none flex items-center justify-between group cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed`}
+                      className={`w-full px-4 py-3 bg-slate-50 border text-left ${errors.tipoTarea ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none flex items-center justify-between group disabled:opacity-70 disabled:cursor-not-allowed`}
                     >
                       <div className="flex items-center gap-2">
                         <selectedTipo.icon className={`h-4 w-4 ${selectedTipo.color.split(' ')[0]}`} />
@@ -324,9 +324,9 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
                               setValue('tipoTarea', opt.value, { shouldValidate: true });
                               setIsSelectOpen(false);
                             }}
-                            className={`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center gap-3 hover:bg-slate-50 transition-colors ${
-                              field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
-                            }`}
+                            className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center gap-3 hover:bg-slate-50 transition-colors ${
+                                                                                          field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
+                                                                                        }`}`}
                           >
                             <opt.icon className={`h-4 w-4 ${opt.color.split(' ')[0]}`} />
                             {opt.label}

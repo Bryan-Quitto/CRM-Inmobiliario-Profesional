@@ -128,7 +128,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
 
           {/* Botón de cambio overlay */}
           {!isUploading && (
-            <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-indigo-600/0 hover:bg-indigo-600/10 transition-all">
+            <label className="absolute inset-0 flex items-center justify-center bg-indigo-600/0 hover:bg-indigo-600/10 transition-all">
               <input 
                 type="file" 
                 className="hidden" 
@@ -141,7 +141,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
         </div>
 
         {/* Botón flotante de subida rápida */}
-        <label className="absolute -top-3 -right-3 p-2 bg-indigo-600 text-white rounded-xl shadow-lg cursor-pointer hover:bg-indigo-700 transition-all hover:scale-110">
+        <label className="absolute -top-3 -right-3 p-2 bg-indigo-600 text-white rounded-xl shadow-lg hover:bg-indigo-700 transition-all hover:scale-110">
           <Upload size={16} />
           <input type="file" className="hidden" accept="image/*" onChange={handleUpload} />
         </label>

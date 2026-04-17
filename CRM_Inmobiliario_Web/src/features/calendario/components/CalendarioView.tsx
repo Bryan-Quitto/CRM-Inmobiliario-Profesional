@@ -205,7 +205,7 @@ const CalendarioContent: React.FC = () => {
     textColor: '#0f172a',
     editable: e.estado === 'Pendiente',
     classNames: [
-      'rounded-md border-l-4 shadow-sm transition-all cursor-pointer !border-y-0 !border-r-0',
+      'rounded-md border-l-4 shadow-sm transition-all !border-y-0 !border-r-0',
       e.estado !== 'Pendiente' ? 'opacity-70' : 'hover:shadow-md hover:bg-opacity-100'
     ],
     extendedProps: { ...e },
@@ -285,7 +285,7 @@ const CalendarioContent: React.FC = () => {
           e.stopPropagation();
           handleOpenCrear(arg.date);
         }}
-        className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 p-1 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 transition-all cursor-pointer active:scale-90 z-20"
+        className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 p-1 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 transition-all active:scale-90 z-20 cursor-pointer"
         title="Añadir evento este día"
       >
         <Plus size={12} strokeWidth={3} />
@@ -367,7 +367,7 @@ const CalendarioContent: React.FC = () => {
               <button 
                 key={type}
                 onClick={() => { setViewType(type as 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'); calendarRef.current?.getApi().changeView(type); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${viewType === type ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`cursor-pointer ${`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewType === type ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}`}
               >
                 {type === 'dayGridMonth' ? 'Mes' : type === 'timeGridWeek' ? 'Semana' : 'Día'}
               </button>
@@ -376,7 +376,7 @@ const CalendarioContent: React.FC = () => {
 
           <button 
             onClick={toggleFullScreen}
-            className="p-2 bg-slate-100 text-slate-500 hover:bg-white hover:text-blue-600 rounded-xl border border-slate-200 transition-all cursor-pointer shadow-sm active:scale-90"
+            className="p-2 bg-slate-100 text-slate-500 hover:bg-white hover:text-blue-600 rounded-xl border border-slate-200 transition-all shadow-sm active:scale-90 cursor-pointer"
           >
             {isFullScreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
           </button>
@@ -385,7 +385,7 @@ const CalendarioContent: React.FC = () => {
 
           <button 
             onClick={() => handleOpenCrear()}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-100 cursor-pointer active:scale-95"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-100 active:scale-95 cursor-pointer"
           >
             <Plus size={18} />
             <span>Nuevo Evento</span>
@@ -439,7 +439,7 @@ const CalendarioContent: React.FC = () => {
       <React.Suspense fallback={null}>
         {(isCrearOpen || viewingTareaId || editingTareaId) && (
           <div className="fixed inset-0 z-[300] flex justify-end bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="absolute inset-0" onClick={() => { setIsCrearOpen(false); setViewingTareaId(null); setEditingTareaId(null); setSelectedDate(null); }}></div>
+            <div className="absolute inset-0 cursor-pointer" onClick={() => { setIsCrearOpen(false); setViewingTareaId(null); setEditingTareaId(null); setSelectedDate(null); }}></div>
             
             <div className="relative w-full max-w-lg h-full bg-white shadow-2xl animate-in slide-in-from-right duration-500 border-l border-slate-100">
               {isCrearOpen && (

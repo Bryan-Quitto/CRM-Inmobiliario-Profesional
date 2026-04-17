@@ -168,14 +168,17 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     processingRef.current[processId] = false;
 
+    // Prevenimos notificaciones duplicadas en React StrictMode con un ID único
+    const toastId = `upload-toast-${processId}-${crypto.randomUUID()}`;
+
     // Notificación final si todo el lote terminó
     setActiveUploads(prev => {
       const finalProcess = prev[processId];
       if (finalProcess && finalProcess.estado !== 'loading') {
         if (finalProcess.estado === 'completed') {
-          toast.success(`Carga completa en "${nombrePropiedad}"`);
+          toast.success(`Carga completa en "${nombrePropiedad}"`, { id: toastId });
         } else {
-          toast.error(`Error al subir imágenes en "${nombrePropiedad}"`);
+          toast.error(`Error al subir imágenes en "${nombrePropiedad}"`, { id: toastId });
         }
 
         // Limpiar el proceso activo después de un tiempo si no hay una nueva subida iniciada

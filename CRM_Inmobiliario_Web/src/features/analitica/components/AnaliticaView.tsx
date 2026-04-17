@@ -266,20 +266,20 @@ const AnaliticaContent: React.FC = () => {
           
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative" ref={dropdownRef}>
-              <button onClick={() => setShowMesDropdown(!showMesDropdown)} className="bg-white border-2 border-slate-100 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:border-blue-300 focus:ring-4 focus:ring-blue-50/50 transition-all cursor-pointer outline-none shadow-md flex items-center gap-3 min-w-[140px] justify-between">{MESES[mesSeleccionado]}<ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${showMesDropdown ? 'rotate-180' : ''}`} /></button>
+              <button onClick={() => setShowMesDropdown(!showMesDropdown)} className="bg-white border-2 border-slate-100 rounded-2xl px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:border-blue-300 focus:ring-4 focus:ring-blue-50/50 transition-all outline-none shadow-md flex items-center gap-3 min-w-[140px] justify-between cursor-pointer">{MESES[mesSeleccionado]}<ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${showMesDropdown ? 'rotate-180' : ''}`} /></button>
               {showMesDropdown && (
                 <div className="absolute left-0 mt-3 w-48 bg-white border-2 border-slate-50 rounded-[24px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left overflow-hidden backdrop-blur-xl bg-white/95">
                   {MESES.slice(0, new Date().getMonth() + 1).map((mes, idx) => (
-                    <button key={idx} onClick={() => { setMesSeleccionado(idx); setSemanaIndice('total'); setShowMesDropdown(false); }} className={`w-full px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${mesSeleccionado === idx ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'}`}>{mes}{mesSeleccionado === idx && <Check className="h-3 w-3" />}</button>
+                    <button key={idx} onClick={() => { setMesSeleccionado(idx); setSemanaIndice('total'); setShowMesDropdown(false); }} className={`cursor-pointer ${`w-full px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors hover:bg-slate-50 ${mesSeleccionado === idx ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'}`}`}>{mes}{mesSeleccionado === idx && <Check className="h-3 w-3" />}</button>
                   ))}
                 </div>
               )}
             </div>
 
             <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl shadow-inner border border-slate-200/50">
-              <button onClick={() => setSemanaIndice('total')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${semanaIndice === 'total' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}>Mes</button>
+              <button onClick={() => setSemanaIndice('total')} className={`cursor-pointer ${`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${semanaIndice === 'total' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}`}>Mes</button>
               {semanasDelMes.map((s, idx) => (
-                <button key={idx} onClick={() => setSemanaIndice(idx)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${semanaIndice === idx ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}>{s.label}</button>
+                <button key={idx} onClick={() => setSemanaIndice(idx)} className={`cursor-pointer ${`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${semanaIndice === idx ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}`}>{s.label}</button>
               ))}
             </div>
 
