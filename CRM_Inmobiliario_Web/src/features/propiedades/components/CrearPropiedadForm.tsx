@@ -114,6 +114,12 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
         habitaciones: dirtyFields.habitaciones ? Number(watchedValues.habitaciones) : (initialData.habitaciones || 0),
         banos: dirtyFields.banos ? Number(watchedValues.banos) : (initialData.banos || 0),
         areaTotal: dirtyFields.areaTotal ? Number(watchedValues.areaTotal) : initialData.areaTotal,
+        areaTerreno: dirtyFields.areaTerreno ? Number(watchedValues.areaTerreno) : initialData.areaTerreno,
+        areaConstruccion: dirtyFields.areaConstruccion ? Number(watchedValues.areaConstruccion) : initialData.areaConstruccion,
+        estacionamientos: dirtyFields.estacionamientos ? Number(watchedValues.estacionamientos) : initialData.estacionamientos,
+        mediosBanos: dirtyFields.mediosBanos ? Number(watchedValues.mediosBanos) : initialData.mediosBanos,
+        aniosAntiguedad: dirtyFields.aniosAntiguedad ? Number(watchedValues.aniosAntiguedad) : initialData.aniosAntiguedad,
+        urlRemax: dirtyFields.urlRemax ? (watchedValues.urlRemax as string) : (initialData.urlRemax || ''),
         esCaptacionPropia: dirtyFields.esCaptacionPropia ? !!watchedValues.esCaptacionPropia : initialData.esCaptacionPropia,
         porcentajeComision: dirtyFields.porcentajeComision ? Number(watchedValues.porcentajeComision) : initialData.porcentajeComision
       };
