@@ -159,7 +159,7 @@ export const DynamicSearchSelect = ({
                     key={item.id}
                     type="button"
                     onClick={() => handleSelect(item)}
-                    className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-all border-b border-slate-50 last:border-0 group flex items-center justify-between"
+                    className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-all border-b border-slate-50 last:border-0 group flex items-center justify-between cursor-pointer"
                   >
                     <div>
                       <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">

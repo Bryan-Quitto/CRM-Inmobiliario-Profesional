@@ -147,7 +147,7 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
       <button 
         onClick={onCancel}
         disabled={isSuccess}
-        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer disabled:opacity-0"
+        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all disabled:opacity-0 cursor-pointer"
       >
         <X className="h-5 w-5" />
       </button>
@@ -167,7 +167,7 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
                 <button 
                   type="button"
                   onClick={() => setIsConfirmingClear(true)}
-                  className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 px-2 py-1 rounded-full transition-all cursor-pointer group"
+                  className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 px-2 py-1 rounded-full transition-all group cursor-pointer"
                 >
                   <Trash2 className="h-2.5 w-2.5" />
                   Limpiar
@@ -273,7 +273,7 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
                     type="button"
                     disabled={isSuccess}
                     onClick={() => setIsSelectOpen(!isSelectOpen)}
-                    className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.origen ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50`}
+                    className={`cursor-pointer ${`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.origen ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group disabled:opacity-50`}`}
                   >
                     <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
                       {field.value || 'Selecciona origen...'}
@@ -291,9 +291,9 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
                             setValue('origen', opt.value, { shouldValidate: true });
                             setIsSelectOpen(false);
                           }}
-                          className={`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                            field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
-                          }`}
+                          className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${
+                                                                                    field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
+                                                                                  }`}`}
                         >
                           {opt.label}
                           {field.value === opt.value && <Check className="h-4 w-4" />}
@@ -313,14 +313,14 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
             type="button"
             onClick={onCancel}
             disabled={isSuccess}
-            className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors cursor-pointer disabled:opacity-0"
+            className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors disabled:opacity-0 cursor-pointer"
           >
             Cancelar
           </button>
           <button 
             type="submit"
             disabled={isSuccess}
-            className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed ${
+            className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:cursor-not-allowed ${
               isSuccess 
                 ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
                 : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700 disabled:bg-slate-300'

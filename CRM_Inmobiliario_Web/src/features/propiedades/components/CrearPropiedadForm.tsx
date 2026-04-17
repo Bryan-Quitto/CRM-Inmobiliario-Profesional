@@ -56,11 +56,6 @@ const TIPOS_PROPIEDAD = [
   { label: 'Hotel', value: 'Hotel' },
 ];
 
-const OPERACIONES = [
-  { label: 'Venta', value: 'Venta' },
-  { label: 'Alquiler', value: 'Alquiler' },
-];
-
 const DRAFT_STORAGE_KEY = 'crm_propiedad_draft';
 
 export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) => {
@@ -339,7 +334,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       <button 
         onClick={onCancel}
         disabled={isSuccess}
-        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer disabled:opacity-0"
+        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all disabled:opacity-0 cursor-pointer"
       >
         <X className="h-5 w-5" />
       </button>
@@ -359,7 +354,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                 <button 
                   type="button"
                   onClick={() => setIsConfirmingClear(true)}
-                  className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 px-2 py-1 rounded-full transition-all cursor-pointer group"
+                  className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 px-2 py-1 rounded-full transition-all group cursor-pointer"
                 >
                   <Trash2 className="h-2.5 w-2.5" />
                   Limpiar borrador
@@ -412,7 +407,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                 type="button"
                 onClick={handleImportar}
                 disabled={isSuccess || isScraping}
-                className="px-5 py-3 bg-blue-600 text-white font-black text-sm uppercase tracking-tight rounded-xl hover:bg-blue-700 transition-all cursor-pointer shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-5 py-3 bg-blue-600 text-white font-black text-sm uppercase tracking-tight rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isScraping ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Importando...</>
@@ -449,11 +444,11 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
               <button
                 type="button"
                 onClick={toggleListening}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 cursor-pointer ${
-                  isListening 
-                    ? 'bg-rose-500 text-white animate-pulse' 
-                    : 'bg-slate-100 text-slate-500 hover:bg-blue-600 hover:text-white'
-                }`}
+                className={`cursor-pointer ${`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 ${
+                                                                          isListening 
+                                                                            ? 'bg-rose-500 text-white animate-pulse' 
+                                                                            : 'bg-slate-100 text-slate-500 hover:bg-blue-600 hover:text-white'
+                                                                        }`}`}
               >
                 {isListening ? (
                   <>
@@ -505,7 +500,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                       type="button"
                       disabled={isSuccess}
                       onClick={() => setActiveSelect(activeSelect === 'tipo' ? null : 'tipo')}
-                      className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.tipoPropiedad ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50`}
+                      className={`cursor-pointer ${`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.tipoPropiedad ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group disabled:opacity-50`}`}
                     >
                       <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
                         {field.value || 'Seleccionar tipo de inmueble...'}
@@ -519,7 +514,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                             key={opt.value}
                             type="button"
                             onClick={() => { setValue('tipoPropiedad', opt.value, { shouldValidate: true }); setActiveSelect(null); }}
-                            className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'}`}
+                            className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'}`}`}
                           >
                             {opt.label}
                             {field.value === opt.value && <Check className="h-4 w-4" />}
@@ -552,7 +547,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                           type="button"
                           disabled={isSuccess}
                           onClick={() => setActiveSelect(activeSelect === 'operacion' ? null : 'operacion')}
-                          className={`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.operacion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group cursor-pointer disabled:opacity-50 relative`}
+                          className={`cursor-pointer ${`w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.operacion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group disabled:opacity-50 relative`}`}
                         >
                           <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
                             {field.value || 'Seleccionar...'}
@@ -565,8 +560,9 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                               <button
                                 key={opt}
                                 type="button"
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 onClick={() => { setValue('operacion', opt as any, { shouldValidate: true }); setActiveSelect(null); }}
-                                className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${field.value === opt ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'}`}
+                                className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition-colors ${field.value === opt ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'}`}`}
                               >
                                 {opt}
                                 {field.value === opt && <Check className="h-4 w-4" />}
@@ -810,8 +806,8 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
 
               {/* Comisión & Captación */}
               <div className="md:col-span-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="flex items-center gap-3 p-4 bg-blue-50/50 border-2 border-blue-100/50 rounded-[24px] cursor-pointer hover:bg-blue-50 transition-all group">
-                  <div className="relative inline-flex items-center cursor-pointer">
+                <label className="flex items-center gap-3 p-4 bg-blue-50/50 border-2 border-blue-100/50 rounded-[24px] hover:bg-blue-50 transition-all group">
+                  <div className="relative inline-flex items-center">
                     <input type="checkbox" {...register('esCaptacionPropia')} className="sr-only peer" defaultChecked={true} />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
                   </div>
@@ -846,14 +842,14 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
             type="button" 
             onClick={onCancel} 
             disabled={isSuccess}
-            className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors cursor-pointer disabled:opacity-0"
+            className="flex-1 py-4 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors disabled:opacity-0 cursor-pointer"
           >
             Cancelar
           </button>
           <button 
             type="submit"
             disabled={isSuccess || !tipoSeleccionado}
-            className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed ${
+            className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:cursor-not-allowed ${
               isSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700 disabled:bg-slate-300'
             }`}
           >

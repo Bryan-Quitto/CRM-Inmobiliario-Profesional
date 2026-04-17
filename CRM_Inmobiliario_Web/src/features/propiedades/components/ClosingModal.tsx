@@ -73,7 +73,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Overlay con blur */}
       <div 
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300 cursor-pointer"
         onClick={!isSubmitting && !isSuccess ? onClose : undefined}
       />
 
@@ -85,7 +85,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
         <button 
           onClick={onClose}
           disabled={isSubmitting || isSuccess}
-          className="absolute right-6 top-8 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer z-10"
+          className="absolute right-6 top-8 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all z-10 cursor-pointer"
         >
           <X size={20} />
         </button>
@@ -149,13 +149,13 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
             <button
               disabled={isSubmitting || isSuccess}
               onClick={handleConfirm}
-              className={`w-full py-5 rounded-[24px] text-white font-black text-lg shadow-2xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50
+              className={`cursor-pointer ${`w-full py-5 rounded-[24px] text-white font-black text-lg shadow-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-50
                 ${isSuccess 
-                  ? 'bg-emerald-500 shadow-emerald-200' 
-                  : tipoOperacion === 'Alquiler'
-                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200 hover:scale-[1.02] active:scale-[0.98]'
-                    : 'bg-slate-900 hover:bg-black shadow-slate-200 hover:scale-[1.02] active:scale-[0.98]'
-                }`}
+                                                                  ? 'bg-emerald-500 shadow-emerald-200' 
+                                                                  : tipoOperacion === 'Alquiler'
+                                                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200 hover:scale-[1.02] active:scale-[0.98]'
+                                                                    : 'bg-slate-900 hover:bg-black shadow-slate-200 hover:scale-[1.02] active:scale-[0.98]'
+                                                                }`}`}
             >
               {isSubmitting ? (
                 <>

@@ -337,7 +337,7 @@ const PropiedadesContent = () => {
         }`}>
           {notification.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
           <span className="font-bold text-sm tracking-tight">{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all">
+          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all cursor-pointer">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -375,9 +375,9 @@ const PropiedadesContent = () => {
               <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
                 <button
                   onClick={() => { setFilterEstado('Todos'); setOpenDropdownId(null); }}
-                  className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 cursor-pointer ${
-                    filterEstado === 'Todos' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
-                  }`}
+                  className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                                                                                    filterEstado === 'Todos' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                                                                                  }`}`}
                 >
                   Todos los estados
                   {filterEstado === 'Todos' && <Check className="h-4 w-4" />}
@@ -386,9 +386,9 @@ const PropiedadesContent = () => {
                   <button
                     key={option.value}
                     onClick={() => { setFilterEstado(option.value); setOpenDropdownId(null); }}
-                    className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 cursor-pointer ${
-                      filterEstado === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
-                    }`}
+                    className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                                                                  filterEstado === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                                                                }`}`}
                   >
                     {option.label}
                     {filterEstado === option.value && <Check className="h-4 w-4" />}
@@ -426,9 +426,9 @@ const PropiedadesContent = () => {
             <div 
               key={p.id} 
               onClick={() => handleOpenDetail(p.id)}
-              className={`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative cursor-pointer ${
-                openDropdownId === p.id ? 'z-[60]' : 'z-10'
-              }`}
+              className={`cursor-pointer ${`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative ${
+                                                openDropdownId === p.id ? 'z-[60]' : 'z-10'
+                                              }`}`}
             >
               {syncing && <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px] pointer-events-none" />}
               
@@ -446,7 +446,7 @@ const PropiedadesContent = () => {
                           e.stopPropagation();
                           setOpenDropdownId(openDropdownId === p.id ? null : p.id);
                         }}
-                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm cursor-pointer transition-all flex items-center gap-2 ${getStatusStyles(p.estadoComercial)}`}
+                        className={`cursor-pointer ${`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all flex items-center gap-2 ${getStatusStyles(p.estadoComercial)}`}`}
                       >
                         {p.estadoComercial}
                         <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${openDropdownId === p.id ? 'rotate-180' : ''}`} />
@@ -461,9 +461,9 @@ const PropiedadesContent = () => {
                                 e.stopPropagation();
                                 handleStatusChange(p.id, estado.value);
                               }}
-                              className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${
-                                p.estadoComercial === estado.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
-                              }`}
+                              className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
+                                                                                                p.estadoComercial === estado.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                                                                                              }`}`}
                             >
                               {estado.label}
                               {p.estadoComercial === estado.value && <Check className="h-3.5 w-3.5" />}
@@ -491,7 +491,7 @@ const PropiedadesContent = () => {
                   e.stopPropagation();
                   setSelectedPropiedadIdForEdit(p.id);
                 }}
-                className="absolute top-4 right-4 z-40 h-8 w-8 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:scale-110 transition-all shadow-sm cursor-pointer opacity-0 group-hover:opacity-100"
+                className="absolute top-4 right-4 z-40 h-8 w-8 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:scale-110 transition-all shadow-sm opacity-0 group-hover:opacity-100 cursor-pointer"
                 title="Editar Propiedad"
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -539,7 +539,7 @@ const PropiedadesContent = () => {
                     </div>
                   </div>
                   <div 
-                    className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-all cursor-pointer border border-slate-100"
+                    className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-all border border-slate-100"
                   >
                     <Plus className="h-5 w-5" />
                   </div>

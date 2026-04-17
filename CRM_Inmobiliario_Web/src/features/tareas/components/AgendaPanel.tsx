@@ -244,7 +244,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
           <button 
             onClick={() => setView('create')}
             aria-label="Crear nueva tarea"
-            className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 cursor-pointer active:scale-95"
+            className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 active:scale-95 cursor-pointer"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -252,7 +252,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
             <button 
               onClick={onClose}
               aria-label="Cerrar panel de agenda"
-              className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer active:scale-95 border border-slate-100"
+              className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors active:scale-95 border border-slate-100 cursor-pointer"
             >
               <XCircle className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -421,7 +421,7 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
                       setSelectedTareaId(tarea.id);
                       setView('detail');
                     }}
-                    className="p-3 bg-white border border-slate-100 rounded-xl opacity-60 hover:opacity-100 transition-all grayscale hover:grayscale-0 flex items-center gap-3 group cursor-pointer hover:border-blue-100 hover:shadow-sm"
+                    className="p-3 bg-white border border-slate-100 rounded-xl opacity-60 hover:opacity-100 transition-all grayscale hover:grayscale-0 flex items-center gap-3 group hover:border-blue-100 hover:shadow-sm cursor-pointer"
                   >
                     <div className="shrink-0 h-5 w-5 flex items-center justify-center">
                       {tarea.estado === 'Completada' ? (
@@ -468,9 +468,9 @@ const TaskCard = ({ tarea, onComplete, onClick, onEdit, isCompleting }: {
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
       aria-label={`Tarea: ${tarea.titulo}. Tipo: ${tarea.tipoTarea}. Inicia: ${formatDateTime(tarea.fechaInicio)}. ${expired ? '¡ATRASADA!' : ''}`}
-      className={`group bg-white border border-slate-100 p-4 rounded-2xl transition-all duration-300 hover:shadow-xl hover:border-blue-50 relative overflow-hidden cursor-pointer ${
-      tarea.estado === 'Completada' ? 'opacity-50 scale-95 translate-x-4 grayscale' : ''
-    }`}>
+      className={`cursor-pointer ${`group bg-white border border-slate-100 p-4 rounded-2xl transition-all duration-300 hover:shadow-xl hover:border-blue-50 relative overflow-hidden ${
+                      tarea.estado === 'Completada' ? 'opacity-50 scale-95 translate-x-4 grayscale' : ''
+                    }`}`}>
       {/* Botón de Editar en la esquina inferior izquierda */}
       {tarea.estado === 'Pendiente' && (
         <button
@@ -494,9 +494,9 @@ const TaskCard = ({ tarea, onComplete, onClick, onEdit, isCompleting }: {
           }}
           disabled={isCompleting}
           aria-label={`Marcar como completada: ${tarea.titulo}`}
-          className={`shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center cursor-pointer active:scale-90 ${
-            isCompleting ? 'border-blue-200 bg-blue-50' : 'border-slate-200 hover:border-blue-500 hover:bg-blue-50'
-          }`}
+          className={`cursor-pointer ${`shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center active:scale-90 ${
+                                            isCompleting ? 'border-blue-200 bg-blue-50' : 'border-slate-200 hover:border-blue-500 hover:bg-blue-50'
+                                          }`}`}
         >
           {isCompleting ? (
             <Loader2 className="h-3 w-3 animate-spin text-blue-600" aria-hidden="true" />

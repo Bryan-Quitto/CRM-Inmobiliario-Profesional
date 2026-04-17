@@ -119,11 +119,11 @@ function AppContent({ session }: { session: Session | null }) {
               key={item.id}
               onClick={() => navigate(item.path)}
               aria-label={`Ir a ${item.label}`}
-              className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative cursor-pointer ${
-                isActive(item.path)
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
-                  : 'hover:bg-slate-800 hover:text-slate-200'
-              }`}
+              className={`cursor-pointer ${`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative ${
+                                                isActive(item.path)
+                                                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                                                  : 'hover:bg-slate-800 hover:text-slate-200'
+                                              }`}`}
             >
               <div className={isActive(item.path) ? 'text-white' : 'group-hover:scale-110 transition-transform'}>
                 {item.icon}
@@ -141,11 +141,11 @@ function AppContent({ session }: { session: Session | null }) {
           <button 
             onClick={() => navigate('/configuracion')}
             aria-label="Abrir Configuración"
-            className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative cursor-pointer ${
-              isActive('/configuracion')
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
-                : 'hover:bg-slate-800 hover:text-slate-200'
-            }`}
+            className={`cursor-pointer ${`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative ${
+                                                      isActive('/configuracion')
+                                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                                                        : 'hover:bg-slate-800 hover:text-slate-200'
+                                                    }`}`}
           >
             <Settings className={`h-5 w-5 ${isActive('/configuracion') ? '' : 'group-hover:rotate-45'} transition-transform`} />
             {isSidebarOpen && <span className="text-sm font-bold">Configuración</span>}
@@ -190,7 +190,7 @@ function AppContent({ session }: { session: Session | null }) {
             <button 
               onClick={() => setIsAgendaOpen(!isAgendaOpen)}
               aria-label={isAgendaOpen ? "Cerrar agenda y notificaciones" : "Abrir agenda y notificaciones"}
-              className={`p-2.5 rounded-xl transition-all cursor-pointer relative ${isAgendaOpen ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+              className={`cursor-pointer ${`p-2.5 rounded-xl transition-all relative ${isAgendaOpen ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}`}
             >
               <Bell className="h-5 w-5" aria-hidden="true" />
               {urgentesCount > 0 && (

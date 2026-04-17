@@ -50,7 +50,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Overlay con blur */}
       <div 
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300 cursor-pointer"
         onClick={!isDeleting ? onClose : undefined}
       />
 
@@ -83,7 +83,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <button
             disabled={isDeleting}
             onClick={onConfirm}
-            className={`w-full py-4 ${activeColor.button} text-white font-black rounded-2xl transition-all shadow-xl flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`w-full py-4 ${activeColor.button} text-white font-black rounded-2xl transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isDeleting ? (
               <>
@@ -98,7 +98,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <button
             disabled={isDeleting}
             onClick={onClose}
-            className="w-full py-3 text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors cursor-pointer disabled:opacity-50"
+            className="w-full py-3 text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {cancelText}
           </button>

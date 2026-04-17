@@ -194,8 +194,8 @@ export const ConfirmarInvitacion: React.FC = () => {
             </div>
 
             <button type="submit" disabled={isLoading || !allValid}
-              className={`w-full rounded-xl py-4 font-black text-xs uppercase tracking-widest shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3
-                ${allValid ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20' : 'bg-slate-700 text-slate-400'}`}>
+              className={`cursor-pointer ${`w-full rounded-xl py-4 font-black text-xs uppercase tracking-widest shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3
+                ${allValid ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20' : 'bg-slate-700 text-slate-400'}`}`}>
               {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : <><CheckCircle2 className="h-5 w-5" /> Activar mi Cuenta</>}
             </button>
           </form>

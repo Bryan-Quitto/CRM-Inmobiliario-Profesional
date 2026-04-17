@@ -544,7 +544,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
   return (
     <div className="fixed inset-0 z-[200] flex justify-end">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-300" onClick={onClose} />
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-300 cursor-pointer" onClick={onClose} />
       
       <div className="relative w-full md:w-[700px] lg:w-[850px] bg-white h-full shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-500 ease-out">
         {syncing && (
@@ -570,7 +570,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
             <button 
               onClick={handleWhatsAppShare}
-              className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 cursor-pointer group/wa"
+              className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 group/wa cursor-pointer"
               title="Compartir por WhatsApp"
             >
               <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
@@ -589,7 +589,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
               <button 
                 onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)} 
                 disabled={isUpdatingStatus} 
-                className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition-all cursor-pointer hover:scale-105 active:scale-95 disabled:opacity-50 ${propiedad.estadoComercial === 'Disponible' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-white'}`}
+                className={`cursor-pointer ${`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 ${propiedad.estadoComercial === 'Disponible' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-white'}`}`}
               >
                 {isUpdatingStatus ? <Loader2 className="h-3 w-3 animate-spin" /> : propiedad.estadoComercial}
                 <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
@@ -597,7 +597,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
               {isStatusDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[100] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
                   {ESTADOS.map((estado) => (
-                    <button key={estado.value} onClick={() => handleStatusChange(estado.value)} className={`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 cursor-pointer ${propiedad.estadoComercial === estado.value ? 'text-indigo-600 bg-indigo-50/30' : 'text-slate-600'}`}>{estado.label}{propiedad.estadoComercial === estado.value && <Check className="h-3.5 w-3.5" />}</button>
+                    <button key={estado.value} onClick={() => handleStatusChange(estado.value)} className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${propiedad.estadoComercial === estado.value ? 'text-indigo-600 bg-indigo-50/30' : 'text-slate-600'}`}`}>{estado.label}{propiedad.estadoComercial === estado.value && <Check className="h-3.5 w-3.5" />}</button>
                   ))}
                 </div>
               )}
@@ -728,7 +728,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                     href={propiedad.googleMapsUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="absolute top-2 left-2 bg-white px-6 py-3 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] text-[11px] font-black uppercase tracking-[0.15em] text-slate-900 hover:bg-slate-50 transition-all flex items-center gap-3 border border-slate-100 z-20 hover:scale-[1.02] active:scale-95"
+                    className="absolute top-2 left-2 bg-white px-6 py-3 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] text-[11px] font-black uppercase tracking-[0.15em] text-slate-900 hover:bg-slate-50 transition-all flex items-center gap-3 border border-slate-100 z-20 hover:scale-[1.02] active:scale-95 cursor-pointer"
                   >
                     <div className="h-6 w-6 bg-indigo-50 rounded-lg flex items-center justify-center">
                       <Globe className="h-3.5 w-3.5 text-indigo-600" />
