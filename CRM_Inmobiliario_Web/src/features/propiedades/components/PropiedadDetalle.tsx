@@ -457,14 +457,26 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     } else if (['Oficina', 'Local Comercial', 'Galpón', 'Bodega'].includes(propiedad.tipoPropiedad)) {
       if (propiedad.banos > 0) message += `${e.bath} *Baños:* ${propiedad.banos}\n`;
     }
+    if (propiedad.mediosBanos && propiedad.mediosBanos > 0) {
+      message += `${e.bath} *Medios Baños:* ${propiedad.mediosBanos}\n`;
+    }
+
+    if (propiedad.estacionamientos && propiedad.estacionamientos > 0) message += `🚗 *Parqueaderos:* ${propiedad.estacionamientos}\n`;
+    if (propiedad.aniosAntiguedad !== undefined && propiedad.aniosAntiguedad >= 0) message += `📅 *Antigüedad:* ${propiedad.aniosAntiguedad} años\n`;
 
     message += `${e.ruler} *Área Total:* ${propiedad.areaTotal} m²\n`;
+    if (propiedad.areaConstruccion && propiedad.areaConstruccion > 0) message += `🏗️ *Área Construcción:* ${propiedad.areaConstruccion} m²\n`;
+    if (propiedad.areaTerreno && propiedad.areaTerreno > 0) message += `📐 *Área Terreno:* ${propiedad.areaTerreno} m²\n`;
 
     if (propiedad.tipoPropiedad === 'Terreno') {
       message += `${emojiTipo} Ideal para construir el proyecto de tus sueños.\n`;
     }
 
-    message += `\nTe envío la ficha técnica con fotos y más detalles. ¿Te gustaría agendar una visita? ${e.smile}`;
+    if (propiedad.urlRemax) {
+      message += `\nPuedes ver la propiedad en este enlace:\n${propiedad.urlRemax}\n\n¿Te gustaría agendar una visita? ${e.smile}`;
+    } else {
+      message += `\n¿Te gustaría agendar una visita? ${e.smile}`;
+    }
 
     // Usamos api.whatsapp.com que suele ser más estable para mensajes largos
     const text = encodeURIComponent(message);
