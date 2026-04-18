@@ -1,91 +1,62 @@
-# Spec: 007-AI-WhatsApp-Bot (Piloto Automático Inmobiliario)
+# Spec: 007-AI-WhatsApp-Bot (Piloto Automático Inmobiliario v2)
 
 ## 1. Visión General
-El Módulo de Inteligencia Artificial conectado a WhatsApp Business actúa como un "Piloto Automático" para el CRM. Su objetivo es atender prospectos de forma inmediata, pre-calificarlos según sus necesidades y presupuesto, y realizar acciones autónomas en el sistema (como buscar propiedades o registrar intereses) mediante el uso de **Function Calling**.
-
-**Objetivo:** Reducir el tiempo de respuesta a 0 segundos y asegurar que cada lead sea atendido y categorizado antes de la intervención humana.
-
----
+El Módulo de Inteligencia Artificial conectado a WhatsApp Business actúa como un "Piloto Automático" para el CRM. Atiende prospectos inmediatamente, los pre-califica, registra nuevos leads autónomamente, y solicita intervención humana cuando el contexto lo supera, dejando un rastro auditable de todas sus acciones.
 
 ## 2. Arquitectura de Webhooks (Meta Cloud API)
+- **Recepción (`POST /api/webhooks/whatsapp`):** Valida firma, responde `200 OK` rápido y procesa la inferencia en segundo plano.
+- **Validación (`GET /api/webhooks/whatsapp`):** Manejo de `hub.challenge` para Meta.
 
-Para recibir mensajes en tiempo real, se implementará un endpoint de Webhook compatible con los requisitos de seguridad de Meta.
+## 3. Base de Datos y Memoria
+- **`WhatsappConversations`:** Almacena el historial (JSON) por número para mantener contexto.
+- **`AiActionLogs` (NUEVO):** Tabla de auditoría. Campos: `Id`, `TelefonoCliente`, `Accion` (ej: 'Busqueda', 'Registro Lead', 'Alerta'), `DetalleJson`, `Fecha`. Visible desde el frontend con opciones de reversión/eliminación.
 
-### A. Endpoint de Recepción
-- **Ruta:** `POST /api/webhooks/whatsapp`
-- **Seguridad:** Validación de `X-Hub-Signature-256` para asegurar que el mensaje proviene de Meta.
-- **Procesamiento:** El webhook debe responder con `200 OK` inmediatamente para evitar reintentos de Meta, delegando el procesamiento pesado (IA) a un proceso en segundo plano (Background Service / Task).
+## 4. Comportamiento y Prompt (System Message)
 
-### B. Validación de Token (Hub Challenge)
-- **Ruta:** `GET /api/webhooks/whatsapp`
-- **Lógica:** Implementar la verificación del `hub.mode`, `hub.verify_token` y retornar el `hub.challenge` tal como lo requiere el panel de desarrolladores de Meta.
+El comportamiento base de la IA se definirá mediante un "System Message" estricto que determine su flujo de decisión paso a paso:
 
----
-
-## 3. Elección del LLM y Gestión de Contexto
-
-### A. Proveedor de IA
-- **LLM Recomendado:** OpenAI GPT-4o o GPT-4o-mini (por su alta eficiencia en Function Calling y bajo costo).
-- **SDK:** `OpenAI .NET SDK` (Oficial de Microsoft/OpenAI) o `Semantic Kernel` para orquestación avanzada.
-
-### B. Memoria de Conversación (Persistence)
-Para que la IA mantenga el hilo de la charla, no podemos depender del estado en memoria del servidor.
-- **Estructura:** Tabla `WhatsappConversations`.
-- **Campos:** `TelefonoCliente` (PK), `ContextoJson` (Historial de los últimos 10-15 mensajes), `UltimaActualizacion`.
-- **Lógica:** Antes de llamar al LLM, se recupera el historial de esta tabla. Tras la respuesta de la IA, se actualiza el JSON con el nuevo intercambio.
-
----
-
-## 4. Prompt del Sistema (System Message)
-
-El comportamiento base de la IA se definirá mediante un "System Message" robusto:
-
-> "Eres el asistente virtual inteligente de la agencia 'CRM Inmobiliario Profesional'. Tu tono es profesional, cordial y servicial. Tu objetivo principal es ayudar a los clientes a encontrar su propiedad ideal y agendar visitas. 
-> 
-> **Reglas Críticas:**
-> 1. Si el cliente pregunta por propiedades, usa la función `BuscarPropiedadesDisponibles`.
-> 2. Si el cliente muestra interés claro en una propiedad específica o deja sus datos, usa `RegistrarInteresProspecto`.
-> 3. No inventes propiedades que no estén en el catálogo.
-> 4. Si no puedes ayudar en algo específico, indica que un agente humano lo contactará pronto."
+> "Eres el asistente virtual inteligente de la agencia 'CRM Inmobiliario Profesional'. Tu tono es profesional, cordial y servicial. Tu objetivo principal es pre-calificar clientes, brindar información precisa del catálogo y agendar visitas.
+>
+> **Reglas Críticas y Flujo de Decisión:**
+> 1. **Identificación:** Si el cliente no está en la base de datos, pregúntale su nombre amablemente y usa `RegistrarNuevoLead`.
+> 2. **Búsqueda Básica:** Si el cliente busca propiedades, usa `BuscarPropiedadesDisponibles` (solo campos básicos) para ofrecer opciones.
+> 3. **Profundización:** Si el cliente hace una pregunta específica sobre una propiedad que no se resuelve con la información básica, debes usar la función de búsqueda indicando que necesitas leer la `DescripcionDetallada`.
+> 4. **Solicitud de Auxilio (ESCALADO INMEDIATO):** Si la respuesta a la pregunta del cliente NO está en la descripción detallada de la propiedad, NO inventes la información. Ejecuta inmediatamente la función `SolicitarAsistenciaHumana` y dile al cliente: *'En unos minutos un agente humano le ayudará con esa información específica.'*
+> 5. **Registro de Interés:** Si el cliente confirma que le gusta una propiedad, usa `RegistrarInteresProspecto`."
 
 ---
 
 ## 5. Function Calling (Herramientas de la IA)
 
-La IA tendrá acceso a herramientas para interactuar con la base de datos del CRM.
-
 ### A. `BuscarPropiedadesDisponibles`
-- **Descripción:** Consulta el catálogo activo del CRM.
-- **Parámetros (JSON Schema):**
-  - `presupuestoMax`: (number) Presupuesto máximo del cliente.
-  - `tipoPropiedad`: (string) 'Casa', 'Departamento', 'Terreno', etc.
-  - `ubicacion`: (string) Sector o ciudad de interés.
-- **Retorno:** Lista de hasta 3 propiedades que coincidan (Título, Precio, Enlace a Ficha).
+- Parámetros: Presupuesto, tipo, ubicación, y un booleano `incluirDescripcionDetallada` (si el cliente hace preguntas muy específicas).
+- Retorno: Datos de la propiedad. 
 
-### B. `RegistrarInteresProspecto`
-- **Descripción:** Actualiza el CRM con el interés del lead.
-- **Parámetros (JSON Schema):**
-  - `telefono`: (string) Teléfono del cliente (ID único).
-  - `propiedadId`: (guid) ID de la propiedad que le interesó.
-  - `notas`: (string) Resumen de lo que busca el cliente.
-- **Acción en Backend:** Busca o crea el `Lead`, vincula el `LeadPropertyInterest` y marca la etapa como "Contactado".
+### B. `RegistrarNuevoLead` (NUEVO)
+- **Descripción:** Crea un nuevo cliente en el CRM extrayendo datos de la charla.
+- **Parámetros:** `telefono`, `nombreExtraido`, `origen` ('WhatsApp').
 
----
+### C. `RegistrarInteresProspecto`
+- Vincula un Lead existente con una propiedad específica y añade notas de sus preferencias.
 
-## 6. Flujo de Datos (Inbound & Outbound)
+### D. `SolicitarAsistenciaHumana` (NUEVO)
+- **Descripción:** Se usa cuando la IA no tiene la respuesta o el cliente se frustra.
+- **Parámetros:** `telefono`, `motivoResumen`.
+- **Acción Backend:** 1. Inserta en `AiActionLogs` con flag de urgencia.
+  2. Dispara evento a Supabase Realtime / FCM para enviar notificación Push al navegador/móvil del agente.
 
-1. **Entrada:** Meta envía JSON al Webhook -> .NET valida firma.
-2. **Contexto:** .NET recupera `WhatsappConversations` de la DB para ese número de teléfono.
-3. **Inferencia:** .NET envía historial + mensaje nuevo + System Prompt + Tools a OpenAI.
-4. **Acción (Opcional):** Si OpenAI solicita una función, .NET ejecuta el Feature correspondiente (ej: `ListarPropiedades`), obtiene el resultado y lo devuelve a OpenAI.
-5. **Salida:** OpenAI genera la respuesta final en texto -> .NET construye el JSON para `POST https://graph.facebook.com/v17.0/{PHONE_NUMBER_ID}/messages` -> Cliente recibe el mensaje en WhatsApp.
+  ### E. Módulo Interno: Dictado de Tareas (Agent Tasking)
+- **Descripción:** Interfaz dentro del CRM (aplicación web) exclusiva para el agente. Permite presionar un botón de micrófono y dictar el resumen de una llamada o reunión física.
+- **Flujo Técnico:**
+  1. El frontend en React graba el audio usando la `MediaRecorder API`.
+  2. Envía el archivo de audio al backend (.NET).
+  3. .NET utiliza la API de `OpenAI Whisper` para transcribir el audio a texto con alta precisión.
+  4. .NET pasa la transcripción a `GPT-4o-mini` con la instrucción: *"Extrae la intención y genera un JSON para la AgendaDiaria"*.
+  5. La tarea o evento se guarda en la base de datos y se refleja inmediatamente en el calendario del CRM.
 
----
-
-## 7. Próximos Pasos (Tareas Técnicas)
-
-1. **Infraestructura:** Crear la tabla `WhatsappConversations` en Supabase/EF Core.
-2. **Webhook Base:** Implementar el endpoint de verificación y recepción (Minimal API).
-3. **Integración Meta:** Configurar `HttpClient` con el Token de Acceso Permanente de Meta.
-4. **Capa IA:** Implementar el servicio `WhatsappAiOrchestrator` que maneje las llamadas a OpenAI y el manejo de funciones.
-5. **Seguridad:** Configurar las variables de entorno para `OPENAI_API_KEY` y `WHATSAPP_VERIFY_TOKEN`.
+## 6. Flujo de Datos
+1. Webhook recibe mensaje -> Valida número en DB.
+2. Si es nuevo, la IA lo saluda y busca su nombre. Si existe, recupera historial.
+3. OpenAI decide si ejecutar funciones (Buscar, Registrar, Alertar) o solo hablar.
+4. .NET ejecuta las funciones, guarda en `AiActionLogs` el resultado, y devuelve el contexto a la IA.
+5. IA envía respuesta final vía WhatsApp API.

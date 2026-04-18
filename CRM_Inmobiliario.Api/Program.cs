@@ -9,6 +9,7 @@ using CRM_Inmobiliario.Api.Features.Intereses;
 using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Features.SeccionesGaleria;
 using CRM_Inmobiliario.Api.Features.Tareas;
+using CRM_Inmobiliario.Api.Features.WhatsApp;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
@@ -107,6 +108,7 @@ builder.Services.AddOutputCache(options => {
 
 // Infraestructura de Red
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<WhatsAppAiService>();
 
 // Fase 1: Cola de Generación de PDFs y Warming de KPIs
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
@@ -138,7 +140,10 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -212,5 +217,8 @@ apiGroup.MapObtenerVentasMensualesEndpoint();
 apiGroup.MapObtenerSeguimientoEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
 apiGroup.MapObtenerProyeccionesEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
 apiGroup.MapObtenerEficienciaEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
+
+// Webhooks
+app.MapWhatsAppWebhooksEndpoints();
 
 app.Run();
