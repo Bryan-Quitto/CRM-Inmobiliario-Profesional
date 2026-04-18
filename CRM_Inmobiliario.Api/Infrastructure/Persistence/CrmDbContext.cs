@@ -17,6 +17,8 @@ public sealed class CrmDbContext : DbContext
     public DbSet<LeadPropertyInterest> LeadPropertyInterests => Set<LeadPropertyInterest>();
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
     public DbSet<Interaction> Interactions => Set<Interaction>();
+    public DbSet<WhatsappConversation> WhatsappConversations => Set<WhatsappConversation>();
+    public DbSet<AiActionLog> AiActionLogs => Set<AiActionLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -180,6 +182,22 @@ public sealed class CrmDbContext : DbContext
                 .WithMany(p => p.Interactions)
                 .HasForeignKey(d => d.PropiedadId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // WhatsApp AI
+        modelBuilder.Entity<WhatsappConversation>(entity =>
+        {
+            entity.Property(e => e.Telefono).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<AiActionLog>(entity =>
+        {
+            entity.Property(e => e.TelefonoCliente).HasMaxLength(20);
+            entity.Property(e => e.Accion).HasMaxLength(100);
+
+            // Index por teléfono y fecha para auditorías
+            entity.HasIndex(e => new { e.TelefonoCliente, e.Fecha })
+                  .HasDatabaseName("IX_AiActionLogs_TelefonoFecha");
         });
     }
 }
