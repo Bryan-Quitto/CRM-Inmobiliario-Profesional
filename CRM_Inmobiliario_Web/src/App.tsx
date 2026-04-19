@@ -22,7 +22,8 @@ import {
   Search,
   Loader2,
   LayoutDashboard,
-  Calendar
+  Calendar,
+  Bot
 } from 'lucide-react';
 
 // Lazy Loading de Features
@@ -33,6 +34,7 @@ const ClienteDetalle = lazy(() => import('./features/clientes/components/Cliente
 const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
 const AnaliticaView = lazy(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView })));
 const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
+const AuditoriaLogsView = lazy(() => import('./features/ia/components/AuditoriaLogsView').then(m => ({ default: m.AuditoriaLogsView })));
 const ConfiguracionView = lazy(() => import('./features/configuracion/components/ConfiguracionView'));
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
 
@@ -77,6 +79,7 @@ function AppContent({ session }: { session: Session | null }) {
     { id: 'calendario', path: '/calendario', icon: <Calendar className="h-5 w-5" />, label: 'Calendario' },
     { id: 'prospectos', path: '/prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
     { id: 'propiedades', path: '/propiedades', icon: <Home className="h-5 w-5" />, label: 'Propiedades' },
+    { id: 'ia-logs', path: '/ia-logs', icon: <Bot className="h-5 w-5" />, label: 'Actividad IA' },
     { id: 'kpis', path: '/kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
   ];
 
@@ -234,6 +237,7 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/prospectos" element={<ClientesList />} />
               <Route path="/prospectos/:id" element={<ClienteDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
+              <Route path="/ia-logs" element={<AuditoriaLogsView />} />
               <Route path="/kpis" element={<AnaliticaView />} />
               <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionView /></Suspense>} />
               <Route path="/confirmar-password" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />

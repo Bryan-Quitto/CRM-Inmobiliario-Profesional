@@ -218,6 +218,9 @@ apiGroup.MapObtenerSeguimientoEndpoint().CacheOutput(p => p.Tag("analytics-data"
 apiGroup.MapObtenerProyeccionesEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
 apiGroup.MapObtenerEficienciaEndpoint().CacheOutput(p => p.Tag("analytics-data").Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
 
+// IA Auditoría
+apiGroup.MapObtenerLogsIa();
+
 // Webhooks
 app.MapWhatsAppWebhooksEndpoints();
 

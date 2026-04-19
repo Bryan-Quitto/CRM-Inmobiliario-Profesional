@@ -139,9 +139,11 @@ public sealed class WhatsAppAiService
             switch (toolCall.FunctionName)
             {
                 case "BuscarPropiedades":
-                    return await ExecBuscarPropiedades(args);
+                    return await ExecBuscarPropiedades(args, customerPhone);
                 case "RegistrarNuevoLead":
                     return await ExecRegistrarNuevoLead(args, customerPhone);
+                case "RegistrarInteresProspecto":
+                    return await ExecRegistrarInteresProspecto(args, customerPhone);
                 case "SolicitarAsistenciaHumana":
                     return await ExecSolicitarAsistenciaHumana(args, customerPhone);
                 default:
@@ -153,7 +155,44 @@ public sealed class WhatsAppAiService
         }
     }
 
-    private async Task<string> ExecBuscarPropiedades(JsonDocument args)
+    private async Task<string> ExecRegistrarInteresProspecto(JsonDocument args, string phone)
+    {
+        if (!args.RootElement.TryGetProperty("propiedadId", out var pIdProp) || !Guid.TryParse(pIdProp.GetString(), out var propiedadId))
+            return "Error: ID de propiedad inválido.";
+
+        string nivel = args.RootElement.GetProperty("nivelInteres").GetString() ?? "Medio";
+        
+        // 1. Buscar al cliente
+        var lead = await _context.Leads.FirstOrDefaultAsync(l => l.Telefono == phone);
+        if (lead == null) return "Error: El cliente debe estar registrado antes de marcar interés. Usa RegistrarNuevoLead primero.";
+
+        // 2. Upsert del interés
+        var interest = await _context.LeadPropertyInterests
+            .FirstOrDefaultAsync(i => i.ClienteId == lead.Id && i.PropiedadId == propiedadId);
+
+        if (interest == null)
+        {
+            interest = new LeadPropertyInterest
+            {
+                ClienteId = lead.Id,
+                PropiedadId = propiedadId,
+                NivelInteres = nivel,
+                FechaRegistro = DateTimeOffset.UtcNow
+            };
+            _context.LeadPropertyInterests.Add(interest);
+        }
+        else
+        {
+            interest.NivelInteres = nivel;
+            interest.FechaRegistro = DateTimeOffset.UtcNow;
+        }
+
+        await LogAiAction("RegistroInteres", args.RootElement.GetRawText(), phone, $"Propiedad: {propiedadId}, Nivel: {nivel}");
+        
+        return $"Interés registrado correctamente como '{nivel}'.";
+    }
+
+    private async Task<string> ExecBuscarPropiedades(JsonDocument args, string phone)
     {
         decimal? maxBudget = args.RootElement.TryGetProperty("presupuestoMaximo", out var b) ? b.GetDecimal() : null;
         decimal? minBudget = args.RootElement.TryGetProperty("presupuestoMinimo", out var mb) ? mb.GetDecimal() : null;
@@ -166,8 +205,16 @@ public sealed class WhatsAppAiService
         _logger.LogInformation("Iniciando búsqueda jerárquica: Tipo={Type}, Rango={Min}-{Max}, Ubicación={Location}, Keyword={Keyword}", 
             type ?? "Cualquiera", minBudget?.ToString() ?? "0", maxBudget?.ToString() ?? "Max", location ?? "Cualquiera", keyword ?? "Ninguna");
 
-        // --- NIVEL 1: Búsqueda con todos los filtros ---
-        var query = _context.Properties.Where(p => p.EstadoComercial == "Disponible");
+        // --- EXCLUSIÓN DE DESCARTADOS (MANDATORIO) ---
+        // Buscamos IDs de propiedades que el cliente ya descartó explícitamente.
+        var descartadosIds = await _context.LeadPropertyInterests
+            .Where(i => i.Cliente!.Telefono == phone && i.NivelInteres == "Descartada")
+            .Select(i => i.PropiedadId)
+            .ToListAsync();
+
+        var query = _context.Properties
+            .Where(p => p.EstadoComercial == "Disponible")
+            .Where(p => !descartadosIds.Contains(p.Id)); // Filtro de seguridad técnica
         
         // Mapeo geográfico simple para Ambato y Baños
         if (!string.IsNullOrEmpty(location))
@@ -382,7 +429,7 @@ public sealed class WhatsAppAiService
 
         options.Tools.Add(ChatTool.CreateFunctionTool(
             "RegistrarNuevoLead",
-            "Crea un nuevo prospecto en el CRM.",
+            "Crea un nuevo prospecto en el CRM. Debes llamar a esta herramienta SIEMPRE ANTES de registrar un interés si el cliente no está en la base.",
             BinaryData.FromBytes("""
             {
                 "type": "object",
@@ -390,6 +437,25 @@ public sealed class WhatsAppAiService
                     "nombre": { "type": "string", "description": "Nombre completo del cliente." }
                 },
                 "required": ["nombre"]
+            }
+            """u8.ToArray())
+        ));
+
+        options.Tools.Add(ChatTool.CreateFunctionTool(
+            "RegistrarInteresProspecto",
+            "Registra el interés del cliente. REGLAS: 'Alto' (Quiere visitar o comprar), 'Medio' (Preguntas técnicas: alícuota, financiamiento, fotos detalladas), 'Bajo' (Preguntas básicas: precio, negociabilidad, ubicación general), 'Descartada' (Rechazo).",
+            BinaryData.FromBytes("""
+            {
+                "type": "object",
+                "properties": {
+                    "propiedadId": { "type": "string", "description": "ID único de la propiedad (Guid)." },
+                    "nivelInteres": { 
+                        "type": "string", 
+                        "enum": ["Bajo", "Medio", "Alto", "Descartada"],
+                        "description": "Nivel de interés según las REGLAS técnicas." 
+                    }
+                },
+                "required": ["propiedadId", "nivelInteres"]
             }
             """u8.ToArray())
         ));
@@ -482,16 +548,22 @@ public sealed class WhatsAppAiService
     }
 
     private string GetSystemPrompt() => 
-        "Eres el asistente virtual experto de 'CRM Inmobiliario Profesional'. Tu misión es encontrar la propiedad ideal siendo riguroso con los deseos del cliente.\n\n" +
-        "REGLAS DE ORO:\n" +
-        "1. EXTRACCIÓN DE DATOS: Identifica Tipo, Presupuesto, Ubicación y Keywords. Si el cliente da un rango (ej: 100k a 140k), usa 'presupuestoMinimo' y 'presupuestoMaximo'.\n" +
-        "2. FILTROS NEGATIVOS (CRÍTICO): Si el usuario dice que NO quiere algo (ej: 'no en La Carolina', 'que no sea casa'), debes filtrar los resultados devueltos por la herramienta y ELIMINAR los que coincidan con la exclusión antes de responder. NUNCA muestres lo que el usuario rechazó.\n" +
-        "3. CONTINUIDAD: Mantén el contexto de la búsqueda anterior (tipo, ubicación, presupuesto) si el usuario pide ajustes (ej: '¿y algo más barato?') a menos que cambie de tema.\n" +
-        "4. FORMATO WHATSAPP: Usa SOLO un asterisco para negritas: *texto*. Prohibido usar (**).\n" +
-        "5. PRESENTACIÓN: Por cada propiedad: *Título* - Precio - Ubicación (Sector). Menciona detalles técnicos si el usuario los pidió (parqueaderos, cisterna, etc.).\n\n" +
-        "ESTRATEGIA:\n" +
-        "- Si el cliente muestra interés real o pide visita: Usa 'SolicitarAsistenciaHumana' inmediatamente.\n" +
-        "- Si el sistema devuelve un 'Aviso' en la búsqueda, explícaselo amablemente pero solo muestra los resultados que NO hayan sido excluidos por el usuario.";
+        "Eres el asistente virtual de 'CRM Inmobiliario Profesional'. Tu misión es perfilar al cliente de forma invisible mientras conversas.\n\n" +
+        "MANDATO DE ACCIÓN TÉCNICA (OBLIGATORIO):\n" +
+        "Cada vez que el cliente pregunte o mencione algo sobre una propiedad específica, DEBES llamar a 'RegistrarInteresProspecto' ANTES de dar tu respuesta de texto.\n\n" +
+        "REGLA DE PROTECCIÓN DE COMISIÓN (CRÍTICO):\n" +
+        "1. NUNCA menciones 'la inmobiliaria', 'la agencia' ni pidas al cliente que llame a una oficina.\n" +
+        "2. SIEMPRE di que 'en un momento un agente se pondrá en contacto con usted' o 'un asesor le escribirá pronto' para cualquier trámite, cita o información que tú no tengas.\n\n" +
+        "MATRIZ DE CALIFICACIÓN (TRIGGER -> ACCIÓN):\n" +
+        "- Pregunta por Precio, Disponibilidad, Negociabilidad o Ubicación -> Llama a 'RegistrarInteresProspecto' con nivel 'Bajo'.\n" +
+        "- Pregunta por Alícuota, Años, Fotos extras, Financiamiento o detalles técnicos -> Llama a 'RegistrarInteresProspecto' con nivel 'Medio'.\n" +
+        "- Pide Visita, Reunión o indica que la comprará/quiere reservar -> Llama a 'RegistrarInteresProspecto' con nivel 'Alto'.\n" +
+        "- Dice que no le gusta, que la descartes o critica la zona/precio negativamente -> Llama a 'RegistrarInteresProspecto' con nivel 'Descartada'.\n\n" +
+        "PROTOCOLO DE CONVERSACIÓN:\n" +
+        "1. RESPUESTA NATURAL: Responde a la pregunta del usuario de forma amable. NO menciones que has registrado nada. \n" +
+        "2. NO PRESIONAR: Prohibido sugerir visitas o pedir datos en niveles 'Bajo' o 'Medio'. Solo hazlo en nivel 'Alto'.\n" +
+        "3. BLOQUEO TÉCNICO: Si una propiedad es 'Descartada', el sistema la filtrará automáticamente.\n" +
+        "4. FORMATO: Usa un solo asterisco para negritas (*texto*).";
 
     private class ChatMessageDto
     {
