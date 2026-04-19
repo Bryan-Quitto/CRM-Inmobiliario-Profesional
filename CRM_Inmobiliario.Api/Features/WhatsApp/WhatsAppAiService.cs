@@ -61,6 +61,16 @@ public sealed class WhatsAppAiService
             // 2. Añadir mensaje del usuario
             history.Add(new UserChatMessage(messageText));
 
+            // --- CONTROL DE COSTOS (INPUT): Ventana deslizante de historial ---
+            // Mantenemos solo los últimos 10 mensajes para evitar prompts gigantescos,
+            // pero nos aseguramos de que el SystemPrompt siempre esté al inicio (índice 0).
+            if (history.Count > 12) 
+            {
+                var systemMessage = history[0];
+                history = history.Skip(history.Count - 10).ToList();
+                history.Insert(0, systemMessage);
+            }
+
             // 3. Inferencia con OpenAI y Function Calling
             var chatClient = new ChatClient("gpt-4o-mini", _openAiApiKey);
             var options = GetChatOptions();
@@ -72,10 +82,13 @@ public sealed class WhatsAppAiService
             {
                 // LOG DE TRAZABILIDAD: Ver qué le mandamos a la IA
                 _logger.LogInformation("--- ENVIANDO A OPENAI (Historia acumulada: {Count} mensajes) ---", history.Count);
-                foreach(var m in history) _logger.LogDebug("[{Role}]: {Content}", m is UserChatMessage ? "User" : m is AssistantChatMessage ? "Assistant" : "System", m.Content.Count > 0 ? m.Content[0].Text : "(Tool Call)");
-
+                
                 ChatCompletion completion = await chatClient.CompleteChatAsync(history, options);
                 requiresAction = false;
+
+                // LOG DE COSTOS: Ver tokens consumidos
+                _logger.LogInformation("--- CONSUMO DE TOKENS: Input={Input}, Output={Output}, Total={Total} ---", 
+                    completion.Usage.InputTokenCount, completion.Usage.OutputTokenCount, completion.Usage.TotalTokenCount);
 
                 switch (completion.FinishReason)
                 {
@@ -142,20 +155,61 @@ public sealed class WhatsAppAiService
 
     private async Task<string> ExecBuscarPropiedades(JsonDocument args)
     {
-        decimal? budget = args.RootElement.TryGetProperty("presupuestoMaximo", out var b) ? b.GetDecimal() : null;
+        decimal? maxBudget = args.RootElement.TryGetProperty("presupuestoMaximo", out var b) ? b.GetDecimal() : null;
+        decimal? minBudget = args.RootElement.TryGetProperty("presupuestoMinimo", out var mb) ? mb.GetDecimal() : null;
         string? type = args.RootElement.TryGetProperty("tipo", out var t) ? t.GetString() : null;
         string? location = args.RootElement.TryGetProperty("ubicacion", out var u) ? u.GetString() : null;
+        string? keyword = args.RootElement.TryGetProperty("keyword", out var k) ? k.GetString() : null;
+        int? rooms = args.RootElement.TryGetProperty("habitaciones", out var r) ? r.GetInt32() : null;
+        string? operation = args.RootElement.TryGetProperty("operacion", out var o) ? o.GetString() : null;
 
-        _logger.LogInformation("Iniciando búsqueda jerárquica: Tipo={Type}, Presupuesto={Budget}, Ubicación={Location}", 
-            type ?? "Cualquiera", budget?.ToString() ?? "Sin límite", location ?? "Cualquiera");
+        _logger.LogInformation("Iniciando búsqueda jerárquica: Tipo={Type}, Rango={Min}-{Max}, Ubicación={Location}, Keyword={Keyword}", 
+            type ?? "Cualquiera", minBudget?.ToString() ?? "0", maxBudget?.ToString() ?? "Max", location ?? "Cualquiera", keyword ?? "Ninguna");
 
         // --- NIVEL 1: Búsqueda con todos los filtros ---
         var query = _context.Properties.Where(p => p.EstadoComercial == "Disponible");
-        if (!string.IsNullOrEmpty(type)) query = query.Where(p => EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"));
-        if (budget.HasValue) query = query.Where(p => p.Precio <= budget.Value);
-        if (!string.IsNullOrEmpty(location)) query = query.Where(p => EF.Functions.ILike(p.Sector, $"%{location}%") || EF.Functions.ILike(p.Ciudad, $"%{location}%"));
+        
+        // Mapeo geográfico simple para Ambato y Baños
+        if (!string.IsNullOrEmpty(location))
+        {
+            var locLower = location.ToLower();
+            if (locLower.Contains("ambato"))
+            {
+                query = query.Where(p => EF.Functions.ILike(p.Ciudad, "%Ambato%") || 
+                                         p.Sector == "Ficoa" || p.Sector == "Ingahurco" || p.Sector == "Pinllo" || p.Sector == "Izamba");
+            }
+            else if (locLower.Contains("baños") || locLower.Contains("banos"))
+            {
+                query = query.Where(p => EF.Functions.ILike(p.Ciudad, "%Baños%") || 
+                                         p.Sector == "Santa Ana" || p.Sector == "Illuchi" || p.Sector == "Agoyán");
+            }
+            else
+            {
+                query = query.Where(p => EF.Functions.ILike(p.Sector, $"%{location}%") || EF.Functions.ILike(p.Ciudad, $"%{location}%"));
+            }
+        }
 
-        var results = await query.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.UrlRemax }).ToListAsync();
+        if (!string.IsNullOrEmpty(type)) query = query.Where(p => EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"));
+
+        var results = await query
+            .OrderByDescending(p => !string.IsNullOrEmpty(keyword) && (p.Titulo.Contains(keyword) || p.Descripcion.Contains(keyword)))
+            .ThenBy(p => p.Precio)
+            .Take(3)
+            .Select(p => new { 
+                p.Id, 
+                p.Titulo, 
+                p.Precio, 
+                p.Sector, 
+                p.Ciudad, 
+                p.Direccion, 
+                p.Habitaciones, 
+                p.Banos, 
+                p.Estacionamientos,
+                p.AniosAntiguedad,
+                p.UrlRemax, 
+                p.Operacion 
+            })
+            .ToListAsync();
         if (results.Any()) 
         {
             await LogAiAction("BusquedaExitosa", args.RootElement.GetRawText(), "Sistema", results.Count.ToString());
@@ -163,14 +217,14 @@ public sealed class WhatsAppAiService
         }
 
         // --- NIVEL 2: Ignorar presupuesto pero mantener Tipo y Ubicación ---
-        if (budget.HasValue && (!string.IsNullOrEmpty(type) || !string.IsNullOrEmpty(location)))
+        if (maxBudget.HasValue && (!string.IsNullOrEmpty(type) || !string.IsNullOrEmpty(location)))
         {
             _logger.LogInformation("Nivel 1 fallido. Nivel 2: Ignorando presupuesto.");
             var query2 = _context.Properties.Where(p => p.EstadoComercial == "Disponible");
             if (!string.IsNullOrEmpty(type)) query2 = query2.Where(p => EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"));
             if (!string.IsNullOrEmpty(location)) query2 = query2.Where(p => EF.Functions.ILike(p.Sector, $"%{location}%") || EF.Functions.ILike(p.Ciudad, $"%{location}%"));
             
-            results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.UrlRemax }).ToListAsync();
+            results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.UrlRemax, p.Operacion }).ToListAsync();
             if (results.Any()) 
             {
                 await LogAiAction("BusquedaFallbackPresupuesto", args.RootElement.GetRawText(), "Sistema", results.Count.ToString());
@@ -185,7 +239,7 @@ public sealed class WhatsAppAiService
             results = await _context.Properties
                 .Where(p => p.EstadoComercial == "Disponible" && EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"))
                 .OrderBy(p => p.Precio).Take(3)
-                .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.UrlRemax })
+                .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.UrlRemax, p.Operacion })
                 .ToListAsync();
             
             if (results.Any()) 
@@ -200,7 +254,7 @@ public sealed class WhatsAppAiService
         results = await _context.Properties
             .Where(p => p.EstadoComercial == "Disponible")
             .OrderBy(p => p.Precio).Take(3)
-            .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.UrlRemax })
+            .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.UrlRemax, p.Operacion })
             .ToListAsync();
 
         if (results.Any()) 
@@ -296,7 +350,16 @@ public sealed class WhatsAppAiService
 
     private ChatCompletionOptions GetChatOptions()
     {
-        var options = new ChatCompletionOptions();
+        var options = new ChatCompletionOptions
+        {
+            // --- CONTROL DE COSTOS (OUTPUT) ---
+            // Ponemos un techo a la respuesta para evitar gastos inesperados.
+            MaxOutputTokenCount = 500,
+            
+            // Penalizaciones para evitar respuestas repetitivas o redundantes.
+            PresencePenalty = 0.6f,
+            FrequencyPenalty = 0.5f
+        };
 
         options.Tools.Add(ChatTool.CreateFunctionTool(
             "BuscarPropiedades",
@@ -305,9 +368,13 @@ public sealed class WhatsAppAiService
             {
                 "type": "object",
                 "properties": {
+                    "presupuestoMinimo": { "type": "number", "description": "Mínimo de precio." },
                     "presupuestoMaximo": { "type": "number", "description": "Límite de precio." },
                     "tipo": { "type": "string", "description": "Obligatorio si se menciona. Ej: 'Casa', 'Departamento', 'Terreno', 'Local', 'Oficina'." },
-                    "ubicacion": { "type": "string", "description": "Sector o ciudad de interés." }
+                    "ubicacion": { "type": "string", "description": "Sector o ciudad de interés." },
+                    "keyword": { "type": "string", "description": "Palabra clave técnica extraída de la solicitud (ej: 'cisterna', 'piscina', 'jardín', 'ascensor')." },
+                    "habitaciones": { "type": "integer", "description": "Número mínimo de habitaciones requeridas." },
+                    "operacion": { "type": "string", "description": "Tipo de operación: 'Venta' o 'Alquiler'." }
                 }
             }
             """u8.ToArray())
@@ -415,17 +482,16 @@ public sealed class WhatsAppAiService
     }
 
     private string GetSystemPrompt() => 
-        "Eres el asistente virtual experto de 'CRM Inmobiliario Profesional'.\n\n" +
+        "Eres el asistente virtual experto de 'CRM Inmobiliario Profesional'. Tu misión es encontrar la propiedad ideal siendo riguroso con los deseos del cliente.\n\n" +
         "REGLAS DE ORO:\n" +
-        "1. EXTRACCIÓN DE DATOS: Si el cliente busca algo, identifica SIEMPRE el tipo de propiedad (Casa, Departamento, etc.) y úsalo como parámetro en 'BuscarPropiedades'.\n" +
-        "2. BÚSQUEDA PROACTIVA: Ante cualquier interés de compra/alquiler, usa 'BuscarPropiedades' inmediatamente. No des respuestas genéricas sin antes consultar el catálogo.\n" +
-        "3. FORMATO WHATSAPP: Usa SOLO un asterisco para negritas: *texto*. Prohibido usar (**).\n" +
-        "4. PRESENTACIÓN: Por cada propiedad: *Título* - Precio - Dirección - Sector. (Vista web solo si hay URL).\n" +
-        "5. SIN ALUCINACIONES: No inventes precios ni stock.\n\n" +
+        "1. EXTRACCIÓN DE DATOS: Identifica Tipo, Presupuesto, Ubicación y Keywords. Si el cliente da un rango (ej: 100k a 140k), usa 'presupuestoMinimo' y 'presupuestoMaximo'.\n" +
+        "2. FILTROS NEGATIVOS (CRÍTICO): Si el usuario dice que NO quiere algo (ej: 'no en La Carolina', 'que no sea casa'), debes filtrar los resultados devueltos por la herramienta y ELIMINAR los que coincidan con la exclusión antes de responder. NUNCA muestres lo que el usuario rechazó.\n" +
+        "3. CONTINUIDAD: Mantén el contexto de la búsqueda anterior (tipo, ubicación, presupuesto) si el usuario pide ajustes (ej: '¿y algo más barato?') a menos que cambie de tema.\n" +
+        "4. FORMATO WHATSAPP: Usa SOLO un asterisco para negritas: *texto*. Prohibido usar (**).\n" +
+        "5. PRESENTACIÓN: Por cada propiedad: *Título* - Precio - Ubicación (Sector). Menciona detalles técnicos si el usuario los pidió (parqueaderos, cisterna, etc.).\n\n" +
         "ESTRATEGIA:\n" +
-        "- Si no tienes el nombre: Pregúntalo y usa 'RegistrarNuevoLead'.\n" +
-        "- Si pide propiedades: Usa 'BuscarPropiedades' con los filtros detectados (tipo, presupuesto, ubicación).\n" +
-        "- Si el sistema devuelve un 'Aviso' en la búsqueda (ej: no encontró presupuesto exacto), explícaselo al cliente amablemente pero muéstrale los resultados enviados.";
+        "- Si el cliente muestra interés real o pide visita: Usa 'SolicitarAsistenciaHumana' inmediatamente.\n" +
+        "- Si el sistema devuelve un 'Aviso' en la búsqueda, explícaselo amablemente pero solo muestra los resultados que NO hayan sido excluidos por el usuario.";
 
     private class ChatMessageDto
     {
