@@ -6,6 +6,7 @@ using OpenAI.Chat;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp;
 
@@ -62,8 +63,6 @@ public sealed class WhatsAppAiService
             history.Add(new UserChatMessage(messageText));
 
             // --- CONTROL DE COSTOS (INPUT): Ventana deslizante de historial ---
-            // Mantenemos solo los últimos 10 mensajes para evitar prompts gigantescos,
-            // pero nos aseguramos de que el SystemPrompt siempre esté al inicio (índice 0).
             if (history.Count > 12) 
             {
                 var systemMessage = history[0];
@@ -80,13 +79,11 @@ public sealed class WhatsAppAiService
 
             while (requiresAction)
             {
-                // LOG DE TRAZABILIDAD: Ver qué le mandamos a la IA
                 _logger.LogInformation("--- ENVIANDO A OPENAI (Historia acumulada: {Count} mensajes) ---", history.Count);
                 
                 ChatCompletion completion = await chatClient.CompleteChatAsync(history, options);
                 requiresAction = false;
 
-                // LOG DE COSTOS: Ver tokens consumidos
                 _logger.LogInformation("--- CONSUMO DE TOKENS: Input={Input}, Output={Output}, Total={Total} ---", 
                     completion.Usage.InputTokenCount, completion.Usage.OutputTokenCount, completion.Usage.TotalTokenCount);
 
@@ -120,6 +117,9 @@ public sealed class WhatsAppAiService
             // 5. Enviar respuesta a WhatsApp
             if (!string.IsNullOrEmpty(finalResponse))
             {
+                // Limpieza agresiva: Convertir cualquier secuencia de asteriscos (**, ***, etc) en uno solo.
+                finalResponse = Regex.Replace(finalResponse, @"\*+", "*");
+                
                 await SendWhatsAppMessageAsync(phone, finalResponse);
             }
         }
@@ -136,19 +136,14 @@ public sealed class WhatsAppAiService
         using JsonDocument args = JsonDocument.Parse(toolCall.FunctionArguments);
 
         try {
-            switch (toolCall.FunctionName)
+            return toolCall.FunctionName switch
             {
-                case "BuscarPropiedades":
-                    return await ExecBuscarPropiedades(args, customerPhone);
-                case "RegistrarNuevoLead":
-                    return await ExecRegistrarNuevoLead(args, customerPhone);
-                case "RegistrarInteresProspecto":
-                    return await ExecRegistrarInteresProspecto(args, customerPhone);
-                case "SolicitarAsistenciaHumana":
-                    return await ExecSolicitarAsistenciaHumana(args, customerPhone);
-                default:
-                    return "Error: Herramienta no encontrada.";
-            }
+                "BuscarPropiedades" => await ExecBuscarPropiedades(args, customerPhone),
+                "RegistrarNuevoLead" => await ExecRegistrarNuevoLead(args, customerPhone),
+                "RegistrarInteresProspecto" => await ExecRegistrarInteresProspecto(args, customerPhone),
+                "SolicitarAsistenciaHumana" => await ExecSolicitarAsistenciaHumana(args, customerPhone),
+                _ => "Error: Herramienta no encontrada."
+            };
         } catch (Exception ex) {
             _logger.LogError(ex, "Error ejecutando herramienta {ToolName}", toolCall.FunctionName);
             return "Error al ejecutar la acción.";
@@ -162,11 +157,24 @@ public sealed class WhatsAppAiService
 
         string nivel = args.RootElement.GetProperty("nivelInteres").GetString() ?? "Medio";
         
-        // 1. Buscar al cliente
+        if (nivel == "Descartada")
+        {
+            var conversation = await _context.WhatsappConversations.FirstOrDefaultAsync(c => c.Telefono == phone);
+            if (conversation != null)
+            {
+                var history = conversation.HistorialJson.ToLower();
+                if ((history.Contains("presupuesto") || history.Contains("$") || history.Contains("precio") || history.Contains("barat")) 
+                    && !history.Contains("no me gusta") && !history.Contains("feo") && !history.Contains("descart") && !history.Contains("quitar"))
+                {
+                    _logger.LogWarning("Previendo descarte automático por presupuesto para {Phone}. Cambiando a 'Bajo'.", phone);
+                    nivel = "Bajo";
+                }
+            }
+        }
+
         var lead = await _context.Leads.FirstOrDefaultAsync(l => l.Telefono == phone);
         if (lead == null) return "Error: El cliente debe estar registrado antes de marcar interés. Usa RegistrarNuevoLead primero.";
 
-        // 2. Upsert del interés
         var interest = await _context.LeadPropertyInterests
             .FirstOrDefaultAsync(i => i.ClienteId == lead.Id && i.PropiedadId == propiedadId);
 
@@ -205,8 +213,6 @@ public sealed class WhatsAppAiService
         _logger.LogInformation("Iniciando búsqueda jerárquica: Tipo={Type}, Rango={Min}-{Max}, Ubicación={Location}, Keyword={Keyword}", 
             type ?? "Cualquiera", minBudget?.ToString() ?? "0", maxBudget?.ToString() ?? "Max", location ?? "Cualquiera", keyword ?? "Ninguna");
 
-        // --- EXCLUSIÓN DE DESCARTADOS (MANDATORIO) ---
-        // Buscamos IDs de propiedades que el cliente ya descartó explícitamente.
         var descartadosIds = await _context.LeadPropertyInterests
             .Where(i => i.Cliente!.Telefono == phone && i.NivelInteres == "Descartada")
             .Select(i => i.PropiedadId)
@@ -214,9 +220,8 @@ public sealed class WhatsAppAiService
 
         var query = _context.Properties
             .Where(p => p.EstadoComercial == "Disponible")
-            .Where(p => !descartadosIds.Contains(p.Id)); // Filtro de seguridad técnica
+            .Where(p => !descartadosIds.Contains(p.Id));
         
-        // Mapeo geográfico simple para Ambato y Baños
         if (!string.IsNullOrEmpty(location))
         {
             var locLower = location.ToLower();
@@ -253,8 +258,13 @@ public sealed class WhatsAppAiService
                 p.Banos, 
                 p.Estacionamientos,
                 p.AniosAntiguedad,
+                p.AreaTotal,
+                p.AreaConstruccion,
+                p.AreaTerreno,
+                p.MediosBanos,
                 p.UrlRemax, 
-                p.Operacion 
+                p.Operacion,
+                p.TipoPropiedad
             })
             .ToListAsync();
         if (results.Any()) 
@@ -263,7 +273,6 @@ public sealed class WhatsAppAiService
             return JsonSerializer.Serialize(results);
         }
 
-        // --- NIVEL 2: Ignorar presupuesto pero mantener Tipo y Ubicación ---
         if (maxBudget.HasValue && (!string.IsNullOrEmpty(type) || !string.IsNullOrEmpty(location)))
         {
             _logger.LogInformation("Nivel 1 fallido. Nivel 2: Ignorando presupuesto.");
@@ -271,7 +280,7 @@ public sealed class WhatsAppAiService
             if (!string.IsNullOrEmpty(type)) query2 = query2.Where(p => EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"));
             if (!string.IsNullOrEmpty(location)) query2 = query2.Where(p => EF.Functions.ILike(p.Sector, $"%{location}%") || EF.Functions.ILike(p.Ciudad, $"%{location}%"));
             
-            results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.UrlRemax, p.Operacion }).ToListAsync();
+            results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad }).ToListAsync();
             if (results.Any()) 
             {
                 await LogAiAction("BusquedaFallbackPresupuesto", args.RootElement.GetRawText(), "Sistema", results.Count.ToString());
@@ -279,14 +288,13 @@ public sealed class WhatsAppAiService
             }
         }
 
-        // --- NIVEL 3: Mantener solo el TIPO (ignorar presupuesto y ubicación) ---
         if (!string.IsNullOrEmpty(type))
         {
             _logger.LogInformation("Nivel 2 fallido. Nivel 3: Solo manteniendo Tipo={Type}", type);
             results = await _context.Properties
                 .Where(p => p.EstadoComercial == "Disponible" && EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"))
                 .OrderBy(p => p.Precio).Take(3)
-                .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.UrlRemax, p.Operacion })
+                .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad })
                 .ToListAsync();
             
             if (results.Any()) 
@@ -296,12 +304,10 @@ public sealed class WhatsAppAiService
             }
         }
 
-        // --- NIVEL 4: Fallback Total ---
-        _logger.LogInformation("Niveles previos fallidos. Nivel 4: Fallback total del catálogo.");
         results = await _context.Properties
             .Where(p => p.EstadoComercial == "Disponible")
             .OrderBy(p => p.Precio).Take(3)
-            .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.UrlRemax, p.Operacion })
+            .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad })
             .ToListAsync();
 
         if (results.Any()) 
@@ -310,19 +316,15 @@ public sealed class WhatsAppAiService
             return "{\"Aviso\": \"No encontré nada similar a tu búsqueda, pero estas son las ofertas más destacadas del momento:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
         }
 
-        await LogAiAction("BusquedaSinResultados", args.RootElement.GetRawText(), "Sistema", "0");
         return "Lo siento, actualmente no tenemos ninguna propiedad disponible.";
     }
 
     private async Task<string> ExecRegistrarNuevoLead(JsonDocument args, string phone)
     {
         string nombre = args.RootElement.GetProperty("nombre").GetString() ?? "Desconocido";
-        
-        // Verificar si ya existe
         var existing = await _context.Leads.FirstOrDefaultAsync(l => l.Telefono == phone);
         if (existing != null) return "El cliente ya está registrado.";
 
-        // Obtener un agente por defecto (el primero para este piloto)
         var agent = await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
         if (agent == null) return "No hay agentes disponibles para asignar.";
 
@@ -346,10 +348,8 @@ public sealed class WhatsAppAiService
     private async Task<string> ExecSolicitarAsistenciaHumana(JsonDocument args, string phone)
     {
         string motivo = args.RootElement.GetProperty("motivo").GetString() ?? "No especificado";
-
         await LogAiAction("Alerta", args.RootElement.GetRawText(), phone, motivo);
         await _context.SaveChangesAsync();
-
         return "Solicitud de asistencia enviada al equipo humano.";
     }
 
@@ -368,11 +368,7 @@ public sealed class WhatsAppAiService
 
     private async Task SendWhatsAppMessageAsync(string to, string text)
     {
-        if (string.IsNullOrEmpty(_whatsappToken) || string.IsNullOrEmpty(_whatsappPhoneId))
-        {
-            _logger.LogError("Faltan credenciales de WhatsApp (Token o PhoneID)");
-            return;
-        }
+        if (string.IsNullOrEmpty(_whatsappToken) || string.IsNullOrEmpty(_whatsappPhoneId)) return;
 
         var url = $"https://graph.facebook.com/v19.0/{_whatsappPhoneId}/messages";
         var payload = new
@@ -387,23 +383,14 @@ public sealed class WhatsAppAiService
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _whatsappToken);
         request.Content = new StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.SendAsync(request);
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            _logger.LogError("Error enviando mensaje a WhatsApp: {Error}", error);
-        }
+        await _httpClient.SendAsync(request);
     }
 
     private ChatCompletionOptions GetChatOptions()
     {
         var options = new ChatCompletionOptions
         {
-            // --- CONTROL DE COSTOS (OUTPUT) ---
-            // Ponemos un techo a la respuesta para evitar gastos inesperados.
             MaxOutputTokenCount = 500,
-            
-            // Penalizaciones para evitar respuestas repetitivas o redundantes.
             PresencePenalty = 0.6f,
             FrequencyPenalty = 0.5f
         };
@@ -518,32 +505,20 @@ public sealed class WhatsAppAiService
         {
             switch (dto.Role)
             {
-                case "system": 
-                    break;
-                case "user": 
-                    history.Add(new UserChatMessage(dto.Content)); 
-                    break;
+                case "system": break;
+                case "user": history.Add(new UserChatMessage(dto.Content)); break;
                 case "assistant": 
                     if (dto.ToolCalls?.Count > 0)
                     {
-                        var toolCalls = dto.ToolCalls.Select(tc => 
-                            ChatToolCall.CreateFunctionToolCall(tc.Id, tc.Name, BinaryData.FromString(tc.Arguments))
-                        ).ToList();
+                        var toolCalls = dto.ToolCalls.Select(tc => ChatToolCall.CreateFunctionToolCall(tc.Id, tc.Name, BinaryData.FromString(tc.Arguments))).ToList();
                         history.Add(new AssistantChatMessage(toolCalls));
                     }
-                    else
-                    {
-                        history.Add(new AssistantChatMessage(dto.Content));
-                    }
+                    else history.Add(new AssistantChatMessage(dto.Content));
                     break;
-                case "tool": 
-                    history.Add(new ToolChatMessage(dto.ToolCallId!, dto.Content)); 
-                    break;
+                case "tool": history.Add(new ToolChatMessage(dto.ToolCallId!, dto.Content)); break;
             }
         }
-
         history.Insert(0, new SystemChatMessage(GetSystemPrompt()));
-
         return history;
     }
 
@@ -558,12 +533,56 @@ public sealed class WhatsAppAiService
         "- Pregunta por Precio, Disponibilidad, Negociabilidad o Ubicación -> Llama a 'RegistrarInteresProspecto' con nivel 'Bajo'.\n" +
         "- Pregunta por Alícuota, Años, Fotos extras, Financiamiento o detalles técnicos -> Llama a 'RegistrarInteresProspecto' con nivel 'Medio'.\n" +
         "- Pide Visita, Reunión o indica que la comprará/quiere reservar -> Llama a 'RegistrarInteresProspecto' con nivel 'Alto'.\n" +
-        "- Dice que no le gusta, que la descartes o critica la zona/precio negativamente -> Llama a 'RegistrarInteresProspecto' con nivel 'Descartada'.\n\n" +
+        "- RECHAZO EXPLÍCITO Y DIRECTO: Solo si el cliente dice literalmente que NO le gusta una propiedad específica, que es fea, o pide quitarla de su vista -> Llama a 'RegistrarInteresProspecto' con nivel 'Descartada'.\n" +
+        "- REGLA DE ORO (PREVENCIÓN DE ERRORES): NUNCA descartes propiedades por comentarios generales sobre el presupuesto (ej: 'muy caro', 'no me gusta ese precio'). No descartes una propiedad si el usuario está pidiendo verla o compararla.\n\n" +
+        "PLANTILLAS DE RESPUESTA (OBLIGATORIAS):\n" +
+        "Para CASAS 🏠:\n" +
+        "TITULO\n" +
+        "- 💰 *Precio:* $Valor\n" +
+        "- 📍 *Ubicación:* Sector, Ciudad\n" +
+        "- 📋 *Operación:* Venta/Alquiler\n" +
+        "- 🛏️ *Habitaciones:* Cantidad\n" +
+        "- 🚿 *Baños:* Cantidad (incluir medios baños si hay)\n" +
+        "- 🚗 *Parqueos:* Cantidad\n" +
+        "- 🏗️ *Construcción:* Área m²\n" +
+        "- 📅 *Antigüedad:* Años\n" +
+        "- [Ver más detalles aquí](UrlRemax)\n\n" +
+        "Para DEPARTAMENTOS 🏢:\n" +
+        "TITULO\n" +
+        "- 💰 *Precio:* $Valor\n" +
+        "- 📍 *Ubicación:* Sector, Ciudad\n" +
+        "- 📋 *Operación:* Venta/Alquiler\n" +
+        "- 🛏️ *Habitaciones:* Cantidad\n" +
+        "- 🚿 *Baños:* Cantidad\n" +
+        "- 🚗 *Parqueos:* Cantidad\n" +
+        "- 📏 *Área:* Área m²\n" +
+        "- 📅 *Antigüedad:* Años\n" +
+        "- [Ver más detalles aquí](UrlRemax)\n\n" +
+        "Para TERRENOS 🏗️:\n" +
+        "TITULO\n" +
+        "- 💰 *Precio:* $Valor\n" +
+        "- 📍 *Ubicación:* Sector, Ciudad\n" +
+        "- 📋 *Operación:* Venta/Alquiler\n" +
+        "- 📐 *Área Terreno:* Área m²\n" +
+        "- 📏 *Área Total:* Área m²\n" +
+        "- [Ver más detalles aquí](UrlRemax)\n\n" +
+        "Para LOCALES/OFICINAS 💼:\n" +
+        "TITULO\n" +
+        "- 💰 *Precio:* $Valor\n" +
+        "- 📍 *Ubicación:* Sector, Ciudad\n" +
+        "- 📋 *Operación:* Venta/Alquiler\n" +
+        "- 🚿 *Baños:* Cantidad\n" +
+        "- 🚗 *Parqueos:* Cantidad\n" +
+        "- 📏 *Área:* Área m²\n" +
+        "- [Ver más detalles aquí](UrlRemax)\n\n" +
         "PROTOCOLO DE CONVERSACIÓN:\n" +
-        "1. RESPUESTA NATURAL: Responde a la pregunta del usuario de forma amable. NO menciones que has registrado nada. \n" +
+        "1. RESPUESTA NATURAL Y AMIGABLE: Responde con calidez. NO menciones que has registrado nada.\n" +
         "2. NO PRESIONAR: Prohibido sugerir visitas o pedir datos en niveles 'Bajo' o 'Medio'. Solo hazlo en nivel 'Alto'.\n" +
         "3. BLOQUEO TÉCNICO: Si una propiedad es 'Descartada', el sistema la filtrará automáticamente.\n" +
-        "4. FORMATO: Usa un solo asterisco para negritas (*texto*).";
+        "4. FORMATO WHATSAPP (ESTRICTO):\n" +
+        "   - NEGRITAS: Usa únicamente un solo asterisco (*texto*). NUNCA uses doble asterisco (**texto**).\n" +
+        "   - EMOJIS: Usa exactamente los emojis de las plantillas de arriba.\n" +
+        "   - TITULOS: Escribe el título de la propiedad en MAYÚSCULAS sin asteriscos.";
 
     private class ChatMessageDto
     {
