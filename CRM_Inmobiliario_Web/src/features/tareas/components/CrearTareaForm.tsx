@@ -1,12 +1,12 @@
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { useSWRConfig } from 'swr';
-import { 
-  Type, 
-  AlignLeft, 
-  Calendar, 
-  Trash2, 
-  Check, 
-  RotateCcw, 
+import {
+  Type,
+  AlignLeft,
+  Calendar,
+  Trash2,
+  Check,
+  RotateCcw,
   ChevronDown,
   Phone,
   MapPin,
@@ -63,37 +63,37 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
-  const clienteOptions = useMemo(() => 
+  const clienteOptions = useMemo(() =>
     clientes.map(c => ({ id: c.id, title: `${c.nombre} ${c.apellido}`, subtitle: c.telefono })),
     [clientes]
   );
 
-  const propiedadOptions = useMemo(() => 
+  const propiedadOptions = useMemo(() =>
     propiedades.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad}, ${p.sector}` })),
     [propiedades]
   );
 
   const defaultFecha = useMemo(() => {
-    console.log('[FORM] Calculando defaultFecha. Props fechaInicial:', fechaInicial);
-    
     if (fechaInicial) {
-      // Si viene del calendario (YYYY-MM-DD), concatenamos la hora directamente
+      // Si la fecha ya incluye la hora 'T' (Viene de hacer clic en la vista Semanal/Diaria)
+      if (fechaInicial.includes('T')) {
+        return fechaInicial;
+      }
+      // Si solo viene la fecha (Vista Mensual), le concatenamos las 10:00 AM por defecto
       const result = `${fechaInicial}T10:00`;
-      console.log('[FORM] Resultado (Calendario):', result);
       return result;
     }
 
     // Para nueva tarea normal, usamos la hora LOCAL exacta actual
     const now = new Date();
-    
+
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
-    
+
     const result = `${year}-${month}-${day}T${hours}:${minutes}`;
-    console.log('[FORM] Resultado (Hoy/Nuevo):', result);
     return result;
   }, [fechaInicial]);
 
@@ -118,7 +118,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
         // ELIMINAMOS cualquier fecha guardada en el borrador para que 
         // siempre prevalezca la calculada (la del botón presionado)
         delete draft.fechaInicio;
-        
+
         return {
           ...draft,
           fechaInicio: defaultFecha
@@ -169,12 +169,12 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
   const onSubmit = (data: CrearTareaDTO) => {
     // FIRE AND FORGET: Respuesta instantánea
     localStorage.removeItem(DRAFT_STORAGE_KEY);
-    
+
     // Crear objeto de tarea optimista para visualización inmediata
     const tempId = `temp-${new Date().getTime()}`;
     const cliente = data.clienteId ? clientes.find(c => c.id === data.clienteId) : null;
     const propiedad = data.propiedadId ? propiedades.find(p => p.id === data.propiedadId) : null;
-    
+
     const nuevaTareaOptimista = {
       id: tempId,
       ...data,
@@ -193,7 +193,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
     // Lanzamos la mutación optimista vinculada a la promesa de creación
     // Esto previene el flicker porque SWR sabe que debe esperar a la promesa para revalidar
     const savePromise = crearTarea(payload);
-    
+
     addTarea(nuevaTareaOptimista, savePromise).catch(err => {
       console.error('Error en sync de addTarea:', err);
       toast.error('No se pudo sincronizar la tarea');
@@ -212,7 +212,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
     <div className="flex flex-col h-full bg-white animate-in slide-in-from-right duration-300">
       {/* Header Inline */}
       <div className="p-6 border-b border-slate-50 flex items-center gap-4 bg-white sticky top-0 z-10">
-        <button 
+        <button
           onClick={onCancel}
           type="button"
           className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
@@ -237,7 +237,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
         {hasData && !prefill && (
           <div className="flex items-center gap-2 min-h-[24px]">
             {!isConfirmingClear ? (
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsConfirmingClear(true)}
                 className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:Rose-500 bg-slate-50 hover:bg-rose-50 px-2 py-1 rounded-full transition-all group cursor-pointer"
@@ -247,7 +247,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
               </button>
             ) : (
               <div className="flex items-center gap-1 bg-rose-50 p-0.5 rounded-full border border-rose-100 shadow-sm animate-in zoom-in duration-200">
-                <button 
+                <button
                   type="button"
                   onClick={handleClearDraft}
                   className="flex items-center gap-1 text-[10px] font-black text-white bg-rose-500 hover:bg-rose-600 px-2.5 py-1 rounded-full transition-all cursor-pointer"
@@ -255,7 +255,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
                   <Check className="h-2.5 w-2.5" />
                   Confirmar
                 </button>
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsConfirmingClear(false)}
                   className="p-1 text-rose-400 hover:text-rose-600 transition-colors cursor-pointer"
@@ -272,9 +272,9 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título</label>
             <div className="relative">
               <Type className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
+              <input
                 {...register('titulo', { required: 'El título es obligatorio' })}
-                type="text" 
+                type="text"
                 placeholder="Ej. Llamar a Juan..."
                 className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.titulo ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4`}
               />
@@ -286,7 +286,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Descripción</label>
             <div className="relative">
               <AlignLeft className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />
-              <textarea 
+              <textarea
                 {...register('descripcion')}
                 placeholder="Detalles adicionales..."
                 rows={3}
@@ -326,9 +326,8 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
                               setValue('tipoTarea', opt.value, { shouldValidate: true });
                               setIsSelectOpen(false);
                             }}
-                            className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center gap-3 hover:bg-slate-50 transition-colors ${
-                                                                                          field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
-                                                                                        }`}`}
+                            className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center gap-3 hover:bg-slate-50 transition-colors ${field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
+                              }`}`}
                           >
                             <opt.icon className={`h-4 w-4 ${opt.color.split(' ')[0]}`} />
                             {opt.label}
@@ -388,9 +387,9 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Lugar</label>
               <div className="relative">
                 <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input 
+                <input
                   {...register('lugar')}
-                  type="text" 
+                  type="text"
                   placeholder="Dirección o punto de encuentro..."
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none"
                 />
@@ -402,15 +401,15 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Fecha de Inicio</label>
             <div className="relative">
               <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
+              <input
                 {...register('fechaInicio', { required: 'La fecha es obligatoria' })}
-                type="datetime-local" 
+                type="datetime-local"
                 className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fechaInicio ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none`}
               />
             </div>
           </div>
 
-          <button 
+          <button
             type="submit"
             className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer"
           >

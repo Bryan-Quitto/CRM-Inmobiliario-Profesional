@@ -119,6 +119,8 @@ export const AuditoriaLogsView = () => {
   const [updatingInteresId, setUpdatingInteresId] = useState<string | null>(null);
   const [interesABorrarId, setInteresABorrarId] = useState<string | null>(null);
   const [isDeletingInteres, setIsDeletingInteres] = useState(false);
+  // Posición fija del menú para evitar clipping por contenedores con overflow
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number; openUp: boolean } | null>(null);
 
   const filteredGroups = useMemo(() => {
     if (!clientGroups) return [];
@@ -611,24 +613,46 @@ export const AuditoriaLogsView = () => {
                                       </div>
                                       
                                       <div className="flex items-center gap-3 mt-3">
-                                        {/* Dropdown Nivel de Interés */}
+                                        {/* Dropdown Nivel de Interés — posicionado con fixed para evitar clipping */}
                                         <div className="relative">
                                           <button 
-                                            onClick={() => setDropdownInteresOpenId(dropdownInteresOpenId === interes.propiedadId ? null : interes.propiedadId)}
+                                            onClick={(e) => {
+                                              if (dropdownInteresOpenId === interes.propiedadId) {
+                                                setDropdownInteresOpenId(null);
+                                                setDropdownPosition(null);
+                                              } else {
+                                                // Calcular posición absoluta del trigger para escapar del overflow del contenedor
+                                                const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                                                const menuHeight = 180; // altura estimada del menú (4 opciones)
+                                                const openUp = rect.bottom + menuHeight > window.innerHeight - 16;
+                                                setDropdownPosition({
+                                                  top: openUp ? rect.top - menuHeight - 4 : rect.bottom + 4,
+                                                  left: rect.left,
+                                                  openUp,
+                                                });
+                                                setDropdownInteresOpenId(interes.propiedadId);
+                                              }
+                                            }}
                                             className={`cursor-pointer ${`text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-xl flex items-center gap-2 border border-transparent hover:border-current transition-all shadow-sm ${nivelActual.color}`}`}
                                           >
                                             {nivelActual.label}
                                             <ChevronDown className="h-3 w-3" />
                                           </button>
                                           
-                                          {dropdownInteresOpenId === interes.propiedadId && (
+                                          {dropdownInteresOpenId === interes.propiedadId && dropdownPosition && (
                                             <>
-                                              <div className="fixed inset-0 z-40 cursor-default" onClick={() => setDropdownInteresOpenId(null)}></div>
-                                              <div className="absolute left-0 top-full mt-2 z-50 bg-white border border-slate-100 rounded-2xl shadow-2xl p-2 w-40 animate-in fade-in zoom-in-95 duration-200">
+                                              <div
+                                                className="fixed inset-0 z-40 cursor-default"
+                                                onClick={() => { setDropdownInteresOpenId(null); setDropdownPosition(null); }}
+                                              />
+                                              <div
+                                                className="fixed z-50 bg-white border border-slate-100 rounded-2xl shadow-2xl p-2 w-40 animate-in fade-in zoom-in-95 duration-200"
+                                                style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
+                                              >
                                                 {NIVELES_INTERES.map(n => (
                                                   <button 
                                                     key={n.value}
-                                                    onClick={() => group.clienteId && handleUpdateNivelInteres(group.clienteId, interes.propiedadId, n.value)}
+                                                    onClick={() => { if (group.clienteId) handleUpdateNivelInteres(group.clienteId, interes.propiedadId, n.value); setDropdownPosition(null); }}
                                                     className="w-full text-left px-4 py-2 text-[10px] font-black uppercase hover:bg-slate-50 rounded-xl transition-colors flex items-center justify-between cursor-pointer"
                                                   >
                                                     {n.label}
