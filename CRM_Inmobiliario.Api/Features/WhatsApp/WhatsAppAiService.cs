@@ -47,6 +47,33 @@ public sealed class WhatsAppAiService
             var lead = await _context.Leads.AsNoTracking()
                 .FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
             
+            // --- FILTRADO POR ETAPA (Ahorro de Tokens y Atención Humana) ---
+            if (lead != null)
+            {
+                string? autoMsg = null;
+
+                if (lead.EtapaEmbudo == "En Negociación")
+                {
+                    _logger.LogInformation("Lead {Phone} está en Negociación. Enviando respuesta automática.", phone);
+                    autoMsg = "*Mensaje Automático:* Hola, hemos recibido tu mensaje. Como te encuentras en proceso de negociación, un asesor humano se contactará contigo en unos momentos para darte una atención personalizada. ¡Gracias por tu paciencia!";
+                }
+                else if (lead.EtapaEmbudo == "Cerrado")
+                {
+                    _logger.LogInformation("Lead {Phone} está Cerrado. Enviando respuesta automática.", phone);
+                    autoMsg = "*Mensaje Automático:* ¡Hola de nuevo! Es un gusto saludarte. Veo que ya hemos finalizado un proceso exitoso anteriormente. Un asesor se comunicará contigo en breve para asistirte con tus nuevos requerimientos inmobiliarios. ¡Gracias por elegirnos nuevamente!";
+                }
+
+                if (autoMsg != null)
+                {
+                    _context.WhatsappMessages.Add(new WhatsappMessage { Id = Guid.NewGuid(), Telefono = phone, Rol = "user", Contenido = messageText, Fecha = DateTimeOffset.UtcNow });
+                    _context.WhatsappMessages.Add(new WhatsappMessage { Id = Guid.NewGuid(), Telefono = phone, Rol = "assistant", Contenido = autoMsg, Fecha = DateTimeOffset.UtcNow });
+                    
+                    await _context.SaveChangesAsync();
+                    await SendWhatsAppMessageAsync(phone, autoMsg);
+                    return;
+                }
+            }
+
             var leadExists = lead != null;
 
             List<ChatMessage> history;
@@ -246,8 +273,9 @@ public sealed class WhatsAppAiService
             .Select(i => i.PropiedadId)
             .ToListAsync();
 
+        var allowedStates = new[] { "Disponible", "Reservada", "Alquilada" };
         var query = _context.Properties
-            .Where(p => p.EstadoComercial == "Disponible")
+            .Where(p => allowedStates.Contains(p.EstadoComercial))
             .Where(p => !descartadosIds.Contains(p.Id));
         
         if (!string.IsNullOrEmpty(location))
@@ -292,7 +320,10 @@ public sealed class WhatsAppAiService
                 p.MediosBanos,
                 p.UrlRemax, 
                 p.Operacion,
-                p.TipoPropiedad
+                p.TipoPropiedad,
+                p.EstadoComercial,
+                NotaIA = p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
+                         p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null
             })
             .ToListAsync();
         if (results.Any()) 
@@ -304,11 +335,11 @@ public sealed class WhatsAppAiService
         if (maxBudget.HasValue && (!string.IsNullOrEmpty(type) || !string.IsNullOrEmpty(location)))
         {
             _logger.LogInformation("Nivel 1 fallido. Nivel 2: Ignorando presupuesto.");
-            var query2 = _context.Properties.Where(p => p.EstadoComercial == "Disponible");
+            var query2 = _context.Properties.Where(p => allowedStates.Contains(p.EstadoComercial));
             if (!string.IsNullOrEmpty(type)) query2 = query2.Where(p => EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"));
             if (!string.IsNullOrEmpty(location)) query2 = query2.Where(p => EF.Functions.ILike(p.Sector, $"%{location}%") || EF.Functions.ILike(p.Ciudad, $"%{location}%"));
             
-            results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad }).ToListAsync();
+            results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, NotaIA = p.EstadoComercial == "Reservada" ? "RESERVADA: Avisar al cliente." : p.EstadoComercial == "Alquilada" ? "ALQUILADA: Avisar al cliente." : (string?)null }).ToListAsync();
             if (results.Any()) 
             {
                 await LogAiAction("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
@@ -320,9 +351,9 @@ public sealed class WhatsAppAiService
         {
             _logger.LogInformation("Nivel 2 fallido. Nivel 3: Solo manteniendo Tipo={Type}", type);
             results = await _context.Properties
-                .Where(p => p.EstadoComercial == "Disponible" && EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"))
+                .Where(p => allowedStates.Contains(p.EstadoComercial) && EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"))
                 .OrderBy(p => p.Precio).Take(3)
-                .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad })
+                .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, NotaIA = p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : (string?)null })
                 .ToListAsync();
             
             if (results.Any()) 
@@ -333,10 +364,10 @@ public sealed class WhatsAppAiService
         }
 
         results = await _context.Properties
-            .Where(p => p.EstadoComercial == "Disponible")
+            .Where(p => allowedStates.Contains(p.EstadoComercial))
             .OrderBy(p => p.Precio).Take(3)
-            .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad })
-            .ToListAsync();
+            .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, NotaIA = p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : (string?)null })
+                .ToListAsync();
 
         if (results.Any()) 
         {
