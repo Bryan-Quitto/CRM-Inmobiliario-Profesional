@@ -38,14 +38,21 @@ public sealed class WhatsAppAiService
         {
             _logger.LogInformation("Procesando mensaje de {Phone}: {Message}", phone, messageText);
 
-            // 1. Obtener o crear conversación
+            // 1. Obtener o crear conversación y buscar al Lead de forma inteligente
             var conversation = await _context.WhatsappConversations
                 .FirstOrDefaultAsync(c => c.Telefono == phone);
+            
+            // Búsqueda inteligente: WhatsApp manda sin +, la DB puede tener +
+            string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
+            var lead = await _context.Leads.AsNoTracking()
+                .FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
+            
+            var leadExists = lead != null;
 
             List<ChatMessage> history;
             if (conversation == null)
             {
-                history = new List<ChatMessage> { new SystemChatMessage(GetSystemPrompt()) };
+                history = new List<ChatMessage> { new SystemChatMessage(GetSystemPrompt(leadExists, lead?.Nombre)) };
                 conversation = new WhatsappConversation
                 {
                     Telefono = phone,
@@ -56,11 +63,20 @@ public sealed class WhatsAppAiService
             }
             else
             {
-                history = DeserializeHistory(conversation.HistorialJson);
+                history = DeserializeHistory(conversation.HistorialJson, leadExists, lead?.Nombre);
             }
 
-            // 2. Añadir mensaje del usuario
+            // 2. Añadir mensaje del usuario a la historia y a la base de datos
             history.Add(new UserChatMessage(messageText));
+            
+            _context.WhatsappMessages.Add(new WhatsappMessage 
+            { 
+                Id = Guid.NewGuid(),
+                Telefono = phone, 
+                Rol = "user", 
+                Contenido = messageText, 
+                Fecha = DateTimeOffset.UtcNow 
+            });
 
             // --- CONTROL DE COSTOS (INPUT): Ventana deslizante de historial ---
             if (history.Count > 12) 
@@ -92,6 +108,16 @@ public sealed class WhatsAppAiService
                     case ChatFinishReason.Stop:
                         finalResponse = completion.Content[0].Text;
                         history.Add(new AssistantChatMessage(completion));
+                        
+                        _context.WhatsappMessages.Add(new WhatsappMessage 
+                        { 
+                            Id = Guid.NewGuid(),
+                            Telefono = phone, 
+                            Rol = "assistant", 
+                            Contenido = finalResponse, 
+                            Fecha = DateTimeOffset.UtcNow 
+                        });
+
                         _logger.LogInformation("--- RESPUESTA FINAL IA: {Response} ---", finalResponse);
                         break;
 
@@ -100,7 +126,7 @@ public sealed class WhatsAppAiService
                         foreach (var toolCall in completion.ToolCalls)
                         {
                             _logger.LogInformation("--- IA DECIDIÓ LLAMAR A: {Tool} con ARGS: {Args} ---", toolCall.FunctionName, toolCall.FunctionArguments);
-                            string toolResult = await HandleToolCallAsync(toolCall, phone);
+                            string toolResult = await HandleToolCallAsync(toolCall, phone, messageText, lead);
                             _logger.LogInformation("--- RESULTADO DE LA HERRAMIENTA: {Result} ---", toolResult);
                             history.Add(new ToolChatMessage(toolCall.Id, toolResult));
                         }
@@ -109,10 +135,13 @@ public sealed class WhatsAppAiService
                 }
             }
 
-            // 4. Guardar historial actualizado
+            // 4. Guardar historial y mensajes actualizados
             conversation.HistorialJson = SerializeHistory(history);
             conversation.UltimaActualizacion = DateTimeOffset.UtcNow;
+            
+            _logger.LogInformation("Guardando cambios en DB para {Phone}...", phone);
             await _context.SaveChangesAsync();
+            _logger.LogInformation("DB actualizada correctamente para {Phone}.", phone);
 
             // 5. Enviar respuesta a WhatsApp
             if (!string.IsNullOrEmpty(finalResponse))
@@ -125,11 +154,11 @@ public sealed class WhatsAppAiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error procesando mensaje de WhatsApp para {Phone}", phone);
+            _logger.LogError(ex, "Error crítico procesando mensaje de WhatsApp para {Phone}", phone);
         }
     }
 
-    private async Task<string> HandleToolCallAsync(ChatToolCall toolCall, string customerPhone)
+    private async Task<string> HandleToolCallAsync(ChatToolCall toolCall, string customerPhone, string triggerMessage, Lead? currentLead)
     {
         _logger.LogInformation("Ejecutando herramienta: {ToolName} para {Phone}", toolCall.FunctionName, customerPhone);
         
@@ -138,10 +167,10 @@ public sealed class WhatsAppAiService
         try {
             return toolCall.FunctionName switch
             {
-                "BuscarPropiedades" => await ExecBuscarPropiedades(args, customerPhone),
-                "RegistrarNuevoLead" => await ExecRegistrarNuevoLead(args, customerPhone),
-                "RegistrarInteresProspecto" => await ExecRegistrarInteresProspecto(args, customerPhone),
-                "SolicitarAsistenciaHumana" => await ExecSolicitarAsistenciaHumana(args, customerPhone),
+                "BuscarPropiedades" => await ExecBuscarPropiedades(args, customerPhone, triggerMessage, currentLead),
+                "RegistrarNuevoLead" => await ExecRegistrarNuevoLead(args, customerPhone, triggerMessage),
+                "RegistrarInteresProspecto" => await ExecRegistrarInteresProspecto(args, customerPhone, triggerMessage, currentLead),
+                "SolicitarAsistenciaHumana" => await ExecSolicitarAsistenciaHumana(args, customerPhone, triggerMessage, currentLead),
                 _ => "Error: Herramienta no encontrada."
             };
         } catch (Exception ex) {
@@ -150,7 +179,7 @@ public sealed class WhatsAppAiService
         }
     }
 
-    private async Task<string> ExecRegistrarInteresProspecto(JsonDocument args, string phone)
+    private async Task<string> ExecRegistrarInteresProspecto(JsonDocument args, string phone, string triggerMessage, Lead? lead)
     {
         if (!args.RootElement.TryGetProperty("propiedadId", out var pIdProp) || !Guid.TryParse(pIdProp.GetString(), out var propiedadId))
             return "Error: ID de propiedad inválido.";
@@ -172,8 +201,7 @@ public sealed class WhatsAppAiService
             }
         }
 
-        var lead = await _context.Leads.FirstOrDefaultAsync(l => l.Telefono == phone);
-        if (lead == null) return "Error: El cliente debe estar registrado antes de marcar interés. Usa RegistrarNuevoLead primero.";
+        if (lead == null) return "Error: El cliente debe estar registrado antes de marcar interés.";
 
         var interest = await _context.LeadPropertyInterests
             .FirstOrDefaultAsync(i => i.ClienteId == lead.Id && i.PropiedadId == propiedadId);
@@ -195,12 +223,12 @@ public sealed class WhatsAppAiService
             interest.FechaRegistro = DateTimeOffset.UtcNow;
         }
 
-        await LogAiAction("RegistroInteres", args.RootElement.GetRawText(), phone, $"Propiedad: {propiedadId}, Nivel: {nivel}");
+        await LogAiAction("RegistroInteres", args.RootElement.GetRawText(), phone, triggerMessage, lead.Id);
         
         return $"Interés registrado correctamente como '{nivel}'.";
     }
 
-    private async Task<string> ExecBuscarPropiedades(JsonDocument args, string phone)
+    private async Task<string> ExecBuscarPropiedades(JsonDocument args, string phone, string triggerMessage, Lead? lead)
     {
         decimal? maxBudget = args.RootElement.TryGetProperty("presupuestoMaximo", out var b) ? b.GetDecimal() : null;
         decimal? minBudget = args.RootElement.TryGetProperty("presupuestoMinimo", out var mb) ? mb.GetDecimal() : null;
@@ -269,7 +297,7 @@ public sealed class WhatsAppAiService
             .ToListAsync();
         if (results.Any()) 
         {
-            await LogAiAction("BusquedaExitosa", args.RootElement.GetRawText(), "Sistema", results.Count.ToString());
+            await LogAiAction("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
             return JsonSerializer.Serialize(results);
         }
 
@@ -283,7 +311,7 @@ public sealed class WhatsAppAiService
             results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad }).ToListAsync();
             if (results.Any()) 
             {
-                await LogAiAction("BusquedaFallbackPresupuesto", args.RootElement.GetRawText(), "Sistema", results.Count.ToString());
+                await LogAiAction("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
                 return "{\"Aviso\": \"No encontré opciones bajo ese presupuesto exacto, pero estas son las más económicas que cumplen con el tipo/ubicación:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
             }
         }
@@ -299,7 +327,7 @@ public sealed class WhatsAppAiService
             
             if (results.Any()) 
             {
-                await LogAiAction("BusquedaFallbackTipo", args.RootElement.GetRawText(), "Sistema", results.Count.ToString());
+                await LogAiAction("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
                 return "{\"Aviso\": \"No encontré " + type + "s en esa zona/presupuesto, pero aquí tienes las " + type + "s más baratas del catálogo:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
             }
         }
@@ -312,20 +340,27 @@ public sealed class WhatsAppAiService
 
         if (results.Any()) 
         {
-            await LogAiAction("BusquedaFallbackTotal", args.RootElement.GetRawText(), "Sistema", results.Count.ToString());
+            await LogAiAction("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
             return "{\"Aviso\": \"No encontré nada similar a tu búsqueda, pero estas son las ofertas más destacadas del momento:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
         }
 
         return "Lo siento, actualmente no tenemos ninguna propiedad disponible.";
     }
 
-    private async Task<string> ExecRegistrarNuevoLead(JsonDocument args, string phone)
+    private async Task<string> ExecRegistrarNuevoLead(JsonDocument args, string phone, string triggerMessage)
     {
         string nombre = args.RootElement.GetProperty("nombre").GetString() ?? "Desconocido";
-        var existing = await _context.Leads.FirstOrDefaultAsync(l => l.Telefono == phone);
+        
+        // Búsqueda inteligente para evitar duplicados en registro
+        string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
+        var existing = await _context.Leads.FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
         if (existing != null) return "El cliente ya está registrado.";
 
-        var agent = await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
+        // Intentar asignar al Admin ID estándar del proyecto
+        var adminId = Guid.Parse("d4a6efdd-b801-40fb-901e-64e36f6b1400");
+        var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == adminId)
+                    ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
+
         if (agent == null) return "No hay agentes disponibles para asignar.";
 
         var lead = new Lead
@@ -333,34 +368,37 @@ public sealed class WhatsAppAiService
             Id = Guid.NewGuid(),
             Nombre = nombre,
             Telefono = phone,
-            Origen = "WhatsApp",
+            Origen = "IA WhatsApp",
             AgenteId = agent.Id,
-            FechaCreacion = DateTimeOffset.UtcNow
+            FechaCreacion = DateTimeOffset.UtcNow,
+            EtapaEmbudo = "Nuevo"
         };
 
         _context.Leads.Add(lead);
-        await LogAiAction("Registro Lead", args.RootElement.GetRawText(), phone);
+        await LogAiAction("Registro Lead", args.RootElement.GetRawText(), phone, triggerMessage, lead.Id);
         await _context.SaveChangesAsync();
 
         return "Cliente registrado correctamente.";
     }
 
-    private async Task<string> ExecSolicitarAsistenciaHumana(JsonDocument args, string phone)
+    private async Task<string> ExecSolicitarAsistenciaHumana(JsonDocument args, string phone, string triggerMessage, Lead? lead)
     {
         string motivo = args.RootElement.GetProperty("motivo").GetString() ?? "No especificado";
-        await LogAiAction("Alerta", args.RootElement.GetRawText(), phone, motivo);
+        await LogAiAction("Alerta", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
         await _context.SaveChangesAsync();
         return "Solicitud de asistencia enviada al equipo humano.";
     }
 
-    private async Task LogAiAction(string accion, string detalle, string phone, string? nota = null)
+    private async Task LogAiAction(string accion, string detalle, string phone, string triggerMessage, Guid? leadId = null)
     {
         var log = new AiActionLog
         {
             Id = Guid.NewGuid(),
             TelefonoCliente = phone,
+            ClienteId = leadId,
             Accion = accion,
             DetalleJson = detalle,
+            TriggerMessage = triggerMessage,
             Fecha = DateTimeOffset.UtcNow
         };
         _context.AiActionLogs.Add(log);
@@ -496,7 +534,7 @@ public sealed class WhatsAppAiService
         return JsonSerializer.Serialize(dto);
     }
 
-    private List<ChatMessage> DeserializeHistory(string json)
+    private List<ChatMessage> DeserializeHistory(string json, bool leadExists, string? leadName)
     {
         var dtos = JsonSerializer.Deserialize<List<ChatMessageDto>>(json) ?? new List<ChatMessageDto>();
         var history = new List<ChatMessage>();
@@ -518,12 +556,15 @@ public sealed class WhatsAppAiService
                 case "tool": history.Add(new ToolChatMessage(dto.ToolCallId!, dto.Content)); break;
             }
         }
-        history.Insert(0, new SystemChatMessage(GetSystemPrompt()));
+        history.Insert(0, new SystemChatMessage(GetSystemPrompt(leadExists, leadName)));
         return history;
     }
 
-    private string GetSystemPrompt() => 
+    private string GetSystemPrompt(bool leadExists, string? leadName = null) => 
         "Eres el asistente virtual de 'CRM Inmobiliario Profesional'. Tu misión es perfilar al cliente de forma invisible mientras conversas.\n\n" +
+        (leadExists 
+            ? $"ESTADO DEL CLIENTE: REGISTRADO como '{leadName ?? "Cliente"}'. Ya no necesitas pedir su nombre.\n\n" 
+            : "ESTADO DEL CLIENTE: NO REGISTRADO. Debes obtener su nombre de forma amable y llamar a 'RegistrarNuevoLead' lo antes posible. No puedes registrar intereses sin antes registrar al cliente.\n\n") +
         "MANDATO DE ACCIÓN TÉCNICA (OBLIGATORIO):\n" +
         "Cada vez que el cliente pregunte o mencione algo sobre una propiedad específica, DEBES llamar a 'RegistrarInteresProspecto' ANTES de dar tu respuesta de texto.\n\n" +
         "REGLA DE PROTECCIÓN DE COMISIÓN (CRÍTICO):\n" +

@@ -19,6 +19,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<Interaction> Interactions => Set<Interaction>();
     public DbSet<WhatsappConversation> WhatsappConversations => Set<WhatsappConversation>();
     public DbSet<AiActionLog> AiActionLogs => Set<AiActionLog>();
+    public DbSet<WhatsappMessage> WhatsappMessages => Set<WhatsappMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -198,6 +199,14 @@ public sealed class CrmDbContext : DbContext
             // Index por teléfono y fecha para auditorías
             entity.HasIndex(e => new { e.TelefonoCliente, e.Fecha })
                   .HasDatabaseName("IX_AiActionLogs_TelefonoFecha");
+        });
+
+        modelBuilder.Entity<WhatsappMessage>(entity =>
+        {
+            entity.Property(e => e.Telefono).HasMaxLength(20);
+            entity.Property(e => e.Rol).HasMaxLength(20);
+            entity.HasIndex(e => new { e.Telefono, e.Fecha })
+                  .HasDatabaseName("IX_WhatsappMessages_TelefonoFecha");
         });
     }
 }

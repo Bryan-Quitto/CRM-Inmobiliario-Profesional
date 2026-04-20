@@ -249,7 +249,28 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
           <div className="relative">
             <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input 
-              {...register('telefono', { required: 'El teléfono es obligatorio' })}
+              {...register('telefono', { 
+                required: 'El teléfono es obligatorio',
+                validate: async (value) => {
+                  if (!value) return true;
+                  // Normalización básica para la búsqueda
+                  const normalized = value.trim().replace(/\s+/g, '');
+                  try {
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/leads/buscar?telefono=${encodeURIComponent(normalized)}`, {
+                      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    if (response.ok) {
+                      const existing = await response.json();
+                      if (existing && (!isEditing || existing.id !== initialData.id)) {
+                        return 'Este número ya está registrado con otro prospecto';
+                      }
+                    }
+                  } catch (e) {
+                    console.error('Error validando teléfono:', e);
+                  }
+                  return true;
+                }
+              })}
               type="tel" 
               disabled={isSuccess}
               placeholder="+593 98 765 4321"
