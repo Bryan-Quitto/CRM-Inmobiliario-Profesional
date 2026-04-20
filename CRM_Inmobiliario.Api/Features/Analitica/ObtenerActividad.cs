@@ -13,12 +13,25 @@ namespace CRM_Inmobiliario.Api.Features.Analitica;
 
 public record TrendPoint(string Fecha, int Visitas, int Cierres, int Captaciones);
 
+public record KpiVisita(Guid Id, string Titulo, string Fecha, string? Cliente, string? Propiedad);
+public record KpiCierre(Guid Id, string Cliente, string Propiedad, string FechaCierre);
+public record KpiOferta(Guid Id, string Cliente, string Propiedad, string Fecha);
+public record KpiCaptacion(Guid Id, string Titulo, string Fecha, decimal Precio);
+
+public record ActividadDetalles(
+    List<KpiVisita> Visitas,
+    List<KpiCierre> Cierres,
+    List<KpiOferta> Ofertas,
+    List<KpiCaptacion> Captaciones
+);
+
 public record ActividadResponse(
     int VisitasCompletadas,
     int CierresRealizados,
     int OfertasGeneradas,
     int CaptacionesPropias,
-    List<TrendPoint> Trend
+    List<TrendPoint> Trend,
+    ActividadDetalles Detalles
 );
 
 public static class ObtenerActividadEndpoint
@@ -35,8 +48,7 @@ public static class ObtenerActividadEndpoint
             var swTotal = Stopwatch.StartNew();
             var agenteId = user.GetRequiredUserId();
 
-            // OPTIMIZACIÓN SUPREMA: "THE ONE TRIP PATTERN" (Analítica)
-            // Consolidamos todos los conteos y tendencias en un solo Round-trip.
+            // OPTIMIZACIÓN SUPREMA: "THE ONE TRIP PATTERN" (Analítica con Detalles)
             var swQuery = Stopwatch.StartNew();
             var megaData = await context.Agents
                 .AsNoTracking()
@@ -44,12 +56,34 @@ public static class ObtenerActividadEndpoint
                 .Select(a => new
                 {
                     // Conteos
-                    Visitas = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin),
-                    Cierres = a.Leads.Count(l => (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin))),
-                    Ofertas = a.Leads.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin),
-                    Captaciones = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin),
+                    VisitasCount = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin),
+                    CierresCount = a.Leads.Count(l => (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin))),
+                    OfertasCount = a.Leads.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin),
+                    CaptacionesCount = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin),
 
-                    // Datos para Tendencias (traemos los crudos para agrupar en memoria y evitar múltiples queries SQL)
+                    // Detalles para Modales
+                    DetallesVisitas = a.Tasks
+                        .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
+                        .OrderByDescending(t => t.FechaInicio)
+                        .Select(t => new KpiVisita(t.Id, t.Titulo, t.FechaInicio.ToString("yyyy-MM-dd HH:mm"), t.Cliente != null ? (t.Cliente.Nombre + " " + t.Cliente.Apellido) : null, t.Propiedad != null ? t.Propiedad.Titulo : null))
+                        .ToList(),
+                    DetallesCierres = a.Leads
+                        .Where(l => (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)))
+                        .OrderByDescending(l => l.FechaCierre ?? l.FechaCreacion)
+                        .Select(l => new KpiCierre(l.Id, l.Nombre + " " + l.Apellido, l.PropertyInterests.Where(i => i.Propiedad != null).Select(i => i.Propiedad!.Titulo).FirstOrDefault() ?? "Sin Propiedad", (l.FechaCierre ?? l.FechaCreacion).ToString("yyyy-MM-dd")))
+                        .ToList(),
+                    DetallesOfertas = a.Leads
+                        .Where(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)
+                        .OrderByDescending(l => l.FechaCreacion)
+                        .Select(l => new KpiOferta(l.Id, l.Nombre + " " + l.Apellido, l.PropertyInterests.Where(i => i.Propiedad != null).Select(i => i.Propiedad!.Titulo).FirstOrDefault() ?? "Sin Propiedad", l.FechaCreacion.ToString("yyyy-MM-dd")))
+                        .ToList(),
+                    DetallesCaptaciones = a.Properties
+                        .Where(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin)
+                        .OrderByDescending(p => p.FechaIngreso)
+                        .Select(p => new KpiCaptacion(p.Id, p.Titulo, p.FechaIngreso.ToString("yyyy-MM-dd"), p.Precio))
+                        .ToList(),
+
+                    // Datos para Tendencias
                     RawVisitas = a.Tasks
                         .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
                         .Select(t => t.FechaInicio)
@@ -68,7 +102,7 @@ public static class ObtenerActividadEndpoint
 
             if (megaData == null) return Results.NotFound("Agente no encontrado");
 
-            // PROCESAMIENTO EN MEMORIA (Inmediato)
+            // PROCESAMIENTO EN MEMORIA
             var trend = new List<TrendPoint>();
             var vDict = megaData.RawVisitas.GroupBy(x => x.Date).ToDictionary(g => g.Key, g => g.Count());
             var cDict = megaData.RawCierres.GroupBy(x => x.Date).ToDictionary(g => g.Key, g => g.Count());
@@ -84,17 +118,21 @@ public static class ObtenerActividadEndpoint
             }
 
             swTotal.Stop();
-            Console.WriteLine("\n⚡ [PERFORMANCE: ANALYTICS ONE TRIP]");
-            Console.WriteLine($"   |-- 📡 Latencia Única DB: {swQuery.ElapsedMilliseconds}ms");
-            Console.WriteLine($"   |-- ✅ TIEMPO TOTAL:     {swTotal.ElapsedMilliseconds}ms");
-            Console.WriteLine("---------------------------------------\n");
+
+            var detalles = new ActividadDetalles(
+                megaData.DetallesVisitas,
+                megaData.DetallesCierres,
+                megaData.DetallesOfertas,
+                megaData.DetallesCaptaciones
+            );
 
             return Results.Ok(new ActividadResponse(
-                megaData.Visitas, 
-                megaData.Cierres, 
-                megaData.Ofertas, 
-                megaData.Captaciones, 
-                trend));
+                megaData.VisitasCount, 
+                megaData.CierresCount, 
+                megaData.OfertasCount, 
+                megaData.CaptacionesCount, 
+                trend,
+                detalles));
         })
         .WithTags("Analitica")
         .WithName("ObtenerActividad")
