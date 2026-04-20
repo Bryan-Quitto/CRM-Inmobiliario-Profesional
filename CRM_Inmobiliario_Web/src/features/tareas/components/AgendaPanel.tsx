@@ -14,8 +14,12 @@ import {
   History,
   XCircle,
   Search,
-  Pencil
+  Pencil,
+  Bot
 } from 'lucide-react';
+import { ComandoPanel } from './ComandoPanel';
+import { buscarClientes } from '../../clientes/api/buscarClientes';
+import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import { completarTarea } from '../api/completarTarea';
 import { cancelarTarea } from '../api/cancelarTarea';
 import { useTareas } from '../context/useTareas';
@@ -68,6 +72,19 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   const [historySearch, setHistorySearch] = useState('');
   const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
   const [isFuturasExpanded, setIsFuturasExpanded] = useState(false);
+  const [isComandoPanelOpen, setIsComandoPanelOpen] = useState(false);
+
+  interface PrefillResuelto {
+    titulo: string;
+    tipoTarea?: string;
+    fechaInicio: string;
+    clienteId?: string;
+    clienteLabel?: string;
+    propiedadId?: string;
+    propiedadLabel?: string;
+    lugar?: string;
+  }
+  const [prefillData, setPrefillData] = useState<PrefillResuelto | null>(null);
 
   const selectedTarea = useMemo(() => 
     allTareas.find(t => t.id === selectedTareaId), 
@@ -157,12 +174,17 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   if (view === 'create') {
     return (
       <div className="w-80 h-full border-l border-slate-100 shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)]">
-        <CrearTareaForm 
+        <CrearTareaForm
           onSuccess={() => {
+            setPrefillData(null);
             setView('list');
             refreshTareas();
           }}
-          onCancel={() => setView('list')}
+          onCancel={() => {
+            setPrefillData(null);
+            setView('list');
+          }}
+          prefill={prefillData ?? undefined}
         />
       </div>
     );
@@ -241,6 +263,14 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsComandoPanelOpen(true)}
+            aria-label="Abrir asistente de agenda"
+            title="Asistente de Agenda"
+            className="h-8 w-8 bg-gradient-to-br from-violet-600 to-violet-700 text-white rounded-lg flex items-center justify-center hover:from-violet-500 hover:to-violet-600 transition-all shadow-lg shadow-violet-500/20 active:scale-95 cursor-pointer"
+          >
+            <Bot className="h-4 w-4" aria-hidden="true" />
+          </button>
           <button 
             onClick={() => setView('create')}
             aria-label="Crear nueva tarea"
@@ -446,6 +476,57 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
           </div>
         )}
       </div>
+
+      <ComandoPanel
+        isOpen={isComandoPanelOpen}
+        onClose={() => setIsComandoPanelOpen(false)}
+        onParsed={async (resultado) => {
+          let clienteId: string | undefined;
+          let clienteLabel: string | undefined;
+          let propiedadId: string | undefined;
+          let propiedadLabel: string | undefined;
+          let lugar: string | undefined;
+
+          if (resultado.clienteTexto) {
+            try {
+              const clientes = await buscarClientes(resultado.clienteTexto);
+              if (clientes.length > 0) {
+                clienteId = clientes[0].id;
+                clienteLabel = clientes[0].nombreCompleto;
+              }
+            } catch (e) {
+              console.error('[AsistenteParser] Error resolviendo cliente:', e);
+            }
+          }
+
+          if (resultado.lugarTexto) {
+            try {
+              const propiedades = await buscarPropiedades(resultado.lugarTexto);
+              if (propiedades.length > 0) {
+                propiedadId = propiedades[0].id;
+                propiedadLabel = propiedades[0].titulo;
+              } else {
+                lugar = resultado.lugarTexto;
+              }
+            } catch (e) {
+              console.error('[AsistenteParser] Error resolviendo propiedad:', e);
+              lugar = resultado.lugarTexto;
+            }
+          }
+
+          setPrefillData({
+            titulo: resultado.titulo,
+            tipoTarea: resultado.tipoTarea ?? undefined,
+            fechaInicio: resultado.fechaInicio,
+            clienteId,
+            clienteLabel,
+            propiedadId,
+            propiedadLabel,
+            lugar,
+          });
+          setView('create');
+        }}
+      />
     </div>
   );
 };
