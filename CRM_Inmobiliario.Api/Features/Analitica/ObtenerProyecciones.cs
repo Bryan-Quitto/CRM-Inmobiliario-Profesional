@@ -9,7 +9,12 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.Analitica;
 
-public record ProyeccionResponse(decimal ProyeccionIngresos);
+public record ItemCalculoProyeccion(string Propiedad, decimal Precio, decimal PorcentajeComision, decimal ComisionCalculada);
+
+public record ProyeccionResponse(
+    decimal ProyeccionIngresos,
+    List<ItemCalculoProyeccion> Desglose
+);
 
 public static class ObtenerProyeccionesEndpoint
 {
@@ -23,34 +28,23 @@ public static class ObtenerProyeccionesEndpoint
             var logger = loggerFactory.CreateLogger("Analitica.Proyecciones");
             var agenteId = user.GetRequiredUserId();
 
-            // 1. Obtenemos los detalles de lo que vamos a sumar para debuggear
+            // 1. Obtenemos los detalles de lo que vamos a sumar (ONE TRIP)
             var itemsProyeccion = await context.Leads
                 .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && l.EtapaEmbudo == "En Negociación")
                 .SelectMany(l => l.PropertyInterests)
                 .Where(i => i.Propiedad!.EstadoComercial == "Reservada")
-                .Select(i => new {
+                .Select(i => new ItemCalculoProyeccion(
                     i.Propiedad!.Titulo,
                     i.Propiedad!.Precio,
                     i.Propiedad!.PorcentajeComision,
-                    ComisionCalculada = i.Propiedad!.Precio * (i.Propiedad!.PorcentajeComision / 100m)
-                })
+                    i.Propiedad!.Precio * (i.Propiedad!.PorcentajeComision / 100m)
+                ))
                 .ToListAsync();
 
-            logger.LogInformation("--- Iniciando Cálculo de Proyección para Agente {AgenteId} ---", agenteId);
-            
-            decimal total = 0;
-            foreach (var item in itemsProyeccion)
-            {
-                logger.LogInformation("Propiedad: {Titulo} | Precio: {Precio} | Comision: {Porcentaje}% | Subtotal: {Subtotal}", 
-                    item.Titulo, item.Precio, item.PorcentajeComision, item.ComisionCalculada);
-                total += item.ComisionCalculada;
-            }
+            decimal total = itemsProyeccion.Sum(i => i.ComisionCalculada);
 
-            logger.LogInformation("Total Proyectado Final: {Total}", total);
-            logger.LogInformation("--- Fin del Cálculo ---");
-
-            return Results.Ok(new ProyeccionResponse(total));
+            return Results.Ok(new ProyeccionResponse(total, itemsProyeccion));
         })
         .WithTags("Analitica")
         .WithName("ObtenerProyecciones")

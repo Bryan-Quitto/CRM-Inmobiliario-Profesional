@@ -8,9 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Analitica;
 
+public record DetalleCierreEficiencia(Guid Id, string Cliente, string Propiedad, string FechaCreacion, string FechaCierre, double Dias);
+public record EficienciaCalculos(int TotalLeads, int TotalCerrados, int LeadsConFechaCierre, List<DetalleCierreEficiencia> DetallesCierres);
+
 public record EficienciaResponse(
     decimal TasaConversion,
-    decimal TiempoPromedioCierreDias
+    decimal TiempoPromedioCierreDias,
+    EficienciaCalculos Calculos
 );
 
 public static class ObtenerEficienciaEndpoint
@@ -21,28 +25,51 @@ public static class ObtenerEficienciaEndpoint
         {
             var agenteId = user.GetRequiredUserId();
 
-            // 1. Ejecución secuencial (EF Core no permite paralelismo en el mismo DbContext)
-            var totalLeadsCount = await context.Leads.AsNoTracking().CountAsync(l => l.AgenteId == agenteId);
-            var cerradosCount = await context.Leads.AsNoTracking().CountAsync(l => l.AgenteId == agenteId && l.EtapaEmbudo == "Cerrado");
-
-            // Calculamos el promedio directamente en SQL (PostgreSQL)
-            var tiempoPromedioResult = await context.Leads
+            // OPTIMIZACIÓN: THE ONE TRIP PATTERN (Eficiencia con Detalles)
+            var stats = await context.Agents
                 .AsNoTracking()
-                .Where(l => l.AgenteId == agenteId && l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null)
-                .Select(l => (double?)(l.FechaCierre!.Value - l.FechaCreacion).TotalDays)
-                .AverageAsync();
+                .Where(a => a.Id == agenteId)
+                .Select(a => new
+                {
+                    TotalLeads = a.Leads.Count(),
+                    TotalCerrados = a.Leads.Count(l => l.EtapaEmbudo == "Cerrado"),
+                    LeadsConFechaCierre = a.Leads.Count(l => l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null),
+                    
+                    // Detalles de cierres para el cálculo de velocidad
+                    DetallesCierres = a.Leads
+                        .Where(l => l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null)
+                        .OrderByDescending(l => l.FechaCierre)
+                        .Select(l => new DetalleCierreEficiencia(
+                            l.Id, 
+                            l.Nombre + " " + l.Apellido, 
+                            l.PropertyInterests.Where(i => i.Propiedad != null).Select(i => i.Propiedad!.Titulo).FirstOrDefault() ?? "Sin Propiedad",
+                            l.FechaCreacion.ToString("yyyy-MM-dd"),
+                            l.FechaCierre!.Value.ToString("yyyy-MM-dd"),
+                            (l.FechaCierre!.Value - l.FechaCreacion).TotalDays
+                        ))
+                        .ToList(),
 
-            // 2. Cálculos
+                    TiempoPromedioResult = a.Leads
+                        .Where(l => l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null)
+                        .Select(l => (double?)(l.FechaCierre!.Value - l.FechaCreacion).TotalDays)
+                        .Average()
+                })
+                .FirstOrDefaultAsync();
+
+            if (stats == null) return Results.NotFound("Agente no encontrado");
+
+            // Cálculos
             decimal tasaConversion = 0;
-            if (totalLeadsCount > 0)
+            if (stats.TotalLeads > 0)
             {
-                tasaConversion = Math.Round((decimal)cerradosCount / totalLeadsCount * 100, 2);
+                tasaConversion = Math.Round((decimal)stats.TotalCerrados / stats.TotalLeads * 100, 2);
             }
 
-            // Convertimos el resultado de double? a decimal de forma segura
-            decimal tiempoPromedioDias = Math.Round((decimal)(tiempoPromedioResult ?? 0.0), 1);
+            decimal tiempoPromedioDias = Math.Round((decimal)(stats.TiempoPromedioResult ?? 0.0), 1);
 
-            return Results.Ok(new EficienciaResponse(tasaConversion, tiempoPromedioDias));
+            var calculos = new EficienciaCalculos(stats.TotalLeads, stats.TotalCerrados, stats.LeadsConFechaCierre, stats.DetallesCierres);
+
+            return Results.Ok(new EficienciaResponse(tasaConversion, tiempoPromedioDias, calculos));
         })
         .WithTags("Analitica")
         .WithName("ObtenerEficiencia")
