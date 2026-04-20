@@ -42,6 +42,11 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
     options.UseNpgsql(connectionString, npgsqlOptions => 
     {
         npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+        // Habilitar reintentos automáticos para fallos transitorios de red
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorCodesToAdd: null);
     });
 
     // Habilitar logs sensibles estrictamente solo en entorno de desarrollo
@@ -158,6 +163,7 @@ apiGroup.MapBuscarClientesEndpoint();
 apiGroup.MapListarClientesEndpoint().CacheOutput();
 apiGroup.MapObtenerClientePorIdEndpoint();
 apiGroup.MapActualizarClienteEndpoint();
+apiGroup.MapEliminarCliente();
 apiGroup.MapCambiarEtapaClienteEndpoint();
 
 // Propiedades
@@ -220,6 +226,7 @@ apiGroup.MapObtenerEficienciaEndpoint().CacheOutput(p => p.Tag("analytics-data")
 
 // IA Auditoría
 apiGroup.MapObtenerLogsIa();
+apiGroup.MapObtenerConversacionIa();
 
 // Webhooks
 app.MapWhatsAppWebhooksEndpoints();

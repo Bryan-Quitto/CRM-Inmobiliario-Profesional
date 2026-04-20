@@ -90,6 +90,10 @@ export const ClienteDetalle = () => {
   const [nivelInteresPendiente, setNivelInteresPendiente] = useState('Medio');
   const [dropdownInteresOpenId, setDropdownInteresOpenId] = useState<string | null>(null);
   const [vincularStatus, setVincularStatus] = useState<'idle' | 'saving' | 'success'>('idle');
+  
+  // Estado para Confirmación Express de Borrado de Interés
+  const [idInteresABorrar, setIdInteresABorrar] = useState<string | null>(null);
+  const [isDeletingInteres, setIsDeletingInteres] = useState(false);
 
   const handleSaveNota = async () => {
     if (!nuevaNota.trim() || !id) return;
@@ -250,6 +254,7 @@ export const ClienteDetalle = () => {
 
   const handleDesvincular = async (propiedadId: string) => {
     if (!id || !cliente) return;
+    setIsDeletingInteres(true);
     
     // Implementación Optimistic UI y Undo Pattern
     const prevIntereses = cliente.intereses || [];
@@ -263,6 +268,7 @@ export const ClienteDetalle = () => {
     try {
       await desvincularPropiedad(id, propiedadId);
       toast.success('Propiedad desvinculada exitosamente');
+      setIdInteresABorrar(null);
       await mutate();
       
       // Revalidación proactiva de analíticas y dashboard (UPSP)
@@ -273,6 +279,8 @@ export const ClienteDetalle = () => {
       console.error('Error al desvincular:', err);
       toast.error('Error en el servidor al desvincular');
       mutate(); // Revert data to what server actually has
+    } finally {
+      setIsDeletingInteres(false);
     }
   };
 
@@ -485,10 +493,11 @@ export const ClienteDetalle = () => {
                 cliente.intereses.map((interes: Interes) => {
                   const nivelActual = NIVELES_INTERES.find(n => n.value === interes.nivelInteres) || NIVELES_INTERES[1];
                   const isUpdating = updatingInteresId === interes.propiedadId;
+                  const isThisBeingDeleted = idInteresABorrar === interes.propiedadId;
 
                   return (
                     <div key={interes.propiedadId} className="group relative bg-white border border-slate-100 p-4 rounded-2xl hover:border-blue-200 hover:shadow-md transition-all">
-                      {isUpdating && <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-2xl"><Loader2 className="h-5 w-5 text-blue-600 animate-spin" /></div>}
+                      {(isUpdating || (isDeletingInteres && isThisBeingDeleted)) && <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-2xl"><Loader2 className="h-5 w-5 text-blue-600 animate-spin" /></div>}
                       
                       <div className="flex items-start gap-3">
                         <div className="h-12 w-12 bg-slate-100 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
@@ -529,12 +538,35 @@ export const ClienteDetalle = () => {
                                 </>
                               )}
                             </div>
-                            <button 
-                              onClick={() => handleDesvincular(interes.propiedadId)}
-                              className="text-[9px] font-black text-slate-300 hover:text-rose-500 uppercase tracking-tighter transition-colors cursor-pointer"
-                            >
-                              Eliminar
-                            </button>
+                            
+                            {/* Confirmación Express de Borrado */}
+                            <div className="flex items-center">
+                              {isThisBeingDeleted ? (
+                                <div className="flex items-center gap-1 bg-rose-50 p-0.5 rounded-lg animate-in zoom-in-95 duration-200 border border-rose-100">
+                                  <button 
+                                    onClick={() => handleDesvincular(interes.propiedadId)}
+                                    disabled={isDeletingInteres}
+                                    className="p-1 text-emerald-600 hover:bg-emerald-100 rounded-md transition-all cursor-pointer"
+                                  >
+                                    <Check className="h-3 w-3" />
+                                  </button>
+                                  <button 
+                                    onClick={() => setIdInteresABorrar(null)}
+                                    disabled={isDeletingInteres}
+                                    className="p-1 text-slate-400 hover:bg-slate-100 rounded-md transition-all cursor-pointer"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button 
+                                  onClick={() => setIdInteresABorrar(interes.propiedadId)}
+                                  className="text-[9px] font-black text-slate-300 hover:text-rose-500 uppercase tracking-tighter transition-colors cursor-pointer"
+                                >
+                                  Eliminar
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <button 
