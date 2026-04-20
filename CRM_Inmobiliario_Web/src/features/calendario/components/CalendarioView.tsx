@@ -4,19 +4,20 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import esLocale from '@fullcalendar/core/locales/es';
 import { toast } from 'sonner';
 import type { CalendarEvent } from '../types';
 import type { Tarea } from '../../tareas/types';
 import { getEventos } from '../api/getEventos';
 import { reprogramarEvento } from '../api/reprogramarEvento';
 import { cancelarTarea } from '../../tareas/api/cancelarTarea';
-import { 
-  Calendar, 
-  Loader2, 
-  Plus, 
-  ChevronLeft, 
-  ChevronRight, 
-  Maximize2, 
+import {
+  Calendar,
+  Loader2,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
   Minimize2,
   Phone,
   MapPin,
@@ -31,6 +32,9 @@ import type { DatesSetArg, EventChangeArg, EventClickArg, EventContentArg, Event
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import { TareaDetalle } from '../../tareas/components/TareaDetalle';
 import ConfirmModal from '../../../components/ConfirmModal';
+
+// Locales registrados a nivel de módulo para evitar re-renders infinitos por referencia inestable
+const FC_LOCALES = [esLocale];
 
 // Mapeo de iconos por tipo de tarea con tipado fuerte
 const TIPO_ICONS: Record<string, LucideIcon> = {
@@ -57,7 +61,7 @@ const CalendarioContent: React.FC = () => {
     if (!containerRef.current || !calendarRef.current) return;
 
     const calendarApi = calendarRef.current.getApi();
-    
+
     const observer = new ResizeObserver(() => {
       // Usamos requestAnimationFrame para asegurar que el ajuste ocurra en el siguiente frame de renderizado
       window.requestAnimationFrame(() => {
@@ -71,7 +75,7 @@ const CalendarioContent: React.FC = () => {
       observer.disconnect();
     };
   }, []);
-  
+
   // SWR: Carga reactiva basada en el rango visible
   const { data: eventos, isValidating: syncing, mutate } = useSWR<CalendarEvent[]>(
     range.start && range.end ? [`/calendario`, range.start, range.end] : null,
@@ -91,11 +95,11 @@ const CalendarioContent: React.FC = () => {
   const [editingTareaId, setEditingTareaId] = useState<string | null>(null);
   const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [formKey, setFormKey] = useState(0); 
+  const [formKey, setFormKey] = useState(0);
 
-  const selectedTarea = useMemo(() => 
-    listaEventos.find(e => e.id === (viewingTareaId || editingTareaId)) as unknown as Tarea, 
-  [listaEventos, viewingTareaId, editingTareaId]);
+  const selectedTarea = useMemo(() =>
+    listaEventos.find(e => e.id === (viewingTareaId || editingTareaId)) as unknown as Tarea,
+    [listaEventos, viewingTareaId, editingTareaId]);
 
   const handleCancelar = async () => {
     const id = viewingTareaId || editingTareaId;
@@ -115,21 +119,25 @@ const CalendarioContent: React.FC = () => {
   };
 
   // Función unificada para abrir creación con corrección de desfase
-  const handleOpenCrear = (dateInput?: Date) => {
+  const handleOpenCrear = (dateInput?: Date | string) => {
     let dateStr: string | null = null;
 
-    if (dateInput) {
-      const date = new Date(dateInput.getTime());
-      
-      // Si la fecha viene de una celda de cuadrícula (medianoche), sumamos 1 día para compensar FullCalendar
-      if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
-        date.setDate(date.getDate() + 1);
-      }
+    if (typeof dateInput === 'string') {
+      // Si nos envían el string directo, lo usamos tal cual (Bypass de huso horario)
+      dateStr = dateInput;
+    } else if (dateInput) {
+      // Si nos envían un Date (clic normal en el calendario)
+      const y = dateInput.getFullYear();
+      const m = String(dateInput.getMonth() + 1).padStart(2, '0');
+      const d = String(dateInput.getDate()).padStart(2, '0');
 
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      dateStr = `${y}-${m}-${d}`;
+      if (dateInput.getHours() !== 0 || dateInput.getMinutes() !== 0) {
+        const h = String(dateInput.getHours()).padStart(2, '0');
+        const min = String(dateInput.getMinutes()).padStart(2, '0');
+        dateStr = `${y}-${m}-${d}T${h}:${min}`;
+      } else {
+        dateStr = `${y}-${m}-${d}`;
+      }
     }
 
     setSelectedDate(dateStr);
@@ -164,15 +172,15 @@ const CalendarioContent: React.FC = () => {
 
     if (!newStart) return;
 
-    const duracionNueva = event.end 
-      ? Math.round((event.end.getTime() - event.start!.getTime()) / 60000) 
+    const duracionNueva = event.end
+      ? Math.round((event.end.getTime() - event.start!.getTime()) / 60000)
       : (event.extendedProps as CalendarEvent).duracionMinutos;
 
     // 1. FIRE AND FORGET: Actualización Optimista inmediata del cache local
-    const optimisticData = listaEventos.map(e => e.id === event.id ? { 
-      ...e, 
-      fechaInicio: newStart, 
-      duracionMinutos: duracionNueva 
+    const optimisticData = listaEventos.map(e => e.id === event.id ? {
+      ...e,
+      fechaInicio: newStart,
+      duracionMinutos: duracionNueva
     } : e);
 
     mutate(optimisticData, false);
@@ -189,7 +197,7 @@ const CalendarioContent: React.FC = () => {
       .catch((error: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Error al reprogramar evento:', error);
         toast.error('Error al sincronizar el cambio. Revirtiendo...');
-        arg.revert(); 
+        arg.revert();
         mutate(); // Revertir cache local
       });
   };
@@ -209,7 +217,7 @@ const CalendarioContent: React.FC = () => {
       e.estado !== 'Pendiente' ? 'opacity-70' : 'hover:shadow-md hover:bg-opacity-100'
     ],
     extendedProps: { ...e },
-    description: e.titulo 
+    description: e.titulo
   })), [listaEventos]);
 
   // Renderizado personalizado del contenido del evento
@@ -217,14 +225,14 @@ const CalendarioContent: React.FC = () => {
     const props = eventInfo.event.extendedProps as CalendarEvent;
     const isCompleted = props.estado === 'Completada';
     const isCancelled = props.estado === 'Cancelada';
-    
+
     // El pin rojo solo se muestra para tareas PENDIENTES que sean de HOY o VENCIDAS
     const finDeHoy = new Date();
     finDeHoy.setHours(23, 59, 59, 999);
     const isOverdueOrToday = props.estado === 'Pendiente' && new Date(props.fechaInicio) <= finDeHoy;
-    
+
     const activeColor = isCompleted ? '#64748b' : (props.colorHex || '#3b82f6');
-    
+
     let StatusIcon = TIPO_ICONS[props.tipoTarea] || Clock;
     if (isCompleted) StatusIcon = CheckCircle2;
     if (isCancelled) StatusIcon = XCircle;
@@ -237,7 +245,7 @@ const CalendarioContent: React.FC = () => {
             {eventInfo.event.title}
           </span>
         </div>
-        
+
         {(eventInfo.view.type !== 'dayGridMonth' || props.duracionMinutos > 45) && (
           <div className="flex flex-col gap-0.5 mt-0.5 font-bold overflow-hidden opacity-80">
             {props.clienteNombre && (
@@ -278,37 +286,36 @@ const CalendarioContent: React.FC = () => {
     setViewingTareaId(arg.event.id);
   };
 
-  const renderDayCell = (arg: { date: Date; dayNumberText: string; isToday: boolean }) => (
-    <div className="flex flex-col h-full w-full group relative min-h-[40px] z-10 transition-colors hover:bg-slate-50/50">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleOpenCrear(arg.date);
-        }}
-        className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 p-1 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 transition-all active:scale-90 z-20 cursor-pointer"
-        title="Añadir evento este día"
-      >
-        <Plus size={12} strokeWidth={3} />
-      </button>
+  const renderDayCell = (arg: { date: Date; dayNumberText: string; isToday: boolean }) => {
+    return (
+      // Añadimos cursor-pointer al contenedor principal para que toda la celda indique que es clickeable
+      <div className="flex flex-col h-full w-full group relative min-h-[40px] z-10 transition-colors hover:bg-slate-50/50 cursor-pointer">
 
-      <div className="absolute top-2 right-2 z-10">
-        <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full transition-all ${
-          arg.isToday 
-            ? 'bg-blue-600 text-white shadow-md shadow-blue-200 ring-2 ring-blue-50' 
+        {/* EL FIX: Convertimos el botón en un "Fantasma" (pointer-events-none). 
+            Los clics pasarán de largo y golpearán la celda, disparando handleSelect con la fecha perfecta. */}
+        <div
+          className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 p-1 bg-blue-600 text-white rounded-md shadow-sm transition-all z-20 pointer-events-none flex items-center justify-center"
+        >
+          <Plus size={12} strokeWidth={3} />
+        </div>
+
+        <div className="absolute top-2 right-2 z-10 pointer-events-none">
+          <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full transition-all ${arg.isToday
+            ? 'bg-blue-600 text-white shadow-md shadow-blue-200 ring-2 ring-blue-50'
             : 'text-slate-500 group-hover:text-slate-900 group-hover:bg-white group-hover:shadow-sm'
-        }`}>
-          {arg.dayNumberText}
-        </span>
+            }`}>
+            {arg.dayNumberText}
+          </span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className={`flex flex-col bg-slate-50 overflow-hidden transition-all duration-500 ${
-      isFullScreen 
-        ? 'fixed inset-0 z-[150] h-screen w-screen' 
-        : 'h-screen relative'
-    }`}>
+    <div className={`flex flex-col bg-slate-50 overflow-hidden transition-all duration-500 ${isFullScreen
+      ? 'fixed inset-0 z-[150] h-screen w-screen'
+      : 'h-screen relative'
+      }`}>
       {/* Indicador de Sincronización UPSP */}
       {syncing && listaEventos.length > 0 && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-top-4 duration-300">
@@ -336,19 +343,19 @@ const CalendarioContent: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button 
+              <button
                 onClick={() => calendarRef.current?.getApi().prev()}
                 className="p-1.5 hover:bg-white hover:text-blue-600 rounded-lg transition-all text-slate-500 cursor-pointer"
               >
                 <ChevronLeft size={18} />
               </button>
-              <button 
+              <button
                 onClick={() => calendarRef.current?.getApi().today()}
                 className="px-3 py-1.5 hover:bg-white hover:text-blue-600 rounded-lg text-xs font-bold transition-all text-slate-500 cursor-pointer"
               >
                 Hoy
               </button>
-              <button 
+              <button
                 onClick={() => calendarRef.current?.getApi().next()}
                 className="p-1.5 hover:bg-white hover:text-blue-600 rounded-lg transition-all text-slate-500 cursor-pointer"
               >
@@ -364,7 +371,7 @@ const CalendarioContent: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
             {['dayGridMonth', 'timeGridWeek', 'timeGridDay'].map((type) => (
-              <button 
+              <button
                 key={type}
                 onClick={() => { setViewType(type as 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'); calendarRef.current?.getApi().changeView(type); }}
                 className={`cursor-pointer ${`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewType === type ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}`}
@@ -374,7 +381,7 @@ const CalendarioContent: React.FC = () => {
             ))}
           </div>
 
-          <button 
+          <button
             onClick={toggleFullScreen}
             className="p-2 bg-slate-100 text-slate-500 hover:bg-white hover:text-blue-600 rounded-xl border border-slate-200 transition-all shadow-sm active:scale-90 cursor-pointer"
           >
@@ -383,7 +390,7 @@ const CalendarioContent: React.FC = () => {
 
           <div className="h-8 w-px bg-slate-100 mx-1"></div>
 
-          <button 
+          <button
             onClick={() => handleOpenCrear()}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-100 active:scale-95 cursor-pointer"
           >
@@ -403,7 +410,7 @@ const CalendarioContent: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         <div ref={containerRef} className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 h-full">
           <FullCalendar
             ref={calendarRef}
@@ -418,6 +425,7 @@ const CalendarioContent: React.FC = () => {
             moreLinkClick="popover"
             weekends={true}
             locale="es"
+            locales={FC_LOCALES}
             datesSet={handleDatesSet}
             eventDrop={handleEventChange}
             eventResize={handleEventChange}
@@ -440,18 +448,18 @@ const CalendarioContent: React.FC = () => {
         {(isCrearOpen || viewingTareaId || editingTareaId) && (
           <div className="fixed inset-0 z-[300] flex justify-end bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="absolute inset-0 cursor-pointer" onClick={() => { setIsCrearOpen(false); setViewingTareaId(null); setEditingTareaId(null); setSelectedDate(null); }}></div>
-            
+
             <div className="relative w-full max-w-lg h-full bg-white shadow-2xl animate-in slide-in-from-right duration-500 border-l border-slate-100">
               {isCrearOpen && (
-                <CrearTareaForm 
+                <CrearTareaForm
                   key={`crear-${formKey}`}
                   fechaInicial={selectedDate || undefined}
-                  onSuccess={() => { setIsCrearOpen(false); setSelectedDate(null); mutate(); }} 
-                  onCancel={() => { setIsCrearOpen(false); setSelectedDate(null); }} 
+                  onSuccess={() => { setIsCrearOpen(false); setSelectedDate(null); mutate(); }}
+                  onCancel={() => { setIsCrearOpen(false); setSelectedDate(null); }}
                 />
               )}
               {viewingTareaId && selectedTarea && (
-                <TareaDetalle 
+                <TareaDetalle
                   tarea={selectedTarea}
                   onEdit={() => { setEditingTareaId(viewingTareaId); setViewingTareaId(null); }}
                   onCancelTask={() => setIsConfirmingCancel(true)}
@@ -459,18 +467,18 @@ const CalendarioContent: React.FC = () => {
                 />
               )}
               {editingTareaId && selectedTarea && (
-                <EditarTareaForm 
-                  tareaId={editingTareaId} 
+                <EditarTareaForm
+                  tareaId={editingTareaId}
                   initialData={selectedTarea}
-                  onSuccess={() => { setEditingTareaId(null); mutate(); }} 
-                  onCancel={() => { setEditingTareaId(null); }} 
+                  onSuccess={() => { setEditingTareaId(null); mutate(); }}
+                  onCancel={() => { setEditingTareaId(null); }}
                   onCancelTask={() => setIsConfirmingCancel(true)}
                 />
               )}
             </div>
           </div>
         )}
-        <ConfirmModal 
+        <ConfirmModal
           isOpen={isConfirmingCancel}
           title="¿Cancelar Tarea?"
           description="Esta acción no se puede deshacer. La tarea quedará marcada como cancelada en el historial."
