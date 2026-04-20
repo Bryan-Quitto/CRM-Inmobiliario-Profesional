@@ -29,6 +29,22 @@ interface Props {
   onSuccess: () => void;
   onCancel: () => void;
   fechaInicial?: string;
+  /** Datos pre-llenados provenientes del parser del asistente de agenda. */
+  prefill?: {
+    titulo?: string;
+    tipoTarea?: string;
+    fechaInicio?: string;
+    /** ID del cliente ya resuelto por el asistente */
+    clienteId?: string;
+    /** Label del cliente para mostrar en el selector sin necesidad de búsqueda */
+    clienteLabel?: string;
+    /** ID de la propiedad ya resuelta por el asistente */
+    propiedadId?: string;
+    /** Label de la propiedad para mostrar en el selector sin necesidad de búsqueda */
+    propiedadLabel?: string;
+    /** Texto de lugar como fallback si no se encontró propiedad */
+    lugar?: string;
+  };
 }
 
 const TIPOS_TAREA = [
@@ -40,7 +56,7 @@ const TIPOS_TAREA = [
 
 const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
 
-export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => {
+export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: Props) => {
   const { mutate } = useSWRConfig();
   const { clientes, propiedades, addTarea } = useTareas();
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
@@ -82,6 +98,19 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
   }, [fechaInicial]);
 
   const getInitialValues = (): CrearTareaDTO => {
+    // Si hay datos pre-llenados del asistente, tienen prioridad absoluta sobre el borrador
+    if (prefill) {
+      return {
+        titulo: prefill.titulo ?? '',
+        descripcion: '',
+        tipoTarea: prefill.tipoTarea ?? 'Llamada',
+        fechaInicio: prefill.fechaInicio ?? defaultFecha,
+        clienteId: prefill.clienteId,
+        propiedadId: prefill.propiedadId,
+        lugar: prefill.lugar,
+      };
+    }
+
     const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
     if (saved) {
       try {
@@ -192,12 +221,20 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
         </button>
         <div>
           <h2 className="text-lg font-black text-slate-900 tracking-tight">Nueva Tarea</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Programar seguimiento</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            {prefill ? 'Completado por el asistente · revisa y guarda' : 'Programar seguimiento'}
+          </p>
         </div>
+        {prefill && (
+          <div className="ml-auto shrink-0 flex items-center gap-1.5 px-2.5 py-1 bg-violet-50 border border-violet-100 rounded-full">
+            <span className="h-1.5 w-1.5 bg-violet-500 rounded-full animate-pulse" />
+            <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest">Asistente</span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
-        {hasData && (
+        {hasData && !prefill && (
           <div className="flex items-center gap-2 min-h-[24px]">
             {!isConfirmingClear ? (
               <button 
@@ -315,6 +352,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
                 icon={User}
                 placeholder="Buscar por nombre o teléfono..."
                 value={field.value}
+                initialLabel={prefill?.clienteLabel}
                 options={clienteOptions}
                 onSearch={async (q) => {
                   const res = await buscarClientes(q);
@@ -334,6 +372,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial }: Props) => 
                 icon={Home}
                 placeholder="Buscar por título de propiedad..."
                 value={field.value}
+                initialLabel={prefill?.propiedadLabel}
                 options={propiedadOptions}
                 onSearch={async (q) => {
                   const res = await buscarPropiedades(q);
