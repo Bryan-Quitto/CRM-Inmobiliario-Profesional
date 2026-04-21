@@ -7,6 +7,7 @@ import { getClientes } from '../api/getClientes';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { CrearClienteForm } from './CrearClienteForm';
 import { ClientesKanban } from './ClientesKanban';
+import { ClosingModal } from '../../propiedades/components/ClosingModal';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import type { Cliente } from '../types';
 
@@ -97,6 +98,8 @@ const ClientesContent = () => {
     return (saved as 'list' | 'kanban') || 'list';
   });
 
+  const [closingLead, setClosingLead] = useState<Cliente | null>(null);
+
   useEffect(() => {
     localStorage.setItem(VIEW_MODE_KEY, viewMode);
   }, [viewMode]);
@@ -149,10 +152,16 @@ const ClientesContent = () => {
     negociacion: clientes.filter(c => c.etapaEmbudo === 'En Negociación').length
   }), [clientes]);
 
-  const handleStageChange = (id: string, nuevaEtapa: string) => {
+  const handleStageChange = (id: string, nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }) => {
     setOpenDropdownId(null);
     const cliente = clientes.find(c => c.id === id);
     if (!cliente || cliente.etapaEmbudo === nuevaEtapa) return;
+
+    // Interceptar Cierre
+    if (nuevaEtapa === 'Cerrado' && !confirmedData) {
+      setClosingLead(cliente);
+      return;
+    }
 
     // 1. FIRE AND FORGET: Actualización Optimista inmediata vía SWR
     const optimisticData = clientes.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c);
@@ -160,7 +169,7 @@ const ClientesContent = () => {
     setNotification({ type: 'success', message: `Cliente movido a ${nuevaEtapa}` });
     
     // 2. Petición en background
-    actualizarEtapaCliente(id, nuevaEtapa)
+    actualizarEtapaCliente(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad)
       .then(async () => {
         // Revalidar lista de clientes, pero asegurando que la data optimista se mantiene hasta que termine
         await mutate(); 
@@ -168,6 +177,7 @@ const ClientesContent = () => {
         // Revalidación proactiva de analíticas y dashboard (UPSP)
         globalMutate('/dashboard/kpis');
         globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+        globalMutate('/propiedades');
       })
       .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Error al actualizar etapa:', err);
@@ -175,6 +185,12 @@ const ClientesContent = () => {
         const msg = err.response?.data?.Message || 'No se pudo sincronizar el cambio de estado.';
         setNotification({ type: 'error', message: msg });
       });
+  };
+
+  const handleClosingConfirm = async (precioCierre: number, propiedadId: string, nuevoEstadoPropiedad: string) => {
+    if (!closingLead) return;
+    handleStageChange(closingLead.id, 'Cerrado', { propiedadId, precioCierre, nuevoEstadoPropiedad });
+    setClosingLead(null);
   };
 
   const getEtapaStyles = (etapa: string) => {
@@ -423,6 +439,19 @@ const ClientesContent = () => {
           />
         </div>
       )}
+
+      <ClosingModal 
+        isOpen={!!closingLead}
+        onClose={() => setClosingLead(null)}
+        onConfirm={handleClosingConfirm}
+        mode="lead"
+        initialData={closingLead ? {
+          id: closingLead.id,
+          titulo: `${closingLead.nombre} ${closingLead.apellido}`,
+          precio: 0,
+          operacion: 'Venta'
+        } : undefined}
+      />
     </div>
   );
 };
