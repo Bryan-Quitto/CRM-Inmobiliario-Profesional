@@ -13,7 +13,7 @@ namespace CRM_Inmobiliario.Api.Features.Clientes;
 
 public static class CambiarEtapaClienteFeature
 {
-    public record Command(string NuevaEtapa);
+    public record Command(string NuevaEtapa, Guid? PropiedadId = null, decimal? PrecioCierre = null, string? NuevoEstadoPropiedad = null);
 
     public static void MapCambiarEtapaClienteEndpoint(this IEndpointRouteBuilder app)
     {
@@ -30,7 +30,7 @@ public static class CambiarEtapaClienteFeature
 
             // Buscar cliente para verificar propiedad y obtener datos para la tarea
             var cliente = await context.Leads
-                .FirstOrDefaultAsync(l => l.Id == id && l.AgenteId == agenteId);
+                .FirstOrDefaultAsync(l => l.Id == id && l.AgenteId == agenteId, ct);
 
             if (cliente == null)
             {
@@ -44,6 +44,31 @@ public static class CambiarEtapaClienteFeature
             if (command.NuevaEtapa == "Cerrado")
             {
                 cliente.FechaCierre = DateTimeOffset.UtcNow;
+
+                // SI SE PROVEE UNA PROPIEDAD PARA CERRAR
+                if (command.PropiedadId.HasValue)
+                {
+                    var property = await context.Properties
+                        .FirstOrDefaultAsync(p => p.Id == command.PropiedadId.Value && p.AgenteId == agenteId, ct);
+
+                    if (property != null)
+                    {
+                        var estado = command.NuevoEstadoPropiedad ?? (property.Operacion == "Alquiler" ? "Alquilada" : "Vendida");
+                        property.EstadoComercial = estado;
+                        property.FechaCierre = DateTimeOffset.UtcNow;
+                        property.PrecioCierre = command.PrecioCierre;
+                        property.CerradoConId = id;
+
+                        context.Interactions.Add(new Interaction
+                        {
+                            AgenteId = agenteId,
+                            ClienteId = id,
+                            PropiedadId = property.Id,
+                            TipoInteraccion = "Cierre",
+                            Notas = $"Cierre realizado desde el perfil del cliente. Propiedad '{property.Titulo}' marcada como {estado} por {command.PrecioCierre:C}."
+                        });
+                    }
+                }
             }
             else
             {

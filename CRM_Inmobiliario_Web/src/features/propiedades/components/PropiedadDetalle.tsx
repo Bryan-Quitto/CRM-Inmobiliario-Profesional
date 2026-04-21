@@ -117,7 +117,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [isCreatingInline, setIsCreatingInline] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
   const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
+  const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
@@ -135,7 +135,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       
       await mutate();
       toast.success(`Propiedad ${propiedad.operacion === 'Alquiler' ? 'alquilada' : 'vendida'} con éxito`);
-      setIsClosing(false);
+      setIsClosingModalOpen(false);
     } catch (error) {
       console.error('Error al cerrar:', error);
       throw error;
@@ -505,7 +505,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
     // Caso de CIERRE (Venta/Alquiler)
     if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && !confirmed) {
-      setIsClosing(true);
+      setIsClosingModalOpen(true);
       return;
     }
 
@@ -516,7 +516,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     }
 
     setStatusConfirmation(null);
-    setIsClosing(false);
+    setIsClosingModalOpen(false);
 
     // FIRE AND FORGET: Respuesta instantánea
     const optimisticData = { ...propiedad, estadoComercial: nuevoEstado };
@@ -884,14 +884,18 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         </div>
       )}
 
-      <ClosingModal 
+      <ClosingModal
         key={propiedad.id}
-        isOpen={isClosing}
-        onClose={() => setIsClosing(false)}
+        isOpen={isClosingModalOpen}
+        onClose={() => setIsClosingModalOpen(false)}
         onConfirm={handleClosingConfirm}
-        tituloPropiedad={propiedad.titulo}
-        precioSugerido={propiedad.precio}
-        tipoOperacion={propiedad.operacion}
+        mode="property"
+        initialData={{
+          id: propiedad.id,
+          titulo: propiedad.titulo,
+          precio: propiedad.precio,
+          operacion: propiedad.operacion
+        }}
       />
     </div>
   );

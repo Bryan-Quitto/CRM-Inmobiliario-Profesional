@@ -239,16 +239,16 @@ const PropiedadesContent = () => {
     mutate(optimisticData, false);
   };
 
-  const handleClosingConfirm = async (precioCierre: number, cerradoConId: string) => {
+  const handleClosingConfirm = async (precioCierre: number, cerradoConId: string, tipoCierre: string) => {
     if (!closingPropiedad) return;
-    const { propiedad, nuevoEstado } = closingPropiedad;
+    const { propiedad } = closingPropiedad;
     
     try {
       setUpdatingId(propiedad.id);
-      await actualizarEstadoPropiedad(propiedad.id, nuevoEstado, precioCierre, cerradoConId);
+      await actualizarEstadoPropiedad(propiedad.id, tipoCierre, precioCierre, cerradoConId);
       
       // Si es Vendida, también limpiamos la galería
-      if (nuevoEstado === 'Vendida') {
+      if (tipoCierre === 'Vendida') {
         await limpiarImagenesPropiedad(propiedad.id);
       }
       
@@ -258,7 +258,7 @@ const PropiedadesContent = () => {
       globalMutate('/dashboard/kpis');
       globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
 
-      toast.success(`Propiedad ${nuevoEstado === 'Vendida' ? 'vendida' : 'alquilada'} con éxito`);
+      toast.success(`Propiedad ${tipoCierre === 'Vendida' ? 'vendida' : 'alquilada'} con éxito`);
     } catch (error) {
       console.error('Error al cerrar:', error);
       throw error; // El modal maneja el error visual
@@ -626,9 +626,13 @@ const PropiedadesContent = () => {
         isOpen={!!closingPropiedad}
         onClose={() => setClosingPropiedad(null)}
         onConfirm={handleClosingConfirm}
-        tituloPropiedad={closingPropiedad?.propiedad.titulo || ''}
-        precioSugerido={closingPropiedad?.propiedad.precio || 0}
-        tipoOperacion={closingPropiedad?.propiedad.operacion || 'Venta'}
+        mode="property"
+        initialData={closingPropiedad ? {
+          id: closingPropiedad.propiedad.id,
+          titulo: closingPropiedad.propiedad.titulo,
+          precio: closingPropiedad.propiedad.precio,
+          operacion: closingPropiedad.propiedad.operacion
+        } : undefined}
       />
     </div>
   );

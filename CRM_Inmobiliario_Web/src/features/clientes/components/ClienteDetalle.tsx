@@ -27,7 +27,9 @@ import { registrarInteraccion } from '../api/registrarInteraccion';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import { vincularPropiedad } from '../api/vincularPropiedad';
 import { desvincularPropiedad } from '../api/desvincularPropiedad';
+import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
 import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
+import { ClosingModal } from '../../propiedades/components/ClosingModal';
 import { actualizarInteraccion } from '../api/actualizarInteraccion';
 import { eliminarInteraccion } from '../api/eliminarInteraccion';
 import { toast } from 'sonner';
@@ -90,6 +92,50 @@ export const ClienteDetalle = () => {
   const [nivelInteresPendiente, setNivelInteresPendiente] = useState('Medio');
   const [dropdownInteresOpenId, setDropdownInteresOpenId] = useState<string | null>(null);
   const [vincularStatus, setVincularStatus] = useState<'idle' | 'saving' | 'success'>('idle');
+  
+  // Estados para Cierre de Negocio
+  const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
+  const [isUpdatingEtapa, setIsUpdatingEtapa] = useState(false);
+  const [showEtapaDropdown, setShowEtapaDropdown] = useState(false);
+
+  const handleStageChange = async (nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }) => {
+    if (!id || !cliente || cliente.etapaEmbudo === nuevaEtapa) return;
+    setShowEtapaDropdown(false);
+
+    // Interceptar Cierre
+    if (nuevaEtapa === 'Cerrado' && !confirmedData) {
+      setIsClosingModalOpen(true);
+      return;
+    }
+
+    setIsUpdatingEtapa(true);
+    
+    // Optimistic Update
+    mutate({ ...cliente, etapaEmbudo: nuevaEtapa }, false);
+
+    try {
+      await actualizarEtapaCliente(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad);
+      toast.success(`Prospecto movido a ${nuevaEtapa}`);
+      await mutate();
+
+      // Revalidación global
+      globalMutate('/dashboard/kpis');
+      globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      globalMutate('/propiedades');
+      globalMutate('/clientes');
+    } catch (err) {
+      console.error('Error al actualizar etapa:', err);
+      toast.error('No se pudo actualizar la etapa');
+      mutate(); // Revertir
+    } finally {
+      setIsUpdatingEtapa(false);
+    }
+  };
+
+  const handleClosingConfirm = async (precioCierre: number, propiedadId: string, nuevoEstadoPropiedad: string) => {
+    await handleStageChange('Cerrado', { propiedadId, precioCierre, nuevoEstadoPropiedad });
+    setIsClosingModalOpen(false);
+  };
   
   // Estado para Confirmación Express de Borrado de Interés
   const [idInteresABorrar, setIdInteresABorrar] = useState<string | null>(null);
@@ -347,9 +393,34 @@ export const ClienteDetalle = () => {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">{cliente.nombre} {cliente.apellido}</h1>
-              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${etapaActual.color}`}>
-                {cliente.etapaEmbudo}
-              </span>
+              
+              <div className="relative">
+                <button 
+                  onClick={() => !isUpdatingEtapa && setShowEtapaDropdown(!showEtapaDropdown)}
+                  disabled={isUpdatingEtapa}
+                  className={`cursor-pointer ${`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border flex items-center gap-2 transition-all ${etapaActual.color} ${isUpdatingEtapa ? 'opacity-50' : 'hover:scale-105 active:scale-95'}`}`}
+                >
+                  {isUpdatingEtapa ? <Loader2 className="h-3 w-3 animate-spin" /> : cliente.etapaEmbudo}
+                  <ChevronDown className={`h-3 w-3 transition-transform ${showEtapaDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showEtapaDropdown && (
+                  <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in-95 duration-200">
+                    {ETAPAS.map((etapa) => (
+                      <button
+                        key={etapa.value}
+                        onClick={() => handleStageChange(etapa.value)}
+                        className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
+                                                                                    cliente.etapaEmbudo === etapa.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
+                                                                                  }`}`}
+                      >
+                        {etapa.label}
+                        {cliente.etapaEmbudo === etapa.value && <Check className="h-3.5 w-3.5" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Expediente del Prospecto</p>
           </div>
@@ -718,6 +789,19 @@ export const ClienteDetalle = () => {
           </div>
         </div>
       </div>
+
+      <ClosingModal 
+        isOpen={isClosingModalOpen}
+        onClose={() => setIsClosingModalOpen(false)}
+        onConfirm={handleClosingConfirm}
+        mode="lead"
+        initialData={cliente ? {
+          id: cliente.id,
+          titulo: `${cliente.nombre} ${cliente.apellido}`,
+          precio: 0,
+          operacion: 'Venta'
+        } : undefined}
+      />
     </div>
   );
 };
