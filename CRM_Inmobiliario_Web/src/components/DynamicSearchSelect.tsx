@@ -3,10 +3,11 @@ import { Search, Loader2, X, Check } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Fuse from 'fuse.js';
 
-interface SearchItem {
+export interface SearchItem {
   id: string;
   title: string;
   subtitle?: string;
+  [key: string]: unknown; // Permite pasar datos extra como el objeto 'raw'
 }
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
   initialLabel?: string;
   options?: SearchItem[]; // Búsqueda local instantánea
   onSearch?: (query: string) => Promise<SearchItem[]>; // Fallback a búsqueda remota
-  onChange: (id: string | undefined, title: string | undefined) => void;
+  onChange: (id: string | undefined, title: string | undefined, item?: SearchItem) => void;
   error?: string;
 }
 
@@ -99,7 +100,7 @@ export const DynamicSearchSelect = ({
 
   const handleSelect = (item: SearchItem) => {
     setSelectedLabel(item.title);
-    onChange(item.id, item.title);
+    onChange(item.id, item.title, item);
     setIsOpen(false);
     setQuery('');
   };
