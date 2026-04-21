@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { X, DollarSign, User, Check, Loader2, Info, Home, ChevronDown } from 'lucide-react';
-import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
+import { DynamicSearchSelect, type SearchItem } from '@/components/DynamicSearchSelect';
 import { buscarClientes } from '../../clientes/api/buscarClientes';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import { useTareas } from '../../tareas/context/useTareas';
@@ -27,7 +27,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
   mode,
   initialData
 }) => {
-  const { clientes } = useTareas();
+  const { clientes, propiedades } = useTareas();
   const [precioCierre, setPrecioCierre] = useState<string>(initialData?.precio.toString() || '');
   const [partnerId, setPartnerId] = useState<string | undefined>(mode === 'property' ? undefined : initialData?.id);
   const [selectedPartnerData, setSelectedPartnerData] = useState<{titulo: string, operacion: string} | null>(
@@ -49,6 +49,18 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
   const clienteOptions = useMemo(() => 
     clientes.map(c => ({ id: c.id, title: `${c.nombre} ${c.apellido}`, subtitle: c.telefono })),
     [clientes]
+  );
+
+  const propiedadOptions = useMemo(() => 
+    propiedades
+      .filter(p => p.estadoComercial === 'Disponible' || p.estadoComercial === 'Reservada')
+      .map(p => ({ 
+        id: p.id, 
+        title: p.titulo, 
+        subtitle: `${p.sector}, ${p.ciudad}`,
+        raw: p 
+      })),
+    [propiedades]
   );
 
   if (!isOpen) return null;
@@ -82,7 +94,8 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
     return results.map(c => ({
       id: c.id,
       title: c.nombreCompleto,
-      subtitle: c.telefono
+      subtitle: c.telefono,
+      raw: c
     }));
   };
 
@@ -97,17 +110,15 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
     }));
   };
 
-  const handlePropertySelect = (id: string | undefined, optionOrTitle: string | undefined | { id: string, title: string, subtitle: string, raw?: { titulo: string, operacion: string } }) => {
+  const handlePropertySelect = (id: string | undefined, _title: string | undefined, item?: SearchItem) => {
     if (!id) return;
     setPartnerId(id);
     
-    // Si optionOrTitle es un objeto (desde DynamicSearchSelect con resultados de búsqueda)
-    if (typeof optionOrTitle === 'object' && optionOrTitle !== null && 'raw' in optionOrTitle) {
-      const p = (optionOrTitle as { raw?: { titulo: string, operacion: string } }).raw;
-      if (p) {
-        setSelectedPartnerData({ titulo: p.titulo, operacion: p.operacion || 'Venta' });
-        setTipoCierre(p.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida');
-      }
+    // Si item es un objeto (desde DynamicSearchSelect con resultados de búsqueda o local)
+    if (item && item.raw) {
+      const p = item.raw as { titulo: string, operacion: string };
+      setSelectedPartnerData({ titulo: p.titulo, operacion: p.operacion || 'Venta' });
+      setTipoCierre(p.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida');
     }
   };
 
@@ -151,6 +162,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
                 label="Seleccionar Propiedad del Cierre"
                 icon={Home}
                 placeholder="Buscar propiedad por título..."
+                options={propiedadOptions}
                 onSearch={onSearchProperties}
                 onChange={handlePropertySelect}
                 value={partnerId}
