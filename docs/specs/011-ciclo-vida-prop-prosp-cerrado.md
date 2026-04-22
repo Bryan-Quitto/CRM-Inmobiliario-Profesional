@@ -77,3 +77,27 @@
 3. **Componente: `TimelineHistorial` (Feature: Propiedades/Clientes)**
    - Consumir el endpoint de historial implementando `keepPreviousData: true` en la configuración de SWR para evitar parpadeos (flicker-free).
    - Renderizar los hitos con iconografía correspondiente (trofeo para Sale/Rent, flecha de retorno para Relisting/Cancellation).
+
+---
+
+## FASE 4: Mantenimiento del Historial (Edición y Eliminación)
+**Objetivo:** Permitir correcciones humanas sobre el registro de transacciones asegurando la consistencia del estado actual de la propiedad.
+
+1. **Feature: `UpdateTransaction` (Backend)**
+   - **Ruta:** `PUT /api/transactions/{id}`
+   - **Lógica:**
+     - Permite actualizar `TransactionDate`, `Amount`, `LeadId` y `Notes`.
+     - Validar huso horario (UTC-5) para cualquier modificación de fecha.
+     - **Regla de Sincronización:** Si se cambia el `LeadId` y esta es la transacción activa de la propiedad, reflejar el cambio en la vista principal de la propiedad para que el nuevo prospecto quede como el titular actual.
+     - Invalidar la `OutputCache` del historial de la propiedad asociada.
+
+2. **Feature: `DeleteTransaction` (Backend)**
+   - **Ruta:** `DELETE /api/transactions/{id}`
+   - **Lógica:**
+     - Eliminar el registro de `PropertyTransaction`.
+     - **Regla de Cascada Lógica:** Verificar si la transacción eliminada era la que justificaba el estado actual de la propiedad (ej. la propiedad está "Alquilada" por esta transacción). Si es así, revertir automáticamente el `EstadoComercial` de la `Property` a "Disponible".
+
+3. **UI Panel de Historial (Frontend)**
+   - Añadir menú contextual (tres puntos) en cada ítem del `TimelineHistorial` con opciones "Editar" y "Eliminar".
+   - **Zero-Wait:** Al eliminar, remover el ítem del timeline inmediatamente con `mutate(data.filter(...), false)` y mostrar Toast de "Undo" de 5 segundos.
+   - En el modal de edición, usar pre-poblado rápido desde el caché local de SWR (tanto para la fecha de cierre como para el prospecto)
