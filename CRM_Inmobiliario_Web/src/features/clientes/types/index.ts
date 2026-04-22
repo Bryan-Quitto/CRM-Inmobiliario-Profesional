@@ -24,6 +24,7 @@ export interface Cliente {
   etapaEmbudo: string;
   notas?: string;
   fechaCreacion: string;
+  fechaCierre?: string;
   interacciones?: Interaccion[];
   intereses?: Interes[];
 }

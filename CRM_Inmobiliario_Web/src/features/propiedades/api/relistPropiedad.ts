@@ -1,6 +1,6 @@
-import axios from '@/lib/axios';
+import { api } from '@/lib/axios';
 
 export const relistPropiedad = async (id: string, notas?: string) => {
-  const response = await axios.post(`/propiedades/${id}/relist`, { notas });
+  const response = await api.post(`/propiedades/${id}/relist`, { notas });
   return response.data;
 };

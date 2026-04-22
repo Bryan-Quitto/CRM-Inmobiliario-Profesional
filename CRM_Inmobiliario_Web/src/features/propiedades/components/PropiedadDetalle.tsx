@@ -20,14 +20,20 @@ import {
   CalendarDays,
   History,
   RotateCcw,
-  TrendingUp
+  TrendingUp,
+  MoreVertical,
+  Trash2,
+  Edit3,
+  User
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedadById } from '../api/getPropiedadById';
 import { CrearPropiedadForm } from './CrearPropiedadForm';
 import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { relistPropiedad } from '../api/relistPropiedad';
-import { getHistorialPropiedad } from '../api/getHistorialPropiedad';
+import { getHistorialPropiedad, type PropertyTransactionResponse } from '../api/getHistorialPropiedad';
+import { updateTransaction } from '../api/updateTransaction';
+import { deleteTransaction } from '../api/deleteTransaction';
 import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import { establecerImagenPrincipal } from '../api/establecerImagenPrincipal';
 import { deleteImagenPropiedad } from '../api/deleteImagenPropiedad';
@@ -41,6 +47,7 @@ import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import { SectionalGallery } from './SectionalGallery';
 import PDFLinkInternal from './PDFLinkInternal';
+import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
 import type { Propiedad, SeccionGaleria } from '../types';
 
 interface PropiedadDetalleProps {
@@ -124,8 +131,16 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   );
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  // ... rest of state
+  const [isAddingSection, setIsAddingSection] = useState(false);
+  const [isCreatingInline, setIsCreatingInline] = useState(false);
+  const [newSectionName, setNewSectionName] = useState('');
+  const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
+  const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
+  const [transactionToEdit, setTransactionToEdit] = useState<PropertyTransactionResponse | null>(null);
+  const [transactionMenuOpen, setTransactionMenuOpen] = useState<string | null>(null);
 
   const handleRelist = async () => {
     if (!propiedad) return;
@@ -541,6 +556,59 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     handleReorder(ids);
   };
 
+  const handleDeleteTransaction = async (transactionId: string) => {
+    if (!historial) return;
+
+    // Pattern Undo
+    let isCancelled = false;
+    const previousHistorial = [...historial];
+
+    const commitDelete = async () => {
+      if (isCancelled) return;
+      try {
+        await deleteTransaction(transactionId);
+        mutate(); // Sincronizar propiedad por si cambió estado
+        mutateHistorial();
+      } catch {
+        toast.error("Error al eliminar del historial");
+        mutateHistorial(previousHistorial, false);
+      }
+    };
+
+    toast.warning("Registro eliminado", {
+      description: "Tienes 5 segundos para deshacer.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          mutateHistorial(previousHistorial, false);
+          toast.success("Acción cancelada");
+        }
+      },
+      duration: 5000,
+      onAutoClose: commitDelete,
+      onDismiss: commitDelete
+    });
+
+    // Optimistic UI
+    mutateHistorial(historial.filter(t => t.id !== transactionId), false);
+    setTransactionMenuOpen(null);
+  };
+
+  const handleUpdateTransaction = async (data: { transactionDate: string; amount: number | null; leadId: string | null; notes: string | null }) => {
+    if (!transactionToEdit) return;
+
+    try {
+      await updateTransaction(transactionToEdit.id, data);
+      mutate();
+      mutateHistorial();
+      toast.success("Historial actualizado");
+      setTransactionToEdit(null);
+    } catch {
+      toast.error("Error al actualizar registro");
+    }
+  };
+
   const handleStatusChange = (nuevoEstado: string, confirmed = false) => {
     if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
     setIsStatusDropdownOpen(false);
@@ -947,6 +1015,34 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                         {item.amount && (
                           <span className="text-sm font-black text-slate-900">{formatCurrency(item.amount)}</span>
                         )}
+                        
+                        <div className="relative">
+                          <button 
+                            onClick={() => setTransactionMenuOpen(transactionMenuOpen === item.id ? null : item.id)}
+                            className="p-1 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+
+                          {transactionMenuOpen === item.id && (
+                            <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-100 rounded-xl shadow-2xl z-[100] py-1 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                              <button 
+                                onClick={() => { setTransactionToEdit(item); setTransactionMenuOpen(null); }}
+                                className="w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                              >
+                                <Edit3 size={12} className="text-indigo-600" />
+                                Editar
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteTransaction(item.id)}
+                                className="w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
+                              >
+                                <Trash2 size={12} />
+                                Eliminar
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {item.notes && (
@@ -1013,6 +1109,123 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           operacion: propiedad.operacion
         }}
       />
+
+      {transactionToEdit && (
+        <TransactionEditModal 
+          transaction={transactionToEdit}
+          onClose={() => setTransactionToEdit(null)}
+          onConfirm={handleUpdateTransaction}
+        />
+      )}
+    </div>
+  );
+};
+
+interface TransactionEditModalProps {
+  transaction: PropertyTransactionResponse;
+  onClose: () => void;
+  onConfirm: (data: { transactionDate: string; amount: number | null; leadId: string | null; notes: string | null }) => Promise<void>;
+}
+
+const TransactionEditModal = ({ transaction, onClose, onConfirm }: TransactionEditModalProps) => {
+  const [date, setDate] = useState(transaction.transactionDate.split('T')[0]);
+  const [amount, setAmount] = useState<string>(transaction.amount?.toString() || '');
+  const [leadId, setLeadId] = useState<string | null>(transaction.leadId || null);
+  const [notes, setNotes] = useState(transaction.notes || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await onConfirm({
+        transactionDate: new Date(date).toISOString(),
+        amount: amount ? Number(amount) : null,
+        leadId,
+        notes
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onSearchClients = async (query: string) => {
+    const { buscarClientes } = await import('../../clientes/api/buscarClientes');
+    const results = await buscarClientes(query);
+    return results.map(c => ({
+      id: c.id,
+      title: c.nombreCompleto,
+      subtitle: c.telefono,
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm cursor-pointer" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="p-8">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Editar Registro</h3>
+            <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full text-slate-400 cursor-pointer"><X size={20} /></button>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Fecha</label>
+                <input 
+                  type="date" 
+                  value={date} 
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Monto (USD)</label>
+                <input 
+                  type="number" 
+                  value={amount} 
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                />
+              </div>
+            </div>
+
+            <DynamicSearchSelect 
+              label="Prospecto / Titular"
+              icon={User}
+              placeholder="Buscar cliente..."
+              value={leadId || undefined}
+              initialLabel={transaction.leadNombre}
+              onSearch={onSearchClients}
+              onChange={(id: string | undefined) => setLeadId(id || null)}
+            />
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Notas / Observaciones</label>
+              <textarea 
+                value={notes} 
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                placeholder="Detalles adicionales..."
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="mt-10 flex gap-3">
+            <button onClick={onClose} className="flex-1 py-4 text-slate-400 font-bold text-sm hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer">Cancelar</button>
+            <button 
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-[2] py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black shadow-xl shadow-slate-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
+              Guardar Cambios
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

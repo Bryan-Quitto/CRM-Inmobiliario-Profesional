@@ -1,4 +1,4 @@
-import axios from '@/lib/axios';
+import { api } from '@/lib/axios';
 
 export interface PropertyTransactionResponse {
   id: string;
@@ -12,6 +12,6 @@ export interface PropertyTransactionResponse {
 }
 
 export const getHistorialPropiedad = async (id: string): Promise<PropertyTransactionResponse[]> => {
-  const response = await axios.get(`/propiedades/${id}/history`);
+  const response = await api.get(`/propiedades/${id}/history`);
   return response.data;
 };

@@ -183,6 +183,8 @@ apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
 apiGroup.MapImportarRemaxEndpoint();
 apiGroup.MapVolverAListarPropiedadEndpoint();
 apiGroup.MapObtenerHistorialPropiedadEndpoint();
+apiGroup.MapActualizarTransaccionEndpoint();
+apiGroup.MapEliminarTransaccionEndpoint();
 
 // Tareas
 apiGroup.MapRegistrarTareaEndpoint();
