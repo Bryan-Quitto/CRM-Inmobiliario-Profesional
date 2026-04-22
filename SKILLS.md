@@ -59,8 +59,8 @@ All new features and refactors MUST implement these zero-latency patterns:
 - **Ultra-Premium Sync Pattern (UPSP) (Read CRM Inmobiliario Profesional\CRM_Inmobiliario_Web\src\lib\swr.ts):** 
     - **Disk Persistence:** Implement `localStorageProvider` in SWR to cache metrics and lists permanently across sessions.
     - **Zero Flicker:** Use `keepPreviousData: true` to maintain old data visible while fetching fresh updates.
-    - **Smart Feedback:** Show granular "Syncing" indicators (spinners/overlays) only on affected elements to eliminate user uncertainty.
-- **Optimistic UI:** Updates to status, stages, or simple fields must reflect in the UI in <100ms. Do not show loaders for simple updates.
+    - **Axios standard:** NEVER use `import axios from 'axios'` or default imports for API calls. ALWAYS use `import { api } from '@/lib/axios'` to ensure JWT injection and interceptors are active.
+    - **Smart Feedback:** Show granular "Syncing" indicators (spinners/overlays) only on affected elements to eliminate user uncertainty.- **Optimistic UI:** Updates to status, stages, or simple fields must reflect in the UI in <100ms. Do not show loaders for simple updates.
 - **Undo Pattern:** Destructive actions (like deletions) must be optimistic and reversible. Remove the item immediately and show a "Undo" toast for 5-6 seconds before sending the real request to the server.
 - **Satisfy Transitions:** Successful saves must show a clear visual confirmation (e.g., button turning green with a checkmark) for ~800ms before closing modals.
 - **Background Operations:** Heavy tasks (file uploads, complex processing) must run in global background queues (e.g., `UploadContext`) to allow continued navigation.

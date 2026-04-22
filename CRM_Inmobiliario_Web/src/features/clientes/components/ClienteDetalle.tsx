@@ -21,10 +21,8 @@ import {
   ExternalLink,
   PhoneCall,
   ChevronDown,
-  History,
   RotateCcw,
-  ShieldCheck,
-  AlertCircle
+  ShieldCheck
 } from 'lucide-react';
 import { getClienteById } from '../api/getClienteById';
 import { registrarInteraccion } from '../api/registrarInteraccion';
@@ -148,7 +146,27 @@ export const ClienteDetalle = () => {
     }
 
     setIsUpdatingEtapa(true);
-    // ... rest of handleStageChange
+    
+    // Optimistic Update
+    mutate({ ...cliente, etapaEmbudo: nuevaEtapa }, false);
+
+    try {
+      await actualizarEtapaCliente(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad);
+      toast.success(`Prospecto movido a ${nuevaEtapa}`);
+      await mutate();
+
+      // Revalidación global
+      globalMutate('/dashboard/kpis');
+      globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      globalMutate('/propiedades');
+      globalMutate('/clientes');
+    } catch (err) {
+      console.error('Error al actualizar etapa:', err);
+      toast.error('No se pudo actualizar la etapa');
+      mutate(); // Revertir
+    } finally {
+      setIsUpdatingEtapa(false);
+    }
   };
 
   const handleClosingConfirm = async (precioCierre: number, propiedadId: string, nuevoEstadoPropiedad: string) => {
