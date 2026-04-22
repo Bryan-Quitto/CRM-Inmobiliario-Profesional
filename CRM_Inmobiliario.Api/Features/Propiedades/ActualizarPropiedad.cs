@@ -31,7 +31,8 @@ public static class ActualizarPropiedadFeature
         int? MediosBanos,
         int? AniosAntiguedad,
         bool EsCaptacionPropia,
-        decimal PorcentajeComision);
+        decimal PorcentajeComision,
+        DateTimeOffset? FechaIngreso = null);
 
     public static void MapActualizarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -67,12 +68,18 @@ public static class ActualizarPropiedadFeature
             propiedad.AniosAntiguedad = command.AniosAntiguedad;
             propiedad.EsCaptacionPropia = command.EsCaptacionPropia;
             propiedad.PorcentajeComision = command.PorcentajeComision;
+            
+            if (command.FechaIngreso.HasValue)
+            {
+                propiedad.FechaIngreso = command.FechaIngreso.Value;
+            }
 
             await context.SaveChangesAsync();
 
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
             await cacheStore.EvictByTagAsync("analytics-data", ct);
+            await cacheStore.EvictByTagAsync("properties-data", ct);
 
             return Results.NoContent();
         })

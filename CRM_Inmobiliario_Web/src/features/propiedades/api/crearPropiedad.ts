@@ -9,6 +9,7 @@ export type CrearPropiedadDTO = Omit<Propiedad, 'id' | 'estadoComercial' | 'fech
   areaTotal: number;
   esCaptacionPropia: boolean;
   porcentajeComision: number;
+  fechaIngreso?: string;
 };
 
 export const crearPropiedad = async (propiedad: CrearPropiedadDTO): Promise<Propiedad> => {

@@ -28,7 +28,8 @@ import {
   CarFront,
   Clock,
   Droplet,
-  KeySquare
+  KeySquare,
+  Calendar
 } from 'lucide-react';
 import { crearPropiedad } from '../api/crearPropiedad';
 import { actualizarPropiedad } from '../api/actualizarPropiedad';
@@ -70,20 +71,43 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
   const selectRef = useRef<HTMLDivElement>(null);
 
   const getInitialValues = (): Partial<CrearPropiedadDTO> => {
-    if (isEditing) return initialData;
+    // Por defecto en creación, usar la fecha actual (Ecuador UTC-5)
+    const today = new Date();
+    const ecuadorDate = new Date(today.getTime() - (5 * 60 * 60 * 1000)).toISOString().split('T')[0];
+
+    if (isEditing) {
+      console.log('[Form] initialData completo:', initialData);
+      // Formatear fecha para el input type="date" (YYYY-MM-DD)
+      const fecha = initialData.fechaIngreso ? new Date(initialData.fechaIngreso).toISOString().split('T')[0] : ecuadorDate;
+      console.log(`[Form] Modo Edición - Propiedad ID: ${initialData.id} - Fecha cargada: ${fecha} Original: ${initialData.fechaIngreso}`);
+      return {
+        ...initialData,
+        fechaIngreso: fecha
+      };
+    }
 
     const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Si el borrador no tiene fecha, le ponemos la de hoy
+        const merged = { 
+          fechaIngreso: ecuadorDate,
+          ...parsed 
+        };
+        console.log('[Form] Modo Creación - Borrador recuperado:', merged);
+        return merged;
       } catch (e) {
         console.error('Error al parsear borrador:', e);
       }
     }
+
+    console.log('[Form] Modo Creación - Iniciando con fecha hoy:', ecuadorDate);
     return {
       tipoPropiedad: '',
       operacion: '',
       urlRemax: '',
+      fechaIngreso: ecuadorDate
     };
   };
 
@@ -99,6 +123,9 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
   // Smart Merge: Sincronizar cambios del servidor (initialData) sin borrar lo que el usuario escribe
   useEffect(() => {
     if (!isEditing || !initialData || !watchedValues) return;
+
+    const today = new Date();
+    const ecuadorDate = new Date(today.getTime() - (5 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
     if (isDirty) {
       const mergedValues = {
@@ -121,11 +148,15 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
         aniosAntiguedad: dirtyFields.aniosAntiguedad ? Number(watchedValues.aniosAntiguedad) : initialData.aniosAntiguedad,
         urlRemax: dirtyFields.urlRemax ? (watchedValues.urlRemax as string) : (initialData.urlRemax || ''),
         esCaptacionPropia: dirtyFields.esCaptacionPropia ? !!watchedValues.esCaptacionPropia : initialData.esCaptacionPropia,
-        porcentajeComision: dirtyFields.porcentajeComision ? Number(watchedValues.porcentajeComision) : initialData.porcentajeComision
+        porcentajeComision: dirtyFields.porcentajeComision ? Number(watchedValues.porcentajeComision) : initialData.porcentajeComision,
+        fechaIngreso: dirtyFields.fechaIngreso ? (watchedValues.fechaIngreso as string) : (initialData.fechaIngreso ? new Date(initialData.fechaIngreso).toISOString().split('T')[0] : ecuadorDate)
       };
+      console.log('[Form] Smart Merge ejecutado - Valores mezclados:', mergedValues);
       reset(mergedValues);
     } else {
-      reset(initialData);
+      const fecha = initialData.fechaIngreso ? new Date(initialData.fechaIngreso).toISOString().split('T')[0] : ecuadorDate;
+      console.log('[Form] Reset modo edición sin cambios - Fecha:', fecha);
+      reset({ ...initialData, fechaIngreso: fecha });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, isEditing]);
@@ -153,6 +184,9 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
 
   const handleClearDraft = () => {
     localStorage.removeItem(DRAFT_STORAGE_KEY);
+    const today = new Date();
+    const ecuadorDate = new Date(today.getTime() - (5 * 60 * 60 * 1000)).toISOString().split('T')[0];
+    
     reset({
       titulo: '',
       descripcion: '',
@@ -166,8 +200,10 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       urlRemax: '',
       habitaciones: 0,
       banos: 0,
-      areaTotal: 0
+      areaTotal: 0,
+      fechaIngreso: ecuadorDate
     });
+    console.log('[Form] Borrador limpiado - Reset a fecha hoy:', ecuadorDate);
     setIsConfirmingClear(false);
   };
 
@@ -315,6 +351,8 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       estacionamientos: data.estacionamientos ? Number(data.estacionamientos) : undefined,
       mediosBanos: data.mediosBanos ? Number(data.mediosBanos) : undefined,
       aniosAntiguedad: data.aniosAntiguedad ? Number(data.aniosAntiguedad) : undefined,
+      // Formatear fecha para evitar problemas de zona horaria (Ecuador UTC-5)
+      fechaIngreso: data.fechaIngreso ? `${data.fechaIngreso}T12:00:00-05:00` : undefined,
     };
 
     // Ejecutamos la petición en segundo plano
@@ -603,6 +641,23 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
                     className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
                   />
                 </div>
+              </div>
+
+              {/* Fecha de Captación */}
+              <div className="md:col-span-6 space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Fecha de Captación (Opcional)</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input 
+                    {...register('fechaIngreso')}
+                    type="date" 
+                    disabled={isSuccess}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase pl-1 opacity-80">
+                  Si se deja vacío, se usará la fecha actual. Útil para corregir KPIs históricos.
+                </p>
               </div>
 
               <div className="md:col-span-3 space-y-2">

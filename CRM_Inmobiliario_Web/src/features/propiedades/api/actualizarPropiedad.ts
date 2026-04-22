@@ -15,6 +15,7 @@ export type ActualizarPropiedadDTO = {
   areaTotal: number;
   esCaptacionPropia: boolean;
   porcentajeComision: number;
+  fechaIngreso?: string;
 };
 
 export const actualizarPropiedad = async (id: string, propiedad: ActualizarPropiedadDTO): Promise<void> => {
