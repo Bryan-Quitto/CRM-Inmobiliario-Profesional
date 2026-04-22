@@ -170,7 +170,7 @@ apiGroup.MapRevertirEstadoClienteEndpoint();
 // Propiedades
 apiGroup.MapRegistrarPropiedadEndpoint();
 apiGroup.MapBuscarPropiedadesEndpoint();
-apiGroup.MapListarPropiedadesEndpoint().CacheOutput();
+apiGroup.MapListarPropiedadesEndpoint().CacheOutput(p => p.Tag("properties-data"));
 apiGroup.MapObtenerPropiedadPorIdEndpoint();
 apiGroup.MapActualizarPropiedadEndpoint();
 apiGroup.MapCambiarEstadoPropiedadEndpoint();

@@ -32,7 +32,8 @@ public static class RegistrarPropiedadFeature
         int? MediosBanos = null,
         int? AniosAntiguedad = null,
         bool EsCaptacionPropia = true,
-        decimal PorcentajeComision = 5.0m);
+        decimal PorcentajeComision = 5.0m,
+        DateTimeOffset? FechaIngreso = null);
 
     public static void MapRegistrarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -65,7 +66,7 @@ public static class RegistrarPropiedadFeature
                 EsCaptacionPropia = command.EsCaptacionPropia,
                 PorcentajeComision = command.PorcentajeComision,
                 AgenteId = agenteId,
-                FechaIngreso = DateTimeOffset.UtcNow
+                FechaIngreso = command.FechaIngreso ?? DateTimeOffset.UtcNow
             };
 
             context.Properties.Add(propiedad);
@@ -77,6 +78,7 @@ public static class RegistrarPropiedadFeature
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
             await cacheStore.EvictByTagAsync("analytics-data", ct);
+            await cacheStore.EvictByTagAsync("properties-data", ct);
 
             return Results.Created($"/propiedades/{propiedad.Id}", propiedad);
         })
