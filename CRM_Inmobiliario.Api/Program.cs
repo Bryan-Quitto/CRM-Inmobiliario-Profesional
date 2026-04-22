@@ -165,6 +165,7 @@ apiGroup.MapObtenerClientePorIdEndpoint();
 apiGroup.MapActualizarClienteEndpoint();
 apiGroup.MapEliminarCliente();
 apiGroup.MapCambiarEtapaClienteEndpoint();
+apiGroup.MapRevertirEstadoClienteEndpoint();
 
 // Propiedades
 apiGroup.MapRegistrarPropiedadEndpoint();
@@ -180,6 +181,8 @@ apiGroup.MapEstablecerImagenPrincipalEndpoint();
 apiGroup.MapLimpiarImagenesPropiedadEndpoint();
 apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
 apiGroup.MapImportarRemaxEndpoint();
+apiGroup.MapVolverAListarPropiedadEndpoint();
+apiGroup.MapObtenerHistorialPropiedadEndpoint();
 
 // Tareas
 apiGroup.MapRegistrarTareaEndpoint();

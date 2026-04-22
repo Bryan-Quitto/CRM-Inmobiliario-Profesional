@@ -20,7 +20,11 @@ import {
   Tag,
   ExternalLink,
   PhoneCall,
-  ChevronDown
+  ChevronDown,
+  History,
+  RotateCcw,
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react';
 import { getClienteById } from '../api/getClienteById';
 import { registrarInteraccion } from '../api/registrarInteraccion';
@@ -28,6 +32,7 @@ import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import { vincularPropiedad } from '../api/vincularPropiedad';
 import { desvincularPropiedad } from '../api/desvincularPropiedad';
 import { actualizarEtapaCliente } from '../api/actualizarEtapaCliente';
+import { revertirEstadoCliente } from '../api/revertirEstadoCliente';
 import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
 import { ClosingModal } from '../../propiedades/components/ClosingModal';
 import { actualizarInteraccion } from '../api/actualizarInteraccion';
@@ -97,6 +102,34 @@ export const ClienteDetalle = () => {
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
   const [isUpdatingEtapa, setIsUpdatingEtapa] = useState(false);
   const [showEtapaDropdown, setShowEtapaDropdown] = useState(false);
+  const [revertConfirmation, setRevertConfirmation] = useState<{ etapa: string } | null>(null);
+
+  const handleRevertStatus = async (nuevaEtapa: string, liberarPropiedades: boolean) => {
+    if (!id || !cliente) return;
+    setIsUpdatingEtapa(true);
+    setRevertConfirmation(null);
+
+    // Optimistic Update
+    mutate({ ...cliente, etapaEmbudo: nuevaEtapa, fechaCierre: undefined }, false);
+
+    try {
+      await revertirEstadoCliente(id, nuevaEtapa, liberarPropiedades);
+      toast.success(`Estado revertido a ${nuevaEtapa}`);
+      await mutate();
+      
+      // Revalidación global
+      globalMutate('/dashboard/kpis');
+      globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      globalMutate('/propiedades');
+      globalMutate('/clientes');
+    } catch (err) {
+      console.error('Error al revertir estado:', err);
+      toast.error('No se pudo revertir el estado');
+      mutate();
+    } finally {
+      setIsUpdatingEtapa(false);
+    }
+  };
 
   const handleStageChange = async (nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }) => {
     if (!id || !cliente || cliente.etapaEmbudo === nuevaEtapa) return;
@@ -108,28 +141,14 @@ export const ClienteDetalle = () => {
       return;
     }
 
-    setIsUpdatingEtapa(true);
-    
-    // Optimistic Update
-    mutate({ ...cliente, etapaEmbudo: nuevaEtapa }, false);
-
-    try {
-      await actualizarEtapaCliente(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad);
-      toast.success(`Prospecto movido a ${nuevaEtapa}`);
-      await mutate();
-
-      // Revalidación global
-      globalMutate('/dashboard/kpis');
-      globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-      globalMutate('/propiedades');
-      globalMutate('/clientes');
-    } catch (err) {
-      console.error('Error al actualizar etapa:', err);
-      toast.error('No se pudo actualizar la etapa');
-      mutate(); // Revertir
-    } finally {
-      setIsUpdatingEtapa(false);
+    // Interceptar Reversión (Si ya estaba Cerrado o Perdido y se mueve a una etapa activa)
+    if ((cliente.etapaEmbudo === 'Cerrado' || cliente.etapaEmbudo === 'Perdido') && nuevaEtapa !== 'Cerrado' && nuevaEtapa !== 'Perdido') {
+      setRevertConfirmation({ etapa: nuevaEtapa });
+      return;
     }
+
+    setIsUpdatingEtapa(true);
+    // ... rest of handleStageChange
   };
 
   const handleClosingConfirm = async (precioCierre: number, propiedadId: string, nuevoEstadoPropiedad: string) => {
@@ -802,6 +821,67 @@ export const ClienteDetalle = () => {
           operacion: 'Venta'
         } : undefined}
       />
+
+      {/* Modal de Reversión (Spec 011) */}
+      {revertConfirmation && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8">
+              <div className="h-16 w-16 bg-amber-50 rounded-2xl flex items-center justify-center mb-6">
+                <RotateCcw className="h-8 w-8 text-amber-600" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Revertir Cierre/Perdida</h3>
+              <p className="text-slate-500 font-medium mb-8 leading-relaxed">
+                Estás moviendo a <span className="text-slate-900 font-bold">{cliente.nombre}</span> a la etapa <span className="text-blue-600 font-bold uppercase tracking-wider">{revertConfirmation.etapa}</span>.
+              </p>
+
+              <div className="space-y-4 mb-8">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative flex items-center">
+                      <input 
+                        type="checkbox" 
+                        id="liberarProp"
+                        className="peer h-5 w-5 appearance-none rounded-md border-2 border-slate-200 checked:bg-indigo-600 checked:border-indigo-600 transition-all cursor-pointer"
+                        defaultChecked={true}
+                      />
+                      <Check className="absolute h-3 w-3 text-white scale-0 peer-checked:scale-100 transition-transform left-1" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
+                      Volver a listar propiedades cerradas con este cliente
+                    </span>
+                  </label>
+                </div>
+                
+                <div className="flex items-start gap-3 p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50">
+                  <ShieldCheck className="h-4 w-4 text-amber-600 mt-0.5" />
+                  <p className="text-[10px] font-bold text-amber-700 leading-tight uppercase tracking-wider">
+                    Se registrarán transacciones de cancelación en el historial de las propiedades afectadas.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setRevertConfirmation(null)}
+                  className="flex-1 px-6 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl hover:bg-slate-100 transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => {
+                    const check = document.getElementById('liberarProp') as HTMLInputElement;
+                    handleRevertStatus(revertConfirmation.etapa, check.checked);
+                  }}
+                  className="flex-1 px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all active:scale-95 cursor-pointer"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

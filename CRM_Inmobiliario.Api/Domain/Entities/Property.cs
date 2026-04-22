@@ -91,4 +91,5 @@ public sealed class Property
     public ICollection<LeadPropertyInterest> LeadInterests { get; set; } = new List<LeadPropertyInterest>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public ICollection<Interaction> Interactions { get; set; } = new List<Interaction>();
+    public ICollection<PropertyTransaction> Transactions { get; set; } = new List<PropertyTransaction>();
 }

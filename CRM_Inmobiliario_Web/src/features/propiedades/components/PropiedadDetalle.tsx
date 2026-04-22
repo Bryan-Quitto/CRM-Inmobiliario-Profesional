@@ -17,12 +17,17 @@ import {
   MessageSquare,
   Globe,
   Car,
-  CalendarDays
+  CalendarDays,
+  History,
+  RotateCcw,
+  TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedadById } from '../api/getPropiedadById';
 import { CrearPropiedadForm } from './CrearPropiedadForm';
 import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
+import { relistPropiedad } from '../api/relistPropiedad';
+import { getHistorialPropiedad } from '../api/getHistorialPropiedad';
 import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import { establecerImagenPrincipal } from '../api/establecerImagenPrincipal';
 import { deleteImagenPropiedad } from '../api/deleteImagenPropiedad';
@@ -112,15 +117,52 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     swrDefaultConfig
   );
 
+  const { data: historial, mutate: mutateHistorial } = useSWR(
+    id ? `/propiedades/${id}/history` : null,
+    () => getHistorialPropiedad(id),
+    swrDefaultConfig
+  );
+
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [isAddingSection, setIsAddingSection] = useState(false);
-  const [isCreatingInline, setIsCreatingInline] = useState(false);
-  const [newSectionName, setNewSectionName] = useState('');
-  const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
-  const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  // ... rest of state
   const [isReordering, setIsReordering] = useState(false);
+
+  const handleRelist = async () => {
+    if (!propiedad) return;
+
+    // Pattern Undo
+    let isCancelled = false;
+    const commitRelist = async () => {
+      if (isCancelled) return;
+      try {
+        await relistPropiedad(propiedad.id);
+        mutate();
+        mutateHistorial();
+        toast.success("Propiedad vuelta a listar");
+      } catch {
+        toast.error("Error al volver a listar");
+        mutate();
+      }
+    };
+
+    toast.info("Volviendo a listar...", {
+      description: "La propiedad pasará a Disponible. Tienes 5 segundos para deshacer.",
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          isCancelled = true;
+          mutate();
+          toast.success("Acción cancelada");
+        }
+      },
+      duration: 5000,
+      onAutoClose: commitRelist,
+      onDismiss: commitRelist
+    });
+
+    // Optimistic UI
+    mutate((prev) => prev ? { ...prev, estadoComercial: 'Disponible' } : prev, false);
+  };
 
   const handleClosingConfirm = async (precioCierre: number, cerradoConId: string) => {
     if (!propiedad) return;
@@ -509,6 +551,12 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       return;
     }
 
+    // Caso de RE-LISTADO (Si ya estaba cerrada)
+    if (nuevoEstado === 'Disponible' && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada')) {
+      handleRelist();
+      return;
+    }
+
     // Caso de INACTIVA (Limpieza simple)
     if (nuevoEstado === 'Inactiva' && !confirmed) {
       setStatusConfirmation(nuevoEstado);
@@ -532,7 +580,10 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     };
 
     action()
-      .then(() => mutate())
+      .then(() => {
+        mutate();
+        mutateHistorial();
+      })
       .catch((err) => {
         console.error('Error al cambiar estado:', err);
         toast.error("Error al sincronizar el estado");
@@ -854,6 +905,71 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                     </button>
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Historial Transaccional (Spec 011) */}
+          <div className="space-y-8 pb-12">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-1 bg-slate-900 rounded-full"></div>
+              <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Historial Inmobiliario</h3>
+            </div>
+
+            {!historial || historial.length === 0 ? (
+              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-[2rem] p-12 text-center">
+                <History className="h-12 w-12 text-slate-300 mx-auto mb-4 opacity-50" />
+                <p className="text-xs font-bold text-slate-400 italic">No hay registros históricos para esta propiedad.</p>
+              </div>
+            ) : (
+              <div className="relative space-y-8 before:absolute before:left-6 before:top-4 before:bottom-0 before:w-0.5 before:bg-slate-100 before:content-['']">
+                {historial.map((item) => (
+                  <div key={item.id} className="relative pl-14 group">
+                    <div className={`absolute left-3 top-0 h-7 w-7 bg-white border-2 rounded-full z-10 flex items-center justify-center shadow-sm transition-colors
+                      ${item.transactionType === 'Sale' || item.transactionType === 'Rent' ? 'border-emerald-500 text-emerald-600' : 
+                        item.transactionType === 'Relisting' ? 'border-indigo-500 text-indigo-600' : 'border-rose-500 text-rose-600'}`}>
+                      {item.transactionType === 'Sale' || item.transactionType === 'Rent' ? <TrendingUp size={14} /> : 
+                       item.transactionType === 'Relisting' ? <RotateCcw size={14} /> : <X size={14} />}
+                    </div>
+
+                    <div className="bg-white border border-slate-100 p-6 rounded-3xl hover:border-slate-200 hover:shadow-xl transition-all duration-500">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md
+                            ${item.transactionType === 'Sale' || item.transactionType === 'Rent' ? 'bg-emerald-50 text-emerald-600' : 
+                              item.transactionType === 'Relisting' ? 'bg-indigo-50 text-indigo-600' : 'bg-rose-50 text-rose-600'}`}>
+                            {item.transactionType === 'Sale' ? 'Venta' : 
+                             item.transactionType === 'Rent' ? 'Alquiler' : 
+                             item.transactionType === 'Relisting' ? 'Re-Listado' : 'Cancelación'}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">{formatDate(item.transactionDate)}</span>
+                        </div>
+                        {item.amount && (
+                          <span className="text-sm font-black text-slate-900">{formatCurrency(item.amount)}</span>
+                        )}
+                      </div>
+
+                      {item.notes && (
+                        <p className="text-sm font-medium text-slate-600 leading-relaxed mb-4 italic">"{item.notes}"</p>
+                      )}
+
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                        <div className="flex items-center gap-2">
+                          <div className="h-6 w-6 bg-slate-100 rounded-lg flex items-center justify-center text-[10px] font-black text-slate-400 uppercase tracking-tighter shadow-inner">
+                            {item.agenteNombre[0]}
+                          </div>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Agente: {item.agenteNombre}</span>
+                        </div>
+                        {item.leadId && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Titular:</span>
+                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{item.leadNombre}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

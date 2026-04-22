@@ -20,6 +20,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<WhatsappConversation> WhatsappConversations => Set<WhatsappConversation>();
     public DbSet<AiActionLog> AiActionLogs => Set<AiActionLog>();
     public DbSet<WhatsappMessage> WhatsappMessages => Set<WhatsappMessage>();
+    public DbSet<PropertyTransaction> PropertyTransactions => Set<PropertyTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -207,6 +208,32 @@ public sealed class CrmDbContext : DbContext
             entity.Property(e => e.Rol).HasMaxLength(20);
             entity.HasIndex(e => new { e.Telefono, e.Fecha })
                   .HasDatabaseName("IX_WhatsappMessages_TelefonoFecha");
+        });
+
+        // Transacciones de Propiedades
+        modelBuilder.Entity<PropertyTransaction>(entity =>
+        {
+            entity.Property(e => e.TransactionType).HasMaxLength(50);
+            entity.Property(e => e.Amount).HasColumnType("decimal(12,2)");
+
+            // ÍNDICE DE RENDIMIENTO: Historial por propiedad y fecha
+            entity.HasIndex(e => new { e.PropertyId, e.TransactionDate })
+                  .HasDatabaseName("IX_PropertyTransactions_PropertyDate");
+
+            entity.HasOne(d => d.Property)
+                .WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Lead)
+                .WithMany()
+                .HasForeignKey(d => d.LeadId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(d => d.CreatedBy)
+                .WithMany()
+                .HasForeignKey(d => d.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

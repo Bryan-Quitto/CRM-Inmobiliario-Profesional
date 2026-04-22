@@ -1,1 +1,0 @@
-Hola Gemini, me puedes ayudar revisando si en C:\Users\THINKPAD\Desktop\CRM Inmobiliario Profesional\CRM_Inmobiliario_Web\src\features\propiedades\components\ClosingModal.tsx los buscadores dinamicos de prospectos y propiedades ocupan fuse.js porfa? Si no lo ocupan implementalo porfa
