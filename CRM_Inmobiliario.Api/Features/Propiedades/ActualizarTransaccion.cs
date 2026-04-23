@@ -51,8 +51,8 @@ public static class ActualizarTransaccionFeature
             var esCierreActivo = (transaction.TransactionType is "Sale" or "Rent") && 
                                  (property.FechaCierre == oldDate && property.CerradoConId == oldLeadId);
 
-            // 3. Actualizar campos (Forzando UTC-5 según estándar)
-            transaction.TransactionDate = command.TransactionDate.ToOffset(TimeSpan.FromHours(-5));
+            // 3. Actualizar campos (Forzando UTC para PostgreSQL)
+            transaction.TransactionDate = command.TransactionDate.ToUniversalTime();
             transaction.Amount = command.Amount;
             transaction.LeadId = command.LeadId;
             transaction.Notes = command.Notes;

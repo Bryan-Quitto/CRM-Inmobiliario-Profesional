@@ -29,6 +29,27 @@ public static class VolverAListarPropiedadFeature
                 return Results.NotFound();
             }
 
+            // Spec 011: Si la propiedad estaba cerrada con un Lead, revertir el Lead y limpiar transacciones
+            if (propiedad.CerradoConId.HasValue)
+            {
+                var lead = await context.Leads.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value && l.AgenteId == agenteId);
+                if (lead != null)
+                {
+                    lead.EtapaEmbudo = "En Negociación"; // Reversión lógica
+                    lead.FechaCierre = null;
+                }
+
+                // Eliminamos la transacción de cierre asociada
+                var transaccionesCierre = await context.PropertyTransactions
+                    .Where(t => t.PropertyId == id && t.LeadId == propiedad.CerradoConId.Value && (t.TransactionType == "Sale" || t.TransactionType == "Rent"))
+                    .ToListAsync();
+                
+                if (transaccionesCierre.Any())
+                {
+                    context.PropertyTransactions.RemoveRange(transaccionesCierre);
+                }
+            }
+
             // Actualizamos estado y limpiamos vinculación de cierre si existía
             propiedad.EstadoComercial = "Disponible";
             propiedad.CerradoConId = null;

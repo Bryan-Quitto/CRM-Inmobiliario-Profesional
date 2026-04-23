@@ -101,3 +101,40 @@
    - Añadir menú contextual (tres puntos) en cada ítem del `TimelineHistorial` con opciones "Editar" y "Eliminar".
    - **Zero-Wait:** Al eliminar, remover el ítem del timeline inmediatamente con `mutate(data.filter(...), false)` y mostrar Toast de "Undo" de 5 segundos.
    - En el modal de edición, usar pre-poblado rápido desde el caché local de SWR (tanto para la fecha de cierre como para el prospecto)
+
+   ---
+
+## FASE 5: Semántica de Reversión y Ciclos Sucesivos (World-Class UX)
+**Objetivo:** Diferenciar técnicamente entre un ciclo comercial que termina exitosamente (ej: fin de alquiler) y un trato que se cae (cancelación), preservando una auditoría estricta.
+
+### 1. Distinción de Acciones en Backend
+La capa de dominio no debe ejecutar comandos destructivos (`DELETE`). Se debe añadir una propiedad `TransactionStatus` (ej: "Active", "Completed", "Cancelled") a `PropertyTransaction`.
+
+- **Acción A: Relistado Natural (Fin de Ciclo)**
+  - **Uso:** El inquilino se mudó o el contrato terminó. Todo fue un éxito.
+  - **Lógica:** - `Property`: `EstadoComercial` -> "Disponible", `CerradoConId` -> NULL.
+    - `Lead`: **Sin cambios**. Permanece en su etapa actual (ej. "Cerrado").
+    - `Transaction`: La transacción original (`TransactionType = "Rent"`) cambia su `TransactionStatus` de "Active" a "Completed". Se inserta un nuevo registro de `PropertyTransaction` con `TransactionType = "Relisting"`.
+
+- **Acción B: Cancelación de Trato (Trato Caído)**
+  - **Uso:** El crédito fue negado o el prospecto se retiró antes de la firma.
+  - **Lógica:**
+    - `Property`: `EstadoComercial` -> "Disponible", `CerradoConId` -> NULL.
+    - `Lead`: **Reversión Automática** a "En Negociación".
+    - `Transaction`: La transacción original cambia su `TransactionStatus` a "Cancelled". **Estrictamente prohibido el borrado físico.** Esto preserva la métrica de "Tratos Caídos" para los reportes analíticos.
+
+### 2. Implementación en la UI (Frictionless UX)
+Al intentar cambiar el estado de una propiedad "Vendida/Alquilada" a "Disponible", interceptar con un **Modal de Decisión Semántica** (Zero-Wait):
+
+- **Opción 1: "Relistar por Fin de Contrato"** (Icono: Brújula/Refresh)
+  - Botón: "Comenzar nuevo ciclo".
+  - Subtexto: "El cliente actual mantendrá su historial de cierre exitoso".
+- **Opción 2: "Cancelar Operación (Trato Caído)"** (Icono: Alerta/X)
+  - Botón: "Anular operación".
+  - Subtexto: "El trato se registrará como caído y el cliente volverá a estar 'En Negociación'".
+
+### 3. Soporte para Alquileres Sucesivos Automáticos (Fast-Track)
+- Si una propiedad está "Alquilada" y el agente registra un *nuevo* cierre de alquiler con un prospecto distinto, el sistema debe automatizar la transición para evitar fricción.
+- **Transacción EF Core:** 1. Ejecuta la lógica de "Acción A: Relistado Natural" sobre la transacción activa anterior (la marca como "Completed").
+  2. Inmediatamente inserta la nueva transacción de "Rent" vinculando al nuevo `LeadId`.
+  3. Todo ocurre en una sola confirmación a la base de datos para mantener la integridad referencial.
