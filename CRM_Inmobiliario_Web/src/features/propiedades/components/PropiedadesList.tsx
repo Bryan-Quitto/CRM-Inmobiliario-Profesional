@@ -116,6 +116,7 @@ const PropiedadesContent = () => {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null); // 'filter' o id de propiedad
   const [statusConfirmation, setStatusConfirmation] = useState<{ id: string; nuevoEstado: string } | null>(null);
   const [closingPropiedad, setClosingPropiedad] = useState<{ propiedad: Propiedad; nuevoEstado: string } | null>(null);
+  const [showReversionModal, setShowReversionModal] = useState<{ type: 'status', id: string, targetStatus: string } | null>(null);
   
   // SINGLE SOURCE OF TRUTH: El ID viene directamente de la URL
   const selectedPropiedadId = searchParams.get('id');
@@ -165,8 +166,14 @@ const PropiedadesContent = () => {
       return;
     }
 
-    // Caso de INACTIVA (Limpieza simple)
-    if (nuevoEstado === 'Inactiva' && !confirmed) {
+    // Spec 011: Caso de RE-LISTADO (Si ya estaba cerrada y pasa a Disponible/Inactiva)
+    if ((nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && !confirmed) {
+      setShowReversionModal({ type: 'status', id, targetStatus: nuevoEstado });
+      return;
+    }
+
+    // Caso de INACTIVA (Limpieza simple - no cierre previo)
+    if (nuevoEstado === 'Inactiva' && !confirmed && propiedad.estadoComercial !== 'Vendida' && propiedad.estadoComercial !== 'Alquilada') {
       setStatusConfirmation({ id, nuevoEstado });
       return;
     }
@@ -189,45 +196,60 @@ const PropiedadesContent = () => {
         // Revalidación proactiva de analíticas y dashboard (UPSP)
         globalMutate('/dashboard/kpis');
         globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-      } catch {
-        toast.error('No se pudo actualizar el estado.');
+      } catch (error: any) {
+        if (nuevoEstado === 'Reservada' && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada')) {
+            toast.error("Acción no permitida", {
+                description: "Debe primero cambiar la propiedad a Disponible antes de reservarla."
+            });
+        } else {
+            toast.error(error.response?.data?.message || 'No se pudo actualizar el estado.');
+        }
       } finally {
         setUpdatingId(null);
       }
       return;
     }
 
-    // CASO 2: Cambio con limpieza (Vendida/Inactiva) - Usar Deshacer
+    // CASO 2: Cambio con limpieza o reversión - Usar Deshacer
     let isCancelled = false;
+    const isReversion = (nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada');
+
     const commitStatusChange = async () => {
       if (isCancelled) return;
 
       try {
         setUpdatingId(id);
         await actualizarEstadoPropiedad(id, nuevoEstado);
-        await limpiarImagenesPropiedad(id);
+        
+        // Solo limpiamos galería si pasa a Vendida o Inactiva (no si se está relistando)
+        if (nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva') {
+            await limpiarImagenesPropiedad(id);
+        }
+
         mutate();
         
         // Revalidación proactiva de analíticas y dashboard (UPSP)
         globalMutate('/dashboard/kpis');
         globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
 
-        toast.success(`Propiedad "${propiedad.titulo}" actualizada y depurada.`);
+        toast.success(isReversion ? "Cierre revertido con éxito" : `Propiedad "${propiedad.titulo}" actualizada y depurada.`);
       } catch {
-        toast.error("Error al procesar el cambio de estado masivo.");
+        toast.error("Error al procesar el cambio de estado.");
       } finally {
         setUpdatingId(null);
       }
     };
 
-    toast.warning(`Estado: ${nuevoEstado}`, {
-      description: "La galería ha sido depurada. Puedes deshacer esta acción.",
+    toast.warning(isReversion ? "Revirtiendo Cierre" : `Estado: ${nuevoEstado}`, {
+      description: isReversion 
+        ? "El cliente volverá a En Negociación. Tienes 5 segundos para deshacer."
+        : "La galería ha sido depurada. Tienes 5 segundos para deshacer.",
       action: {
         label: "Deshacer",
         onClick: () => {
           isCancelled = true;
           mutate(); // Vuelve a los datos originales de SWR
-          toast.success("Cambio de estado cancelado");
+          toast.success("Acción cancelada");
         },
       },
       duration: 6000,
@@ -634,6 +656,41 @@ const PropiedadesContent = () => {
           operacion: closingPropiedad.propiedad.operacion
         } : undefined}
       />
+
+      {/* Modal de Advertencia de Reversión (Spec 011) */}
+      {showReversionModal && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[600] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 text-center">
+              <div className="h-20 w-20 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="h-10 w-10 text-amber-600" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">¿Confirmar Reversión?</h3>
+              <p className="text-slate-500 font-medium mb-8 leading-relaxed">
+                Esta acción marcará al cliente vinculado como <span className="text-indigo-600 font-bold">En Negociación</span> y la transacción de cierre <span className="text-rose-600 font-bold">se perderá del historial</span> permanentemente.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => setShowReversionModal(null)} 
+                  className="flex-1 px-6 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => {
+                    const { id, targetStatus } = showReversionModal;
+                    setShowReversionModal(null);
+                    handleStatusChange(id, targetStatus, true);
+                  }} 
+                  className="flex-1 px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black shadow-xl transition-all cursor-pointer"
+                >
+                  Sí, revertir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

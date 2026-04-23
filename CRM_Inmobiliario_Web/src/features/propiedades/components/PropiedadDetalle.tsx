@@ -556,10 +556,21 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     handleReorder(ids);
   };
 
+  const [showReversionModal, setShowReversionModal] = useState<{ type: 'transaction' | 'status', id?: string, targetStatus?: string } | null>(null);
+
   const handleDeleteTransaction = async (transactionId: string) => {
     if (!historial) return;
 
-    // Pattern Undo
+    const transaction = historial.find(t => t.id === transactionId);
+    
+    // Si es una transacción de cierre, pedir confirmación especial
+    if (transaction && (transaction.transactionType === 'Sale' || transaction.transactionType === 'Rent')) {
+      setShowReversionModal({ type: 'transaction', id: transactionId });
+      setTransactionMenuOpen(null);
+      return;
+    }
+
+    // Pattern Undo para transacciones normales (ej. Relisting, Cancellation)
     let isCancelled = false;
     const previousHistorial = [...historial];
 
@@ -620,13 +631,13 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     }
 
     // Caso de RE-LISTADO (Si ya estaba cerrada)
-    if (nuevoEstado === 'Disponible' && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada')) {
-      handleRelist();
+    if ((nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && !confirmed) {
+      setShowReversionModal({ type: 'status', targetStatus: nuevoEstado });
       return;
     }
 
-    // Caso de INACTIVA (Limpieza simple)
-    if (nuevoEstado === 'Inactiva' && !confirmed) {
+    // Caso de INACTIVA (Limpieza simple - no cierre)
+    if (nuevoEstado === 'Inactiva' && !confirmed && propiedad.estadoComercial !== 'Vendida' && propiedad.estadoComercial !== 'Alquilada') {
       setStatusConfirmation(nuevoEstado);
       return;
     }
@@ -654,7 +665,13 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       })
       .catch((err) => {
         console.error('Error al cambiar estado:', err);
-        toast.error("Error al sincronizar el estado");
+        if (nuevoEstado === 'Reservada' && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada')) {
+            toast.error("Acción no permitida", {
+                description: "Debe primero cambiar la propiedad a Disponible antes de reservarla."
+            });
+        } else {
+            toast.error("Error al sincronizar el estado");
+        }
         mutate();
       });
   };
@@ -1110,6 +1127,72 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         }}
       />
 
+      {/* Modal de Advertencia de Reversión (Spec 011) */}
+      {showReversionModal && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[600] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 text-center">
+              <div className="h-20 w-20 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="h-10 w-10 text-amber-600" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">¿Confirmar Reversión?</h3>
+              <p className="text-slate-500 font-medium mb-8 leading-relaxed">
+                Esta acción marcará al cliente como <span className="text-indigo-600 font-bold">En Negociación</span> y la transacción de cierre <span className="text-rose-600 font-bold">se perderá del historial</span> permanentemente.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => setShowReversionModal(null)} 
+                  className="flex-1 px-6 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={async () => {
+                    const { type, id: transId, targetStatus } = showReversionModal;
+                    setShowReversionModal(null);
+                    
+                    if (type === 'transaction' && transId) {
+                      // Pattern Undo para reversión de cierre
+                      let isCancelled = false;
+                      const commitReversion = async () => {
+                        if (isCancelled) return;
+                        try {
+                          await deleteTransaction(transId);
+                          mutate();
+                          mutateHistorial();
+                          toast.success("Cierre revertido con éxito");
+                        } catch {
+                          toast.error("Error al revertir el cierre");
+                        }
+                      };
+
+                      toast.warning("Revirtiendo Cierre", {
+                        description: "El cliente volverá a En Negociación. Tienes 5 segundos para deshacer.",
+                        action: {
+                          label: "Deshacer",
+                          onClick: () => {
+                            isCancelled = true;
+                            toast.success("Reversión cancelada");
+                          }
+                        },
+                        duration: 5000,
+                        onAutoClose: commitReversion,
+                        onDismiss: commitReversion
+                      });
+                    } else if (type === 'status' && targetStatus) {
+                      handleStatusChange(targetStatus, true);
+                    }
+                  }} 
+                  className="flex-1 px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black shadow-xl transition-all cursor-pointer"
+                >
+                  Sí, revertir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {transactionToEdit && (
         <TransactionEditModal 
           transaction={transactionToEdit}
@@ -1128,7 +1211,16 @@ interface TransactionEditModalProps {
 }
 
 const TransactionEditModal = ({ transaction, onClose, onConfirm }: TransactionEditModalProps) => {
-  const [date, setDate] = useState(transaction.transactionDate.split('T')[0]);
+  // Corregir carga: Convertir UTC a string local YYYY-MM-DD
+  const getLocalDateString = (utcString: string) => {
+    const d = new Date(utcString);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [date, setDate] = useState(getLocalDateString(transaction.transactionDate));
   const [amount, setAmount] = useState<string>(transaction.amount?.toString() || '');
   const [leadId, setLeadId] = useState<string | null>(transaction.leadId || null);
   const [notes, setNotes] = useState(transaction.notes || '');
@@ -1137,8 +1229,12 @@ const TransactionEditModal = ({ transaction, onClose, onConfirm }: TransactionEd
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      // Corregir guardado: Crear fecha local y luego pasar a ISO
+      const [year, month, day] = date.split('-').map(Number);
+      const localDate = new Date(year, month - 1, day, 12, 0, 0); // Usamos mediodía local para evitar saltos
+
       await onConfirm({
-        transactionDate: new Date(date).toISOString(),
+        transactionDate: localDate.toISOString(),
         amount: amount ? Number(amount) : null,
         leadId,
         notes
