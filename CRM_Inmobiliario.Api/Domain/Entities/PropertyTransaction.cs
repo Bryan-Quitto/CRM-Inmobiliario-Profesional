@@ -20,6 +20,10 @@ public sealed class PropertyTransaction
     [MaxLength(50)]
     public string TransactionType { get; set; } = string.Empty; // "Sale", "Rent", "Cancellation", "Relisting"
 
+    [Required]
+    [MaxLength(20)]
+    public string TransactionStatus { get; set; } = "Active"; // "Active", "Completed", "Cancelled"
+
     public decimal? Amount { get; set; }
 
     [Required]

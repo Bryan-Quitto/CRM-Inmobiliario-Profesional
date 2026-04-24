@@ -19,11 +19,13 @@ import {
   ChevronDown,
   Check,
   Handshake,
-  Pencil
+  Pencil,
+  RotateCcw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedades } from '../api/getPropiedades';
 import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
+import { relistPropiedad } from '../api/relistPropiedad';
 import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import { CrearPropiedadForm } from './CrearPropiedadForm';
 import { PropiedadDetalle } from './PropiedadDetalle';
@@ -196,13 +198,14 @@ const PropiedadesContent = () => {
         // Revalidación proactiva de analíticas y dashboard (UPSP)
         globalMutate('/dashboard/kpis');
         globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-      } catch (error: any) {
+      } catch (error) {
+        const err = error as { response?: { data?: { message?: string } } };
         if (nuevoEstado === 'Reservada' && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada')) {
             toast.error("Acción no permitida", {
                 description: "Debe primero cambiar la propiedad a Disponible antes de reservarla."
             });
         } else {
-            toast.error(error.response?.data?.message || 'No se pudo actualizar el estado.');
+            toast.error(err.response?.data?.message || 'No se pudo actualizar el estado.');
         }
       } finally {
         setUpdatingId(null);
@@ -657,36 +660,123 @@ const PropiedadesContent = () => {
         } : undefined}
       />
 
-      {/* Modal de Advertencia de Reversión (Spec 011) */}
+      {/* Modal de Decisión Semántica (Spec 011 Fase 5) */}
       {showReversionModal && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[600] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-8 text-center">
-              <div className="h-20 w-20 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <AlertCircle className="h-10 w-10 text-amber-600" />
+          <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-10 text-center">
+              <div className="h-20 w-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <RotateCcw className="h-10 w-10 text-indigo-600" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">¿Confirmar Reversión?</h3>
-              <p className="text-slate-500 font-medium mb-8 leading-relaxed">
-                Esta acción marcará al cliente vinculado como <span className="text-indigo-600 font-bold">En Negociación</span> y la transacción de cierre <span className="text-rose-600 font-bold">se perderá del historial</span> permanentemente.
+              <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Ciclo de Vida</h3>
+              <p className="text-slate-500 font-medium mb-10 leading-relaxed px-4">
+                La propiedad está marcada como cerrada. <br/>¿Cómo deseas proceder con el re-listado?
               </p>
-              <div className="flex flex-col sm:flex-row gap-3">
+              
+              <div className="grid grid-cols-1 gap-4">
                 <button 
-                  onClick={() => setShowReversionModal(null)} 
-                  className="flex-1 px-6 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  onClick={() => {
+                  onClick={async () => {
                     const { id, targetStatus } = showReversionModal;
+                    const propiedad = propiedades.find(p => p.id === id);
                     setShowReversionModal(null);
-                    handleStatusChange(id, targetStatus, true);
-                  }} 
-                  className="flex-1 px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black shadow-xl transition-all cursor-pointer"
+                    
+                    if (!propiedad) return;
+
+                    // Pattern Undo
+                    let isCancelled = false;
+                    const commitRelist = async () => {
+                      if (isCancelled) return;
+                      try {
+                        await relistPropiedad(id, "Fin de contrato / Relistado natural", "Relist");
+                        mutate();
+                        toast.success("Nuevo ciclo comercial iniciado");
+                        
+                        // Revalidar analíticas
+                        globalMutate('/dashboard/kpis');
+                        globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+                      } catch {
+                        toast.error("Error al relistar");
+                      }
+                    };
+
+                    toast.info("Relistando...", {
+                      description: "Se mantendrá el historial de cierre del cliente. 5s para deshacer.",
+                      action: { label: "Deshacer", onClick: () => { isCancelled = true; toast.success("Acción cancelada"); } },
+                      duration: 5000,
+                      onAutoClose: commitRelist,
+                      onDismiss: commitRelist
+                    });
+                    
+                    mutate(propiedades.map(p => p.id === id ? { ...p, estadoComercial: targetStatus } : p), false);
+                  }}
+                  className="group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-indigo-600 transition-all hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer"
                 >
-                  Sí, revertir
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <RotateCcw size={24} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Relistar (Fin de Contrato)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Comenzar nuevo ciclo comercial</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button 
+                  onClick={async () => {
+                    const { id, targetStatus } = showReversionModal;
+                    const propiedad = propiedades.find(p => p.id === id);
+                    setShowReversionModal(null);
+
+                    if (!propiedad) return;
+
+                    // Pattern Undo
+                    let isCancelled = false;
+                    const commitCancel = async () => {
+                      if (isCancelled) return;
+                      try {
+                        await relistPropiedad(id, "Operación anulada / Trato caído", "Cancel");
+                        mutate();
+                        toast.success("Operación cancelada con éxito");
+                        
+                        // Revalidar analíticas
+                        globalMutate('/dashboard/kpis');
+                        globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+                      } catch {
+                        toast.error("Error al cancelar la operación");
+                      }
+                    };
+
+                    toast.warning("Anulando Operación", {
+                      description: "El trato se marcará como caído y el cliente revertirá a Negociación. 5s para deshacer.",
+                      action: { label: "Deshacer", onClick: () => { isCancelled = true; toast.success("Acción cancelada"); } },
+                      duration: 5000,
+                      onAutoClose: commitCancel,
+                      onDismiss: commitCancel
+                    });
+
+                    mutate(propiedades.map(p => p.id === id ? { ...p, estadoComercial: targetStatus } : p), false);
+                  }}
+                  className="group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-rose-600 transition-all hover:shadow-xl hover:shadow-rose-500/10 cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                      <AlertCircle size={24} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Cancelar (Trato Caído)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">El cliente volverá a negociación</p>
+                    </div>
+                  </div>
                 </button>
               </div>
+
+              <button 
+                onClick={() => setShowReversionModal(null)} 
+                className="mt-8 text-xs font-black text-slate-400 uppercase tracking-[0.2em] hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                Volver atrás
+              </button>
             </div>
           </div>
         </div>

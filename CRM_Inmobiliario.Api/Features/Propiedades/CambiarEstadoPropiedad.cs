@@ -34,8 +34,11 @@ public static class CambiarEstadoPropiedadFeature
 
             try
             {
+                var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
+
                 // 1. LECTURAS
                 var property = await context.Properties
+                    .Include(p => p.Transactions.Where(t => t.TransactionStatus == "Active"))
                     .FirstOrDefaultAsync(p => p.Id == id && p.AgenteId == agenteId, ct);
 
                 if (property == null)
@@ -48,10 +51,22 @@ public static class CambiarEstadoPropiedadFeature
                 if (command.NuevoEstado == "Reservada" && (property.EstadoComercial is "Vendida" or "Alquilada"))
                 {
                     logger.LogWarning("⚠️ [ESTADO] Intento de reservar propiedad ya cerrada {Id}", id);
-                    return Results.BadRequest(new { Message = "No puedes reservar una propiedad que ya está vendida o alquilada. Primero debes eliminar el registro de cierre en el historial." });
+                    return Results.BadRequest(new { Message = "No puedes reservar una propiedad que ya está vendida o alquilada. Primero debes marcarla como Disponible." });
                 }
 
                 var esCierre = command.NuevoEstado is "Vendida" or "Alquilada";
+                
+                // Soporte para Alquileres Sucesivos Automáticos (Fase 5 item 3)
+                bool esAlquilerSucesivo = property.EstadoComercial == "Alquilada" 
+                                          && command.NuevoEstado == "Alquilada" 
+                                          && command.CerradoConId.HasValue 
+                                          && command.CerradoConId != property.CerradoConId;
+
+                // Spec 011 Fase 5 item 3 & User Feedback:
+                // Si la propiedad ya tiene un titular de cierre (CerradoConId) y se está registrando un NUEVO cierre
+                // (sea el mismo Lead o uno distinto), debemos completar el ciclo anterior automáticamente.
+                bool requiereRelistadoAutomatico = property.CerradoConId.HasValue && esCierre && !esAlquilerSucesivo;
+
                 Domain.Entities.Lead? lead = null;
 
                 if (esCierre && command.CerradoConId.HasValue)
@@ -59,65 +74,81 @@ public static class CambiarEstadoPropiedadFeature
                     logger.LogInformation("👤 [ESTADO] Buscando Lead asociado: {LeadId}", command.CerradoConId.Value);
                     lead = await context.Leads
                         .FirstOrDefaultAsync(l => l.Id == command.CerradoConId.Value && l.AgenteId == agenteId, ct);
-
-                    if (lead == null)
-                    {
-                        logger.LogWarning("⚠️ [ESTADO] Lead {LeadId} no encontrado", command.CerradoConId.Value);
-                    }
                 }
                 
-                // 2. MODIFICACIONES EN MEMORIA
-                logger.LogInformation("📝 [ESTADO] Actualizando campos de la propiedad...");
-                
-                // Spec 011: Si la propiedad estaba cerrada y ahora cambia a un estado disponible/inactivo, revertir el Lead y limpiar transacciones
+                if (requiereRelistadoAutomatico)
+                {
+                    logger.LogInformation("🔄 [ESTADO] Relistado automático detectado por transición entre estados de cierre.");
+                    
+                    // Finalizamos transacciones activas previas
+                    foreach (var t in property.Transactions.Where(t => t.TransactionStatus == "Active"))
+                    {
+                        t.TransactionStatus = "Completed";
+                    }
+
+                    // Insertamos hito de relistado natural automático
+                    context.PropertyTransactions.Add(new Domain.Entities.PropertyTransaction
+                    {
+                        Id = Guid.NewGuid(),
+                        PropertyId = property.Id,
+                        TransactionType = "Relisting",
+                        TransactionStatus = "Completed",
+                        TransactionDate = ecuadorNow.AddTicks(-1), // Un tick antes para orden cronológico
+                        Notes = "Relistado automático por transición de estado comercial.",
+                        CreatedById = agenteId
+                    });
+                }
+                else if (property.Transactions.Any(t => t.TransactionStatus == "Active"))
+                {
+                    foreach (var t in property.Transactions.Where(t => t.TransactionStatus == "Active"))
+                    {
+                        // Si es un cambio de estado comercial (de cierre a disponible/otro), marcamos como Completed
+                        if (!esCierre || esAlquilerSucesivo)
+                        {
+                            t.TransactionStatus = "Completed";
+                        }
+                    }
+                }
+
+                // Si no es cierre y tenía un Lead vinculado, lo revertimos (Lógica por defecto si no se usa /relist)
                 if (!esCierre && property.CerradoConId.HasValue)
                 {
-                    logger.LogInformation("🔄 [ESTADO] Revirtiendo cierre de propiedad {Id}. Limpiando Lead y Transacciones.", id);
-                    
-                    // 1. Revertir Lead
                     var leadToRevert = await context.Leads.FirstOrDefaultAsync(l => l.Id == property.CerradoConId.Value && l.AgenteId == agenteId, ct);
                     if (leadToRevert != null)
                     {
                         leadToRevert.EtapaEmbudo = "En Negociación";
                         leadToRevert.FechaCierre = null;
                     }
-
-                    // 2. Eliminar la transacción de cierre (Sale/Rent) asociada
-                    var transaccionesCierre = await context.PropertyTransactions
-                        .Where(t => t.PropertyId == id && t.LeadId == property.CerradoConId.Value && (t.TransactionType == "Sale" || t.TransactionType == "Rent"))
-                        .ToListAsync(ct);
-                    
-                    if (transaccionesCierre.Any())
-                    {
-                        logger.LogInformation("🗑️ [ESTADO] Eliminando {Count} transacciones de cierre asociadas.", transaccionesCierre.Count);
-                        context.PropertyTransactions.RemoveRange(transaccionesCierre);
-                    }
                 }
 
                 property.EstadoComercial = command.NuevoEstado;
-                property.FechaCierre = esCierre ? DateTimeOffset.UtcNow : null;
+                property.FechaCierre = esCierre ? ecuadorNow : null;
                 property.PrecioCierre = esCierre ? command.PrecioCierre : null;
                 property.CerradoConId = esCierre ? command.CerradoConId : null;
 
                 if (esCierre && lead != null)
                 {
                     lead.EtapaEmbudo = "Cerrado";
-                    lead.FechaCierre = DateTimeOffset.UtcNow;
+                    lead.FechaCierre = ecuadorNow;
 
-                    var operacion = property.Operacion is "Alquiler" ? "Alquiler" : "Venta";
+                    // Spec 011: Determinar tipo de transacción basado en el estado final alcanzado
+                    var tipoTransaccion = command.NuevoEstado == "Alquilada" ? "Rent" : "Sale";
 
                     // Fase 1 Spec 011: Registrar la transacción para el historial inmobiliario
-                    logger.LogInformation("📄 [ESTADO] Creando registro de transacción PropertyTransaction...");
+                    logger.LogInformation("📄 [ESTADO] Creando registro de transacción PropertyTransaction tipo {Tipo}...", tipoTransaccion);
                     context.PropertyTransactions.Add(new Domain.Entities.PropertyTransaction
                     {
                         Id = Guid.NewGuid(),
                         PropertyId = property.Id,
                         LeadId = lead.Id,
-                        TransactionType = operacion == "Alquiler" ? "Rent" : "Sale",
+                        TransactionType = tipoTransaccion,
+                        TransactionStatus = "Active", // Nueva transacción activa
                         Amount = command.PrecioCierre ?? property.Precio,
-                        TransactionDate = DateTimeOffset.UtcNow,
+                        TransactionDate = ecuadorNow,
                         CreatedById = agenteId,
-                        Notes = $"Cierre realizado desde el detalle de la propiedad. Marcada como {command.NuevoEstado}."
+                        Notes = esAlquilerSucesivo 
+                            ? $"Alquiler sucesivo registrado. El inquilino anterior finalizó su ciclo."
+                            : $"Cierre realizado desde el detalle de la propiedad. Marcada como {command.NuevoEstado}."
                     });
 
                     context.Interactions.Add(new Domain.Entities.Interaction

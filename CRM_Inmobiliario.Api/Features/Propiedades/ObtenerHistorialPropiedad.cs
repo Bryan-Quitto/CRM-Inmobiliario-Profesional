@@ -13,6 +13,7 @@ public static class ObtenerHistorialPropiedadFeature
     public record Response(
         Guid Id,
         string TransactionType,
+        string TransactionStatus,
         decimal? Amount,
         DateTimeOffset TransactionDate,
         string? Notes,
@@ -34,6 +35,7 @@ public static class ObtenerHistorialPropiedadFeature
                 .Select(t => new Response(
                     t.Id,
                     t.TransactionType,
+                    t.TransactionStatus,
                     t.Amount,
                     t.TransactionDate,
                     t.Notes,

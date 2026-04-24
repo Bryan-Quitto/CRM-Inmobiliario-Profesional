@@ -138,3 +138,16 @@ Al intentar cambiar el estado de una propiedad "Vendida/Alquilada" a "Disponible
 - **Transacción EF Core:** 1. Ejecuta la lógica de "Acción A: Relistado Natural" sobre la transacción activa anterior (la marca como "Completed").
   2. Inmediatamente inserta la nueva transacción de "Rent" vinculando al nuevo `LeadId`.
   3. Todo ocurre en una sola confirmación a la base de datos para mantener la integridad referencial.
+
+### NOTAS DE INTERACCIÓN (Dropdown de Propiedades)
+
+1. **Casos desde el Dropdown de Estado:**
+   **a. De Alquilada a cualquier estado:**
+      - Si cambia a `Vendida`: El sistema debe mostrar un modal exigiendo el **Precio de Cierre** Y el **Lead (Prospecto)** comprador. Al confirmar, la transacción de alquiler anterior pasa a `Completed` y se genera la nueva de `Sale`.
+   
+   **b. De Vendida a cualquier estado:**
+      - Si cambia a `Disponible` o `Inactiva`: **NO asumir anulación automática**. Debe saltar el Modal de Decisión Semántica (Relistar Nuevo Ciclo vs Cancelar Trato Caído). Si se elige Cancelar, la `TransactionDate` de anulación debe inyectarse estrictamente bajo `.ToOffset(TimeSpan.FromHours(-5))`.
+      - Si cambia a `Alquilada`: Mostrar modal exigiendo **Precio de Alquiler** Y el **Lead (Prospecto)** inquilino. La transacción de venta original pasa a `Completed` (el dueño ahora la pone en alquiler).
+
+   **c. Regla de Reservas (Guardrail):**
+      - Si el cambio es hacia `Reservada` desde un estado de cierre (Vendida/Alquilada), bloquear la acción con un toast de error (Zero-Wait) indicando: "Debe marcar la propiedad como Disponible antes de poder reservarla nuevamente."

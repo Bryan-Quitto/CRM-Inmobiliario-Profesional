@@ -36,6 +36,7 @@ public static class RevertirEstadoClienteFeature
             {
                 // Buscamos propiedades donde este cliente era el titular del cierre
                 var propiedadesACancelar = await context.Properties
+                    .Include(p => p.Transactions.Where(t => t.TransactionStatus == "Active"))
                     .Where(p => p.CerradoConId == id && p.AgenteId == agenteId)
                     .ToListAsync();
 
@@ -46,12 +47,22 @@ public static class RevertirEstadoClienteFeature
                     prop.FechaCierre = null;
                     prop.PrecioCierre = null;
 
+                    // Marcamos transacciones activas de cierre como canceladas
+                    var transaccionesActivas = prop.Transactions
+                        .Where(t => t.TransactionType == "Sale" || t.TransactionType == "Rent");
+                    
+                    foreach(var t in transaccionesActivas)
+                    {
+                        t.TransactionStatus = "Cancelled";
+                    }
+
                     context.PropertyTransactions.Add(new PropertyTransaction
                     {
                         Id = Guid.NewGuid(),
                         PropertyId = prop.Id,
                         LeadId = id,
                         TransactionType = "Cancellation",
+                        TransactionStatus = "Completed",
                         TransactionDate = ecuadorNow,
                         Notes = request.Notas ?? $"Cierre revertido por cambio de etapa del cliente. {prop.Titulo}",
                         CreatedById = agenteId
