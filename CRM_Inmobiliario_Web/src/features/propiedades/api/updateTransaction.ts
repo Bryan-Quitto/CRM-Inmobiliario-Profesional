@@ -2,6 +2,7 @@ import { api } from '@/lib/axios';
 
 export interface UpdateTransactionRequest {
   transactionDate: string;
+  transactionType?: string | null;
   amount?: number | null;
   leadId?: string | null;
   notes?: string | null;

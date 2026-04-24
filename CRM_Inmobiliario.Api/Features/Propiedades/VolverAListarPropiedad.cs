@@ -11,7 +11,7 @@ namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class VolverAListarPropiedadFeature
 {
-    public record Request(string? Notas);
+    public record Request(string? Notas, string Mode = "Relist"); // "Relist" (Natural) o "Cancel" (Trato Caído)
 
     public static RouteHandlerBuilder MapVolverAListarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -19,9 +19,11 @@ public static class VolverAListarPropiedadFeature
         {
             var agenteId = user.GetRequiredUserId();
             var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
+            var mode = request?.Mode ?? "Relist";
 
             // Cargamos la propiedad para validar y actualizar
             var propiedad = await context.Properties
+                .Include(p => p.Transactions.Where(t => t.TransactionStatus == "Active"))
                 .FirstOrDefaultAsync(p => p.Id == id && p.AgenteId == agenteId);
 
             if (propiedad is null)
@@ -29,48 +31,73 @@ public static class VolverAListarPropiedadFeature
                 return Results.NotFound();
             }
 
-            // Spec 011: Si la propiedad estaba cerrada con un Lead, revertir el Lead y limpiar transacciones
-            if (propiedad.CerradoConId.HasValue)
+            // Identificamos la transacción de cierre activa (Sale o Rent)
+            var transaccionActiva = propiedad.Transactions
+                .FirstOrDefault(t => t.TransactionType == "Sale" || t.TransactionType == "Rent");
+
+            if (mode == "Cancel")
             {
-                var lead = await context.Leads.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value && l.AgenteId == agenteId);
-                if (lead != null)
+                // Acción B: Cancelación de Trato (Trato Caído)
+                if (propiedad.CerradoConId.HasValue)
                 {
-                    lead.EtapaEmbudo = "En Negociación"; // Reversión lógica
-                    lead.FechaCierre = null;
+                    var lead = await context.Leads.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value && l.AgenteId == agenteId);
+                    if (lead != null)
+                    {
+                        lead.EtapaEmbudo = "En Negociación"; // Reversión automática
+                        lead.FechaCierre = null;
+                    }
                 }
 
-                // Eliminamos la transacción de cierre asociada
-                var transaccionesCierre = await context.PropertyTransactions
-                    .Where(t => t.PropertyId == id && t.LeadId == propiedad.CerradoConId.Value && (t.TransactionType == "Sale" || t.TransactionType == "Rent"))
-                    .ToListAsync();
-                
-                if (transaccionesCierre.Any())
+                if (transaccionActiva != null)
                 {
-                    context.PropertyTransactions.RemoveRange(transaccionesCierre);
+                    transaccionActiva.TransactionStatus = "Cancelled"; // Prohibido borrado físico
                 }
+
+                // Registramos la transacción de cancelación para el historial
+                context.PropertyTransactions.Add(new PropertyTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    PropertyId = id,
+                    LeadId = propiedad.CerradoConId,
+                    TransactionType = "Cancellation",
+                    TransactionStatus = "Completed",
+                    TransactionDate = ecuadorNow,
+                    Notes = request?.Notas ?? "Trato caído. Operación anulada.",
+                    CreatedById = agenteId
+                });
+            }
+            else
+            {
+                // Acción A: Relistado Natural (Fin de Ciclo)
+                if (transaccionActiva != null)
+                {
+                    transaccionActiva.TransactionStatus = "Completed";
+                }
+
+                // Registramos la transacción de relistado
+                context.PropertyTransactions.Add(new PropertyTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    PropertyId = id,
+                    TransactionType = "Relisting",
+                    TransactionStatus = "Completed",
+                    TransactionDate = ecuadorNow,
+                    Notes = request?.Notas ?? "Fin de ciclo comercial. Propiedad relistada.",
+                    CreatedById = agenteId
+                });
+                
+                // Nota: El Lead permanece en su estado actual (Cerrado) según Spec
             }
 
-            // Actualizamos estado y limpiamos vinculación de cierre si existía
+            // Actualizamos estado de la propiedad
             propiedad.EstadoComercial = "Disponible";
             propiedad.CerradoConId = null;
             propiedad.FechaCierre = null;
             propiedad.PrecioCierre = null;
 
-            // Registramos la transacción histórica
-            var transaccion = new PropertyTransaction
-            {
-                Id = Guid.NewGuid(),
-                PropertyId = id,
-                TransactionType = "Relisting",
-                TransactionDate = ecuadorNow,
-                Notes = request?.Notas ?? "Propiedad vuelta a listar automáticamente.",
-                CreatedById = agenteId
-            };
-
-            context.PropertyTransactions.Add(transaccion);
             await context.SaveChangesAsync();
 
-            return Results.Ok(new { Message = "Propiedad vuelta a listar con éxito" });
+            return Results.Ok(new { Message = mode == "Cancel" ? "Operación cancelada con éxito" : "Propiedad relistada con éxito" });
         })
         .WithTags("Propiedades")
         .WithName("VolverAListarPropiedad");

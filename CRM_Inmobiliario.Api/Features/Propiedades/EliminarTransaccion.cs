@@ -61,7 +61,10 @@ public static class EliminarTransaccionFeature
                 property.CerradoConId = null;
             }
 
-            context.PropertyTransactions.Remove(transaction);
+            // Phase 5: Estrictamente prohibido el borrado físico.
+            transaction.TransactionStatus = "Cancelled";
+            transaction.Notes = (transaction.Notes ?? "") + " [Anulado por el agente]";
+            
             await context.SaveChangesAsync(ct);
 
             // 3. Invalidar caches e informar al warming service

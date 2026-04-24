@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR, { SWRConfig } from 'swr';
-import { 
-  X, 
-  Bed, 
-  Bath, 
-  Maximize, 
-  MapPin, 
+import {
+  X,
+  Bed,
+  Bath,
+  Maximize,
+  MapPin,
   Loader2,
   Clock,
   Pencil,
@@ -13,18 +13,16 @@ import {
   Check,
   AlertCircle,
   Handshake,
-  Plus,
-  MessageSquare,
-  Globe,
   Car,
   CalendarDays,
   History,
   RotateCcw,
   TrendingUp,
-  MoreVertical,
   Trash2,
-  Edit3,
-  User
+  MoreVertical,
+  Plus,
+  MessageSquare,
+  Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPropiedadById } from '../api/getPropiedadById';
@@ -47,7 +45,7 @@ import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
 import { SectionalGallery } from './SectionalGallery';
 import PDFLinkInternal from './PDFLinkInternal';
-import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
+
 import type { Propiedad, SeccionGaleria } from '../types';
 
 interface PropiedadDetalleProps {
@@ -139,57 +137,19 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
-  const [transactionToEdit, setTransactionToEdit] = useState<PropertyTransactionResponse | null>(null);
   const [transactionMenuOpen, setTransactionMenuOpen] = useState<string | null>(null);
-
-  const handleRelist = async () => {
-    if (!propiedad) return;
-
-    // Pattern Undo
-    let isCancelled = false;
-    const commitRelist = async () => {
-      if (isCancelled) return;
-      try {
-        await relistPropiedad(propiedad.id);
-        mutate();
-        mutateHistorial();
-        toast.success("Propiedad vuelta a listar");
-      } catch {
-        toast.error("Error al volver a listar");
-        mutate();
-      }
-    };
-
-    toast.info("Volviendo a listar...", {
-      description: "La propiedad pasará a Disponible. Tienes 5 segundos para deshacer.",
-      action: {
-        label: "Deshacer",
-        onClick: () => {
-          isCancelled = true;
-          mutate();
-          toast.success("Acción cancelada");
-        }
-      },
-      duration: 5000,
-      onAutoClose: commitRelist,
-      onDismiss: commitRelist
-    });
-
-    // Optimistic UI
-    mutate((prev) => prev ? { ...prev, estadoComercial: 'Disponible' } : prev, false);
-  };
 
   const handleClosingConfirm = async (precioCierre: number, cerradoConId: string) => {
     if (!propiedad) return;
     try {
       setIsUpdatingStatus(true);
       await actualizarEstadoPropiedad(propiedad.id, propiedad.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida', precioCierre, cerradoConId);
-      
+
       // Si es Venta, también limpiamos la galería
       if (propiedad.operacion !== 'Alquiler') {
         await limpiarImagenesPropiedad(propiedad.id);
       }
-      
+
       await mutate();
       toast.success(`Propiedad ${propiedad.operacion === 'Alquiler' ? 'alquilada' : 'vendida'} con éxito`);
       setIsClosingModalOpen(false);
@@ -207,8 +167,8 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       await establecerImagenPrincipal(propiedad.id, imagenId);
       mutate();
       if (onCoverUpdated) {
-        const principal = propiedad.mediaSinSeccion?.find(m => m.id === imagenId) || 
-                          propiedad.secciones?.flatMap(s => s.media).find(m => m.id === imagenId);
+        const principal = propiedad.mediaSinSeccion?.find(m => m.id === imagenId) ||
+          propiedad.secciones?.flatMap(s => s.media).find(m => m.id === imagenId);
         if (principal) onCoverUpdated(principal.urlPublica);
       }
       toast.success('Imagen de portada actualizada');
@@ -220,7 +180,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const handleDeleteMedia = async (ids: string | string[]) => {
     if (!propiedad) return;
     const idsArray = Array.isArray(ids) ? ids : [ids];
-    
+
     // Pattern Undo
     let isCancelled = false;
     const commitDelete = async () => {
@@ -279,10 +239,10 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
     const nombreNuevaSeccion = newSectionName.trim();
     const orden = (propiedad.secciones?.length || 0) + 1;
-    
+
     // Guardar estado previo para revertir si falla
     const previousSecciones = [...(propiedad.secciones || [])];
-    
+
     // Nueva sección temporal para UI Optimista con clientId estable
     const tempId = `temp-${Date.now()}`;
     const nuevaSeccionTemp: SeccionGaleria & { clientId?: string } = {
@@ -308,18 +268,18 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     try {
       setIsAddingSection(true);
       const nuevaSeccionReal = await crearSeccion(id, nombreNuevaSeccion, orden);
-      
+
       // Actualizamos el cache con la sección real pero manteniendo el clientId para la key
       mutate((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          secciones: prev.secciones?.map(s => 
+          secciones: prev.secciones?.map(s =>
             s.id === tempId ? { ...nuevaSeccionReal, clientId: tempId } : s
           )
         };
       }, false);
-      
+
       toast.success("Sección creada");
     } catch {
       toast.error("Error al crear sección");
@@ -332,10 +292,10 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
   const handleDeleteSection = async (sectionId: string) => {
     if (!propiedad) return;
-    
+
     // Optimistic UI: Guardar estado previo por si falla
     const previousSecciones = [...(propiedad.secciones || [])];
-    
+
     // Pattern Undo
     let isCancelled = false;
     const commitDelete = async () => {
@@ -487,7 +447,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     };
 
     const emojiTipo = emojiMap[propiedad.tipoPropiedad] || '\u{1F3E0}';
-    
+
     // Emojis auxiliares
     const e = {
       wave: '\u{1F44B}',     // 👋
@@ -503,7 +463,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
     let message = `¡Hola! ${e.wave} Mira esta increíble propiedad que te puede interesar:\n\n`;
     message += `*${propiedad.titulo.toUpperCase()}* ${emojiTipo}${e.sparkle}\n\n`;
-    
+
     message += `${e.money} *Precio:* ${formatCurrency(propiedad.precio)}\n`;
     message += `${e.pin} *Ubicación:* ${propiedad.sector}, ${propiedad.ciudad}\n`;
     message += `${e.clipboard} *Operación:* ${propiedad.operacion}\n`;
@@ -538,15 +498,15 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     // Usamos api.whatsapp.com que suele ser más estable para mensajes largos
     const text = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?text=${text}`;
-    
+
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleMoveSection = (index: number, direction: 'up' | 'down', customTargetIndex?: number) => {
     if (!propiedad?.secciones || isReordering) return;
-    
+
     const newIndex = customTargetIndex !== undefined ? customTargetIndex : (direction === 'up' ? index - 1 : index + 1);
-    
+
     if (newIndex < 0 || newIndex >= propiedad.secciones.length || newIndex === index) return;
 
     const ids = propiedad.secciones.map(s => s.id);
@@ -562,7 +522,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     if (!historial) return;
 
     const transaction = historial.find(t => t.id === transactionId);
-    
+
     // Si es una transacción de cierre, pedir confirmación especial
     if (transaction && (transaction.transactionType === 'Sale' || transaction.transactionType === 'Rent')) {
       setShowReversionModal({ type: 'transaction', id: transactionId });
@@ -606,23 +566,35 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     setTransactionMenuOpen(null);
   };
 
-  const handleUpdateTransaction = async (data: { transactionDate: string; amount: number | null; leadId: string | null; notes: string | null }) => {
-    if (!transactionToEdit) return;
-
+  const handleInlineUpdateNote = async (transaction: PropertyTransactionResponse, newNotes: string) => {
     try {
-      await updateTransaction(transactionToEdit.id, data);
+      await updateTransaction(transaction.id, {
+        transactionDate: transaction.transactionDate,
+        transactionType: transaction.transactionType,
+        amount: transaction.amount,
+        leadId: transaction.leadId,
+        notes: newNotes
+      });
       mutate();
       mutateHistorial();
-      toast.success("Historial actualizado");
-      setTransactionToEdit(null);
+      toast.success("Nota actualizada");
     } catch {
-      toast.error("Error al actualizar registro");
+      toast.error("Error al actualizar la nota");
     }
   };
 
   const handleStatusChange = (nuevoEstado: string, confirmed = false) => {
     if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
     setIsStatusDropdownOpen(false);
+
+    // Evitar salto directo entre estados cerrados sin pasar por Disponible
+    const esEstadoCerrado = (estado: string) => estado === 'Vendida' || estado === 'Alquilada';
+    if (esEstadoCerrado(propiedad.estadoComercial) && esEstadoCerrado(nuevoEstado) && !confirmed) {
+      toast.error("Transición inválida", {
+        description: `La propiedad está ${propiedad.estadoComercial}. Debes pasarla a 'Disponible' (Relistar) antes de registrar una nueva operación.`
+      });
+      return;
+    }
 
     // Caso de CIERRE (Venta/Alquiler)
     if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && !confirmed) {
@@ -666,11 +638,11 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       .catch((err) => {
         console.error('Error al cambiar estado:', err);
         if (nuevoEstado === 'Reservada' && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada')) {
-            toast.error("Acción no permitida", {
-                description: "Debe primero cambiar la propiedad a Disponible antes de reservarla."
-            });
+          toast.error("Acción no permitida", {
+            description: "Debe primero cambiar la propiedad a Disponible antes de reservarla."
+          });
         } else {
-            toast.error("Error al sincronizar el estado");
+          toast.error("Error al sincronizar el estado");
         }
         mutate();
       });
@@ -693,7 +665,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   return (
     <div className="fixed inset-0 z-[200] flex justify-end">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-300 cursor-pointer" onClick={onClose} />
-      
+
       <div className="relative w-full md:w-[700px] lg:w-[850px] bg-white h-full shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-500 ease-out">
         {syncing && (
           <div className="fixed top-24 right-8 z-[100] animate-in slide-in-from-top-4 duration-300">
@@ -716,7 +688,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           <div className="flex gap-2">
             <PDFLinkInternal propiedad={propiedad} />
 
-            <button 
+            <button
               onClick={handleWhatsAppShare}
               className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 group/wa cursor-pointer"
               title="Compartir por WhatsApp"
@@ -724,19 +696,19 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
               <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
             </button>
 
-            <button 
+            <button
               onClick={() => setShowEditModal(true)}
               className="px-4 py-1.5 bg-white border-2 border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
             >
               <Pencil className="h-3 w-3 text-indigo-600" />
               Editar
             </button>
-            
+
             {/* Dropdown de Estado */}
             <div className="relative">
-              <button 
-                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)} 
-                disabled={isUpdatingStatus} 
+              <button
+                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                disabled={isUpdatingStatus}
                 className={`cursor-pointer ${`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 ${propiedad.estadoComercial === 'Disponible' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-white'}`}`}
               >
                 {isUpdatingStatus ? <Loader2 className="h-3 w-3 animate-spin" /> : propiedad.estadoComercial}
@@ -754,7 +726,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         </div>
 
         <div className="p-8 space-y-12 pb-24">
-            {/* Info Principal */}
+          {/* Info Principal */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -784,59 +756,59 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           {/* Estadísticas Inteligentes */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {[
-              { 
-                label: 'Área Construcción', 
-                value: propiedad.areaConstruccion ? `${propiedad.areaConstruccion} m²` : `${propiedad.areaTotal} m²`, 
-                icon: Maximize, 
+              {
+                label: 'Área Construcción',
+                value: propiedad.areaConstruccion ? `${propiedad.areaConstruccion} m²` : `${propiedad.areaTotal} m²`,
+                icon: Maximize,
                 color: 'amber',
                 show: true
               },
-              { 
-                label: 'Área Terreno', 
-                value: `${propiedad.areaTerreno} m²`, 
-                icon: MapPin, 
+              {
+                label: 'Área Terreno',
+                value: `${propiedad.areaTerreno} m²`,
+                icon: MapPin,
                 color: 'orange',
                 show: !!propiedad.areaTerreno && propiedad.areaTerreno > 0
               },
-              { 
-                label: 'Habitaciones', 
-                value: propiedad.habitaciones, 
-                icon: Bed, 
+              {
+                label: 'Habitaciones',
+                value: propiedad.habitaciones,
+                icon: Bed,
                 color: 'blue',
                 show: ['Casa', 'Departamento', 'Suite', 'Hotel'].includes(propiedad.tipoPropiedad)
               },
-              { 
-                label: 'Baños', 
-                value: propiedad.banos + (propiedad.mediosBanos ? ` y ${propiedad.mediosBanos} medios` : ''), 
-                icon: Bath, 
+              {
+                label: 'Baños',
+                value: propiedad.banos + (propiedad.mediosBanos ? ` y ${propiedad.mediosBanos} medios` : ''),
+                icon: Bath,
                 color: 'emerald',
                 show: propiedad.tipoPropiedad !== 'Terreno'
               },
-              { 
-                label: 'Parqueaderos', 
-                value: propiedad.estacionamientos, 
-                icon: Car, 
+              {
+                label: 'Parqueaderos',
+                value: propiedad.estacionamientos,
+                icon: Car,
                 color: 'indigo',
                 show: !!propiedad.estacionamientos && propiedad.estacionamientos > 0
               },
-              { 
-                label: 'Antigüedad', 
-                value: `${propiedad.aniosAntiguedad} años`, 
-                icon: CalendarDays, 
+              {
+                label: 'Antigüedad',
+                value: `${propiedad.aniosAntiguedad} años`,
+                icon: CalendarDays,
                 color: 'slate',
                 show: !!propiedad.aniosAntiguedad && propiedad.aniosAntiguedad >= 0
               },
-              { 
-                label: 'Comisión', 
-                value: `${propiedad.porcentajeComision}%`, 
-                icon: Handshake, 
+              {
+                label: 'Comisión',
+                value: `${propiedad.porcentajeComision}%`,
+                icon: Handshake,
                 color: 'indigo',
                 show: true
               },
-              { 
-                label: 'Registro', 
-                value: formatDate(propiedad.fechaIngreso), 
-                icon: Clock, 
+              {
+                label: 'Registro',
+                value: formatDate(propiedad.fechaIngreso),
+                icon: Clock,
                 color: 'slate',
                 show: true
               }
@@ -870,11 +842,11 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                     allowFullScreen
                     src={getMapEmbedUrl(propiedad.googleMapsUrl, `${propiedad.direccion} ${propiedad.sector} ${propiedad.ciudad}`)}
                   ></iframe>
-                  
+
                   {/* Botón superior izquierdo que tapa el nativo de Google */}
-                  <a 
-                    href={propiedad.googleMapsUrl} 
-                    target="_blank" 
+                  <a
+                    href={propiedad.googleMapsUrl}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="absolute top-2 left-2 bg-white px-6 py-3 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] text-[11px] font-black uppercase tracking-[0.15em] text-slate-900 hover:bg-slate-50 transition-all flex items-center gap-3 border border-slate-100 z-20 hover:scale-[1.02] active:scale-95 cursor-pointer"
                   >
@@ -892,7 +864,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           <div className="space-y-12">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2"><div className="h-8 w-1 bg-indigo-600 rounded-full"></div><h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Galerías del Inmueble</h3></div>
-              <button 
+              <button
                 onClick={handleAddSection}
                 disabled={isCreatingInline}
                 className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
@@ -903,7 +875,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             </div>
 
             {/* Galería General */}
-            <SectionalGallery 
+            <SectionalGallery
               propiedadId={id}
               propiedadTitulo={propiedad.titulo}
               index={-1}
@@ -918,7 +890,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="sections-list">
                 {(provided) => (
-                  <div 
+                  <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
                     className="space-y-12"
@@ -926,27 +898,27 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                     {propiedad.secciones?.map((seccion, index) => {
                       const seccionConClient = seccion as SeccionGaleria & { clientId?: string };
                       return (
-                        <SectionalGallery 
+                        <SectionalGallery
                           key={seccionConClient.clientId || seccion.id}
                           index={index}
-                        sectionId={seccion.id}
-                        sectionNombre={seccion.nombre}
-                        sectionDescripcion={seccion.descripcion}
-                        propiedadId={id}
-                        propiedadTitulo={propiedad.titulo}
-                        media={seccion.media || []}
-                        onSetCover={handleSetCover}
-                        onDeleteMedia={handleDeleteMedia}
-                        onImageUploaded={() => mutate()}
-                        onDeleteSection={handleDeleteSection}
-                        onRenameSection={(id, nombre, desc) => handleRenameSection(id, nombre, desc, seccion.orden)}
-                        onMoveUp={() => handleMoveSection(index, 'up')}
-                        onMoveDown={() => handleMoveSection(index, 'down')}
-                        onMoveTo={(newIndex) => handleMoveSection(index, newIndex > index ? 'down' : 'up', newIndex)}
-                        totalSections={propiedad.secciones?.length || 0}
-                      />
-                    );
-                  })}
+                          sectionId={seccion.id}
+                          sectionNombre={seccion.nombre}
+                          sectionDescripcion={seccion.descripcion}
+                          propiedadId={id}
+                          propiedadTitulo={propiedad.titulo}
+                          media={seccion.media || []}
+                          onSetCover={handleSetCover}
+                          onDeleteMedia={handleDeleteMedia}
+                          onImageUploaded={() => mutate()}
+                          onDeleteSection={handleDeleteSection}
+                          onRenameSection={(id, nombre, desc) => handleRenameSection(id, nombre, desc, seccion.orden)}
+                          onMoveUp={() => handleMoveSection(index, 'up')}
+                          onMoveDown={() => handleMoveSection(index, 'down')}
+                          onMoveTo={(newIndex) => handleMoveSection(index, newIndex > index ? 'down' : 'up', newIndex)}
+                          totalSections={propiedad.secciones?.length || 0}
+                        />
+                      );
+                    })}
                     {provided.placeholder}
                   </div>
                 )}
@@ -1011,30 +983,30 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                 {historial.map((item) => (
                   <div key={item.id} className="relative pl-14 group">
                     <div className={`absolute left-3 top-0 h-7 w-7 bg-white border-2 rounded-full z-10 flex items-center justify-center shadow-sm transition-colors
-                      ${item.transactionType === 'Sale' || item.transactionType === 'Rent' ? 'border-emerald-500 text-emerald-600' : 
+                      ${item.transactionType === 'Sale' || item.transactionType === 'Rent' ? 'border-emerald-500 text-emerald-600' :
                         item.transactionType === 'Relisting' ? 'border-indigo-500 text-indigo-600' : 'border-rose-500 text-rose-600'}`}>
-                      {item.transactionType === 'Sale' || item.transactionType === 'Rent' ? <TrendingUp size={14} /> : 
-                       item.transactionType === 'Relisting' ? <RotateCcw size={14} /> : <X size={14} />}
+                      {item.transactionType === 'Sale' || item.transactionType === 'Rent' ? <TrendingUp size={14} /> :
+                        item.transactionType === 'Relisting' ? <RotateCcw size={14} /> : <X size={14} />}
                     </div>
 
                     <div className="bg-white border border-slate-100 p-6 rounded-3xl hover:border-slate-200 hover:shadow-xl transition-all duration-500">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md
-                            ${item.transactionType === 'Sale' || item.transactionType === 'Rent' ? 'bg-emerald-50 text-emerald-600' : 
+                            ${item.transactionType === 'Sale' || item.transactionType === 'Rent' ? 'bg-emerald-50 text-emerald-600' :
                               item.transactionType === 'Relisting' ? 'bg-indigo-50 text-indigo-600' : 'bg-rose-50 text-rose-600'}`}>
-                            {item.transactionType === 'Sale' ? 'Venta' : 
-                             item.transactionType === 'Rent' ? 'Alquiler' : 
-                             item.transactionType === 'Relisting' ? 'Re-Listado' : 'Cancelación'}
+                            {item.transactionType === 'Sale' ? 'Venta' :
+                              item.transactionType === 'Rent' ? 'Alquiler' :
+                                item.transactionType === 'Relisting' ? 'Re-Listado' : 'Cancelación'}
                           </span>
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">{formatDate(item.transactionDate)}</span>
                         </div>
                         {item.amount && (
                           <span className="text-sm font-black text-slate-900">{formatCurrency(item.amount)}</span>
                         )}
-                        
+
                         <div className="relative">
-                          <button 
+                          <button
                             onClick={() => setTransactionMenuOpen(transactionMenuOpen === item.id ? null : item.id)}
                             className="p-1 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
                           >
@@ -1043,13 +1015,6 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
                           {transactionMenuOpen === item.id && (
                             <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-100 rounded-xl shadow-2xl z-[100] py-1 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                              <button 
-                                onClick={() => { setTransactionToEdit(item); setTransactionMenuOpen(null); }}
-                                className="w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
-                              >
-                                <Edit3 size={12} className="text-indigo-600" />
-                                Editar
-                              </button>
                               <button 
                                 onClick={() => handleDeleteTransaction(item.id)}
                                 className="w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
@@ -1062,9 +1027,10 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                         </div>
                       </div>
 
-                      {item.notes && (
-                        <p className="text-sm font-medium text-slate-600 leading-relaxed mb-4 italic">"{item.notes}"</p>
-                      )}
+                      <InlineNoteEditor 
+                        transaction={item} 
+                        onSave={(notes) => handleInlineUpdateNote(item, notes)} 
+                      />
 
                       <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                         <div className="flex items-center gap-2">
@@ -1105,7 +1071,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
       {showEditModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
-          <CrearPropiedadForm 
+          <CrearPropiedadForm
             initialData={propiedad}
             onSuccess={() => { mutate(); setShowEditModal(false); }}
             onCancel={() => setShowEditModal(false)}
@@ -1127,202 +1093,203 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         }}
       />
 
-      {/* Modal de Advertencia de Reversión (Spec 011) */}
+      {/* Modal de Decisión Semántica (Spec 011 Fase 5) */}
       {showReversionModal && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[600] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-8 text-center">
-              <div className="h-20 w-20 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <AlertCircle className="h-10 w-10 text-amber-600" />
+          <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-10 text-center">
+              <div className="h-20 w-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <RotateCcw className="h-10 w-10 text-indigo-600" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">¿Confirmar Reversión?</h3>
-              <p className="text-slate-500 font-medium mb-8 leading-relaxed">
-                Esta acción marcará al cliente como <span className="text-indigo-600 font-bold">En Negociación</span> y la transacción de cierre <span className="text-rose-600 font-bold">se perderá del historial</span> permanentemente.
+              <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Ciclo de Vida</h3>
+              <p className="text-slate-500 font-medium mb-10 leading-relaxed px-4">
+                La propiedad está marcada como cerrada. <br />¿Cómo deseas proceder con el re-listado?
               </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button 
-                  onClick={() => setShowReversionModal(null)} 
-                  className="flex-1 px-6 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  onClick={async () => {
-                    const { type, id: transId, targetStatus } = showReversionModal;
-                    setShowReversionModal(null);
-                    
-                    if (type === 'transaction' && transId) {
-                      // Pattern Undo para reversión de cierre
-                      let isCancelled = false;
-                      const commitReversion = async () => {
-                        if (isCancelled) return;
-                        try {
-                          await deleteTransaction(transId);
-                          mutate();
-                          mutateHistorial();
-                          toast.success("Cierre revertido con éxito");
-                        } catch {
-                          toast.error("Error al revertir el cierre");
-                        }
-                      };
 
-                      toast.warning("Revirtiendo Cierre", {
-                        description: "El cliente volverá a En Negociación. Tienes 5 segundos para deshacer.",
-                        action: {
-                          label: "Deshacer",
-                          onClick: () => {
-                            isCancelled = true;
-                            toast.success("Reversión cancelada");
-                          }
-                        },
-                        duration: 5000,
-                        onAutoClose: commitReversion,
-                        onDismiss: commitReversion
-                      });
-                    } else if (type === 'status' && targetStatus) {
-                      handleStatusChange(targetStatus, true);
+              <div className="grid grid-cols-1 gap-4">
+                <button
+                  onClick={async () => {
+                    const { targetStatus } = showReversionModal;
+                    setShowReversionModal(null);
+
+                    // Pattern Undo
+                    let isCancelled = false;
+                    const commitRelist = async () => {
+                      if (isCancelled) return;
+                      try {
+                        await relistPropiedad(propiedad.id, "Fin de contrato / Relistado natural", "Relist");
+                        mutate();
+                        mutateHistorial();
+                        toast.success("Nuevo ciclo comercial iniciado");
+                      } catch {
+                        toast.error("Error al relistar");
+                      }
+                    };
+
+                    toast.info("Relistando...", {
+                      description: "Se mantendrá el historial de cierre del cliente. 5s para deshacer.",
+                      action: { label: "Deshacer", onClick: () => { isCancelled = true; toast.success("Acción cancelada"); } },
+                      duration: 5000,
+                      onAutoClose: commitRelist,
+                      onDismiss: commitRelist
+                    });
+
+                    if (targetStatus) {
+                      mutate({ ...propiedad, estadoComercial: targetStatus }, false);
+                    } else {
+                      mutate({ ...propiedad, estadoComercial: 'Disponible' }, false);
                     }
-                  }} 
-                  className="flex-1 px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black shadow-xl transition-all cursor-pointer"
+                  }}
+                  className="group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-indigo-600 transition-all hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer"
                 >
-                  Sí, revertir
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <RotateCcw size={24} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Relistar (Fin de Contrato)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Comenzar nuevo ciclo comercial</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={async () => {
+                    const { targetStatus } = showReversionModal;
+                    setShowReversionModal(null);
+
+                    // Pattern Undo
+                    let isCancelled = false;
+                    const commitCancel = async () => {
+                      if (isCancelled) return;
+                      try {
+                        await relistPropiedad(propiedad.id, "Operación anulada / Trato caído", "Cancel");
+                        mutate();
+                        mutateHistorial();
+                        toast.success("Operación cancelada con éxito");
+                      } catch {
+                        toast.error("Error al cancelar la operación");
+                      }
+                    };
+
+                    toast.warning("Anulando Operación", {
+                      description: "El trato se marcará como caído y el cliente revertirá a Negociación. 5s para deshacer.",
+                      action: { label: "Deshacer", onClick: () => { isCancelled = true; toast.success("Acción cancelada"); } },
+                      duration: 5000,
+                      onAutoClose: commitCancel,
+                      onDismiss: commitCancel
+                    });
+
+                    if (targetStatus) {
+                      mutate({ ...propiedad, estadoComercial: targetStatus }, false);
+                    } else {
+                      mutate({ ...propiedad, estadoComercial: 'Disponible' }, false);
+                    }
+                  }}
+                  className="group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-rose-600 transition-all hover:shadow-xl hover:shadow-rose-500/10 cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                      <AlertCircle size={24} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Cancelar (Trato Caído)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">El cliente volverá a negociación</p>
+                    </div>
+                  </div>
                 </button>
               </div>
+
+              <button
+                onClick={() => setShowReversionModal(null)}
+                className="mt-8 text-xs font-black text-slate-400 uppercase tracking-[0.2em] hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                Volver atrás
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {transactionToEdit && (
-        <TransactionEditModal 
-          transaction={transactionToEdit}
-          onClose={() => setTransactionToEdit(null)}
-          onConfirm={handleUpdateTransaction}
-        />
-      )}
     </div>
   );
 };
 
-interface TransactionEditModalProps {
-  transaction: PropertyTransactionResponse;
-  onClose: () => void;
-  onConfirm: (data: { transactionDate: string; amount: number | null; leadId: string | null; notes: string | null }) => Promise<void>;
-}
-
-const TransactionEditModal = ({ transaction, onClose, onConfirm }: TransactionEditModalProps) => {
-  // Corregir carga: Convertir UTC a string local YYYY-MM-DD
-  const getLocalDateString = (utcString: string) => {
-    const d = new Date(utcString);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const [date, setDate] = useState(getLocalDateString(transaction.transactionDate));
-  const [amount, setAmount] = useState<string>(transaction.amount?.toString() || '');
-  const [leadId, setLeadId] = useState<string | null>(transaction.leadId || null);
+const InlineNoteEditor = ({ transaction, onSave }: { transaction: PropertyTransactionResponse, onSave: (notes: string) => Promise<void> }) => {
+  const [isEditing, setIsEditing] = useState(false);
   const [notes, setNotes] = useState(transaction.notes || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
+  useEffect(() => {
+    setNotes(transaction.notes || '');
+  }, [transaction.notes]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
     try {
-      // Corregir guardado: Crear fecha local y luego pasar a ISO
-      const [year, month, day] = date.split('-').map(Number);
-      const localDate = new Date(year, month - 1, day, 12, 0, 0); // Usamos mediodía local para evitar saltos
-
-      await onConfirm({
-        transactionDate: localDate.toISOString(),
-        amount: amount ? Number(amount) : null,
-        leadId,
-        notes
-      });
+      await onSave(notes);
+      setIsEditing(false);
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
 
-  const onSearchClients = async (query: string) => {
-    const { buscarClientes } = await import('../../clientes/api/buscarClientes');
-    const results = await buscarClientes(query);
-    return results.map(c => ({
-      id: c.id,
-      title: c.nombreCompleto,
-      subtitle: c.telefono,
-    }));
+  const handleCancel = () => {
+    setNotes(transaction.notes || '');
+    setIsEditing(false);
   };
 
-  return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm cursor-pointer" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Editar Registro</h3>
-            <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full text-slate-400 cursor-pointer"><X size={20} /></button>
-          </div>
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
 
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Fecha</label>
-                <input 
-                  type="date" 
-                  value={date} 
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Monto (USD)</label>
-                <input 
-                  type="number" 
-                  value={amount} 
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                />
-              </div>
-            </div>
-
-            <DynamicSearchSelect 
-              label="Prospecto / Titular"
-              icon={User}
-              placeholder="Buscar cliente..."
-              value={leadId || undefined}
-              initialLabel={transaction.leadNombre}
-              onSearch={onSearchClients}
-              onChange={(id: string | undefined) => setLeadId(id || null)}
-            />
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Notas / Observaciones</label>
-              <textarea 
-                value={notes} 
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                placeholder="Detalles adicionales..."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
-              />
-            </div>
-          </div>
-
-          <div className="mt-10 flex gap-3">
-            <button onClick={onClose} className="flex-1 py-4 text-slate-400 font-bold text-sm hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer">Cancelar</button>
-            <button 
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="flex-[2] py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black shadow-xl shadow-slate-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-              Guardar Cambios
-            </button>
-          </div>
+  if (isEditing) {
+    return (
+      <div className="mb-4 relative">
+        <textarea
+          autoFocus
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isSaving}
+          className="w-full px-4 py-3 bg-indigo-50/50 border border-indigo-100 rounded-xl text-sm font-medium text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none min-h-[80px]"
+          placeholder="Escribe la nota y presiona Enter para guardar..."
+        />
+        <div className="absolute bottom-3 right-3 flex gap-2">
+          <button 
+            onClick={handleSave} 
+            disabled={isSaving}
+            className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+            title="Guardar (Enter)"
+          >
+            {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+          </button>
+          <button 
+            onClick={handleCancel}
+            disabled={isSaving}
+            className="p-1.5 bg-white border border-slate-200 text-slate-400 rounded-lg hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
+            title="Cancelar (Esc)"
+          >
+            <X size={14} />
+          </button>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <p 
+      onDoubleClick={() => setIsEditing(true)}
+      className={`text-sm font-medium leading-relaxed mb-4 italic cursor-text hover:bg-slate-50 p-2 -mx-2 rounded-lg transition-colors border border-transparent hover:border-slate-100 ${transaction.notes ? 'text-slate-600' : 'text-slate-300'}`}
+      title="Doble clic para editar nota"
+    >
+      {transaction.notes ? `"${transaction.notes}"` : 'Doble clic para añadir nota...'}
+    </p>
   );
 };
 

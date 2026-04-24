@@ -14,6 +14,7 @@ public static class ActualizarTransaccionFeature
 {
     public record Command(
         DateTimeOffset TransactionDate,
+        string? TransactionType,
         decimal? Amount,
         Guid? LeadId,
         string? Notes);
@@ -53,6 +54,12 @@ public static class ActualizarTransaccionFeature
 
             // 3. Actualizar campos (Forzando UTC para PostgreSQL)
             transaction.TransactionDate = command.TransactionDate.ToUniversalTime();
+            
+            if (!string.IsNullOrEmpty(command.TransactionType))
+            {
+                transaction.TransactionType = command.TransactionType;
+            }
+
             transaction.Amount = command.Amount;
             transaction.LeadId = command.LeadId;
             transaction.Notes = command.Notes;
@@ -62,6 +69,10 @@ public static class ActualizarTransaccionFeature
                 property.FechaCierre = transaction.TransactionDate;
                 property.PrecioCierre = transaction.Amount;
                 property.CerradoConId = transaction.LeadId;
+                
+                // Si cambiamos el tipo de transacción, también actualizamos el estado comercial de la propiedad
+                if (transaction.TransactionType == "Sale") property.EstadoComercial = "Vendida";
+                else if (transaction.TransactionType == "Rent") property.EstadoComercial = "Alquilada";
             }
 
             await context.SaveChangesAsync(ct);

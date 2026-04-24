@@ -235,5 +235,20 @@ public sealed class CrmDbContext : DbContext
                 .HasForeignKey(d => d.CreatedById)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        // CONVERTIDOR GLOBAL UTC (Spec 011 / Npgsql Fix)
+        // PostgreSQL timestamp with time zone requiere offset 0 (UTC)
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTimeOffset) || property.ClrType == typeof(DateTimeOffset?))
+                {
+                    property.SetValueConverter(new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTimeOffset, DateTimeOffset>(
+                        v => v.ToUniversalTime(),
+                        v => v.ToOffset(TimeSpan.FromHours(-5)))); // Recuperar siempre con el offset de Ecuador
+                }
+            }
+        }
     }
 }
