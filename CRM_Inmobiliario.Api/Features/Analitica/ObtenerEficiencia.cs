@@ -32,26 +32,28 @@ public static class ObtenerEficienciaEndpoint
                 .Select(a => new
                 {
                     TotalLeads = a.Leads.Count(),
-                    TotalCerrados = a.Leads.Count(l => l.EtapaEmbudo == "Cerrado"),
-                    LeadsConFechaCierre = a.Leads.Count(l => l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null),
+                    TotalCerrados = a.Properties.SelectMany(p => p.Transactions)
+                        .Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled"),
+                    LeadsConFechaCierre = a.Properties.SelectMany(p => p.Transactions)
+                        .Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.LeadId != null),
                     
                     // Detalles de cierres para el cálculo de velocidad
-                    DetallesCierres = a.Leads
-                        .Where(l => l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null)
-                        .OrderByDescending(l => l.FechaCierre)
-                        .Select(l => new DetalleCierreEficiencia(
-                            l.Id, 
-                            l.Nombre + " " + l.Apellido, 
-                            l.PropertyInterests.Where(i => i.Propiedad != null).Select(i => i.Propiedad!.Titulo).FirstOrDefault() ?? "Sin Propiedad",
-                            l.FechaCreacion.ToString("yyyy-MM-dd"),
-                            l.FechaCierre!.Value.ToString("yyyy-MM-dd"),
-                            (l.FechaCierre!.Value - l.FechaCreacion).TotalDays
+                    DetallesCierres = a.Properties.SelectMany(p => p.Transactions)
+                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.LeadId != null)
+                        .OrderByDescending(t => t.TransactionDate)
+                        .Select(t => new DetalleCierreEficiencia(
+                            t.Id, 
+                            t.Lead!.Nombre + " " + t.Lead.Apellido, 
+                            t.Property!.Titulo,
+                            t.Lead.FechaCreacion.ToString("yyyy-MM-dd"),
+                            t.TransactionDate.ToString("yyyy-MM-dd"),
+                            (t.TransactionDate - t.Lead.FechaCreacion).TotalDays
                         ))
                         .ToList(),
 
-                    TiempoPromedioResult = a.Leads
-                        .Where(l => l.EtapaEmbudo == "Cerrado" && l.FechaCierre != null)
-                        .Select(l => (double?)(l.FechaCierre!.Value - l.FechaCreacion).TotalDays)
+                    TiempoPromedioResult = a.Properties.SelectMany(p => p.Transactions)
+                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.LeadId != null)
+                        .Select(t => (double?)(t.TransactionDate - t.Lead!.FechaCreacion).TotalDays)
                         .Average()
                 })
                 .FirstOrDefaultAsync();

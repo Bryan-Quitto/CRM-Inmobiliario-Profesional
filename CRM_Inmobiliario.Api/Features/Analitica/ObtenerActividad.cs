@@ -57,7 +57,7 @@ public static class ObtenerActividadEndpoint
                 {
                     // Conteos
                     VisitasCount = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin),
-                    CierresCount = a.Leads.Count(l => (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin))),
+                    CierresCount = a.Properties.SelectMany(p => p.Transactions).Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.TransactionDate >= inicio && t.TransactionDate <= fin),
                     OfertasCount = a.Leads.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin),
                     CaptacionesCount = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin),
 
@@ -67,10 +67,10 @@ public static class ObtenerActividadEndpoint
                         .OrderByDescending(t => t.FechaInicio)
                         .Select(t => new KpiVisita(t.Id, t.Titulo, t.FechaInicio.ToString("yyyy-MM-dd HH:mm"), t.Cliente != null ? (t.Cliente.Nombre + " " + t.Cliente.Apellido) : null, t.Propiedad != null ? t.Propiedad.Titulo : null))
                         .ToList(),
-                    DetallesCierres = a.Leads
-                        .Where(l => (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)))
-                        .OrderByDescending(l => l.FechaCierre ?? l.FechaCreacion)
-                        .Select(l => new KpiCierre(l.Id, l.Nombre + " " + l.Apellido, l.PropertyInterests.Where(i => i.Propiedad != null).Select(i => i.Propiedad!.Titulo).FirstOrDefault() ?? "Sin Propiedad", (l.FechaCierre ?? l.FechaCreacion).ToString("yyyy-MM-dd")))
+                    DetallesCierres = a.Properties.SelectMany(p => p.Transactions)
+                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.TransactionDate >= inicio && t.TransactionDate <= fin)
+                        .OrderByDescending(t => t.TransactionDate)
+                        .Select(t => new KpiCierre(t.Id, t.Lead != null ? t.Lead.Nombre + " " + t.Lead.Apellido : "Sin Cliente", t.Property!.Titulo, t.TransactionDate.ToString("yyyy-MM-dd")))
                         .ToList(),
                     DetallesOfertas = a.Leads
                         .Where(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)
@@ -88,9 +88,9 @@ public static class ObtenerActividadEndpoint
                         .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
                         .Select(t => t.FechaInicio)
                         .ToList(),
-                    RawCierres = a.Leads
-                        .Where(l => (l.EtapaEmbudo == "Cerrado" || l.EtapaEmbudo == "Ganado") && ((l.FechaCierre != null && l.FechaCierre >= inicio && l.FechaCierre <= fin) || (l.FechaCierre == null && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)))
-                        .Select(l => l.FechaCierre ?? l.FechaCreacion)
+                    RawCierres = a.Properties.SelectMany(p => p.Transactions)
+                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.TransactionDate >= inicio && t.TransactionDate <= fin)
+                        .Select(t => t.TransactionDate)
                         .ToList(),
                     RawCaptaciones = a.Properties
                         .Where(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin)
@@ -172,7 +172,7 @@ public static class ObtenerActividadEndpoint
                 .Select(a => new
                 {
                     Visitas = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc),
-                    Cierres = a.Leads.Count(l => etapasVenta.Contains(l.EtapaEmbudo) && ((l.FechaCierre != null && l.FechaCierre >= inicioMesUtc && l.FechaCierre <= finMesUtc) || (l.FechaCierre == null && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc))),
+                    Cierres = a.Properties.SelectMany(p => p.Transactions).Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.TransactionDate >= inicioMesUtc && t.TransactionDate <= finMesUtc),
                     Ofertas = a.Leads.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc),
                     Captaciones = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicioMesUtc && p.FechaIngreso <= finMesUtc),
 
@@ -180,9 +180,9 @@ public static class ObtenerActividadEndpoint
                         .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc)
                         .Select(t => t.FechaInicio)
                         .ToList(),
-                    RawCierres = a.Leads
-                        .Where(l => etapasVenta.Contains(l.EtapaEmbudo) && ((l.FechaCierre != null && l.FechaCierre >= inicioMesUtc && l.FechaCierre <= finMesUtc) || (l.FechaCierre == null && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc)))
-                        .Select(l => l.FechaCierre ?? l.FechaCreacion)
+                    RawCierres = a.Properties.SelectMany(p => p.Transactions)
+                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.TransactionDate >= inicioMesUtc && t.TransactionDate <= finMesUtc)
+                        .Select(t => t.TransactionDate)
                         .ToList(),
                     RawCaptaciones = a.Properties
                         .Where(p => p.EsCaptacionPropia && p.FechaIngreso >= inicioMesUtc && p.FechaIngreso <= finMesUtc)
