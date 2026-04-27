@@ -64,7 +64,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
   const selectRef = useRef<HTMLDivElement>(null);
 
   const clienteOptions = useMemo(() =>
-    clientes.map(c => ({ id: c.id, title: `${c.nombre} ${c.apellido}`, subtitle: c.telefono })),
+    clientes.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
     [clientes]
   );
 
@@ -181,7 +181,7 @@ export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: P
       tipoTarea: data.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
       estado: 'Pendiente' as const,
       fechaInicio: new Date(data.fechaInicio).toISOString(),
-      clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : undefined,
+      clienteNombre: cliente ? [cliente.nombre, cliente.apellido].filter(Boolean).join(' ') : undefined,
       propiedadTitulo: propiedad ? propiedad.titulo : undefined
     };
 

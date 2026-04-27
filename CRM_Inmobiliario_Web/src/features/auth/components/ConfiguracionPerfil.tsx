@@ -442,7 +442,7 @@ const ConfiguracionPerfil: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <p className="text-xl font-black tracking-tight">{formData.nombre} {formData.apellido}</p>
+                    <p className="text-xl font-black tracking-tight">{[formData.nombre, formData.apellido].filter(Boolean).join(' ')}</p>
                     <p className="text-indigo-400 font-bold text-sm tracking-wide">{formData.agencia || 'Agente Independiente'}</p>
                     <p className="text-white/40 text-xs font-bold mt-1 tracking-widest uppercase">{formData.telefono || 'Sin teléfono'}</p>
                   </div>

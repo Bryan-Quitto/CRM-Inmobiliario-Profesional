@@ -18,6 +18,7 @@ interface ClosingModalProps {
     precio: number;
     operacion: string;
   };
+  intendedState?: string;
 }
 
 export const ClosingModal: React.FC<ClosingModalProps> = ({
@@ -25,7 +26,8 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
   onClose,
   onConfirm,
   mode,
-  initialData
+  initialData,
+  intendedState
 }) => {
   const { clientes, propiedades } = useTareas();
   const [precioCierre, setPrecioCierre] = useState<string>(initialData?.precio.toString() || '');
@@ -36,6 +38,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
   
   // Estado para el tipo de cierre (Vendida o Alquilada)
   const [tipoCierre, setTipoCierre] = useState<string>(() => {
+    if (intendedState) return intendedState;
     if (mode === 'property' && initialData) {
       return initialData.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida';
     }
@@ -46,8 +49,29 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      if (intendedState) {
+        setTipoCierre(intendedState);
+      } else if (mode === 'property' && initialData) {
+        setTipoCierre(initialData.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida');
+      } else {
+        setTipoCierre('Vendida');
+      }
+      setPrecioCierre(initialData?.precio.toString() || '');
+      setPartnerId(mode === 'property' ? undefined : initialData?.id);
+      setIsSubmitting(false);
+      setIsSuccess(false);
+      if (mode === 'property' && initialData) {
+        setSelectedPartnerData({ titulo: initialData.titulo, operacion: initialData.operacion });
+      } else {
+        setSelectedPartnerData(null);
+      }
+    }
+  }, [isOpen, intendedState, mode, initialData]);
+
   const clienteOptions = useMemo(() => 
-    clientes.map(c => ({ id: c.id, title: `${c.nombre} ${c.apellido}`, subtitle: c.telefono })),
+    clientes.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
     [clientes]
   );
 
@@ -169,9 +193,9 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
               />
             ) : (
               <DynamicSearchSelect
-                label={selectedPartnerData?.operacion === 'Alquiler' ? 'Inquilino Final' : 'Comprador Final'}
+                label={tipoCierre === 'Alquilada' ? 'Inquilino Final' : 'Comprador Final'}
                 icon={User}
-                placeholder={`Buscar ${selectedPartnerData?.operacion === 'Alquiler' ? 'inquilino' : 'comprador'}...`}
+                placeholder={`Buscar ${tipoCierre === 'Alquilada' ? 'inquilino' : 'comprador'}...`}
                 options={clienteOptions}
                 onSearch={onSearchClients}
                 onChange={(id) => setPartnerId(id)}

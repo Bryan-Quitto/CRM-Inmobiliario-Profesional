@@ -134,6 +134,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
   const [newSectionName, setNewSectionName] = useState('');
   const [statusConfirmation, setStatusConfirmation] = useState<string | null>(null);
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
+  const [closingState, setClosingState] = useState<string | undefined>(undefined);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
@@ -598,6 +599,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
     // Caso de CIERRE (Venta/Alquiler)
     if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && !confirmed) {
+      setClosingState(nuevoEstado);
       setIsClosingModalOpen(true);
       return;
     }
@@ -1082,9 +1084,10 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
       <ClosingModal
         key={propiedad.id}
         isOpen={isClosingModalOpen}
-        onClose={() => setIsClosingModalOpen(false)}
+        onClose={() => { setIsClosingModalOpen(false); setClosingState(undefined); }}
         onConfirm={handleClosingConfirm}
         mode="property"
+        intendedState={closingState}
         initialData={{
           id: propiedad.id,
           titulo: propiedad.titulo,

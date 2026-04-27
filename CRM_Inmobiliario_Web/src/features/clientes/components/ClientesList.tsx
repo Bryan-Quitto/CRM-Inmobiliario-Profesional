@@ -374,7 +374,7 @@ const ClientesContent = () => {
 
               <div className="mb-6">
                 <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
-                  {cliente.nombre} {cliente.apellido}
+                  {[cliente.nombre, cliente.apellido].filter(Boolean).join(' ')}
                 </h3>
                 <div className="mt-1">
                   <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">
@@ -447,7 +447,7 @@ const ClientesContent = () => {
         mode="lead"
         initialData={closingLead ? {
           id: closingLead.id,
-          titulo: `${closingLead.nombre} ${closingLead.apellido}`,
+          titulo: [closingLead.nombre, closingLead.apellido].filter(Boolean).join(' '),
           precio: 0,
           operacion: 'Venta'
         } : undefined}
