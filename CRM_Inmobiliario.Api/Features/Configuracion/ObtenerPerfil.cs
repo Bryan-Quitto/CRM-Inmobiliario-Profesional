@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
-public static class ObtenerPerfilFeature
+public static class ObtenerPerfil
 {
     public record Response(
         Guid Id,
@@ -16,15 +16,16 @@ public static class ObtenerPerfilFeature
         string Apellido,
         string Email,
         string? Telefono,
-        string? Agencia,
+        string? AgenciaNombre,
+        Guid? AgenciaId,
         string? FotoUrl,
         string? LogoUrl,
         string Rol,
         DateTimeOffset FechaCreacion);
 
-    public static RouteHandlerBuilder MapObtenerPerfilEndpoint(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder MapObtenerPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return app.MapGet("/perfil", async (ClaimsPrincipal user, CrmDbContext context) =>
+        endpoints.MapGet("/configuracion/perfil", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
             var email = user.FindFirstValue(ClaimTypes.Email) 
@@ -43,7 +44,8 @@ public static class ObtenerPerfilFeature
                     a.Apellido,
                     a.Email,
                     a.Telefono,
-                    a.Agencia,
+                    a.Agencia != null ? a.Agencia.Nombre : null,
+                    a.AgenciaId,
                     a.FotoUrl,
                     a.LogoUrl,
                     a.Rol,
@@ -62,6 +64,7 @@ public static class ObtenerPerfilFeature
                     null,
                     null,
                     null,
+                    null,
                     "Agente",
                     DateTimeOffset.UtcNow
                 ));
@@ -72,5 +75,7 @@ public static class ObtenerPerfilFeature
         })
         .WithTags("Configuracion")
         .WithName("ObtenerPerfil");
+
+        return endpoints;
     }
 }

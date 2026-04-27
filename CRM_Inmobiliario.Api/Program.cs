@@ -61,8 +61,13 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
 var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
 var supabaseRoleKey = Environment.GetEnvironmentVariable("SUPABASE_ROLE_KEY");
 
+if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseRoleKey))
+{
+    throw new InvalidOperationException("Las variables de entorno SUPABASE_URL y SUPABASE_ROLE_KEY son obligatorias.");
+}
+
 builder.Services.AddScoped(_ => new Supabase.Client(
-    supabaseUrl!,
+    supabaseUrl,
     supabaseRoleKey, // Usamos la Role Key para que el Backend pueda borrar archivos
     new Supabase.SupabaseOptions { AutoConnectRealtime = true }
 ));
@@ -217,6 +222,8 @@ apiGroup.MapObtenerKpisEndpoint();
 apiGroup.MapObtenerPerfilEndpoint();
 apiGroup.MapActualizarPerfilEndpoint();
 apiGroup.MapInvitarAgenteEndpoint();
+apiGroup.MapAgenciasEndpoints();
+apiGroup.MapActivarPerfilEndpoint();
 
 // Calendario
 apiGroup.MapListarEventosEndpoint().CacheOutput();

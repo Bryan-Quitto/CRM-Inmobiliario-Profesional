@@ -25,8 +25,8 @@ public sealed class Agent
     [MaxLength(20)]
     public string? Telefono { get; set; }
 
-    [MaxLength(100)]
-    public string? Agencia { get; set; }
+    public Guid? AgenciaId { get; set; }
+    public Agency? Agencia { get; set; }
 
     [MaxLength(500)]
     public string? FotoUrl { get; set; }

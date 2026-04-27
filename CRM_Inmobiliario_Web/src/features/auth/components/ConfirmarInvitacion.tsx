@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { api } from '../../../lib/axios';
 import { Lock, Loader2, CheckCircle2, AlertCircle, ShieldCheck, XCircle, User, Building, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -8,13 +9,39 @@ export const ConfirmarInvitacion: React.FC = () => {
     nombre: '',
     apellido: '',
     telefono: '',
-    agencia: '',
+    agenciaId: '',
+    agenciaNombre: '',
     password: '',
     confirmPassword: ''
   });
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasPredefinedAgency, setHasPredefinedAgency] = useState(false);
+
+  // Recuperar metadata de la invitación
+  useEffect(() => {
+    const checkMetadata = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.user_metadata?.agencia_id) {
+        const agencyId = user.user_metadata.agencia_id;
+        setFormData(prev => ({ ...prev, agenciaId: agencyId }));
+        setHasPredefinedAgency(true);
+
+        // Intentar resolver el nombre de la agencia
+        try {
+          const response = await api.get(`/configuracion/agencias/${agencyId}`);
+          if (response.data) {
+            setFormData(prev => ({ ...prev, agenciaNombre: response.data.nombre }));
+          }
+        } catch (err) {
+          console.error('No se pudo resolver el nombre de la agencia:', err);
+          setFormData(prev => ({ ...prev, agenciaNombre: 'Agencia Asignada' }));
+        }
+      }
+    };
+    checkMetadata();
+  }, []);
 
   const validations = {
     personal: formData.nombre.trim() !== '' && formData.apellido.trim() !== '' && formData.telefono.trim() !== '',
@@ -35,35 +62,26 @@ export const ConfirmarInvitacion: React.FC = () => {
     setError(null);
 
     try {
-      const { data: { user }, error: updateError } = await supabase.auth.updateUser({
+      // 1. Actualizar contraseña en Supabase Auth
+      const { error: updateError } = await supabase.auth.updateUser({
         password: formData.password,
         data: {
           nombre: formData.nombre,
           apellido: formData.apellido,
-          telefono: formData.telefono,
-          agencia: formData.agencia
+          telefono: formData.telefono
         }
       });
 
       if (updateError) throw updateError;
-      if (!user) throw new Error('No se pudo recuperar la información del usuario');
 
-      // Actualizar la tabla pública Agents con los datos del formulario
-      const { error: agentError } = await supabase
-        .from('Agents')
-        .update({
-          Nombre: formData.nombre,
-          Apellido: formData.apellido,
-          Telefono: formData.telefono,
-          Agencia: formData.agencia,
-          Activo: true
-        })
-        .eq('Id', user.id);
-
-      if (agentError) {
-        console.error('Error actualizando tabla Agents:', agentError);
-        throw new Error('Se actualizó tu contraseña, pero hubo un problema al guardar tus datos de perfil. Por favor, contacta a soporte.');
-      }
+      // 2. Registrar el Agente en nuestra DB local mediante el nuevo endpoint del backend
+      // Esto maneja la creación/actualización en la tabla 'Agents' de forma segura.
+      await api.post('/configuracion/activar-perfil', {
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        telefono: formData.telefono,
+        agenciaId: formData.agenciaId || null
+      });
 
       toast.success('¡Perfil configurado!', {
         description: 'Tu cuenta ha sido activada con éxito.'
@@ -72,15 +90,16 @@ export const ConfirmarInvitacion: React.FC = () => {
       // Limpiar la URL para evitar bucles de redirección
       window.history.replaceState(null, '', window.location.pathname);
 
-      // Redirigir al dashboard y forzar una recarga para limpiar estados de React Router
+      // Redirigir al dashboard
       setTimeout(() => {
         window.location.href = '/'; 
       }, 1500);
       
-    } catch (err) {
-      const activationError = err as Error;
-      console.error(activationError);
-      setError(activationError.message || 'Ocurrió un error al activar tu perfil');
+    } catch (err: unknown) {
+      console.error(err);
+      const errorWithMsg = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = errorWithMsg.response?.data?.message || errorWithMsg.message || 'Error al activar tu perfil';
+      setError(msg);
       toast.error('Error de activación');
     } finally {
       setIsLoading(false);
@@ -155,9 +174,14 @@ export const ConfirmarInvitacion: React.FC = () => {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Agencia</label>
                 <div className="relative group">
                   <Building className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
-                  <input name="agencia" type="text" required value={formData.agencia} onChange={handleChange}
-                    className="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 text-sm outline-none focus:border-emerald-500 transition-all"
-                    placeholder="Nombre empresa" />
+                  <input 
+                    name="agenciaNombre" 
+                    type="text" 
+                    value={formData.agenciaNombre || 'Independiente'} 
+                    disabled={hasPredefinedAgency}
+                    className={`w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 text-sm outline-none transition-all ${hasPredefinedAgency ? 'opacity-60 cursor-not-allowed border-dashed' : 'focus:border-emerald-500'}`}
+                    placeholder="Nombre empresa" 
+                  />
                 </div>
               </div>
             </div>
@@ -189,7 +213,7 @@ export const ConfirmarInvitacion: React.FC = () => {
               <Requirement met={validations.personal} label="Datos personales" />
               <Requirement met={validations.length} label="8+ caracteres" />
               <Requirement met={validations.hasUpper} label="Mayúscula" />
-              <Requirement met={validations.hasNumber} label="Número" />
+              <Requirement met={validations.hasNumber} label="Un número" />
               <Requirement met={validations.match} label="Coinciden" />
             </div>
 

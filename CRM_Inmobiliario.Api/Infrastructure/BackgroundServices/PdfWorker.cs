@@ -129,8 +129,9 @@ public class PdfWorker : BackgroundService
                 propiedad.Titulo, propiedad.Descripcion, propiedad.TipoPropiedad,
                 propiedad.Operacion, propiedad.Precio, $"{propiedad.Direccion}, {propiedad.Sector}, {propiedad.Ciudad}",
                 propiedad.Habitaciones, propiedad.Banos, propiedad.AreaTotal, imagenPrincipal,
-                $"{propiedad.Agente?.Nombre} {propiedad.Agente?.Apellido}", $"{propiedad.Agente?.Email} | {propiedad.Agente?.Telefono}",
-                propiedad.Agente?.Agencia, agenteLogo, seccionesData
+                $"{propiedad.Agente?.Nombre ?? "Agente"} {propiedad.Agente?.Apellido ?? ""}".Trim(), 
+                $"{propiedad.Agente?.Email ?? ""} | {propiedad.Agente?.Telefono ?? ""}".Trim(' ', '|'),
+                propiedad.Agente?.Agencia?.Nombre, agenteLogo, seccionesData
             );
 
             var document = new PropiedadFichaDocument(data);

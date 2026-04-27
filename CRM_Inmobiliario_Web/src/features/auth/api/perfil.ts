@@ -7,7 +7,8 @@ export interface PerfilAgente {
   apellido: string;
   email: string;
   telefono?: string;
-  agencia?: string;
+  agenciaNombre?: string;
+  agenciaId?: string | null;
   fotoUrl?: string;
   logoUrl?: string;
   rol: string;
@@ -15,10 +16,10 @@ export interface PerfilAgente {
 }
 
 export const usePerfil = () => {
-  const { data, error, isLoading, mutate } = useSWR<PerfilAgente>('/perfil');
+  const { data, error, isLoading, mutate } = useSWR<PerfilAgente>('/configuracion/perfil');
 
   const actualizarPerfil = async (datos: Partial<PerfilAgente>) => {
-    await api.put('/perfil', datos);
+    await api.put('/configuracion/perfil', datos);
     await mutate(); // Revalidar cache
   };
 
