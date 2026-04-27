@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePerfil } from '../api/perfil';
-import { User, Save, CheckCircle, Loader2, Lock, ShieldCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { User, Save, CheckCircle, Loader2, Lock, ShieldCheck, CheckCircle2, XCircle, Building2 } from 'lucide-react';
 import { Camera, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import FotoPerfilUpload from './FotoPerfilUpload';
@@ -18,7 +18,7 @@ const ConfiguracionPerfil: React.FC = () => {
     nombre: '',
     apellido: '',
     telefono: '',
-    agencia: '',
+    agenciaId: '',
     fotoUrl: '',
     logoUrl: ''
   });
@@ -90,14 +90,12 @@ const ConfiguracionPerfil: React.FC = () => {
 
     // Caso 1: Inicialización forzada (Primera vez que llegan datos reales)
     if (!isInitialized.current && (perfil.nombre || perfil.apellido)) {
-      // Usamos un timeout de 0 para sacar el setState del flujo síncrono del efecto
-      // y evitar el error de react-hooks/set-state-in-effect
       const timer = setTimeout(() => {
         setFormData({
           nombre: perfil.nombre ?? '',
           apellido: perfil.apellido ?? '',
           telefono: perfil.telefono ?? '',
-          agencia: perfil.agencia ?? '',
+          agenciaId: perfil.agenciaId ?? '',
           fotoUrl: perfil.fotoUrl ?? '',
           logoUrl: perfil.logoUrl ?? ''
         });
@@ -114,7 +112,7 @@ const ConfiguracionPerfil: React.FC = () => {
           nombre: prev.nombre !== (lastSyncedData.current?.nombre ?? '') ? prev.nombre : (perfil.nombre ?? ''),
           apellido: prev.apellido !== (lastSyncedData.current?.apellido ?? '') ? prev.apellido : (perfil.apellido ?? ''),
           telefono: prev.telefono !== (lastSyncedData.current?.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
-          agencia: prev.agencia !== (lastSyncedData.current?.agencia ?? '') ? prev.agencia : (perfil.agencia ?? ''),
+          agenciaId: prev.agenciaId !== (lastSyncedData.current?.agenciaId ?? '') ? prev.agenciaId : (perfil.agenciaId ?? ''),
           fotoUrl: prev.fotoUrl !== (lastSyncedData.current?.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
           logoUrl: prev.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? '')
         };
@@ -132,9 +130,11 @@ const ConfiguracionPerfil: React.FC = () => {
     setTimeout(() => setShowSuccess(false), 3000);
 
     // Ejecutamos la petición en segundo plano
-    actualizarPerfil(formData)
+    actualizarPerfil({
+      ...formData,
+      agenciaId: formData.agenciaId || null
+    })
       .then(() => {
-        // Mutate ya lo hace internamente actualizarPerfil, pero podemos forzar revalidación
         mutate();
       })
       .catch((err) => {
@@ -142,7 +142,6 @@ const ConfiguracionPerfil: React.FC = () => {
         toast.error('No se pudo sincronizar el perfil', {
           description: 'Tus cambios se mantendrán localmente pero hubo un error de conexión.'
         });
-        // Revertimos a los datos del servidor para mantener consistencia
         mutate();
       });
   };
@@ -278,16 +277,21 @@ const ConfiguracionPerfil: React.FC = () => {
                     />
                   </div>
 
-                  {/* Agencia */}
+                  {/* Agencia (Solo lectura) */}
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Nombre de la Agencia</label>
-                    <input
-                      type="text"
-                      value={formData.agencia}
-                      onChange={(e) => setFormData({ ...formData, agencia: e.target.value })}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
-                      placeholder="Ej: Inmobiliaria Horizonte Real"
-                    />
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Agencia Asociada</label>
+                    <div className="relative group">
+                      <Building2 className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={perfil?.agenciaNombre || 'Independiente'}
+                        disabled
+                        className="w-full pl-14 pr-6 py-4 rounded-2xl bg-slate-100 border-transparent text-slate-500 cursor-not-allowed outline-none font-bold"
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider ml-1 mt-1">
+                      * El nombre de la agencia es gestionado por la administración central.
+                    </p>
                   </div>
                 </div>
 
@@ -402,9 +406,8 @@ const ConfiguracionPerfil: React.FC = () => {
             </div>
           </div>
 
-          {/* Vista Previa de Ficha PDF - REDISEÑADA */}
+          {/* Vista Previa de Ficha PDF */}
           <div className="bg-slate-900 rounded-[40px] p-10 text-white relative overflow-hidden group">
-            {/* Círculos decorativos de fondo */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full -mr-32 -mt-32 blur-3xl" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-600/10 rounded-full -ml-24 -mb-24 blur-3xl" />
 
@@ -416,7 +419,6 @@ const ConfiguracionPerfil: React.FC = () => {
                 </div>
               </div>
 
-              {/* Cabecera Simulada */}
               <div className="flex items-center justify-between mb-12">
                 <div className="h-16 w-48 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden">
                   {formData.logoUrl ? (
@@ -431,7 +433,6 @@ const ConfiguracionPerfil: React.FC = () => {
                 </div>
               </div>
 
-              {/* Pie de Página Simulado */}
               <div className="mt-16 pt-8 border-t border-white/10">
                 <div className="flex items-center gap-6">
                   <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center overflow-hidden border border-white/20 ring-4 ring-white/5">
@@ -443,7 +444,7 @@ const ConfiguracionPerfil: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xl font-black tracking-tight">{[formData.nombre, formData.apellido].filter(Boolean).join(' ')}</p>
-                    <p className="text-indigo-400 font-bold text-sm tracking-wide">{formData.agencia || 'Agente Independiente'}</p>
+                    <p className="text-indigo-400 font-bold text-sm tracking-wide">{perfil?.agenciaNombre || 'Agente Independiente'}</p>
                     <p className="text-white/40 text-xs font-bold mt-1 tracking-widest uppercase">{formData.telefono || 'Sin teléfono'}</p>
                   </div>
                 </div>

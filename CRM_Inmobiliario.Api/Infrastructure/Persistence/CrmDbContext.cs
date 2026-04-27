@@ -10,6 +10,7 @@ public sealed class CrmDbContext : DbContext
     }
 
     public DbSet<Agent> Agents => Set<Agent>();
+    public DbSet<Agency> Agencies => Set<Agency>();
     public DbSet<Lead> Leads => Set<Lead>();
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<PropertyGallerySection> PropertyGallerySections => Set<PropertyGallerySection>();
@@ -35,6 +36,17 @@ public sealed class CrmDbContext : DbContext
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.Telefono).HasMaxLength(20);
             entity.Property(e => e.Rol).HasMaxLength(50);
+
+            entity.HasOne(d => d.Agencia)
+                .WithMany(p => p.Agents)
+                .HasForeignKey(d => d.AgenciaId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Agencias
+        modelBuilder.Entity<Agency>(entity =>
+        {
+            entity.Property(e => e.Nombre).HasMaxLength(150).IsRequired();
         });
 
         // Clientes (Leads)

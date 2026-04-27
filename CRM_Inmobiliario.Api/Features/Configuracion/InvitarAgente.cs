@@ -4,13 +4,16 @@ using Microsoft.AspNetCore.Routing;
 using System.ComponentModel.DataAnnotations;
 using System;
 using System.Threading;
+using System.Collections.Generic;
+using Supabase.Gotrue;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
 public static class InvitarAgente
 {
     public sealed record Request(
-        [Required][EmailAddress] string Email
+        [Required][EmailAddress] string Email,
+        Guid? AgenciaId = null
     );
 
     public static IEndpointRouteBuilder MapInvitarAgenteEndpoint(this IEndpointRouteBuilder endpoints)
@@ -20,7 +23,7 @@ public static class InvitarAgente
             Supabase.Client supabase,
             CancellationToken ct) =>
         {
-            Console.WriteLine($"[InvitarAgente]: Procesando invitación solo con correo para {request.Email}");
+            Console.WriteLine($"[InvitarAgente]: Procesando invitación para {request.Email} (AgenciaId: {request.AgenciaId})");
 
             try
             {
@@ -34,17 +37,29 @@ public static class InvitarAgente
 
                 var adminAuth = supabase.AdminAuth(serviceRoleKey);
                 
-                Console.WriteLine($"[InvitarAgente]: Enviando invitación a {request.Email}...");
+                // Preparamos los metadatos para que el frontend pueda recuperarlos al activar la cuenta
+                var options = new InviteUserByEmailOptions
+                {
+                    Data = new Dictionary<string, object>
+                    {
+                        { "agencia_id", request.AgenciaId?.ToString() ?? "" }
+                    }
+                };
                 
-                bool invitacionEnviada = await adminAuth.InviteUserByEmail(request.Email);
+                Console.WriteLine($"[InvitarAgente]: Enviando invitación a {request.Email} con metadata...");
+                
+                bool invitacionEnviada = await adminAuth.InviteUserByEmail(request.Email, options);
                 
                 if (!invitacionEnviada)
                 {
                     return Results.Problem("No se pudo generar la invitación en Supabase Auth.");
                 }
 
+                // IMPORTANTE: NO pre-registramos en la tabla 'Agents' aquí.
+                // El registro se creará cuando el usuario acepte la invitación y complete su perfil.
+
                 return Results.Ok(new { 
-                    message = "Invitación enviada exitosamente. El usuario completará su perfil al activar la cuenta."
+                    message = "Invitación enviada exitosamente."
                 });
             }
             catch (Exception ex)
@@ -55,7 +70,7 @@ public static class InvitarAgente
         })
         .WithTags("Configuracion")
         .WithName("InvitarAgente")
-        .WithDescription("Invita a un nuevo agente al sistema enviando un correo de confirmación.");
+        .WithDescription("Invita a un nuevo agente al sistema vinculándolo opcionalmente a una agencia a través de metadatos.");
 
         return endpoints;
     }

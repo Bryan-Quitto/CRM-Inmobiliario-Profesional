@@ -9,31 +9,33 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
-public static class ActualizarPerfilFeature
+public static class ActualizarPerfil
 {
     public record Request(
         string Nombre,
         string Apellido,
-        string? Telefono,
-        string? Agencia,
+        string Telefono,
+        Guid? AgenciaId,
         string? FotoUrl,
         string? LogoUrl);
 
-    public static RouteHandlerBuilder MapActualizarPerfilEndpoint(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder MapActualizarPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return app.MapPut("/perfil", async (Request request, ClaimsPrincipal user, CrmDbContext context) =>
+        endpoints.MapPut("/configuracion/perfil", async (Request request, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
-            var email = user.FindFirstValue(ClaimTypes.Email) ?? user.FindFirstValue("email") ?? "";
+            var email = user.FindFirstValue(ClaimTypes.Email) 
+                        ?? user.FindFirstValue("email") 
+                        ?? user.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress") 
+                        ?? "";
 
-            // Intentamos actualizar primero (más rápido)
             var rowsAffected = await context.Agents
                 .Where(a => a.Id == agenteId)
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(a => a.Nombre, request.Nombre)
                     .SetProperty(a => a.Apellido, request.Apellido)
                     .SetProperty(a => a.Telefono, request.Telefono.NormalizeEcuadorPhone())
-                    .SetProperty(a => a.Agencia, request.Agencia)
+                    .SetProperty(a => a.AgenciaId, request.AgenciaId)
                     .SetProperty(a => a.FotoUrl, request.FotoUrl)
                     .SetProperty(a => a.LogoUrl, request.LogoUrl));
 
@@ -47,7 +49,7 @@ public static class ActualizarPerfilFeature
                     Apellido = request.Apellido,
                     Email = email,
                     Telefono = request.Telefono.NormalizeEcuadorPhone(),
-                    Agencia = request.Agencia,
+                    AgenciaId = request.AgenciaId,
                     FotoUrl = request.FotoUrl,
                     LogoUrl = request.LogoUrl,
                     Rol = "Agente",
@@ -63,5 +65,7 @@ public static class ActualizarPerfilFeature
         })
         .WithTags("Configuracion")
         .WithName("ActualizarPerfil");
+
+        return endpoints;
     }
 }
