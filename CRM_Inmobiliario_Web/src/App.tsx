@@ -208,7 +208,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <p className="text-sm font-black text-slate-900">
                   {perfil ? (
                     (() => {
-                      const nombreCompleto = `${perfil.nombre} ${perfil.apellido}`;
+                      const nombreCompleto = [perfil.nombre, perfil.apellido].filter(Boolean).join(' ');
                       return nombreCompleto.length > 50 ? perfil.apellido : nombreCompleto;
                     })()
                   ) : (
@@ -221,7 +221,7 @@ function AppContent({ session }: { session: Session | null }) {
                 {perfil?.fotoUrl ? (
                   <img src={perfil.fotoUrl} alt="Perfil" className="w-full h-full object-cover" />
                 ) : (
-                  perfil ? `${perfil.nombre[0]}${perfil.apellido[0]}` : (session?.user?.email?.[0] || 'A')
+                  perfil ? [perfil.nombre?.[0], perfil.apellido?.[0]].filter(Boolean).join('') : (session?.user?.email?.[0] || 'A')
                 )}
               </div>
             </div>

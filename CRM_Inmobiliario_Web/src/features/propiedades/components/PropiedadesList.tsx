@@ -652,6 +652,7 @@ const PropiedadesContent = () => {
         onClose={() => setClosingPropiedad(null)}
         onConfirm={handleClosingConfirm}
         mode="property"
+        intendedState={closingPropiedad?.nuevoEstado}
         initialData={closingPropiedad ? {
           id: closingPropiedad.propiedad.id,
           titulo: closingPropiedad.propiedad.titulo,

@@ -42,7 +42,7 @@ const ORDEN_EMBUDO: Record<string, number> = {
 };
 
 const LeadAvatar = ({ nombre, apellido }: { nombre: string, apellido: string }) => {
-  const iniciales = `${nombre[0] || ''}${apellido[0] || ''}`.toUpperCase();
+  const iniciales = [nombre?.[0], apellido?.[0]].filter(Boolean).join('').toUpperCase();
   return (
     <div className="h-8 w-8 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 border border-blue-200">
       {iniciales || <User className="h-3 w-3" />}
@@ -114,8 +114,8 @@ const DashboardContent: React.FC = () => {
     }
   ];
 
-  const greeting = perfil?.nombre && perfil?.apellido 
-    ? `${perfil.nombre} ${perfil.apellido}`
+  const greeting = perfil?.nombre
+    ? [perfil.nombre, perfil.apellido].filter(Boolean).join(' ')
     : 'Agente';
 
   return (
@@ -205,7 +205,7 @@ const DashboardContent: React.FC = () => {
                         <LeadAvatar nombre={lead.nombre} apellido={lead.apellido} />
                         <div className="flex-1 min-w-0">
                           <p className="text-[12px] font-black text-slate-900 truncate uppercase tracking-tight">
-                            {lead.nombre} {lead.apellido}
+                            {[lead.nombre, lead.apellido].filter(Boolean).join(' ')}
                           </p>
                           <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest">
                             {lead.etapaEmbudo}

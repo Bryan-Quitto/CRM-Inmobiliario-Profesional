@@ -146,7 +146,7 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <h4 className="font-black text-slate-900 group-hover:text-blue-600 transition-colors text-[11px] uppercase truncate">
-                                    {cliente.nombre} {cliente.apellido}
+                                    {[cliente.nombre, cliente.apellido].filter(Boolean).join(' ')}
                                   </h4>
                                   <p className="text-[9px] text-slate-400 font-bold truncate tracking-tight">{cliente.telefono}</p>
                                 </div>

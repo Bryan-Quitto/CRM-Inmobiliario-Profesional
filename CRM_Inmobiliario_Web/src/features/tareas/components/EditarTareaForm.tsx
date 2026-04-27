@@ -60,7 +60,7 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
   const selectRef = useRef<HTMLDivElement>(null);
 
   const clienteOptions = useMemo(() => 
-    clientes.map(c => ({ id: c.id, title: `${c.nombre} ${c.apellido}`, subtitle: c.telefono })),
+    clientes.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
     [clientes]
   );
 
@@ -184,7 +184,7 @@ export const EditarTareaForm = ({ tareaId, initialData, onSuccess, onCancel, onC
       ...values,
       tipoTarea: values.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
       fechaInicio: new Date(values.fechaInicio).toISOString(),
-      clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : undefined,
+      clienteNombre: cliente ? [cliente.nombre, cliente.apellido].filter(Boolean).join(' ') : undefined,
       propiedadTitulo: propiedad ? propiedad.titulo : undefined
     };
 

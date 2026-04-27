@@ -429,7 +429,7 @@ export const ClienteDetalle = () => {
           </button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">{cliente.nombre} {cliente.apellido}</h1>
+              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">{[cliente.nombre, cliente.apellido].filter(Boolean).join(' ')}</h1>
               
               <div className="relative">
                 <button 
@@ -486,7 +486,7 @@ export const ClienteDetalle = () => {
               <div className="h-24 w-24 bg-slate-900 text-white rounded-[32px] flex items-center justify-center text-3xl font-black shadow-2xl mb-4 rotate-3">
                 {cliente.nombre[0]}{cliente.apellido?.[0] || ''}
               </div>
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">{cliente.nombre} {cliente.apellido}</h2>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">{[cliente.nombre, cliente.apellido].filter(Boolean).join(' ')}</h2>
               <p className="text-sm font-bold text-slate-400 mt-1 italic">Prospecto desde {new Date(cliente.fechaCreacion!).toLocaleDateString()}</p>
             </div>
 
@@ -834,7 +834,7 @@ export const ClienteDetalle = () => {
         mode="lead"
         initialData={cliente ? {
           id: cliente.id,
-          titulo: `${cliente.nombre} ${cliente.apellido}`,
+          titulo: [cliente.nombre, cliente.apellido].filter(Boolean).join(' '),
           precio: 0,
           operacion: 'Venta'
         } : undefined}
