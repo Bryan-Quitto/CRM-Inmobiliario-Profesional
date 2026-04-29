@@ -224,6 +224,7 @@ apiGroup.MapActualizarPerfilEndpoint();
 apiGroup.MapInvitarAgenteEndpoint();
 apiGroup.MapAgenciasEndpoints();
 apiGroup.MapActivarPerfilEndpoint();
+apiGroup.MapListarAgentesEndpoint();
 
 // Calendario
 apiGroup.MapListarEventosEndpoint().CacheOutput();

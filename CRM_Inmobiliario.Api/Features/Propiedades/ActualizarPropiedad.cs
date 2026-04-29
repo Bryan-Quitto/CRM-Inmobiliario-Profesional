@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -31,21 +32,60 @@ public static class ActualizarPropiedadFeature
         int? MediosBanos,
         int? AniosAntiguedad,
         bool EsCaptacionPropia,
-        decimal PorcentajeComision,
+        Guid? CaptadorId = null,
+        NuevoCaptadorRequest? NuevoCaptador = null,
+        decimal PorcentajeComision = 5.0m,
         DateTimeOffset? FechaIngreso = null);
+
+    public record NuevoCaptadorRequest(string Nombre, string Apellido, string? Telefono);
 
     public static void MapActualizarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapPut("/propiedades/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
-            var agenteId = user.GetRequiredUserId();
+            var currentUserId = user.GetRequiredUserId();
 
             var propiedad = await context.Properties
-                .FirstOrDefaultAsync(p => p.Id == id && p.AgenteId == agenteId);
+                .FirstOrDefaultAsync(p => p.Id == id, ct);
 
             if (propiedad is null)
             {
                 return Results.NotFound();
+            }
+
+            // SEGURIDAD: Solo el dueño de la captación puede editar datos maestros
+            if (propiedad.AgenteId != currentUserId)
+            {
+                return Results.Json(new { message = "Solo el agente que captó la propiedad puede editar sus datos maestros y galería." }, statusCode: StatusCodes.Status403Forbidden);
+            }
+
+            // Lógica de Captador
+            Guid finalAgenteId = currentUserId;
+
+            if (!command.EsCaptacionPropia)
+            {
+                if (command.CaptadorId.HasValue)
+                {
+                    finalAgenteId = command.CaptadorId.Value;
+                }
+                else if (command.NuevoCaptador != null)
+                {
+                    // Crear agente "invitado" (inactivo)
+                    var nuevoAgente = new Agent
+                    {
+                        Id = Guid.NewGuid(),
+                        Nombre = command.NuevoCaptador.Nombre,
+                        Apellido = command.NuevoCaptador.Apellido,
+                        Telefono = command.NuevoCaptador.Telefono,
+                        Email = $"invitado_{Guid.NewGuid().ToString()[..8]}@crm-inmobiliario.com",
+                        Activo = false,
+                        AgenciaId = propiedad.AgenciaId,
+                        Rol = "Agente",
+                        FechaCreacion = DateTimeOffset.UtcNow
+                    };
+                    context.Agents.Add(nuevoAgente);
+                    finalAgenteId = nuevoAgente.Id;
+                }
             }
 
             propiedad.Titulo = command.Titulo;
@@ -68,6 +108,7 @@ public static class ActualizarPropiedadFeature
             propiedad.AniosAntiguedad = command.AniosAntiguedad;
             propiedad.EsCaptacionPropia = command.EsCaptacionPropia;
             propiedad.PorcentajeComision = command.PorcentajeComision;
+            propiedad.AgenteId = finalAgenteId; // Actualizamos el captador real
             
             if (command.FechaIngreso.HasValue)
             {

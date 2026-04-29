@@ -23,6 +23,7 @@ interface MediaCardProps {
   showActions: boolean;
   onSaved?: () => void;
   propiedadId: string;
+  isReadOnly?: boolean;
 }
 
 export const MediaCard = React.memo<MediaCardProps>(({
@@ -34,7 +35,8 @@ export const MediaCard = React.memo<MediaCardProps>(({
   onDownload,
   showActions,
   onSaved,
-  propiedadId
+  propiedadId,
+  isReadOnly = false
 }) => {
   const { mutate } = useSWRConfig();
 // ... (keep internal state and effects)
@@ -155,7 +157,7 @@ export const MediaCard = React.memo<MediaCardProps>(({
         </div>
 
         {/* Quick Actions (Floating) */}
-        {showActions && !isSelected && (
+        {showActions && !isSelected && !isReadOnly && (
           <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-500">
             <button 
               onClick={(e) => { e.stopPropagation(); onDownload(item.urlPublica, `foto_${item.id.split('-')[0]}.webp`); }}
@@ -178,7 +180,7 @@ export const MediaCard = React.memo<MediaCardProps>(({
             <CheckCircle2 size={14} /> Foto Portada
           </div>
         ) : (
-          !isSelected && (
+          !isSelected && !isReadOnly && (
             <button 
               onClick={(e) => { e.stopPropagation(); onSetCover(item.id); }}
               className="absolute bottom-4 left-4 px-4 py-2 bg-white/90 backdrop-blur-xl text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-2xl flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all hover:bg-indigo-600 hover:text-white cursor-pointer"
@@ -195,20 +197,24 @@ export const MediaCard = React.memo<MediaCardProps>(({
           <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
             <FileText size={12} className="text-indigo-400" /> Pie de foto
           </label>
-          <div className="h-4 flex items-center">
-            {isSaving && <Loader2 size={12} className="text-indigo-500 animate-spin" />}
-            {saveSuccess && <Check size={12} className="text-emerald-500 animate-in zoom-in" />}
-          </div>
+          {!isReadOnly && (
+            <div className="h-4 flex items-center">
+              {isSaving && <Loader2 size={12} className="text-indigo-500 animate-spin" />}
+              {saveSuccess && <Check size={12} className="text-emerald-500 animate-in zoom-in" />}
+            </div>
+          )}
         </div>
         
         <textarea
           value={descripcion}
           onChange={(e) => {
+            if (isReadOnly) return;
             isUserEditing.current = true;
             setDescripcion(e.target.value);
           }}
-          placeholder="Añade un detalle..."
-          className="w-full bg-white border-none rounded-2xl p-4 text-sm font-bold text-slate-700 placeholder:text-slate-300 placeholder:font-medium focus:ring-4 focus:ring-indigo-100 transition-all resize-none min-h-[80px] shadow-sm"
+          readOnly={isReadOnly}
+          placeholder={isReadOnly ? "Sin pie de foto..." : "Añade un detalle..."}
+          className={`w-full border-none rounded-2xl p-4 text-sm font-bold text-slate-700 placeholder:text-slate-300 placeholder:font-medium transition-all resize-none min-h-[80px] shadow-sm ${isReadOnly ? 'bg-slate-50 cursor-default' : 'bg-white focus:ring-4 focus:ring-indigo-100'}`}
           onFocus={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         />

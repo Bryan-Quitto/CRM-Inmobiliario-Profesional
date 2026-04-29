@@ -30,21 +30,56 @@ public static class CambiarEstadoPropiedadFeature
             CancellationToken ct) =>
         {
             var logger = loggerFactory.CreateLogger("CambiarEstadoPropiedad");
-            var agenteId = user.GetRequiredUserId();
+            var currentUserId = user.GetRequiredUserId();
 
             try
             {
                 var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 
+                // Obtenemos la agencia del usuario actual para validar visibilidad multi-tenant
+                var currentUserAgenciaId = await context.Agents
+                    .AsNoTracking()
+                    .Where(a => a.Id == currentUserId)
+                    .Select(a => a.AgenciaId)
+                    .FirstOrDefaultAsync(ct);
+
                 // 1. LECTURAS
                 var property = await context.Properties
                     .Include(p => p.Transactions.Where(t => t.TransactionStatus == "Active"))
-                    .FirstOrDefaultAsync(p => p.Id == id && p.AgenteId == agenteId, ct);
+                        .ThenInclude(t => t.CreatedBy)
+                    .FirstOrDefaultAsync(p => p.Id == id && (p.AgenteId == currentUserId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)), ct);
 
                 if (property == null)
                 {
-                    logger.LogWarning("⚠️ [ESTADO] Propiedad {Id} no encontrada para el agente {AgenteId}", id, agenteId);
-                    return Results.NotFound(new { Message = "La propiedad no existe o no tiene permisos." });
+                    logger.LogWarning("⚠️ [ESTADO] Propiedad {Id} no encontrada para el agente {AgenteId}", id, currentUserId);
+                    return Results.NotFound(new { Message = "La propiedad no existe o no tiene permisos de visibilidad." });
+                }
+
+                // SEGURIDAD: Guardián de Estados (Multi-Agente)
+                // Si la propiedad está en un estado que implica un proceso activo (Reservada, Vendida, Alquilada)
+                // y el usuario actual no es ni el dueño de la captación ni el dueño de la transacción activa, rebotamos.
+                var activeTransaction = property.Transactions.OrderByDescending(t => t.TransactionDate).FirstOrDefault(t => t.TransactionStatus == "Active");
+                
+                if (property.EstadoComercial is "Reservada" or "Vendida" or "Alquilada" && command.NuevoEstado is "Disponible" or "Inactiva")
+                {
+                    // Solo el autor de la transacción activa (o el dueño de la captación si no hay transacción) puede liberar el estado.
+                    bool esAutorTransaccion = activeTransaction != null && activeTransaction.CreatedById == currentUserId;
+                    bool esDuenioCaptacion = property.AgenteId == currentUserId;
+
+                    if (!esAutorTransaccion && !esDuenioCaptacion)
+                    {
+                        var responsable = activeTransaction?.CreatedBy != null 
+                            ? $"{activeTransaction.CreatedBy.Nombre} {activeTransaction.CreatedBy.Apellido}"
+                            : "otro agente";
+
+                        var msg = property.EstadoComercial switch
+                        {
+                            "Reservada" => $"Esta propiedad está en proceso por el agente {responsable}. Contáctese con el agente si desea hacer alguna modificación.",
+                            _ => $"Esta propiedad ya fue {property.EstadoComercial.ToLower()} por el agente {responsable}. Contáctese con el agente si desea hacer alguna modificación."
+                        };
+
+                        return Results.Json(new { Message = msg }, statusCode: StatusCodes.Status400BadRequest);
+                    }
                 }
 
                 // Spec 011: Validación de estado Reservada sobre Cierre
@@ -72,8 +107,11 @@ public static class CambiarEstadoPropiedadFeature
                 if (esCierre && command.CerradoConId.HasValue)
                 {
                     logger.LogInformation("👤 [ESTADO] Buscando Lead asociado: {LeadId}", command.CerradoConId.Value);
+                    // El lead puede ser de la agencia (visibilidad compartida de prospectos si fuera el caso, 
+                    // pero por ahora mantenemos que el lead debe ser del agente que cierra o compartido por agencia)
+                    // Para mayor robustez, validamos que el lead sea del agente que cierra.
                     lead = await context.Leads
-                        .FirstOrDefaultAsync(l => l.Id == command.CerradoConId.Value && l.AgenteId == agenteId, ct);
+                        .FirstOrDefaultAsync(l => l.Id == command.CerradoConId.Value && l.AgenteId == currentUserId, ct);
                 }
                 
                 if (requiereRelistadoAutomatico)
@@ -95,7 +133,7 @@ public static class CambiarEstadoPropiedadFeature
                         TransactionStatus = "Completed",
                         TransactionDate = ecuadorNow.AddTicks(-1), // Un tick antes para orden cronológico
                         Notes = "Relistado automático por transición de estado comercial.",
-                        CreatedById = agenteId
+                        CreatedById = currentUserId
                     });
                 }
                 else if (property.Transactions.Any(t => t.TransactionStatus == "Active"))
@@ -110,10 +148,10 @@ public static class CambiarEstadoPropiedadFeature
                     }
                 }
 
-                // Si no es cierre y tenía un Lead vinculado, lo revertimos (Lógica por defecto si no se usa /relist)
+                // Si no es cierre y tenía un Lead vinculado, lo revertimos
                 if (!esCierre && property.CerradoConId.HasValue)
                 {
-                    var leadToRevert = await context.Leads.FirstOrDefaultAsync(l => l.Id == property.CerradoConId.Value && l.AgenteId == agenteId, ct);
+                    var leadToRevert = await context.Leads.FirstOrDefaultAsync(l => l.Id == property.CerradoConId.Value, ct);
                     if (leadToRevert != null)
                     {
                         leadToRevert.EtapaEmbudo = "En Negociación";
@@ -145,7 +183,7 @@ public static class CambiarEstadoPropiedadFeature
                         TransactionStatus = "Active", // Nueva transacción activa
                         Amount = command.PrecioCierre ?? property.Precio,
                         TransactionDate = ecuadorNow,
-                        CreatedById = agenteId,
+                        CreatedById = currentUserId,
                         Notes = esAlquilerSucesivo 
                             ? $"Alquiler sucesivo registrado. El inquilino anterior finalizó su ciclo."
                             : $"Cierre realizado desde el detalle de la propiedad. Marcada como {command.NuevoEstado}."
@@ -153,7 +191,7 @@ public static class CambiarEstadoPropiedadFeature
 
                     context.Interactions.Add(new Domain.Entities.Interaction
                     {
-                        AgenteId = agenteId,
+                        AgenteId = currentUserId,
                         ClienteId = lead.Id,
                         PropiedadId = property.Id,
                         TipoInteraccion = "Cierre",
@@ -162,16 +200,16 @@ public static class CambiarEstadoPropiedadFeature
                 }
 
                 // 3. GUARDADO TRANSACCIONAL AUTOMÁTICO
-                // Usamos CancellationToken.None para que un cierre de navegador no aborte el guardado a la mitad
                 logger.LogInformation("💾 [ESTADO] Ejecutando SaveChangesAsync...");
                 await context.SaveChangesAsync(CancellationToken.None);
                 
                 // Notificar al servicio de Warming proactivamente
-                warmingService.NotifyChange(agenteId);
+                warmingService.NotifyChange(currentUserId);
 
                 // Invalidar caches proactivamente
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
                 await cacheStore.EvictByTagAsync("analytics-data", ct);
+                await cacheStore.EvictByTagAsync("properties-data", ct);
 
                 logger.LogInformation("🏁 [ESTADO] Proceso completado exitosamente para {Id}", id);
                 return Results.NoContent();

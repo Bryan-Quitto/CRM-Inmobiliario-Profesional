@@ -1,5 +1,11 @@
 import { api } from '@/lib/axios';
 
+export interface NuevoCaptadorRequest {
+  nombre: string;
+  apellido: string;
+  telefono?: string;
+}
+
 export type ActualizarPropiedadDTO = {
   titulo: string;
   descripcion: string;
@@ -14,6 +20,8 @@ export type ActualizarPropiedadDTO = {
   banos: number;
   areaTotal: number;
   esCaptacionPropia: boolean;
+  captadorId?: string;
+  nuevoCaptador?: NuevoCaptadorRequest;
   porcentajeComision: number;
   fechaIngreso?: string;
 };

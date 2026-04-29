@@ -34,8 +34,20 @@ public static class ObtenerPropiedadPorIdFeature
         bool EsCaptacionPropia,
         decimal PorcentajeComision,
         DateTimeOffset FechaIngreso,
+        string AgenteNombre,
         IEnumerable<SectionResponse> Secciones,
-        IEnumerable<MediaResponse> MediaSinSeccion);
+        IEnumerable<MediaResponse> MediaSinSeccion,
+        PropertyPermissions Permissions,
+        ActiveTransactionInfo? ActiveTransaction);
+
+    public record PropertyPermissions(
+        bool CanEditMasterData,
+        bool CanManageGallery,
+        bool CanChangeStatus);
+
+    public record ActiveTransactionInfo(
+        Guid AgenteId,
+        string AgenteNombre);
 
     public record SectionResponse(
         Guid Id,
@@ -56,37 +68,58 @@ public static class ObtenerPropiedadPorIdFeature
     {
         return app.MapGet("/propiedades/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            var agenteId = user.GetRequiredUserId();
+            var currentUserId = user.GetRequiredUserId();
+
+            // Obtenemos la agencia del usuario actual para validar visibilidad multi-tenant
+            var currentUserAgenciaId = await context.Agents
+                .AsNoTracking()
+                .Where(a => a.Id == currentUserId)
+                .Select(a => a.AgenciaId)
+                .FirstOrDefaultAsync();
 
             var propiedad = await context.Properties
                 .AsNoTracking()
                 .AsSplitQuery()
-                .Where(p => p.Id == id && p.AgenteId == agenteId)
-                .Select(p => new Response(
-                    p.Id,
-                    p.Titulo,
-                    p.Descripcion,
-                    p.TipoPropiedad,
-                    p.Operacion,
-                    p.Precio,
-                    p.Direccion,
-                    p.Sector,
-                    p.Ciudad,
-                    p.GoogleMapsUrl,
-                    p.UrlRemax,
-                    p.Habitaciones,
-                    p.Banos,
-                    p.AreaTotal,
-                    p.AreaTerreno,
-                    p.AreaConstruccion,
-                    p.Estacionamientos,
-                    p.MediosBanos,
-                    p.AniosAntiguedad,
-                    p.EstadoComercial,
-                    p.EsCaptacionPropia,
-                    p.PorcentajeComision,
-                    p.FechaIngreso,
-                    p.GallerySections
+                .Where(p => p.Id == id && 
+                           (p.AgenteId == currentUserId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)))
+                .Select(p => new
+                {
+                    Property = p,
+                    // Buscamos la transacción activa más reciente si el estado no es Disponible ni Inactiva
+                    ActiveTransaction = p.Transactions
+                        .Where(t => t.TransactionStatus == "Active")
+                        .OrderByDescending(t => t.TransactionDate)
+                        .Select(t => new ActiveTransactionInfo(
+                            t.CreatedById,
+                            t.CreatedBy != null ? t.CreatedBy.Nombre + " " + t.CreatedBy.Apellido : "Agente desconocido"))
+                        .FirstOrDefault()
+                })
+                .Select(x => new Response(
+                    x.Property.Id,
+                    x.Property.Titulo,
+                    x.Property.Descripcion,
+                    x.Property.TipoPropiedad,
+                    x.Property.Operacion,
+                    x.Property.Precio,
+                    x.Property.Direccion,
+                    x.Property.Sector,
+                    x.Property.Ciudad,
+                    x.Property.GoogleMapsUrl,
+                    x.Property.UrlRemax,
+                    x.Property.Habitaciones,
+                    x.Property.Banos,
+                    x.Property.AreaTotal,
+                    x.Property.AreaTerreno,
+                    x.Property.AreaConstruccion,
+                    x.Property.Estacionamientos,
+                    x.Property.MediosBanos,
+                    x.Property.AniosAntiguedad,
+                    x.Property.EstadoComercial,
+                    x.Property.EsCaptacionPropia,
+                    x.Property.PorcentajeComision,
+                    x.Property.FechaIngreso,
+                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente desconocido",
+                    x.Property.GallerySections
                         .OrderBy(s => s.Orden)
                         .Select(s => new SectionResponse(
                             s.Id,
@@ -102,7 +135,7 @@ public static class ObtenerPropiedadPorIdFeature
                                     m.Descripcion,
                                     m.EsPrincipal,
                                     m.Orden)))),
-                    p.Media
+                    x.Property.Media
                         .Where(m => m.SectionId == null)
                         .OrderBy(m => m.Orden)
                         .Select(m => new MediaResponse(
@@ -111,7 +144,15 @@ public static class ObtenerPropiedadPorIdFeature
                             m.UrlPublica,
                             m.Descripcion,
                             m.EsPrincipal,
-                            m.Orden))))
+                            m.Orden)),
+                    new PropertyPermissions(
+                        // Solo el dueño de la captación edita datos y galería
+                        x.Property.AgenteId == currentUserId,
+                        x.Property.AgenteId == currentUserId,
+                        // Cambio de estado permitido si es el dueño O si es el dueño de la transacción activa
+                        x.Property.AgenteId == currentUserId || (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || x.Property.EstadoComercial == "Disponible"
+                    ),
+                    x.ActiveTransaction))
                 .FirstOrDefaultAsync();
 
             return propiedad is not null 

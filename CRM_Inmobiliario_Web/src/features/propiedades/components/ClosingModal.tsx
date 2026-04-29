@@ -77,7 +77,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = ({
 
   const propiedadOptions = useMemo(() => 
     propiedades
-      .filter(p => p.estadoComercial === 'Disponible' || p.estadoComercial === 'Reservada')
+      .filter(p => p.estadoComercial === 'Disponible')
       .map(p => ({ 
         id: p.id, 
         title: p.titulo, 

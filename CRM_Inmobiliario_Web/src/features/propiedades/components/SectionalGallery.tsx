@@ -23,7 +23,6 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { MediaCard } from './MediaCard';
 
 interface SectionalGalleryProps {
-// ... (rest of the interface remains same)
   propiedadId: string;
   propiedadTitulo: string;
   index: number;
@@ -41,6 +40,7 @@ interface SectionalGalleryProps {
   onMoveDown?: () => void;
   onMoveTo?: (index: number) => void;
   totalSections?: number;
+  isReadOnly?: boolean;
 }
 
 export const SectionalGallery = React.memo<SectionalGalleryProps>(({
@@ -60,7 +60,8 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
   onMoveUp,
   onMoveDown,
   onMoveTo,
-  totalSections = 0
+  totalSections = 0,
+  isReadOnly = false
 }) => {
   const { mutate } = useSWRConfig();
   const [, startTransition] = useTransition();
@@ -254,13 +255,13 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <div className="flex items-center gap-4">
               {sectionId && (
-                <div className="flex flex-col gap-1 mr-1">
-                  <button onClick={onMoveUp} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer" title="Subir sección"><ChevronUp size={16} /></button>
+                <div className={`flex flex-col gap-1 mr-1 ${isReadOnly ? 'opacity-30 pointer-events-none' : ''}`}>
+                  <button onClick={onMoveUp} disabled={isReadOnly} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer" title="Subir sección"><ChevronUp size={16} /></button>
                   
                   {/* Selector de Orden Dinámico */}
                   <div className="relative" ref={dropdownRef}>
                     <button 
-                      onClick={() => setIsOrderDropdownOpen(!isOrderDropdownOpen)}
+                      onClick={() => !isReadOnly && setIsOrderDropdownOpen(!isOrderDropdownOpen)}
                       className="h-6 w-6 rounded-md bg-slate-50 text-[10px] font-black text-indigo-600 flex items-center justify-center border border-indigo-100 hover:bg-indigo-50 transition-all cursor-pointer"
                       title="Cambiar orden"
                     >
@@ -284,7 +285,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
                     )}
                   </div>
 
-                  <button onClick={onMoveDown} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer" title="Bajar sección"><ChevronDown size={16} /></button>
+                  <button onClick={onMoveDown} disabled={isReadOnly} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer" title="Bajar sección"><ChevronDown size={16} /></button>
                 </div>
               )}
               <div className={`h-12 w-12 shrink-0 ${sectionId ? 'bg-indigo-50 text-indigo-600' : 'bg-blue-50 text-blue-600'} rounded-[1.25rem] flex items-center justify-center shadow-inner`}>
@@ -330,7 +331,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
                 ) : (
                   <div className="flex items-center gap-3 group">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">{sectionNombre}</h3>
-                    {sectionId && (
+                    {sectionId && !isReadOnly && (
                       <button onClick={() => setIsEditingName(true)} className="p-2 text-slate-300 hover:text-indigo-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer">
                         <Pencil size={16} />
                       </button>
@@ -342,7 +343,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              {sectionId && (
+              {sectionId && !isReadOnly && (
                 <div className="p-3 text-slate-300 cursor-grab active:cursor-grabbing hover:text-indigo-400 transition-colors">
                   <GripVertical size={24} />
                 </div>
@@ -364,7 +365,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
                 </button>
               )}
               
-              {(sectionId || media.length > 0) && (
+              {!isReadOnly && (sectionId || media.length > 0) && (
                 <button 
                   onClick={() => selectedMediaIds.size > 0 ? setConfirmDeleteSelection(true) : setConfirmDeleteSection(true)}
                   className="flex items-center gap-3 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all cursor-pointer"
@@ -374,7 +375,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
                 </button>
               )}
               
-              {selectedMediaIds.size > 0 && (
+              {!isReadOnly && selectedMediaIds.size > 0 && (
                 <button onClick={clearSelection} className="h-10 w-10 flex items-center justify-center bg-slate-900 text-white rounded-xl hover:bg-black transition-all cursor-pointer">
                   <Plus size={20} className="rotate-45" />
                 </button>
@@ -394,42 +395,45 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
               <textarea
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
-                placeholder="Describe brevemente esta área para el PDF (ej: Vista al jardín, acabados premium...)"
-                className="w-full bg-slate-50/50 border-none rounded-2xl p-4 text-sm font-bold text-slate-600 placeholder:text-slate-300 focus:bg-slate-50 focus:ring-4 focus:ring-indigo-100 transition-all resize-none h-24 block"
+                readOnly={isReadOnly}
+                placeholder={isReadOnly ? "Sin descripción..." : "Describe brevemente esta área para el PDF (ej: Vista al jardín, acabados premium...)"}
+                className={`w-full border-none rounded-2xl p-4 text-sm font-bold text-slate-600 placeholder:text-slate-300 transition-all resize-none h-24 block ${isReadOnly ? 'bg-slate-50 cursor-default' : 'bg-slate-50/50 focus:bg-slate-50 focus:ring-4 focus:ring-indigo-100'}`}
               />
             </div>
           )}
         </div>
 
         {/* Zona de Arrastre World-Class */}
-        <label 
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all border-t border-slate-50 ${
-            isDragging ? 'bg-indigo-600 text-white' : 'bg-slate-50/20 hover:bg-indigo-50/30'
-          }`}
-        >
-          <input 
-            type="file" 
-            multiple 
-            className="hidden" 
-            accept="image/*" 
-            onChange={(e) => e.target.files && handleFiles(e.target.files)} 
-          />
-          <div className="flex items-center gap-3">
-            {isUploading(propiedadId, sectionId) ? (
-              <Loader2 size={18} className="text-indigo-600 animate-spin" />
-            ) : (
-              <Upload size={18} className={isDragging ? 'animate-bounce' : 'text-indigo-600'} />
-            )}
-            <span className="text-[11px] font-black uppercase tracking-widest">
-              {isDragging ? '¡Suelta para subir!' : 
-               isUploading(propiedadId, sectionId) ? `Subiendo a ${sectionNombre}... (Puedes añadir más)` :
-               `Arrastra o haz clic para subir a ${sectionNombre}`}
-            </span>
-          </div>
-        </label>
+        {!isReadOnly && (
+          <label 
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all border-t border-slate-50 ${
+              isDragging ? 'bg-indigo-600 text-white' : 'bg-slate-50/20 hover:bg-indigo-50/30'
+            }`}
+          >
+            <input 
+              type="file" 
+              multiple 
+              className="hidden" 
+              accept="image/*" 
+              onChange={(e) => e.target.files && handleFiles(e.target.files)} 
+            />
+            <div className="flex items-center gap-3">
+              {isUploading(propiedadId, sectionId) ? (
+                <Loader2 size={18} className="text-indigo-600 animate-spin" />
+              ) : (
+                <Upload size={18} className={isDragging ? 'animate-bounce' : 'text-indigo-600'} />
+              )}
+              <span className="text-[11px] font-black uppercase tracking-widest">
+                {isDragging ? '¡Suelta para subir!' : 
+                isUploading(propiedadId, sectionId) ? `Subiendo a ${sectionNombre}... (Puedes añadir más)` :
+                `Arrastra o haz clic para subir a ${sectionNombre}`}
+              </span>
+            </div>
+          </label>
+        )}
       </div>
 
       {/* Grid de Fotos Rediseñado (Vertical/Card) */}
@@ -444,9 +448,10 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
               onSetCover={handleSetCoverStable}
               onDelete={handleDeleteMediaStable}
               onDownload={handleDownloadSingle}
-              showActions={selectedMediaIds.size === 0}
+              showActions={!isReadOnly && selectedMediaIds.size === 0}
               onSaved={handleSavedStable}
               propiedadId={propiedadId}
+              isReadOnly={isReadOnly}
             />
           ))}
         </div>
