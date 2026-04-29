@@ -17,6 +17,17 @@ export interface SeccionGaleria {
   media: MultimediaPropiedad[];
 }
 
+export interface PropertyPermissions {
+  canEditMasterData: boolean;
+  canManageGallery: boolean;
+  canChangeStatus: boolean;
+}
+
+export interface ActiveTransactionInfo {
+  agenteId: string;
+  agenteNombre: string;
+}
+
 export interface Propiedad {
   id: string;
   titulo: string;
@@ -41,6 +52,8 @@ export interface Propiedad {
   esCaptacionPropia: boolean;
   porcentajeComision: number;
   fechaIngreso: string;
+  agenteId: string;
+  agenteNombre?: string;
   precioCierre?: number;
   fechaCierre?: string;
   cerradoConId?: string;
@@ -48,4 +61,6 @@ export interface Propiedad {
   secciones?: SeccionGaleria[];
   mediaSinSeccion?: MultimediaPropiedad[];
   imagenPortadaUrl?: string;
+  permissions?: PropertyPermissions;
+  activeTransaction?: ActiveTransactionInfo;
 }

@@ -469,15 +469,22 @@ const PropiedadesContent = () => {
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (p.permissions && !p.permissions.canChangeStatus) {
+                            const responsable = p.activeTransaction?.agenteNombre || 'otro agente';
+                            toast.warning('Acción restringida', {
+                              description: `Esta propiedad está en proceso por ${responsable}.`
+                            });
+                            return;
+                          }
                           setOpenDropdownId(openDropdownId === p.id ? null : p.id);
                         }}
-                        className={`cursor-pointer ${`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all flex items-center gap-2 ${getStatusStyles(p.estadoComercial)}`}`}
+                        className={`cursor-pointer ${`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all flex items-center gap-2 ${getStatusStyles(p.estadoComercial)} ${p.permissions && !p.permissions.canChangeStatus ? 'opacity-70 grayscale-[0.5]' : ''}`}`}
                       >
                         {p.estadoComercial}
-                        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${openDropdownId === p.id ? 'rotate-180' : ''}`} />
+                        {(!p.permissions || p.permissions.canChangeStatus) && <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${openDropdownId === p.id ? 'rotate-180' : ''}`} />}
                       </button>
 
-                      {openDropdownId === p.id && (
+                      {openDropdownId === p.id && (!p.permissions || p.permissions.canChangeStatus) && (
                         <div className="absolute left-0 mt-2 w-40 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[100] py-2 animate-in fade-in zoom-in duration-200 origin-top-left backdrop-blur-xl bg-white/95">
                           {ESTADOS.map((estado) => (
                             <button
@@ -503,7 +510,7 @@ const PropiedadesContent = () => {
                   {p.operacion}
                 </span>
 
-                {p.esCaptacionPropia && (
+                {p.esCaptacionPropia && p.permissions?.canEditMasterData && (
                   <div className="px-3 py-1 bg-blue-600/90 backdrop-blur-md text-white rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-xl shadow-blue-600/20 border border-white/20 animate-in zoom-in-95 duration-500">
                     <Handshake className="h-3 w-3" />
                     Captación Propia
@@ -511,16 +518,18 @@ const PropiedadesContent = () => {
                 )}
               </div>
 
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPropiedadIdForEdit(p.id);
-                }}
-                className="absolute top-4 right-4 z-40 h-8 w-8 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:scale-110 transition-all shadow-sm opacity-0 group-hover:opacity-100 cursor-pointer"
-                title="Editar Propiedad"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
+              {p.permissions?.canEditMasterData && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPropiedadIdForEdit(p.id);
+                  }}
+                  className="absolute top-4 right-4 z-40 h-8 w-8 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:scale-110 transition-all shadow-sm opacity-0 group-hover:opacity-100 cursor-pointer"
+                  title="Editar Propiedad"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
 
               <div className="h-56 bg-slate-200 relative overflow-hidden flex items-center justify-center rounded-t-3xl">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>

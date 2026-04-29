@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
@@ -32,14 +33,56 @@ public static class RegistrarPropiedadFeature
         int? MediosBanos = null,
         int? AniosAntiguedad = null,
         bool EsCaptacionPropia = true,
+        Guid? CaptadorId = null,
+        NuevoCaptadorRequest? NuevoCaptador = null,
         decimal PorcentajeComision = 5.0m,
         DateTimeOffset? FechaIngreso = null);
+
+    public record NuevoCaptadorRequest(string Nombre, string Apellido, string? Telefono);
 
     public static void MapRegistrarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapPost("/propiedades", async (Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, CancellationToken ct) =>
         {
-            var agenteId = user.GetRequiredUserId();
+            var currentUserId = user.GetRequiredUserId();
+            var currentAgent = await context.Agents
+                .AsNoTracking()
+                .Where(a => a.Id == currentUserId)
+                .Select(a => new { a.AgenciaId })
+                .FirstOrDefaultAsync(ct);
+
+            Guid finalAgenteId;
+
+            if (command.EsCaptacionPropia)
+            {
+                finalAgenteId = currentUserId;
+            }
+            else if (command.CaptadorId.HasValue)
+            {
+                finalAgenteId = command.CaptadorId.Value;
+            }
+            else if (command.NuevoCaptador != null)
+            {
+                // Crear agente "invitado" (inactivo)
+                var nuevoAgente = new Agent
+                {
+                    Id = Guid.NewGuid(),
+                    Nombre = command.NuevoCaptador.Nombre,
+                    Apellido = command.NuevoCaptador.Apellido,
+                    Telefono = command.NuevoCaptador.Telefono,
+                    Email = $"invitado_{Guid.NewGuid().ToString()[..8]}@crm-inmobiliario.com",
+                    Activo = false,
+                    AgenciaId = currentAgent?.AgenciaId,
+                    Rol = "Agente",
+                    FechaCreacion = DateTimeOffset.UtcNow
+                };
+                context.Agents.Add(nuevoAgente);
+                finalAgenteId = nuevoAgente.Id;
+            }
+            else
+            {
+                return Results.BadRequest(new { Message = "Debes especificar quién captó la propiedad si no es captación propia." });
+            }
 
             var propiedad = new Property
             {
@@ -65,15 +108,16 @@ public static class RegistrarPropiedadFeature
                 EstadoComercial = "Disponible",
                 EsCaptacionPropia = command.EsCaptacionPropia,
                 PorcentajeComision = command.PorcentajeComision,
-                AgenteId = agenteId,
+                AgenteId = finalAgenteId,
+                AgenciaId = currentAgent?.AgenciaId,
                 FechaIngreso = command.FechaIngreso ?? DateTimeOffset.UtcNow
             };
 
             context.Properties.Add(propiedad);
             await context.SaveChangesAsync();
 
-            // Notificar al servicio de Warming proactivamente
-            warmingService.NotifyChange(agenteId);
+            // Notificar al servicio de Warming proactivamente para el agente que registra
+            warmingService.NotifyChange(currentUserId);
 
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);

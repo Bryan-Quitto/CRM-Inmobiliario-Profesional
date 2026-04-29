@@ -14,7 +14,7 @@ export const ConfirmarInvitacion: React.FC = () => {
     password: '',
     confirmPassword: ''
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasPredefinedAgency, setHasPredefinedAgency] = useState(false);
@@ -22,24 +22,37 @@ export const ConfirmarInvitacion: React.FC = () => {
   // Recuperar metadata de la invitación
   useEffect(() => {
     const checkMetadata = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.user_metadata?.agencia_id) {
-        const agencyId = user.user_metadata.agencia_id;
-        setFormData(prev => ({ ...prev, agenciaId: agencyId }));
-        setHasPredefinedAgency(true);
+      try {
+        // Esperar un momento a que la sesión se estabilice si venimos de un link externo
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          console.warn('No se pudo recuperar el usuario de la sesión actual');
+          return;
+        }
 
-        // Intentar resolver el nombre de la agencia
-        try {
+        if (user.user_metadata?.agencia_id) {
+          const agencyId = user.user_metadata.agencia_id;
+          setFormData(prev => ({ ...prev, agenciaId: agencyId }));
+          setHasPredefinedAgency(true);
+
+          // Intentar resolver el nombre de la agencia
+          // Agregamos un pequeño delay opcional para asegurar que el interceptor de axios vea el token
           const response = await api.get(`/configuracion/agencias/${agencyId}`);
           if (response.data) {
             setFormData(prev => ({ ...prev, agenciaNombre: response.data.nombre }));
           }
-        } catch (err) {
-          console.error('No se pudo resolver el nombre de la agencia:', err);
-          setFormData(prev => ({ ...prev, agenciaNombre: 'Agencia Asignada' }));
         }
+      } catch (err) {
+        console.error('Error al inicializar datos de invitación:', err);
+        // Si falla la API pero tenemos el ID, al menos mostramos algo genérico
+        setFormData(prev => ({ 
+          ...prev, 
+          agenciaNombre: prev.agenciaId ? 'Agencia Asignada' : 'Independiente' 
+        }));
       }
     };
+    
     checkMetadata();
   }, []);
 
@@ -86,15 +99,15 @@ export const ConfirmarInvitacion: React.FC = () => {
       toast.success('¡Perfil configurado!', {
         description: 'Tu cuenta ha sido activada con éxito.'
       });
-      
+
       // Limpiar la URL para evitar bucles de redirección
       window.history.replaceState(null, '', window.location.pathname);
 
       // Redirigir al dashboard
       setTimeout(() => {
-        window.location.href = '/'; 
+        window.location.href = '/';
       }, 1500);
-      
+
     } catch (err: unknown) {
       console.error(err);
       const errorWithMsg = err as { response?: { data?: { message?: string } }; message?: string };
@@ -171,16 +184,17 @@ export const ConfirmarInvitacion: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Agencia</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Agencia (Solo lectura)</label>
                 <div className="relative group">
                   <Building className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
-                  <input 
-                    name="agenciaNombre" 
-                    type="text" 
-                    value={formData.agenciaNombre || 'Independiente'} 
+                  <input
+                    name="agenciaNombre"
+                    type="text"
+                    value={formData.agenciaNombre || 'Independiente'}
+                    onChange={handleChange}
                     disabled={hasPredefinedAgency}
                     className={`w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 text-sm outline-none transition-all ${hasPredefinedAgency ? 'opacity-60 cursor-not-allowed border-dashed' : 'focus:border-emerald-500'}`}
-                    placeholder="Nombre empresa" 
+                    placeholder="Nombre empresa"
                   />
                 </div>
               </div>
