@@ -8,8 +8,11 @@ interface Props {
 }
 
 export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
-  const { register, control } = useFormContext<CrearPropiedadDTO>();
+  const { register, control, getValues } = useFormContext<CrearPropiedadDTO>();
   const tipoSeleccionado = useWatch({ control, name: 'tipoPropiedad' });
+
+  console.log('[DEBUG] TechnicalSpecsSection - tipoSeleccionado:', tipoSeleccionado);
+  console.log('[DEBUG] TechnicalSpecsSection - habitaciones:', getValues('habitaciones'));
 
   return (
     <div className="md:col-span-6 grid grid-cols-1 md:grid-cols-6 gap-6 animate-in fade-in slide-in-from-top-4 duration-500">

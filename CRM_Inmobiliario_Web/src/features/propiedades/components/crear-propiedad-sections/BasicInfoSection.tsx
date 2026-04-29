@@ -11,9 +11,11 @@ interface Props {
 }
 
 export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Props) => {
-  const { register, control, setValue, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
+  const { register, control, setValue, getValues, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
   const [activeSelect, setActiveSelect] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
+
+  console.log('[DEBUG] BasicInfoSection - Current values in Context:', getValues());
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

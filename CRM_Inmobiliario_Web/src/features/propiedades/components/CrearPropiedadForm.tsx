@@ -1,18 +1,21 @@
 import { useForm, FormProvider, useWatch } from 'react-hook-form';
-import { useSWRConfig } from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import { 
   X, 
   Trash2, 
   Check, 
   RotateCcw, 
-  Pencil
+  Pencil,
+  Loader2
 } from 'lucide-react';
 import { crearPropiedad } from '../api/crearPropiedad';
 import { actualizarPropiedad } from '../api/actualizarPropiedad';
-import { useState, useEffect } from 'react';
+import { getPropiedadById } from '../api/getPropiedadById';
+import { useState, useEffect, useCallback } from 'react';
 import type { Propiedad } from '../types';
 import type { CrearPropiedadDTO } from '../api/crearPropiedad';
 import { toast } from 'sonner';
+import { swrDefaultConfig } from '@/lib/swr';
 
 // Hooks personalizados
 import { usePropertyDraft } from '../hooks/usePropertyDraft';
@@ -30,43 +33,76 @@ import { CommissionSection } from './crear-propiedad-sections/CommissionSection'
 import { DRAFT_STORAGE_KEY } from '../constants/propertyForm';
 
 interface Props {
-  initialData?: Propiedad;
+  initialData?: Propiedad; // Viene de la lista (data ligera)
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) => {
+export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel }: Props) => {
   const { mutate } = useSWRConfig();
-  const isEditing = !!initialData;
+  const isEditing = !!listData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const getInitialValues = (): Partial<CrearPropiedadDTO> => {
+  // FETCH DE DATOS COMPLETOS (Solo en edición)
+  // listData solo trae lo básico. Necesitamos el detalle técnico.
+  const { data: initialData, isLoading: isLoadingDetails } = useSWR(
+    isEditing ? `/propiedades/${listData?.id}` : null,
+    () => getPropiedadById(listData!.id),
+    swrDefaultConfig
+  );
+
+  const getInitialValues = useCallback((dataToMap?: Propiedad): Partial<CrearPropiedadDTO> => {
     const today = new Date();
     const ecuadorDate = new Date(today.getTime() - (5 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
-    if (isEditing && initialData) {
-      const fecha = initialData.fechaIngreso ? initialData.fechaIngreso.split('T')[0] : ecuadorDate;
+    if (isEditing && dataToMap) {
+      const fecha = dataToMap.fechaIngreso ? dataToMap.fechaIngreso.split('T')[0] : ecuadorDate;
+      
+      // Mapeo exhaustivo (Pascal/camel case) para evitar campos undefined
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw = dataToMap as any;
+      
       return {
-        ...initialData,
-        urlRemax: initialData.urlRemax ?? '',
-        captadorId: !initialData.esCaptacionPropia ? initialData.agenteId : undefined,
-        porcentajeComision: initialData.porcentajeComision ?? 5,
+        ...dataToMap,
+        titulo: raw.Titulo || dataToMap.titulo,
+        descripcion: raw.Descripcion || dataToMap.descripcion,
+        precio: raw.Precio || dataToMap.precio,
+        direccion: raw.Direccion || dataToMap.direccion,
+        sector: raw.Sector || dataToMap.sector,
+        ciudad: raw.Ciudad || dataToMap.ciudad,
+        tipoPropiedad: raw.TipoPropiedad || dataToMap.tipoPropiedad,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        operacion: (raw.Operacion || dataToMap.operacion) as any,
+        urlRemax: raw.UrlRemax || dataToMap.urlRemax || '',
+        googleMapsUrl: raw.GoogleMapsUrl || dataToMap.googleMapsUrl || '',
+        
+        habitaciones: raw.Habitaciones ?? dataToMap.habitaciones,
+        banos: raw.Banos ?? dataToMap.banos,
+        areaTotal: raw.AreaTotal ?? dataToMap.areaTotal,
+        areaTerreno: raw.AreaTerreno ?? dataToMap.areaTerreno,
+        areaConstruccion: raw.AreaConstruccion ?? dataToMap.areaConstruccion,
+        estacionamientos: raw.Estacionamientos ?? dataToMap.estacionamientos,
+        mediosBanos: raw.MediosBanos ?? dataToMap.mediosBanos,
+        aniosAntiguedad: raw.AniosAntiguedad ?? dataToMap.aniosAntiguedad,
+
+        esCaptacionPropia: raw.EsCaptacionPropia ?? dataToMap.esCaptacionPropia,
+        captadorId: !(raw.EsCaptacionPropia ?? dataToMap.esCaptacionPropia) 
+          ? (raw.AgenteId || dataToMap.agenteId) 
+          : undefined,
+        porcentajeComision: raw.PorcentajeComision ?? dataToMap.porcentajeComision ?? 5,
         fechaIngreso: fecha
       };
     }
 
-    const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return { 
-          fechaIngreso: ecuadorDate,
-          porcentajeComision: 5,
-          ...parsed 
-        };
-      } catch (e) {
-        console.error('Error al parsear borrador:', e);
+    // Modo creación
+    if (!isEditing) {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return { fechaIngreso: ecuadorDate, porcentajeComision: 5, ...parsed };
+        } catch (e) { console.error('Error al parsear borrador:', e); }
       }
     }
 
@@ -79,7 +115,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
       esCaptacionPropia: true,
       porcentajeComision: 5
     };
-  };
+  }, [isEditing]);
 
   const methods = useForm<CrearPropiedadDTO>({
     defaultValues: getInitialValues() as CrearPropiedadDTO
@@ -94,22 +130,21 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
   const { isListening, toggleListening } = useVoiceDictation(methods.setValue, methods.getValues);
   const { isScraping, missedFields, handleImportar } = useRemaxScraper(methods.setValue, methods.getValues);
 
+  // EFECTO DE SINCRONIZACIÓN: Cuando llegan los datos reales del API
   useEffect(() => {
-    if (!isEditing || !initialData) return;
-    if (!isDirty) {
-      const today = new Date();
-      const ecuadorDate = new Date(today.getTime() - (5 * 60 * 60 * 1000)).toISOString().split('T')[0];
-      const fecha = initialData.fechaIngreso ? initialData.fechaIngreso.split('T')[0] : ecuadorDate;
-      
-      reset({ 
-        ...initialData,
-        urlRemax: initialData.urlRemax ?? '',
-        captadorId: !initialData.esCaptacionPropia ? initialData.agenteId : undefined,
-        fechaIngreso: fecha,
-        porcentajeComision: initialData.porcentajeComision ?? 5
-      } as CrearPropiedadDTO);
+    if (initialData && !isDirty) {
+      reset(getInitialValues(initialData) as CrearPropiedadDTO);
     }
-  }, [initialData, isEditing, reset, isDirty]);
+  }, [initialData, reset, isDirty, getInitialValues]);
+
+  if (isEditing && isLoadingDetails) {
+    return (
+      <div className="bg-white p-12 rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+        <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Cargando detalles técnicos...</p>
+      </div>
+    );
+  }
 
   const hasData = watchedValues 
     ? Object.values(watchedValues).some(v => v && v !== '' && v !== 0) 
@@ -136,7 +171,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
     };
 
     const action = isEditing 
-      ? actualizarPropiedad(initialData.id, payload)
+      ? actualizarPropiedad(listData!.id, payload)
       : crearPropiedad(payload);
 
     action.then(() => {
@@ -150,7 +185,7 @@ export const CrearPropiedadForm = ({ initialData, onSuccess, onCancel }: Props) 
   };
 
   return (
-    <div key={initialData?.id || 'new'} className="bg-white p-8 rounded-3xl w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
+    <div key={listData?.id || 'new'} className="bg-white p-8 rounded-3xl w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
       <button 
         onClick={onCancel}
         disabled={isSuccess}
