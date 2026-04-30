@@ -5,6 +5,7 @@ import { useClienteDetalle } from '../hooks/useClienteDetalle';
 import { ClienteHeader } from './cliente-detalle-sections/ClienteHeader';
 import { ClienteProfileCard } from './cliente-detalle-sections/ClienteProfileCard';
 import { ClienteInterestsManager } from './cliente-detalle-sections/ClienteInterestsManager';
+import { ClientePropertiesOwned } from './cliente-detalle-sections/ClientePropertiesOwned';
 import { ClienteTimelineManager } from './cliente-detalle-sections/ClienteTimelineManager';
 import { ClienteModalsOrchestrator } from './cliente-detalle-sections/ClienteModalsOrchestrator';
 
@@ -100,25 +101,34 @@ export const ClienteDetalle = () => {
         <div className="lg:col-span-4 space-y-8">
           <ClienteProfileCard cliente={cliente} />
           
-          <ClienteInterestsManager 
-            cliente={cliente}
-            propiedadesOptions={propiedadesOptions}
-            propiedadPendienteId={propiedadPendienteId}
-            setPropiedadPendienteId={setPropiedadPendienteId}
-            nivelInteresPendiente={nivelInteresPendiente}
-            setNivelInteresPendiente={setNivelInteresPendiente}
-            vincularStatus={vincularStatus}
-            handleVincularPropiedad={handleVincularPropiedad}
-            updatingInteresId={updatingInteresId}
-            idInteresABorrar={idInteresABorrar}
-            setIdInteresABorrar={setIdInteresABorrar}
-            isDeletingInteres={isDeletingInteres}
-            dropdownInteresOpenId={dropdownInteresOpenId}
-            setDropdownInteresOpenId={setDropdownInteresOpenId}
-            handleUpdateNivelInteres={handleUpdateNivelInteres}
-            handleDesvincular={handleDesvincular}
-            navigate={navigate}
-          />
+          {cliente.esPropietario && (
+            <ClientePropertiesOwned 
+              cliente={cliente} 
+              onNavigate={navigate} 
+            />
+          )}
+
+          {(!cliente.esPropietario || (cliente.intereses && cliente.intereses.length > 0)) && (
+            <ClienteInterestsManager 
+              cliente={cliente}
+              propiedadesOptions={propiedadesOptions}
+              propiedadPendienteId={propiedadPendienteId}
+              setPropiedadPendienteId={setPropiedadPendienteId}
+              nivelInteresPendiente={nivelInteresPendiente}
+              setNivelInteresPendiente={setNivelInteresPendiente}
+              vincularStatus={vincularStatus}
+              handleVincularPropiedad={handleVincularPropiedad}
+              updatingInteresId={updatingInteresId}
+              idInteresABorrar={idInteresABorrar}
+              setIdInteresABorrar={setIdInteresABorrar}
+              isDeletingInteres={isDeletingInteres}
+              dropdownInteresOpenId={dropdownInteresOpenId}
+              setDropdownInteresOpenId={setDropdownInteresOpenId}
+              handleUpdateNivelInteres={handleUpdateNivelInteres}
+              handleDesvincular={handleDesvincular}
+              navigate={navigate}
+            />
+          )}
         </div>
 
         <ClienteTimelineManager 

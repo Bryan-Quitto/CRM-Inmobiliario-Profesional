@@ -7,6 +7,7 @@ export interface CrearClienteDTO {
   email?: string;
   telefono: string;
   origen: string;
+  esPropietario?: boolean;
 }
 
 export const crearCliente = async (data: CrearClienteDTO): Promise<Cliente> => {

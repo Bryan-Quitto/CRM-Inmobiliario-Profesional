@@ -1,10 +1,11 @@
 import { useFormContext, Controller, useWatch } from 'react-hook-form';
-import { UserPlus, UserCircle, UserCheck, Phone } from 'lucide-react';
+import { UserPlus, UserCircle, UserCheck, Phone, User } from 'lucide-react';
 import type { CrearPropiedadDTO } from '../../api/crearPropiedad';
 import { DynamicSearchSelect, type SearchItem } from '@/components/DynamicSearchSelect';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { getAgentes } from '@/features/configuracion/api/getAgentes';
+import { getClientes } from '@/features/clientes/api/getClientes';
 import { swrDefaultConfig } from '@/lib/swr';
 import type { Propiedad } from '../../types';
 
@@ -18,6 +19,7 @@ export const CommissionSection = ({ initialData }: Props) => {
   const [isGuestMode, setIsGuestMode] = useState(false);
 
   const { data: agentes = [] } = useSWR('/configuracion/agentes', getAgentes, swrDefaultConfig);
+  const { data: clientes = [] } = useSWR('/clientes', getClientes, swrDefaultConfig);
 
   const agenteOptions = useMemo<SearchItem[]>(() => 
     agentes.map(a => ({
@@ -29,8 +31,48 @@ export const CommissionSection = ({ initialData }: Props) => {
     [agentes]
   );
 
+  const clienteOptions = useMemo<SearchItem[]>(() => 
+    clientes.map(c => ({
+      id: c.id,
+      title: `${c.nombre} ${c.apellido || ''}`,
+      subtitle: c.esPropietario ? 'Propietario' : 'Prospecto',
+      raw: c
+    })),
+    [clientes]
+  );
+
   return (
-    <div className="md:col-span-6 space-y-6">
+    <div className="md:col-span-6 space-y-8">
+      {/* Sección de Propietario (Spec 015) */}
+      <div className="space-y-4 pt-4">
+        <div className="flex items-center gap-2 px-1">
+          <User className="h-4 w-4 text-blue-500" />
+          <label className="text-xs font-black text-slate-900 uppercase tracking-widest">Dueño de la Propiedad</label>
+        </div>
+        
+        <Controller
+          name="propietarioId"
+          control={control}
+          render={({ field }) => (
+            <DynamicSearchSelect
+              label="Asignar Propietario"
+              icon={UserCheck}
+              placeholder="Buscar por nombre o teléfono..."
+              options={clienteOptions}
+              value={field.value}
+              initialLabel={initialData?.propietarioNombre}
+              onChange={(id) => field.onChange(id)}
+              error={errors.propietarioId?.message}
+            />
+          )}
+        />
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight px-1 italic">
+          * Si el contacto es un Prospecto, se convertirá automáticamente en Propietario al guardar.
+        </p>
+      </div>
+
+      <div className="border-t border-slate-100 my-6"></div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label className="flex items-center gap-3 p-4 bg-blue-50/50 border-2 border-blue-100/50 rounded-[24px] hover:bg-blue-50 transition-all group cursor-pointer">
           <div className="relative inline-flex items-center">

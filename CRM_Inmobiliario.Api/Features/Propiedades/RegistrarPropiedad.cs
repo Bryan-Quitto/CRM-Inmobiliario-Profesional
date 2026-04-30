@@ -35,6 +35,7 @@ public static class RegistrarPropiedadFeature
         bool EsCaptacionPropia = true,
         Guid? CaptadorId = null,
         NuevoCaptadorRequest? NuevoCaptador = null,
+        Guid? PropietarioId = null,
         decimal PorcentajeComision = 5.0m,
         DateTimeOffset? FechaIngreso = null);
 
@@ -84,6 +85,16 @@ public static class RegistrarPropiedadFeature
                 return Results.BadRequest(new { Message = "Debes especificar quién captó la propiedad si no es captación propia." });
             }
 
+            // Manejo de Propietario (Spec 015)
+            if (command.PropietarioId.HasValue)
+            {
+                var propietario = await context.Leads.FindAsync(command.PropietarioId.Value);
+                if (propietario != null && !propietario.EsPropietario)
+                {
+                    propietario.EsPropietario = true;
+                }
+            }
+
             var propiedad = new Property
             {
                 Id = Guid.NewGuid(),
@@ -110,6 +121,7 @@ public static class RegistrarPropiedadFeature
                 PorcentajeComision = command.PorcentajeComision,
                 AgenteId = finalAgenteId,
                 AgenciaId = currentAgent?.AgenciaId,
+                PropietarioId = command.PropietarioId,
                 FechaIngreso = command.FechaIngreso ?? DateTimeOffset.UtcNow
             };
 

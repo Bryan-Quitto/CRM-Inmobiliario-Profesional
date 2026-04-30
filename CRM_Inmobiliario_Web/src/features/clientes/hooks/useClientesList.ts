@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import useSWR, { useSWRConfig } from 'swr';
 import Fuse from 'fuse.js';
 import { getClientes } from '../api/getClientes';
@@ -9,13 +10,25 @@ import type { Cliente } from '../types';
 const VIEW_MODE_KEY = 'crm_clientes_view_mode';
 
 export const useClientesList = () => {
+  const { pathname } = useLocation();
+  const isOwnersView = pathname.includes('/propietarios');
   const { mutate: globalMutate } = useSWRConfig();
-  const { data: clientes = [], isLoading, isValidating: syncing, mutate } = useSWR<Cliente[]>(
+  const { data: allClientes = [], isLoading, isValidating: syncing, mutate } = useSWR<Cliente[]>(
     '/clientes',
     getClientes,
     swrDefaultConfig
   );
   
+  // Filtrar base según la vista (Prospectos vs Propietarios)
+  const clientes = useMemo(() => {
+    if (isOwnersView) {
+      return allClientes.filter(c => c.esPropietario);
+    }
+    // Para prospectos, mostramos los que están en el embudo (no solo propietarios)
+    // Opcionalmente podrías filtrar los que NO son propietarios si quieres segregación total
+    return allClientes.filter(c => !c.esPropietario); 
+  }, [allClientes, isOwnersView]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClienteForEdit, setSelectedClienteForEdit] = useState<Cliente | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -85,7 +98,7 @@ export const useClientesList = () => {
 
   const handleStageChange = (id: string, nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }) => {
     setOpenDropdownId(null);
-    const cliente = clientes.find(c => c.id === id);
+    const cliente = allClientes.find(c => c.id === id);
     if (!cliente || cliente.etapaEmbudo === nuevaEtapa) return;
 
     if (nuevaEtapa === 'Cerrado' && !confirmedData) {
@@ -93,7 +106,7 @@ export const useClientesList = () => {
       return;
     }
 
-    const optimisticData = clientes.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c);
+    const optimisticData = allClientes.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c);
     mutate(optimisticData, false);
     setNotification({ type: 'success', message: `Cliente movido a ${nuevaEtapa}` });
     
@@ -119,6 +132,7 @@ export const useClientesList = () => {
   };
 
   return {
+    isOwnersView,
     clientes,
     filteredClientes,
     isLoading,
@@ -146,3 +160,4 @@ export const useClientesList = () => {
     mutate
   };
 };
+

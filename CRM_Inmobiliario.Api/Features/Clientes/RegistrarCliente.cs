@@ -12,7 +12,7 @@ namespace CRM_Inmobiliario.Api.Features.Clientes;
 
 public static class RegistrarClienteFeature
 {
-    public record Command(string Nombre, string? Apellido, string? Email, string Telefono, string Origen);
+    public record Command(string Nombre, string? Apellido, string? Email, string Telefono, string Origen, bool EsPropietario = false);
 
     public static void MapRegistrarClienteEndpoint(this IEndpointRouteBuilder app)
     {
@@ -30,6 +30,7 @@ public static class RegistrarClienteFeature
                 Origen = command.Origen,
                 EtapaEmbudo = "Nuevo", // Valor por defecto según requerimiento
                 AgenteId = agenteId,
+                EsPropietario = command.EsPropietario,
                 FechaCreacion = DateTimeOffset.UtcNow
             };
 

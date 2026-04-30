@@ -7,11 +7,12 @@ import type { Cliente } from '../types';
 
 interface Props {
   initialData?: Cliente;
+  isOwnersView?: boolean;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) => {
+export const CrearClienteForm = ({ initialData, isOwnersView, onSuccess, onCancel }: Props) => {
   const {
     register,
     handleSubmit,
@@ -25,7 +26,7 @@ export const CrearClienteForm = ({ initialData, onSuccess, onCancel }: Props) =>
     setIsConfirmingClear,
     handleClearDraft,
     validateTelefono
-  } = useCrearCliente({ initialData, onSuccess });
+  } = useCrearCliente({ initialData, isOwnersView, onSuccess });
 
   return (
     <div className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
