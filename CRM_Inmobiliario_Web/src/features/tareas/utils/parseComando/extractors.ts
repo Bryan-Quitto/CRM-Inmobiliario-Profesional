@@ -1,83 +1,9 @@
-/**
- * Parser de intención en lenguaje natural para creación de tareas.
- *
- * Arquitectura de capas:
- * 1. Normalización del texto de entrada
- * 2. Extracción del tipo de tarea (primer token significativo)
- * 3. Extracción del nombre del cliente ("con <Nombre>")
- * 4. Extracción del lugar/propiedad ("en <lugar>" / "para <lugar>")
- * 5. Resolución de fecha relativa y absoluta (UTC-5 Ecuador)
- * 6. Resolución de hora (formatos 12h, 24h, coloquiales)
- * 7. Generación automática del título
- */
-
-export type TipoTarea = 'Llamada' | 'Visita' | 'Reunión' | 'Trámite';
-
-export interface ComandoParseado {
-  /** Tipo de la tarea detectado; null si no se pudo determinar */
-  tipoTarea: TipoTarea | null;
-  /** Título generado automáticamente: "{tipo} {cliente}" o "{tipo} {lugar}" */
-  titulo: string;
-  /** Fecha y hora resultante en formato "YYYY-MM-DDTHH:mm" (datetime-local) */
-  fechaInicio: string;
-  /** Nombre del cliente extraído del texto ("con X") */
-  clienteTexto: string | null;
-  /** Lugar o nombre de propiedad extraído ("en X" / "para X") */
-  lugarTexto: string | null;
-  /** Texto de la instrucción original (para el campo descripción) */
-  instruccionOriginal: string;
-  /** Advertencias no bloqueantes (campos que no se pudieron determinar) */
-  advertencias: string[];
-}
-
-// ─── Constantes de normalización ──────────────────────────────────────────────
-
-const TIPO_ALIASES: Record<string, TipoTarea> = {
-  // Visita
-  'visita': 'Visita', 'visitar': 'Visita', 'ver': 'Visita', 'mostrar': 'Visita',
-  // Llamada
-  'llamada': 'Llamada', 'llamar': 'Llamada', 'call': 'Llamada', 'telefono': 'Llamada', 'teléfono': 'Llamada',
-  // Reunión
-  'reunion': 'Reunión', 'reunión': 'Reunión', 'junta': 'Reunión', 'meeting': 'Reunión', 'reunir': 'Reunión',
-  // Trámite
-  'tramite': 'Trámite', 'trámite': 'Trámite', 'gestion': 'Trámite', 'gestión': 'Trámite', 'proceso': 'Trámite',
-};
-
-const MESES: Record<string, number> = {
-  enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
-  julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
-};
-
-const DIAS_SEMANA: Record<string, number> = {
-  domingo: 0, lunes: 1, martes: 2, miércoles: 3, miercoles: 3,
-  jueves: 4, viernes: 5, sábado: 6, sabado: 6,
-};
-
-// ─── Utilidades de fecha (Ecuador UTC-5) ──────────────────────────────────────
-
-/** Fecha/hora actual en Ecuador (UTC-5). */
-const ahoraEcuador = (): Date => {
-  const utc = new Date();
-  return new Date(utc.getTime() - 5 * 60 * 60 * 1000);
-};
-
-/** Formatea un Date a "YYYY-MM-DDTHH:mm". */
-const toDatetimeLocal = (d: Date): string => {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
-
-/** Crea un Date en Ecuador con la fecha base y la hora dada. */
-const conHora = (base: Date, horas: number, minutos: number): Date => {
-  const d = new Date(base);
-  d.setHours(horas, minutos, 0, 0);
-  return d;
-};
-
-// ─── Extracción de partes ──────────────────────────────────────────────────────
+import type { TipoTarea } from './types';
+import { TIPO_ALIASES, MESES, DIAS_SEMANA } from './constants';
+import { ahoraEcuador } from './dateUtils';
 
 /** Normaliza el texto: minúsculas, sin tildes en vocales (excepto ñ), trim. */
-const normalizar = (texto: string): string =>
+export const normalizar = (texto: string): string =>
   texto
     .toLowerCase()
     .normalize('NFD')
@@ -86,7 +12,7 @@ const normalizar = (texto: string): string =>
     .trim();
 
 /** Extrae el tipo de tarea buscando alias al inicio del texto o en cualquier parte. */
-const extraerTipo = (texto: string): TipoTarea | null => {
+export const extraerTipo = (texto: string): TipoTarea | null => {
   const norm = normalizar(texto);
   // Primero busca al inicio de la oración
   for (const [alias, tipo] of Object.entries(TIPO_ALIASES)) {
@@ -101,7 +27,7 @@ const extraerTipo = (texto: string): TipoTarea | null => {
 };
 
 /** Extrae el nombre del cliente: texto después de "con" hasta la siguiente preposición/keyword. */
-const extraerCliente = (texto: string): string | null => {
+export const extraerCliente = (texto: string): string | null => {
   // Busca "con <Nombre Apellido>" — captura 1-3 palabras capitalizadas tras "con"
   const match = texto.match(
     /\bcon\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){0,2})/u
@@ -110,7 +36,7 @@ const extraerCliente = (texto: string): string | null => {
 };
 
 /** Extrae el lugar: texto después de "en" o "para la propiedad" / "para el". */
-const extraerLugar = (texto: string): string | null => {
+export const extraerLugar = (texto: string): string | null => {
   // "para la propiedad X" o "para el X"
   const matchPara = texto.match(/\bpara\s+(?:la\s+propiedad|el|la)\s+(.+?)(?:\s+(?:hoy|ma[nñ]ana|pasado|en\s+\d|el\s+\d|a\s+las|$))/i);
   if (matchPara) return matchPara[1].trim();
@@ -123,7 +49,7 @@ const extraerLugar = (texto: string): string | null => {
 };
 
 /** Extrae la hora del texto y la devuelve como { horas, minutos } o null. */
-const extraerHora = (texto: string, advertencias: string[]): { horas: number; minutos: number } | null => {
+export const extraerHora = (texto: string, advertencias: string[]): { horas: number; minutos: number } | null => {
   const norm = normalizar(texto);
 
   // "a las X y media" / "a las X:30"
@@ -175,7 +101,7 @@ const extraerHora = (texto: string, advertencias: string[]): { horas: number; mi
 };
 
 /** Resuelve la fecha a partir de referencias temporales en el texto. */
-const extraerFecha = (texto: string, advertencias: string[]): Date => {
+export const extraerFecha = (texto: string, advertencias: string[]): Date => {
   const norm = normalizar(texto);
   const ahora = ahoraEcuador();
 
@@ -244,44 +170,4 @@ const extraerFecha = (texto: string, advertencias: string[]): Date => {
 
   advertencias.push('fecha');
   return ahora; // Fallback: fecha actual
-};
-
-// ─── Función principal ─────────────────────────────────────────────────────────
-
-export const parseComando = (instruccion: string): ComandoParseado => {
-  const advertencias: string[] = [];
-
-  const tipoTarea = extraerTipo(instruccion);
-  if (!tipoTarea) advertencias.push('tipo de tarea');
-
-  const clienteTexto = extraerCliente(instruccion);
-  const lugarTexto = extraerLugar(instruccion);
-
-  const fechaBase = extraerFecha(instruccion, advertencias);
-  const horaExtraida = extraerHora(instruccion, advertencias);
-
-  const horas = horaExtraida?.horas ?? 10;
-  const minutos = horaExtraida?.minutos ?? 0;
-  const fechaFinal = conHora(fechaBase, horas, minutos);
-
-  // Generación del título: "{tipo} {cliente}" o "{tipo} {lugar}" o solo "{tipo}"
-  const tipoLabel = tipoTarea ?? 'Tarea';
-  let titulo = tipoLabel;
-  if (clienteTexto) {
-    titulo = `${tipoLabel} ${clienteTexto}`;
-  } else if (lugarTexto) {
-    // Truncar el lugar si es muy largo (max ~25 chars)
-    const lugarCorto = lugarTexto.length > 25 ? lugarTexto.slice(0, 22) + '…' : lugarTexto;
-    titulo = `${tipoLabel} ${lugarCorto}`;
-  }
-
-  return {
-    tipoTarea,
-    titulo,
-    fechaInicio: toDatetimeLocal(fechaFinal),
-    clienteTexto,
-    lugarTexto,
-    instruccionOriginal: instruccion,
-    advertencias,
-  };
 };
