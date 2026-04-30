@@ -15,7 +15,7 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ### Módulo de Propiedades
 - [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/ClosingModal.tsx` (Reducido de ~307 a ~170 líneas) - **FSD & useClosingModal hook**
 - [x] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadGallery.ts` (Modularizado en sub-hooks especializados)
-- [ ] `CRM_Inmobiliario_Web/src/features/dashboard/components/DashboardPrincipal.tsx` (~299 líneas)
+- [x] `CRM_Inmobiliario_Web/src/features/dashboard/components/DashboardPrincipal.tsx` (Reducido de ~299 a ~60 líneas) - **FSD & useDashboardKpis hook**
 - [ ] `CRM_Inmobiliario.Api/Features/Analitica/ObtenerActividad.cs` (~268 líneas)
 
 ### Módulo de WhatsApp / IA (Backend)
@@ -30,7 +30,9 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## ✅ Refactorizaciones Completadas
 *(Mover aquí los archivos una vez finalizados)*
 
-- [x] `CRM_Inmobiliario_Web/src/features/propiedades/context/UploadProvider.tsx` (Reducido de ~235 a ~30 líneas) - **Modularizado en useUploadManager y UploadNotificationStack**
+- [x] `CRM_Inmobiliario_Web/src/features/dashboard/components/DashboardPrincipal.tsx` (Reducido de ~299 a ~60 líneas) - **FSD & Modularizado**
+- [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/ClosingModal.tsx` (Reducido de ~307 a ~170 líneas) - **FSD & useClosingModal hook**
+
 - [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/CrearPropiedadForm.tsx` (Reducido de ~301 a ~105 líneas) - **FSD & useCrearPropiedad hook**
 - [x] `CRM_Inmobiliario_Web/src/features/clientes/components/CrearClienteForm.tsx` (Reducido de ~367 a ~60 líneas) - **FSD & Hook modular**
 - [x] `CRM_Inmobiliario_Web/src/features/clientes/hooks/useClienteDetalle.ts` (~359 líneas) - **Modularizado en 4 sub-hooks**
