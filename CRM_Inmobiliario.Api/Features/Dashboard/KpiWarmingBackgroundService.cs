@@ -34,16 +34,13 @@ public class KpiWarmingBackgroundService : BackgroundService
         {
             _logger.LogDebug("🔔 Notificación de cambio recibida para Agente: {AgenteId}", agenteId);
             
-            // Procesar en una tarea separada para no bloquear la lectura del canal
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    // Debounce: Esperar si hay múltiples cambios rápidos
                     _lastRequestTime[agenteId] = DateTime.UtcNow;
                     await Task.Delay(DebounceMs, stoppingToken);
 
-                    // Solo procesar si esta es la última petición de este agente
                     if (DateTime.UtcNow - _lastRequestTime[agenteId] < TimeSpan.FromMilliseconds(DebounceMs - 100))
                     {
                         return;
@@ -70,22 +67,14 @@ public class KpiWarmingBackgroundService : BackgroundService
         var ecuadorOffset = TimeSpan.FromHours(-5);
         var nowEcuador = DateTimeOffset.UtcNow.ToOffset(ecuadorOffset);
 
-        // 1. DASHBOARD KPIS (HOY EN ECUADOR)
-        // Definimos el fin del día basado en el calendario de Ecuador y luego lo pasamos a UTC para la DB
-        var finDelDiaEcuador = new DateTimeOffset(nowEcuador.Year, nowEcuador.Month, nowEcuador.Day, 23, 59, 59, ecuadorOffset);
-        var limiteHoyUtc = finDelDiaEcuador.ToUniversalTime();
-        var etapasExcluidasDashboard = new[] { "En Negociación", "Cerrado", "Perdido" };
+        // 1. DASHBOARD & ANALYTICS DATE RANGES (Ecuador UTC-5)
+        var limiteHoyUtc = WarmingDateHelper.GetHoyLimiteUtc(nowEcuador, ecuadorOffset);
+        var (inicioMesUtc, finMesUtc) = WarmingDateHelper.GetMesActualRangosUtc(nowEcuador, ecuadorOffset);
 
-        // 2. VENTAS MENSUALES (MES ACTUAL EN ECUADOR)
-        var inicioMesEcuador = new DateTimeOffset(nowEcuador.Year, nowEcuador.Month, 1, 0, 0, 0, ecuadorOffset);
-        var finMesEcuador = inicioMesEcuador.AddMonths(1).AddTicks(-1);
-        
-        // Rangos en UTC para las consultas a Supabase
-        var inicioMesUtc = inicioMesEcuador.ToUniversalTime();
-        var finMesUtc = finMesEcuador.ToUniversalTime();
-        
+        var etapasExcluidasDashboard = new[] { "En Negociación", "Cerrado", "Perdido" };
         var etapasVenta = new[] { "Cerrado", "Ganado" };
 
+        // ONE TRIP PATTERN
         var megaData = await context.Agents
             .AsNoTracking()
             .Where(a => a.Id == agenteId)
@@ -104,13 +93,13 @@ public class KpiWarmingBackgroundService : BackgroundService
                     .Select(g => new { Etapa = g.Key, Cantidad = g.Count() })
                     .ToList(),
 
-                // Analítica Mensual (One Trip) usando rangos UTC correctos
+                // Analítica Mensual (One Trip)
                 MensualVisitas = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc),
                 MensualCierres = a.Leads.Count(l => etapasVenta.Contains(l.EtapaEmbudo) && ((l.FechaCierre != null && l.FechaCierre >= inicioMesUtc && l.FechaCierre <= finMesUtc) || (l.FechaCierre == null && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc))),
                 MensualOfertas = a.Leads.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc),
                 MensualCaptaciones = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicioMesUtc && p.FechaIngreso <= finMesUtc),
 
-                // Crudos para tendencia semanal (Los convertiremos a la hora de Ecuador para agrupar)
+                // Crudos para tendencia semanal
                 RawVisitas = a.Tasks
                     .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc)
                     .Select(t => t.FechaInicio)
@@ -128,60 +117,23 @@ public class KpiWarmingBackgroundService : BackgroundService
 
         if (megaData != null)
         {
-            // Procesar Dashboard
-            var embudoFinal = megaData.EmbudoRaw
-                .Select(x => new EtapaEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad))
-                .ToList();
-
+            // DASHBOARD RESPONSE ASSEMBLY
             var kpis = new DashboardKpisResponse(
                 megaData.Propiedades,
                 megaData.Prospectos,
                 megaData.Tareas,
                 megaData.LeadsSeguimiento.Count,
                 megaData.LeadsSeguimiento,
-                embudoFinal
+                megaData.EmbudoRaw.Select(x => new EtapaEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad)).ToList()
             );
 
-            // 3. PROCESAR ANALÍTICA MENSUAL (Lógica de semanas basada en Ecuador)
-            var semanas = new List<(DateTime Inicio, DateTime Fin)>();
-            var primerDia = new DateTime(nowEcuador.Year, nowEcuador.Month, 1);
-            var ultimoDiaMes = primerDia.AddMonths(1).AddDays(-1);
-
-            var curr = primerDia;
-            while (curr <= ultimoDiaMes)
-            {
-                var inicioSemana = curr;
-                int diasHastaDomingo = (int)DayOfWeek.Sunday - (int)inicioSemana.DayOfWeek;
-                if (diasHastaDomingo < 0) diasHastaDomingo += 7;
-
-                var finSemana = inicioSemana.AddDays(diasHastaDomingo);
-                if (finSemana > ultimoDiaMes) finSemana = ultimoDiaMes;
-
-                semanas.Add((inicioSemana, finSemana));
-                curr = finSemana.AddDays(1);
-            }
-
-            var semanasFinales = new List<(DateTime Inicio, DateTime Fin)>();
-            for (int i = 0; i < semanas.Count; i++)
-            {
-                var s = semanas[i];
-                var duracion = (s.Fin - s.Inicio).Days + 1;
-                if (i == 0 && duracion < 4 && semanas.Count > 1) { semanas[i + 1] = (s.Inicio, semanas[i + 1].Fin); continue; }
-                if (i == semanas.Count - 1 && duracion < 4 && semanasFinales.Count > 0) { semanasFinales[^1] = (semanasFinales[^1].Inicio, s.Fin); continue; }
-                semanasFinales.Add(s);
-            }
-
-            var trendSemanas = new List<WeeklyTrendPoint>();
-            for (int i = 0; i < semanasFinales.Count; i++)
-            {
-                var s = semanasFinales[i];
-                // IMPORTANTE: Al comparar, pasamos el dato de DB (UTC) al offset de Ecuador para que el día coincida con el calendario local
-                var vCount = megaData.RawVisitas.Count(x => x.ToOffset(ecuadorOffset).Date >= s.Inicio.Date && x.ToOffset(ecuadorOffset).Date <= s.Fin.Date);
-                var cCount = megaData.RawCierres.Count(x => x.ToOffset(ecuadorOffset).Date >= s.Inicio.Date && x.ToOffset(ecuadorOffset).Date <= s.Fin.Date);
-                var capCount = megaData.RawCaptaciones.Count(x => x.ToOffset(ecuadorOffset).Date >= s.Inicio.Date && x.ToOffset(ecuadorOffset).Date <= s.Fin.Date);
-
-                trendSemanas.Add(new WeeklyTrendPoint($"S{i + 1}", vCount, cCount, capCount));
-            }
+            // WEEKLY TREND PROCESSING (Extracted logic)
+            var trendSemanas = WeeklyTrendProcessor.CalculateTrends(
+                nowEcuador, 
+                ecuadorOffset, 
+                megaData.RawVisitas, 
+                megaData.RawCierres, 
+                megaData.RawCaptaciones);
 
             var sales = new VentasMensualesResponse(
                 megaData.MensualVisitas,

@@ -10,20 +10,15 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 
 ## 🚀 Pendientes de Refactorización
 
-### Módulo de Propiedades (Crítico)
-- [ ] `CRM_Inmobiliario.Api/Features/Propiedades/ImportarDeUrlRemax.cs` (~204 líneas)
-
-### Auth & Seguridad
-- [ ] `CRM_Inmobiliario_Web/src/features/auth/components/ConfirmarInvitacion.tsx` (~252 líneas)
-
-### Infraestructura & Background
-- [ ] `CRM_Inmobiliario.Api/Features/Dashboard/KpiWarmingBackgroundService.cs` (~202 líneas)
+*(No hay archivos críticos pendientes en el backlog actual)*
 
 ---
 
 ## ✅ Refactorizaciones Completadas
 *(Mover aquí los archivos una vez finalizados)*
 
+- [x] `CRM_Inmobiliario.Api/Features/Dashboard/KpiWarmingBackgroundService.cs` (Modularizado con WarmingDateHelper y WeeklyTrendProcessor)
+- [x] `CRM_Inmobiliario.Api/Features/Propiedades/ImportarDeUrlRemax.cs` (Modularizado con RemaxScraperProcessor)
 - [x] `CRM_Inmobiliario.Api/Infrastructure/Persistence/CrmDbContext.cs` (Modularizado con IEntityTypeConfiguration por cada entidad)
 - [x] `CRM_Inmobiliario.Api/Infrastructure/Pdf/PropiedadFichaDocument.cs` (Modularizado con IComponent: Header, Content, Gallery, Footer)
 - [x] `CRM_Inmobiliario.Api/Features/WhatsApp/Services/WhatsAppPromptBuilder.cs` (Modularizado con SystemPromptFactory, AiToolDefinitions y ChatSerializer)
@@ -44,5 +39,6 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 - [x] `CRM_Inmobiliario_Web/src/features/tareas/components/CrearTareaForm.tsx` (FSD)
 - [x] `CRM_Inmobiliario_Web/src/features/tareas/components/EditarTareaForm.tsx` (FSD)
 - [x] `CRM_Inmobiliario_Web/src/features/clientes/components/ClientesList.tsx` (FSD)
+- [x] `CRM_Inmobiliario_Web/src/features/auth/components/ConfirmarInvitacion.tsx` (FSD - Modularizado con useConfirmarInvitacion)
 - [x] `CRM_Inmobiliario_Web/src/features/auth/components/ConfiguracionPerfil.tsx` (FSD)
 - [x] `CRM_Inmobiliario.Api/Features/WhatsApp/WhatsAppAiService.cs` (Refactor inicial realizado, pero aún extensible)
