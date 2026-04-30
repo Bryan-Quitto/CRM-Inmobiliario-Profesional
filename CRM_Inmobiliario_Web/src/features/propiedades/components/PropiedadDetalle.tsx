@@ -2,7 +2,7 @@ import { SWRConfig } from 'swr';
 import { Loader2 } from 'lucide-react';
 import type { DropResult } from '@hello-pangea/dnd';
 import { localStorageProvider } from '@/lib/swr';
-import { usePropiedadDetalle } from './propiedad-detalle-sections/usePropiedadDetalle';
+import { usePropiedadDetalle } from '../hooks/usePropiedadDetalle';
 import { DetalleHeader } from './propiedad-detalle-sections/DetalleHeader';
 import { DetalleHeroInfo } from './propiedad-detalle-sections/DetalleHeroInfo';
 import { DetalleStatsGrid } from './propiedad-detalle-sections/DetalleStatsGrid';
