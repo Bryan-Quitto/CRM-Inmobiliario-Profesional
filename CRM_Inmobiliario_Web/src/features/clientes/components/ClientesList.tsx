@@ -14,6 +14,7 @@ import { ClientesSyncIndicator } from './clientes-list-sections/ClientesSyncIndi
 const ClientesContent = () => {
   const navigate = useNavigate();
   const {
+    isOwnersView,
     clientes,
     filteredClientes,
     isLoading,
@@ -45,6 +46,8 @@ const ClientesContent = () => {
     return <ClientesSkeletonList />;
   }
 
+  const basePath = isOwnersView ? '/propietarios' : '/prospectos';
+
   return (
     <div className="bg-slate-50 min-h-screen relative font-sans antialiased space-y-6 pb-20">
       <ClientesSyncIndicator syncing={syncing} count={clientes.length} />
@@ -72,7 +75,7 @@ const ClientesContent = () => {
         filteredClientes={filteredClientes}
         viewMode={viewMode}
         syncing={syncing}
-        onNavigate={(id) => navigate(`/prospectos/${id}`)}
+        onNavigate={(id) => navigate(`${basePath}/${id}`)}
         onEdit={setSelectedClienteForEdit}
         onStageChange={handleStageChange}
         openDropdownId={openDropdownId}
@@ -83,6 +86,7 @@ const ClientesContent = () => {
       <ClientesListModals 
         isCreateModalOpen={isModalOpen}
         setIsCreateModalOpen={setIsModalOpen}
+        isOwnersView={isOwnersView}
         selectedClienteForEdit={selectedClienteForEdit}
         setSelectedClienteForEdit={setSelectedClienteForEdit}
         closingLead={closingLead}

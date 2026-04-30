@@ -54,6 +54,8 @@ export interface Propiedad {
   fechaIngreso: string;
   agenteId: string;
   agenteNombre?: string;
+  propietarioId?: string;
+  propietarioNombre?: string;
   precioCierre?: number;
   fechaCierre?: string;
   cerradoConId?: string;

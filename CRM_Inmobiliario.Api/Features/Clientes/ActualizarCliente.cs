@@ -16,7 +16,8 @@ public static class ActualizarClienteFeature
         string? Apellido,
         string? Email,
         string Telefono,
-        string Origen);
+        string Origen,
+        bool EsPropietario);
 
     public static void MapActualizarClienteEndpoint(this IEndpointRouteBuilder app)
     {
@@ -37,6 +38,7 @@ public static class ActualizarClienteFeature
             cliente.Email = command.Email;
             cliente.Telefono = command.Telefono.NormalizeEcuadorPhone() ?? command.Telefono;
             cliente.Origen = command.Origen;
+            cliente.EsPropietario = command.EsPropietario;
 
             await context.SaveChangesAsync();
 

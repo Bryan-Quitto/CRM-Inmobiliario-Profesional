@@ -38,6 +38,9 @@ public sealed class Lead
 
     public string? Notas { get; set; }
 
+    [Required]
+    public bool EsPropietario { get; set; } = false;
+
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? FechaCierre { get; set; }

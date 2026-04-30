@@ -14,6 +14,15 @@ export interface Interes {
   fechaRegistro: string;
 }
 
+export interface PropiedadCaptada {
+  id: string;
+  titulo: string;
+  tipoPropiedad: string;
+  precio: number;
+  estadoComercial: string;
+  fechaIngreso: string;
+}
+
 export interface Cliente {
   id: string;
   nombre: string;
@@ -22,11 +31,13 @@ export interface Cliente {
   telefono: string;
   origen: string;
   etapaEmbudo: string;
+  esPropietario: boolean;
   notas?: string;
   fechaCreacion: string;
   fechaCierre?: string;
   interacciones?: Interaccion[];
   intereses?: Interes[];
+  propiedadesCaptadas?: PropiedadCaptada[];
 }
 
 export interface RegistrarInteraccionDTO {

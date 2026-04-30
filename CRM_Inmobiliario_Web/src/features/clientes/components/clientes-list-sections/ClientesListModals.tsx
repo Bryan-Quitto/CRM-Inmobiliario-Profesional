@@ -6,6 +6,7 @@ import type { Cliente } from '../../types';
 interface ClientesListModalsProps {
   isCreateModalOpen: boolean;
   setIsCreateModalOpen: (open: boolean) => void;
+  isOwnersView: boolean;
   selectedClienteForEdit: Cliente | null;
   setSelectedClienteForEdit: (cliente: Cliente | null) => void;
   closingLead: Cliente | null;
@@ -19,6 +20,7 @@ interface ClientesListModalsProps {
 export const ClientesListModals = ({
   isCreateModalOpen,
   setIsCreateModalOpen,
+  isOwnersView,
   selectedClienteForEdit,
   setSelectedClienteForEdit,
   closingLead,
@@ -28,6 +30,8 @@ export const ClientesListModals = ({
   setNotification,
   mutate
 }: ClientesListModalsProps) => {
+  const label = isOwnersView ? 'Propietario' : 'Prospecto';
+
   return (
     <>
       {notification && (
@@ -49,7 +53,7 @@ export const ClientesListModals = ({
             onSuccess={() => {
               mutate();
               setSelectedClienteForEdit(null);
-              setNotification({ type: 'success', message: 'Prospecto actualizado con éxito.' });
+              setNotification({ type: 'success', message: `${label} actualizado con éxito.` });
             }}
             onCancel={() => setSelectedClienteForEdit(null)}
           />
@@ -59,10 +63,11 @@ export const ClientesListModals = ({
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <CrearClienteForm 
+            isOwnersView={isOwnersView}
             onSuccess={() => { 
               mutate(); 
               setIsCreateModalOpen(false); 
-              setNotification({ type: 'success', message: 'Prospecto registrado.' }); 
+              setNotification({ type: 'success', message: `${label} registrado.` }); 
             }} 
             onCancel={() => setIsCreateModalOpen(false)} 
           />

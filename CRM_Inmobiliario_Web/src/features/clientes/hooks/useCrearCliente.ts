@@ -8,12 +8,13 @@ import type { Cliente } from '../types';
 
 interface UseCrearClienteProps {
   initialData?: Cliente;
+  isOwnersView?: boolean;
   onSuccess: () => void;
 }
 
 const DRAFT_STORAGE_KEY = 'crm_prospecto_draft';
 
-export const useCrearCliente = ({ initialData, onSuccess }: UseCrearClienteProps) => {
+export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCrearClienteProps) => {
   const { mutate } = useSWRConfig();
   const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
@@ -26,13 +27,17 @@ export const useCrearCliente = ({ initialData, onSuccess }: UseCrearClienteProps
     const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        return {
+          ...JSON.parse(saved),
+          esPropietario: isOwnersView // Sobrescribir con el contexto actual si es nuevo
+        };
       } catch (e) {
         console.error('Error al parsear borrador:', e);
       }
     }
     return {
-      telefono: '+593 '
+      telefono: '+593 ',
+      esPropietario: isOwnersView || false
     };
   };
 
@@ -61,7 +66,8 @@ export const useCrearCliente = ({ initialData, onSuccess }: UseCrearClienteProps
         apellido: dirtyFields.apellido ? currentValues.apellido : (initialData.apellido || ''),
         email: dirtyFields.email ? currentValues.email : (initialData.email || ''),
         telefono: dirtyFields.telefono ? currentValues.telefono : initialData.telefono,
-        origen: dirtyFields.origen ? currentValues.origen : initialData.origen
+        origen: dirtyFields.origen ? currentValues.origen : initialData.origen,
+        esPropietario: dirtyFields.esPropietario ? currentValues.esPropietario : (initialData.esPropietario || false)
       };
       reset(mergedValues);
     } else {
@@ -92,7 +98,8 @@ export const useCrearCliente = ({ initialData, onSuccess }: UseCrearClienteProps
       apellido: '',
       email: '',
       telefono: '',
-      origen: ''
+      origen: '',
+      esPropietario: isOwnersView || false
     });
     setIsConfirmingClear(false);
   };
@@ -107,9 +114,14 @@ export const useCrearCliente = ({ initialData, onSuccess }: UseCrearClienteProps
       onSuccess();
     }, 600);
 
+    const dataToSend = {
+      ...data,
+      esPropietario: !!data.esPropietario
+    };
+
     const action = isEditing 
-      ? actualizarCliente(initialData.id, data)
-      : crearCliente(data);
+      ? actualizarCliente(initialData.id, dataToSend)
+      : crearCliente(dataToSend);
 
     action.then(() => {
       mutate('/dashboard/kpis');

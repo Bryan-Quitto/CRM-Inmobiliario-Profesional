@@ -27,6 +27,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     { id: 'dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Inicio' },
     { id: 'calendario', path: '/calendario', icon: <Calendar className="h-5 w-5" />, label: 'Calendario' },
     { id: 'prospectos', path: '/prospectos', icon: <Users className="h-5 w-5" />, label: 'Prospectos' },
+    { id: 'propietarios', path: '/propietarios', icon: <Users className="h-5 w-5" />, label: 'Propietarios' },
     { id: 'propiedades', path: '/propiedades', icon: <Home className="h-5 w-5" />, label: 'Propiedades' },
     { id: 'ia-logs', path: '/ia-logs', icon: <Bot className="h-5 w-5" />, label: 'Actividad IA' },
     { id: 'kpis', path: '/kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },

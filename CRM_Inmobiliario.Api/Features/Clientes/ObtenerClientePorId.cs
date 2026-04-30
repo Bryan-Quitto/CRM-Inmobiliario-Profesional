@@ -18,10 +18,12 @@ public static class ObtenerClientePorIdFeature
         string Telefono,
         string Origen,
         string EtapaEmbudo,
+        bool EsPropietario,
         string? Notas,
         DateTimeOffset FechaCreacion,
         List<InteraccionResponse> Interacciones,
-        List<InteresResponse> Intereses);
+        List<InteresResponse> Intereses,
+        List<PropiedadCaptadaResponse> PropiedadesCaptadas);
 
     public record InteraccionResponse(
         Guid Id,
@@ -36,6 +38,14 @@ public static class ObtenerClientePorIdFeature
         string EstadoComercial,
         string NivelInteres,
         DateTimeOffset FechaRegistro);
+
+    public record PropiedadCaptadaResponse(
+        Guid Id,
+        string Titulo,
+        string TipoPropiedad,
+        decimal Precio,
+        string EstadoComercial,
+        DateTimeOffset FechaIngreso);
 
     public static RouteHandlerBuilder MapObtenerClientePorIdEndpoint(this IEndpointRouteBuilder app)
     {
@@ -55,6 +65,7 @@ public static class ObtenerClientePorIdFeature
                     c.Telefono,
                     c.Origen,
                     c.EtapaEmbudo,
+                    c.EsPropietario,
                     c.Notas,
                     c.FechaCreacion,
                     c.Interactions
@@ -74,6 +85,16 @@ public static class ObtenerClientePorIdFeature
                             i.Propiedad.EstadoComercial,
                             i.NivelInteres,
                             i.FechaRegistro))
+                        .ToList(),
+                    c.PropertiesOwned
+                        .OrderByDescending(p => p.FechaIngreso)
+                        .Select(p => new PropiedadCaptadaResponse(
+                            p.Id,
+                            p.Titulo,
+                            p.TipoPropiedad,
+                            p.Precio,
+                            p.EstadoComercial,
+                            p.FechaIngreso))
                         .ToList()))
                 .FirstOrDefaultAsync();
 
