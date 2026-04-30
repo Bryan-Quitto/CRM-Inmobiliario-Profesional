@@ -11,7 +11,6 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## 🚀 Pendientes de Refactorización
 
 ### Módulo de Propiedades (Crítico)
-- [ ] `CRM_Inmobiliario.Api/Features/Propiedades/CambiarEstadoPropiedad.cs` (~227 líneas) - **Backend Vertical Slice**
 - [ ] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadesList.ts` (~251 líneas) - **Hook Monolítico**
 - [ ] `CRM_Inmobiliario_Web/src/features/propiedades/components/propiedades-list-sections/PropiedadesModalsOrchestrator.tsx` (~257 líneas)
 
@@ -25,6 +24,7 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## ✅ Refactorizaciones Completadas
 *(Mover aquí los archivos una vez finalizados)*
 
+- [x] `CRM_Inmobiliario.Api/Features/Propiedades/CambiarEstadoPropiedad.cs` (Modularizado con Validator y Processor independientes)
 - [x] `CRM_Inmobiliario_Web/src/features/tareas/utils/parseComando.ts` (Modularizado en carpeta `parseComando/` con tipos, constantes y extractores)
 - [x] `CRM_Inmobiliario_Web/src/App.tsx` (Reducido de ~347 a ~130 líneas. Layout extraído a `Sidebar`, `Header`, `Footer` y `Loaders`)
 - [x] `CRM_Inmobiliario.Api/Features/WhatsApp/WhatsAppAiService.cs` (Modularizado con ConversationManager y MessageSender)
