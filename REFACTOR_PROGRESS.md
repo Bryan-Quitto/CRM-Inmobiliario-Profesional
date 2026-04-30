@@ -11,8 +11,8 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## 🚀 Pendientes de Refactorización
 
 ### Módulo de Propiedades (Crítico)
-- [ ] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadesList.ts` (~251 líneas) - **Hook Monolítico**
-- [ ] `CRM_Inmobiliario_Web/src/features/propiedades/components/propiedades-list-sections/PropiedadesModalsOrchestrator.tsx` (~257 líneas)
+- [x] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadesList.ts` (Modularizado en 4 sub-hooks)
+- [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/propiedades-list-sections/PropiedadesModalsOrchestrator.tsx` (Modularizado con StatusConfirmModal y ReversionModal)
 
 ### Infraestructura & Servicios
 - [ ] `CRM_Inmobiliario.Api/Features/WhatsApp/Services/WhatsAppPromptBuilder.cs` (~224 líneas)

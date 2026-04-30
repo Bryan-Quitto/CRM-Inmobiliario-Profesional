@@ -1,4 +1,4 @@
-import { SWRConfig, useSWRConfig } from 'swr';
+import { SWRConfig } from 'swr';
 import { Loader2, CheckCircle2, AlertCircle, X, Home } from 'lucide-react';
 import { localStorageProvider } from '@/lib/swr';
 import { usePropiedadesList } from '../hooks/usePropiedadesList';
@@ -11,7 +11,6 @@ import { PropiedadCard } from './propiedades-list-sections/PropiedadCard';
 import { PropiedadesModalsOrchestrator } from './propiedades-list-sections/PropiedadesModalsOrchestrator';
 
 const PropiedadesContent = () => {
-  const { mutate: globalMutate } = useSWRConfig();
   const {
     propiedades,
     filteredPropiedades,
@@ -43,6 +42,7 @@ const PropiedadesContent = () => {
     handleStatusChange,
     handleClosingConfirm,
     handleCoverUpdate,
+    handleRelistPropiedad,
     mutate,
     dropdownRef
   } = usePropiedadesList();
@@ -140,7 +140,7 @@ const PropiedadesContent = () => {
         handleClosingConfirm={handleClosingConfirm}
         showReversionModal={showReversionModal}
         setShowReversionModal={setShowReversionModal}
-        globalMutate={globalMutate}
+        handleRelistPropiedad={handleRelistPropiedad}
       />
     </div>
   );
