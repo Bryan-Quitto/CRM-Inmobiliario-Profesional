@@ -11,7 +11,6 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## 🚀 Pendientes de Refactorización
 
 ### Módulo de Clientes
-- [ ] `CRM_Inmobiliario_Web/src/features/clientes/components/CrearClienteForm.tsx` (~367 líneas) - **Prioridad: ALTA**
 
 ### Módulo de Propiedades
 - [ ] `CRM_Inmobiliario_Web/src/features/propiedades/context/UploadProvider.tsx` (~330 líneas)
@@ -35,6 +34,7 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## ✅ Refactorizaciones Completadas
 *(Mover aquí los archivos una vez finalizados)*
 
+- [x] `CRM_Inmobiliario_Web/src/features/clientes/components/CrearClienteForm.tsx` (Reducido de ~367 a ~60 líneas) - **FSD & Hook modular**
 - [x] `CRM_Inmobiliario_Web/src/features/clientes/hooks/useClienteDetalle.ts` (~359 líneas) - **Modularizado en 4 sub-hooks**
 - [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/PropiedadDetalle.tsx` (Reducido de ~1333 a ~143 líneas)
 - [x] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadDetalle.ts` (Dividido en sub-hooks especializados)
