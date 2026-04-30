@@ -13,10 +13,8 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ### Módulo de Clientes
 
 ### Módulo de Propiedades
-- [ ] `CRM_Inmobiliario_Web/src/features/propiedades/components/ClosingModal.tsx` (~307 líneas)
-- [ ] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadGallery.ts` (~295 líneas)
-
-### Módulo de Dashboard y Analítica
+- [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/ClosingModal.tsx` (Reducido de ~307 a ~170 líneas) - **FSD & useClosingModal hook**
+- [x] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadGallery.ts` (Modularizado en sub-hooks especializados)
 - [ ] `CRM_Inmobiliario_Web/src/features/dashboard/components/DashboardPrincipal.tsx` (~299 líneas)
 - [ ] `CRM_Inmobiliario.Api/Features/Analitica/ObtenerActividad.cs` (~268 líneas)
 

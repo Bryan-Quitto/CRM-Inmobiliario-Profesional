@@ -1,10 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { X, DollarSign, User, Check, Loader2, Info, Home, ChevronDown } from 'lucide-react';
-import { DynamicSearchSelect, type SearchItem } from '@/components/DynamicSearchSelect';
-import { buscarClientes } from '../../clientes/api/buscarClientes';
-import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
-import { useTareas } from '../../tareas/context/useTareas';
-import { toast } from 'sonner';
+import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
+import { useClosingModal } from '../hooks/useClosingModal';
 
 interface ClosingModalProps {
   isOpen: boolean;
@@ -21,130 +18,33 @@ interface ClosingModalProps {
   intendedState?: string;
 }
 
-export const ClosingModal: React.FC<ClosingModalProps> = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  mode,
-  initialData,
-  intendedState
-}) => {
-  const { clientes, propiedades } = useTareas();
-  const [precioCierre, setPrecioCierre] = useState<string>(initialData?.precio.toString() || '');
-  const [partnerId, setPartnerId] = useState<string | undefined>(mode === 'property' ? undefined : initialData?.id);
-  const [selectedPartnerData, setSelectedPartnerData] = useState<{titulo: string, operacion: string} | null>(
-    mode === 'property' && initialData ? { titulo: initialData.titulo, operacion: initialData.operacion } : null
-  );
-  
-  // Estado para el tipo de cierre (Vendida o Alquilada)
-  const [tipoCierre, setTipoCierre] = useState<string>(() => {
-    if (intendedState) return intendedState;
-    if (mode === 'property' && initialData) {
-      return initialData.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida';
-    }
-    return 'Vendida';
-  });
-  const [showTipoCierreDropdown, setShowTipoCierreDropdown] = useState(false);
+export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
+  const { isOpen, onClose, mode } = props;
+  const { state, actions } = useClosingModal(props);
+  const { 
+    precioCierre, 
+    partnerId, 
+    selectedPartnerData, 
+    tipoCierre, 
+    showTipoCierreDropdown, 
+    isSubmitting, 
+    isSuccess,
+    clienteOptions,
+    propiedadOptions 
+  } = state;
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  React.useEffect(() => {
-    if (isOpen) {
-      if (intendedState) {
-        setTipoCierre(intendedState);
-      } else if (mode === 'property' && initialData) {
-        setTipoCierre(initialData.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida');
-      } else {
-        setTipoCierre('Vendida');
-      }
-      setPrecioCierre(initialData?.precio.toString() || '');
-      setPartnerId(mode === 'property' ? undefined : initialData?.id);
-      setIsSubmitting(false);
-      setIsSuccess(false);
-      if (mode === 'property' && initialData) {
-        setSelectedPartnerData({ titulo: initialData.titulo, operacion: initialData.operacion });
-      } else {
-        setSelectedPartnerData(null);
-      }
-    }
-  }, [isOpen, intendedState, mode, initialData]);
-
-  const clienteOptions = useMemo(() => 
-    clientes.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
-    [clientes]
-  );
-
-  const propiedadOptions = useMemo(() => 
-    propiedades
-      .filter(p => p.estadoComercial === 'Disponible')
-      .map(p => ({ 
-        id: p.id, 
-        title: p.titulo, 
-        subtitle: `${p.sector}, ${p.ciudad}`,
-        raw: p 
-      })),
-    [propiedades]
-  );
+  const {
+    setPrecioCierre,
+    setPartnerId,
+    setTipoCierre,
+    setShowTipoCierreDropdown,
+    handleConfirm,
+    onSearchClients,
+    onSearchProperties,
+    handlePropertySelect
+  } = actions;
 
   if (!isOpen) return null;
-
-  const handleConfirm = async () => {
-    if (!precioCierre || isNaN(Number(precioCierre))) {
-      toast.error('Por favor, ingresa un precio válido.');
-      return;
-    }
-    if (!partnerId) {
-      toast.error(`Por favor, selecciona ${mode === 'property' ? 'al cliente' : 'la propiedad'}.`);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await onConfirm(Number(precioCierre), partnerId, tipoCierre);
-      setIsSuccess(true);
-      setTimeout(() => {
-        onClose();
-      }, 800);
-    } catch (error) {
-      console.error('Error al procesar el cierre:', error);
-      toast.error('Hubo un error al procesar el cierre.');
-      setIsSubmitting(false);
-    }
-  };
-
-  const onSearchClients = async (query: string) => {
-    const results = await buscarClientes(query);
-    return results.map(c => ({
-      id: c.id,
-      title: c.nombreCompleto,
-      subtitle: c.telefono,
-      raw: c
-    }));
-  };
-
-  const onSearchProperties = async (query: string) => {
-    const results = await buscarPropiedades(query);
-    return results.map(p => ({
-      id: p.id,
-      title: p.titulo,
-      subtitle: `${p.sector}, ${p.ciudad}`,
-      // Guardamos la operación para el auto-manejo del tipo de cierre
-      raw: p 
-    }));
-  };
-
-  const handlePropertySelect = (id: string | undefined, _title: string | undefined, item?: SearchItem) => {
-    if (!id) return;
-    setPartnerId(id);
-    
-    // Si item es un objeto (desde DynamicSearchSelect con resultados de búsqueda o local)
-    if (item && item.raw) {
-      const p = item.raw as { titulo: string, operacion: string };
-      setSelectedPartnerData({ titulo: p.titulo, operacion: p.operacion || 'Venta' });
-      setTipoCierre(p.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida');
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
