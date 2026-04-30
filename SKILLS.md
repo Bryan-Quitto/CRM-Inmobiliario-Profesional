@@ -45,6 +45,12 @@ This file defines the strict technical standards and architectural rules for the
 - **Standard:** Migrations should be managed through EF Core CLI. Ensure `GssEncryptionMode=Disable;` is present in the `DATABASE_URL` within the `.env` file to avoid connection issues.
 - **Reason:** Ensuring environmental consistency and allowing automated schema updates.
 
+### CLI Execution Constraints & Scripting
+- **Rule:** The underlying CLI execution environment on Windows uses older PowerShell. It strictly BLOCKS command substitution, sub-shells (`$(...)`), complex piping (`|`), and command chaining (`&&`).
+- **Constraint:** DO NOT chain commands using `&&`. Execute every command as a separate, sequential step.
+- **Standard:** For simple file operations, use basic commands one by one.
+- **Standard:** For complex repository analysis, write a temporary Node.js script (e.g., `temp.js`), execute it (`node temp.js`), read the output, and then delete it (`rm temp.js`) IN SEPARATE EXECUTION STEPS.
+
 ### World-Class Performance & UX Standards
 All new features and refactors MUST implement these zero-latency patterns:
 
