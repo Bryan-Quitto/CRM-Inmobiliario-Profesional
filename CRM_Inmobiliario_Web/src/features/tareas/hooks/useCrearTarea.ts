@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
 import { crearTarea } from '../api/crearTarea';
@@ -86,7 +86,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
     defaultValues: getInitialValues()
   });
 
-  const formData = watch();
+  const formData = useWatch({ control });
 
   const onSubmit = (data: CrearTareaDTO) => {
     localStorage.removeItem(DRAFT_STORAGE_KEY);

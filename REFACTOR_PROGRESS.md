@@ -15,7 +15,6 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ### Módulo de Propiedades
 - [ ] `CRM_Inmobiliario_Web/src/features/propiedades/context/UploadProvider.tsx` (~330 líneas)
 - [ ] `CRM_Inmobiliario_Web/src/features/propiedades/components/ClosingModal.tsx` (~307 líneas)
-- [ ] `CRM_Inmobiliario_Web/src/features/propiedades/components/CrearPropiedadForm.tsx` (~301 líneas)
 - [ ] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadGallery.ts` (~295 líneas)
 
 ### Módulo de Dashboard y Analítica
@@ -34,6 +33,7 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## ✅ Refactorizaciones Completadas
 *(Mover aquí los archivos una vez finalizados)*
 
+- [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/CrearPropiedadForm.tsx` (Reducido de ~301 a ~105 líneas) - **FSD & useCrearPropiedad hook**
 - [x] `CRM_Inmobiliario_Web/src/features/clientes/components/CrearClienteForm.tsx` (Reducido de ~367 a ~60 líneas) - **FSD & Hook modular**
 - [x] `CRM_Inmobiliario_Web/src/features/clientes/hooks/useClienteDetalle.ts` (~359 líneas) - **Modularizado en 4 sub-hooks**
 - [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/PropiedadDetalle.tsx` (Reducido de ~1333 a ~143 líneas)
