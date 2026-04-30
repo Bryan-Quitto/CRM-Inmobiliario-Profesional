@@ -15,8 +15,6 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 - [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/propiedades-list-sections/PropiedadesModalsOrchestrator.tsx` (Modularizado con StatusConfirmModal y ReversionModal)
 
 ### Infraestructura & Servicios
-- [ ] `CRM_Inmobiliario.Api/Features/WhatsApp/Services/WhatsAppPromptBuilder.cs` (~224 líneas)
-- [ ] `CRM_Inmobiliario.Api/Infrastructure/Pdf/PropiedadFichaDocument.cs` (~246 líneas)
 - [ ] `CRM_Inmobiliario.Api/Infrastructure/Persistence/CrmDbContext.cs` (~267 líneas)
 
 ---
@@ -24,6 +22,8 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## ✅ Refactorizaciones Completadas
 *(Mover aquí los archivos una vez finalizados)*
 
+- [x] `CRM_Inmobiliario.Api/Infrastructure/Pdf/PropiedadFichaDocument.cs` (Modularizado con IComponent: Header, Content, Gallery, Footer)
+- [x] `CRM_Inmobiliario.Api/Features/WhatsApp/Services/WhatsAppPromptBuilder.cs` (Modularizado con SystemPromptFactory, AiToolDefinitions y ChatSerializer)
 - [x] `CRM_Inmobiliario.Api/Features/Propiedades/CambiarEstadoPropiedad.cs` (Modularizado con Validator y Processor independientes)
 - [x] `CRM_Inmobiliario_Web/src/features/tareas/utils/parseComando.ts` (Modularizado en carpeta `parseComando/` con tipos, constantes y extractores)
 - [x] `CRM_Inmobiliario_Web/src/App.tsx` (Reducido de ~347 a ~130 líneas. Layout extraído a `Sidebar`, `Header`, `Footer` y `Loaders`)
