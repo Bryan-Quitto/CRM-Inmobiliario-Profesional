@@ -11,17 +11,20 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## 🚀 Pendientes de Refactorización
 
 ### Módulo de Propiedades (Crítico)
-- [x] `CRM_Inmobiliario_Web/src/features/propiedades/hooks/usePropiedadesList.ts` (Modularizado en 4 sub-hooks)
-- [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/propiedades-list-sections/PropiedadesModalsOrchestrator.tsx` (Modularizado con StatusConfirmModal y ReversionModal)
+- [ ] `CRM_Inmobiliario.Api/Features/Propiedades/ImportarDeUrlRemax.cs` (~204 líneas)
 
-### Infraestructura & Servicios
-- [ ] `CRM_Inmobiliario.Api/Infrastructure/Persistence/CrmDbContext.cs` (~267 líneas)
+### Auth & Seguridad
+- [ ] `CRM_Inmobiliario_Web/src/features/auth/components/ConfirmarInvitacion.tsx` (~252 líneas)
+
+### Infraestructura & Background
+- [ ] `CRM_Inmobiliario.Api/Features/Dashboard/KpiWarmingBackgroundService.cs` (~202 líneas)
 
 ---
 
 ## ✅ Refactorizaciones Completadas
 *(Mover aquí los archivos una vez finalizados)*
 
+- [x] `CRM_Inmobiliario.Api/Infrastructure/Persistence/CrmDbContext.cs` (Modularizado con IEntityTypeConfiguration por cada entidad)
 - [x] `CRM_Inmobiliario.Api/Infrastructure/Pdf/PropiedadFichaDocument.cs` (Modularizado con IComponent: Header, Content, Gallery, Footer)
 - [x] `CRM_Inmobiliario.Api/Features/WhatsApp/Services/WhatsAppPromptBuilder.cs` (Modularizado con SystemPromptFactory, AiToolDefinitions y ChatSerializer)
 - [x] `CRM_Inmobiliario.Api/Features/Propiedades/CambiarEstadoPropiedad.cs` (Modularizado con Validator y Processor independientes)
