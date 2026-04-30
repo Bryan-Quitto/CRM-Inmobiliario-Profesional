@@ -19,8 +19,6 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 - [x] `CRM_Inmobiliario.Api/Features/Analitica/ObtenerActividad.cs` (Modularizado en 2 slices + Helper)
 
 ### Módulo de WhatsApp / IA (Backend)
-- [ ] `CRM_Inmobiliario.Api/Features/WhatsApp/Services/WhatsAppToolExecutor.cs` (~271 líneas)
-- [ ] `CRM_Inmobiliario.Api/Features/WhatsApp/WhatsAppAiService.cs` (~214 líneas)
 
 ### Otros (Utilidades Complejas)
 - [ ] `CRM_Inmobiliario_Web/src/features/tareas/utils/parseComando.ts` (~288 líneas)
@@ -30,6 +28,8 @@ Este archivo sirve para trackear los archivos monolíticos que superan los umbra
 ## ✅ Refactorizaciones Completadas
 *(Mover aquí los archivos una vez finalizados)*
 
+- [x] `CRM_Inmobiliario.Api/Features/WhatsApp/WhatsAppAiService.cs` (Modularizado con ConversationManager y MessageSender)
+- [x] `CRM_Inmobiliario.Api/Features/WhatsApp/Services/WhatsAppToolExecutor.cs` (Modularizado con Patrón Strategy & Handlers)
 - [x] `CRM_Inmobiliario.Api/Features/Analitica/ObtenerActividad.cs` (Dividido en `ObtenerActividad.cs` y `ObtenerVentasMensuales.cs` + `AnalyticsDateHelper.cs`)
 - [x] `CRM_Inmobiliario_Web/src/features/dashboard/components/DashboardPrincipal.tsx` (Reducido de ~299 a ~60 líneas) - **FSD & Modularizado**
 - [x] `CRM_Inmobiliario_Web/src/features/propiedades/components/ClosingModal.tsx` (Reducido de ~307 a ~170 líneas) - **FSD & useClosingModal hook**

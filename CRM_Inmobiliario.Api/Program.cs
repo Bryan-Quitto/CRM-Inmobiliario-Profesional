@@ -11,6 +11,7 @@ using CRM_Inmobiliario.Api.Features.SeccionesGaleria;
 using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
+using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
@@ -121,7 +122,15 @@ builder.Services.AddOutputCache(options => {
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IWhatsAppPromptBuilder, WhatsAppPromptBuilder>();
 builder.Services.AddScoped<IWhatsAppToolExecutor, WhatsAppToolExecutor>();
+builder.Services.AddScoped<IWhatsAppMessageSender, WhatsAppMessageSender>();
+builder.Services.AddScoped<IWhatsAppConversationManager, WhatsAppConversationManager>();
 builder.Services.AddScoped<WhatsAppAiService>();
+
+// Handlers de herramientas de WhatsApp (IA)
+builder.Services.AddScoped<IWhatsAppToolHandler, BuscarPropiedadesHandler>();
+builder.Services.AddScoped<IWhatsAppToolHandler, RegistrarInteresProspectoHandler>();
+builder.Services.AddScoped<IWhatsAppToolHandler, RegistrarNuevoLeadHandler>();
+builder.Services.AddScoped<IWhatsAppToolHandler, SolicitarAsistenciaHumanaHandler>();
 
 // Fase 1: Cola de Generación de PDFs y Warming de KPIs
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
