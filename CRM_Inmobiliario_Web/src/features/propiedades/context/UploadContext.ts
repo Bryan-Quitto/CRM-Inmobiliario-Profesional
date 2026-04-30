@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-interface UploadProcess {
+export interface UploadProcess {
   id: string; // ID único para el proceso (propiedadId + sectionId)
   propiedadId: string;
   sectionId?: string | null;
@@ -12,7 +12,7 @@ interface UploadProcess {
   dismissed?: boolean;
 }
 
-interface UploadStatus {
+export interface UploadStatus {
   id: string;
   propiedadId: string;
   sectionId?: string | null;
@@ -22,7 +22,7 @@ interface UploadStatus {
   error?: string;
 }
 
-interface UploadResult {
+export interface UploadResult {
   id: string;
   propiedadId: string;
   sectionId?: string | null;
