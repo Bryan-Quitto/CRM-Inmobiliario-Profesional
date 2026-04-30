@@ -1,421 +1,65 @@
-import { useForm, Controller, useWatch } from 'react-hook-form';
-import { useSWRConfig } from 'swr';
-import {
-  Type,
-  AlignLeft,
-  Calendar,
-  Trash2,
-  Check,
-  RotateCcw,
-  ChevronDown,
-  Phone,
-  MapPin,
-  Users,
-  Briefcase,
-  ChevronLeft,
-  User,
-  Home
-} from 'lucide-react';
-import { crearTarea } from '../api/crearTarea';
-import { buscarClientes } from '../../clientes/api/buscarClientes';
-import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
-import { DynamicSearchSelect } from '../../../components/DynamicSearchSelect';
-import { useTareas } from '../context/useTareas';
-import { useState, useEffect, useRef, useMemo } from 'react';
-import type { CrearTareaDTO } from '../types';
-import { toast } from 'sonner';
+import { useCrearTarea } from '../hooks/useCrearTarea';
+import { CrearTareaHeader } from './CrearTareaHeader';
+import { CrearTareaDraftClear } from './CrearTareaDraftClear';
+import { CrearTareaFormContent } from './CrearTareaFormContent';
 
 interface Props {
   onSuccess: () => void;
   onCancel: () => void;
   fechaInicial?: string;
-  /** Datos pre-llenados provenientes del parser del asistente de agenda. */
   prefill?: {
     titulo?: string;
     tipoTarea?: string;
     fechaInicio?: string;
-    /** ID del cliente ya resuelto por el asistente */
     clienteId?: string;
-    /** Label del cliente para mostrar en el selector sin necesidad de búsqueda */
     clienteLabel?: string;
-    /** ID de la propiedad ya resuelta por el asistente */
     propiedadId?: string;
-    /** Label de la propiedad para mostrar en el selector sin necesidad de búsqueda */
     propiedadLabel?: string;
-    /** Texto de lugar como fallback si no se encontró propiedad */
     lugar?: string;
   };
 }
 
-const TIPOS_TAREA = [
-  { label: 'Llamada', value: 'Llamada', icon: Phone, color: 'text-blue-600 bg-blue-50' },
-  { label: 'Visita', value: 'Visita', icon: MapPin, color: 'text-emerald-600 bg-emerald-50' },
-  { label: 'Reunión', value: 'Reunión', icon: Users, color: 'text-purple-600 bg-purple-50' },
-  { label: 'Trámite', value: 'Trámite', icon: Briefcase, color: 'text-amber-600 bg-amber-50' },
-];
-
-const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
-
 export const CrearTareaForm = ({ onSuccess, onCancel, fechaInicial, prefill }: Props) => {
-  const { mutate } = useSWRConfig();
-  const { clientes, propiedades, addTarea } = useTareas();
-  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
-  const [isSelectOpen, setIsSelectOpen] = useState(false);
-  const selectRef = useRef<HTMLDivElement>(null);
+  const {
+    register,
+    handleSubmit,
+    errors,
+    control,
+    setValue,
+    watch,
+    formData,
+    clienteOptions,
+    propiedadOptions,
+    onSubmit,
+    handleClearDraft
+  } = useCrearTarea({ onSuccess, fechaInicial, prefill });
 
-  const clienteOptions = useMemo(() =>
-    clientes.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
-    [clientes]
-  );
-
-  const propiedadOptions = useMemo(() =>
-    propiedades.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad}, ${p.sector}` })),
-    [propiedades]
-  );
-
-  const defaultFecha = useMemo(() => {
-    if (fechaInicial) {
-      // Si la fecha ya incluye la hora 'T' (Viene de hacer clic en la vista Semanal/Diaria)
-      if (fechaInicial.includes('T')) {
-        return fechaInicial;
-      }
-      // Si solo viene la fecha (Vista Mensual), le concatenamos las 10:00 AM por defecto
-      const result = `${fechaInicial}T10:00`;
-      return result;
-    }
-
-    // Para nueva tarea normal, usamos la hora LOCAL exacta actual
-    const now = new Date();
-
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-
-    const result = `${year}-${month}-${day}T${hours}:${minutes}`;
-    return result;
-  }, [fechaInicial]);
-
-  const getInitialValues = (): CrearTareaDTO => {
-    // Si hay datos pre-llenados del asistente, tienen prioridad absoluta sobre el borrador
-    if (prefill) {
-      return {
-        titulo: prefill.titulo ?? '',
-        descripcion: '',
-        tipoTarea: prefill.tipoTarea ?? 'Llamada',
-        fechaInicio: prefill.fechaInicio ?? defaultFecha,
-        clienteId: prefill.clienteId,
-        propiedadId: prefill.propiedadId,
-        lugar: prefill.lugar,
-      };
-    }
-
-    const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (saved) {
-      try {
-        const draft = JSON.parse(saved);
-        // ELIMINAMOS cualquier fecha guardada en el borrador para que 
-        // siempre prevalezca la calculada (la del botón presionado)
-        delete draft.fechaInicio;
-
-        return {
-          ...draft,
-          fechaInicio: defaultFecha
-        };
-      } catch (e) {
-        console.error('Error al parsear borrador de tarea:', e);
-      }
-    }
-    return {
-      titulo: '',
-      descripcion: '',
-      tipoTarea: 'Llamada',
-      fechaInicio: defaultFecha
-    };
-  };
-
-  const { register, handleSubmit, formState: { errors }, reset, control, setValue } = useForm<CrearTareaDTO>({
-    defaultValues: getInitialValues()
-  });
-
-  const titulo = useWatch({ control, name: 'titulo' });
-  const descripcion = useWatch({ control, name: 'descripcion' });
-  const tipoTarea = useWatch({ control, name: 'tipoTarea' });
-  const propiedadId = useWatch({ control, name: 'propiedadId' });
-  const hasData = titulo || descripcion;
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-        setIsSelectOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleClearDraft = () => {
-    localStorage.removeItem(DRAFT_STORAGE_KEY);
-    reset({
-      titulo: '',
-      descripcion: '',
-      tipoTarea: 'Llamada',
-      fechaInicio: defaultFecha
-    });
-    setIsConfirmingClear(false);
-  };
-
-  const onSubmit = (data: CrearTareaDTO) => {
-    // FIRE AND FORGET: Respuesta instantánea
-    localStorage.removeItem(DRAFT_STORAGE_KEY);
-
-    // Crear objeto de tarea optimista para visualización inmediata
-    const tempId = `temp-${new Date().getTime()}`;
-    const cliente = data.clienteId ? clientes.find(c => c.id === data.clienteId) : null;
-    const propiedad = data.propiedadId ? propiedades.find(p => p.id === data.propiedadId) : null;
-
-    const nuevaTareaOptimista = {
-      id: tempId,
-      ...data,
-      tipoTarea: data.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
-      estado: 'Pendiente' as const,
-      fechaInicio: new Date(data.fechaInicio).toISOString(),
-      clienteNombre: cliente ? [cliente.nombre, cliente.apellido].filter(Boolean).join(' ') : undefined,
-      propiedadTitulo: propiedad ? propiedad.titulo : undefined
-    };
-
-    const payload = {
-      ...data,
-      fechaInicio: new Date(data.fechaInicio).toISOString()
-    };
-
-    // Lanzamos la mutación optimista vinculada a la promesa de creación
-    // Esto previene el flicker porque SWR sabe que debe esperar a la promesa para revalidar
-    const savePromise = crearTarea(payload);
-
-    addTarea(nuevaTareaOptimista, savePromise).catch(err => {
-      console.error('Error en sync de addTarea:', err);
-      toast.error('No se pudo sincronizar la tarea');
-    });
-
-    // Revalidación proactiva de analíticas y dashboard (UPSP)
-    mutate('/dashboard/kpis');
-    mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-
-    onSuccess(); // Cerramos el panel/formulario de inmediato
-  };
-
-  const selectedTipo = TIPOS_TAREA.find(t => t.value === tipoTarea) || TIPOS_TAREA[0];
+  const hasData = formData.titulo || formData.descripcion;
 
   return (
     <div className="flex flex-col h-full bg-white animate-in slide-in-from-right duration-300">
-      {/* Header Inline */}
-      <div className="p-6 border-b border-slate-50 flex items-center gap-4 bg-white sticky top-0 z-10">
-        <button
-          onClick={onCancel}
-          type="button"
-          className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <div>
-          <h2 className="text-lg font-black text-slate-900 tracking-tight">Nueva Tarea</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-            {prefill ? 'Completado por el asistente · revisa y guarda' : 'Programar seguimiento'}
-          </p>
-        </div>
-        {prefill && (
-          <div className="ml-auto shrink-0 flex items-center gap-1.5 px-2.5 py-1 bg-violet-50 border border-violet-100 rounded-full">
-            <span className="h-1.5 w-1.5 bg-violet-500 rounded-full animate-pulse" />
-            <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest">Asistente</span>
-          </div>
-        )}
-      </div>
+      <CrearTareaHeader 
+        onCancel={onCancel} 
+        isPrefill={!!prefill} 
+      />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
         {hasData && !prefill && (
-          <div className="flex items-center gap-2 min-h-[24px]">
-            {!isConfirmingClear ? (
-              <button
-                type="button"
-                onClick={() => setIsConfirmingClear(true)}
-                className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:Rose-500 bg-slate-50 hover:bg-rose-50 px-2 py-1 rounded-full transition-all group cursor-pointer"
-              >
-                <Trash2 className="h-2.5 w-2.5" />
-                Limpiar Borrador
-              </button>
-            ) : (
-              <div className="flex items-center gap-1 bg-rose-50 p-0.5 rounded-full border border-rose-100 shadow-sm animate-in zoom-in duration-200">
-                <button
-                  type="button"
-                  onClick={handleClearDraft}
-                  className="flex items-center gap-1 text-[10px] font-black text-white bg-rose-500 hover:bg-rose-600 px-2.5 py-1 rounded-full transition-all cursor-pointer"
-                >
-                  <Check className="h-2.5 w-2.5" />
-                  Confirmar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsConfirmingClear(false)}
-                  className="p-1 text-rose-400 hover:text-rose-600 transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="h-2.5 w-2.5" />
-                </button>
-              </div>
-            )}
-          </div>
+          <CrearTareaDraftClear onClear={handleClearDraft} />
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-10">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título</label>
-            <div className="relative">
-              <Type className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                {...register('titulo', { required: 'El título es obligatorio' })}
-                type="text"
-                placeholder="Ej. Llamar a Juan..."
-                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.titulo ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4`}
-              />
-            </div>
-            {errors.titulo && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.titulo.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Descripción</label>
-            <div className="relative">
-              <AlignLeft className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />
-              <textarea
-                {...register('descripcion')}
-                placeholder="Detalles adicionales..."
-                rows={3}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none resize-none"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Tipo de Tarea</label>
-            <div className="relative" ref={selectRef}>
-              <Controller
-                name="tipoTarea"
-                control={control}
-                rules={{ required: 'Selecciona un tipo' }}
-                render={({ field }) => (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setIsSelectOpen(!isSelectOpen)}
-                      className={`cursor-pointer ${`w-full px-4 py-3 bg-slate-50 border text-left ${errors.tipoTarea ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none flex items-center justify-between group`}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <selectedTipo.icon className={`h-4 w-4 ${selectedTipo.color.split(' ')[0]}`} />
-                        <span className="text-slate-900">{field.value}</span>
-                      </div>
-                      <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${isSelectOpen ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {isSelectOpen && (
-                      <div className="absolute w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200 origin-top">
-                        {TIPOS_TAREA.map((opt) => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => {
-                              setValue('tipoTarea', opt.value, { shouldValidate: true });
-                              setIsSelectOpen(false);
-                            }}
-                            className={`cursor-pointer ${`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center gap-3 hover:bg-slate-50 transition-colors ${field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
-                              }`}`}
-                          >
-                            <opt.icon className={`h-4 w-4 ${opt.color.split(' ')[0]}`} />
-                            {opt.label}
-                            {field.value === opt.value && <Check className="ml-auto h-4 w-4" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              />
-            </div>
-          </div>
-
-          <Controller
-            name="clienteId"
-            control={control}
-            render={({ field }) => (
-              <DynamicSearchSelect
-                label="Cliente (Opcional)"
-                icon={User}
-                placeholder="Buscar por nombre o teléfono..."
-                value={field.value}
-                initialLabel={prefill?.clienteLabel}
-                options={clienteOptions}
-                onSearch={async (q) => {
-                  const res = await buscarClientes(q);
-                  return res.map(c => ({ id: c.id, title: c.nombreCompleto, subtitle: c.telefono }));
-                }}
-                onChange={(id) => field.onChange(id)}
-              />
-            )}
-          />
-
-          <Controller
-            name="propiedadId"
-            control={control}
-            render={({ field }) => (
-              <DynamicSearchSelect
-                label="Propiedad (Opcional)"
-                icon={Home}
-                placeholder="Buscar por título de propiedad..."
-                value={field.value}
-                initialLabel={prefill?.propiedadLabel}
-                options={propiedadOptions}
-                onSearch={async (q) => {
-                  const res = await buscarPropiedades(q);
-                  return res.map(p => ({ id: p.id, title: p.titulo, subtitle: `${p.ciudad}, ${p.sector}` }));
-                }}
-                onChange={(id) => field.onChange(id)}
-              />
-            )}
-          />
-
-          {(tipoTarea === 'Visita' || tipoTarea === 'Reunión') && !propiedadId && (
-            <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Lugar</label>
-              <div className="relative">
-                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
-                  {...register('lugar')}
-                  type="text"
-                  placeholder="Dirección o punto de encuentro..."
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none"
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Fecha de Inicio</label>
-            <div className="relative">
-              <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                {...register('fechaInicio', { required: 'La fecha es obligatoria' })}
-                type="datetime-local"
-                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fechaInicio ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none`}
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer"
-          >
-            Guardar Tarea
-          </button>
-        </form>
+        <CrearTareaFormContent 
+          register={register}
+          control={control}
+          errors={errors}
+          setValue={setValue}
+          watch={watch}
+          clienteOptions={clienteOptions}
+          propiedadOptions={propiedadOptions}
+          handleSubmit={handleSubmit}
+          onSubmit={onSubmit}
+          prefill={prefill}
+        />
       </div>
     </div>
   );
