@@ -20,10 +20,14 @@ This file defines the strict technical standards and architectural rules for the
 - **Rule:** Strict prohibition of MVC, Clean Architecture, or Onion.
 - **Organization:** Code must be organized by features in `/Features`.
 - **Logic:** Each feature (e.g., `CreateProperty`) must contain its own route, validation, command/query, and data access in the same logical space.
+- **CRITICAL THRESHOLD:** Feature files MUST NOT exceed **200 lines**. If a feature exceeds this limit, its logic must be extracted to specialized helper classes (e.g., `Validator`, `Processor`, `Mapper`) within the same feature folder.
 
 ### Frontend (Feature-Sliced Design)
 - **Rule:** Organize React code by features in `/src/features/`.
 - **Organization:** Avoid global centralization of components, hooks, or services.
+- **CRITICAL THRESHOLD:** Components and Hooks MUST NOT exceed **250 lines**. If a file exceeds this limit, it MUST be modularized:
+    - **Components:** Extract sub-components to a `components/` sub-folder or split logical sections.
+    - **Hooks:** Split into specialized sub-hooks (e.g., `useData`, `useActions`, `useUI`) and coordinate them via a primary orchestrator hook.
 
 ### Styling & UI (Tailwind CSS)
 - **Rule:** STRICT prohibition of inline styles (`style={{...}}`).
