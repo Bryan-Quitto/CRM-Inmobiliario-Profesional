@@ -5,12 +5,14 @@ export const actualizarEtapaCliente = async (
   nuevaEtapa: string,
   propiedadId?: string,
   precioCierre?: number,
-  nuevoEstadoPropiedad?: string
+  nuevoEstadoPropiedad?: string,
+  tipo: 'prospecto' | 'propietario' = 'prospecto'
 ): Promise<void> => {
   await api.patch(`/clientes/${id}/etapa`, { 
     nuevaEtapa, 
     propiedadId, 
     precioCierre, 
-    nuevoEstadoPropiedad 
+    nuevoEstadoPropiedad,
+    tipo
   });
 };

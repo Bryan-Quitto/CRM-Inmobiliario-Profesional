@@ -29,7 +29,7 @@ export const useClientesList = () => {
   const clientes = useMemo(() => {
     switch (activeSegment) {
       case 'prospectos':
-        return allClientes.filter(c => !c.esPropietario || (c.intereses && c.intereses.length > 0));
+        return allClientes.filter(c => c.esProspecto); 
       case 'propietarios':
         return allClientes.filter(c => c.esPropietario);
       default:
@@ -104,21 +104,32 @@ export const useClientesList = () => {
     negociacion: clientes.filter(c => c.etapaEmbudo === 'En Negociación').length
   }), [clientes]);
 
-  const handleStageChange = (id: string, nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }) => {
+  const handleStageChange = (id: string, nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo: 'prospecto' | 'propietario' = 'prospecto') => {
     setOpenDropdownId(null);
     const cliente = allClientes.find(c => c.id === id);
-    if (!cliente || cliente.etapaEmbudo === nuevaEtapa) return;
+    if (!cliente) return;
+    
+    const etapaActual = tipo === 'propietario' ? cliente.estadoPropietario : cliente.etapaEmbudo;
+    if (etapaActual === nuevaEtapa) return;
 
-    if (nuevaEtapa === 'Cerrado' && !confirmedData) {
+    if (tipo === 'prospecto' && nuevaEtapa === 'Cerrado' && !confirmedData) {
       setClosingLead(cliente);
       return;
     }
 
-    const optimisticData = allClientes.map(c => c.id === id ? { ...c, etapaEmbudo: nuevaEtapa } : c);
+    const optimisticData = allClientes.map(c => {
+      if (c.id === id) {
+        return tipo === 'propietario' 
+          ? { ...c, estadoPropietario: nuevaEtapa }
+          : { ...c, etapaEmbudo: nuevaEtapa };
+      }
+      return c;
+    });
+
     mutate(optimisticData, false);
-    setNotification({ type: 'success', message: `Cliente movido a ${nuevaEtapa}` });
+    setNotification({ type: 'success', message: `${tipo === 'propietario' ? 'Propietario' : 'Prospecto'} movido a ${nuevaEtapa}` });
     
-    actualizarEtapaCliente(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad)
+    actualizarEtapaCliente(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad, tipo)
       .then(async () => {
         await mutate(); 
         globalMutate('/dashboard/kpis');

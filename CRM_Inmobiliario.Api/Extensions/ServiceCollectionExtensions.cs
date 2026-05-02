@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
         // JSON Options
         services.ConfigureHttpJsonOptions(options => {
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         });
 
         // Database

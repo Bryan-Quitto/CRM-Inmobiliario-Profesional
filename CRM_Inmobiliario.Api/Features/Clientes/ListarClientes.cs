@@ -18,6 +18,8 @@ public static class ListarClientesFeature
         string? Email, 
         string Telefono, 
         string EtapaEmbudo,
+        bool EsProspecto,
+        string EstadoPropietario,
         bool EsPropietario,
         DateTimeOffset FechaCreacion
     );
@@ -39,6 +41,8 @@ public static class ListarClientesFeature
                     l.Email,
                     l.Telefono,
                     l.EtapaEmbudo,
+                    l.EsProspecto,
+                    l.EstadoPropietario,
                     l.EsPropietario,
                     l.FechaCreacion
                 ))

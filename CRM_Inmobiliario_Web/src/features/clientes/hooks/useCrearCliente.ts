@@ -20,6 +20,7 @@ export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCre
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [hasData, setHasData] = useState(false);
+  const [roleError, setRoleError] = useState(false);
 
   const getInitialValues = (): Partial<CrearClienteDTO> => {
     if (isEditing) return initialData;
@@ -29,7 +30,8 @@ export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCre
       try {
         return {
           ...JSON.parse(saved),
-          esPropietario: isOwnersView // Sobrescribir con el contexto actual si es nuevo
+          esProspecto: JSON.parse(saved).esProspecto ?? true,
+          esPropietario: JSON.parse(saved).esPropietario ?? isOwnersView
         };
       } catch (e) {
         console.error('Error al parsear borrador:', e);
@@ -37,6 +39,7 @@ export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCre
     }
     return {
       telefono: '+593 ',
+      esProspecto: true,
       esPropietario: isOwnersView || false
     };
   };
@@ -56,6 +59,12 @@ export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCre
 
   const currentValues = watch();
 
+  useEffect(() => {
+    if (currentValues.esProspecto || currentValues.esPropietario) {
+      setRoleError(false);
+    }
+  }, [currentValues.esProspecto, currentValues.esPropietario]);
+
   // Smart Merge: Sincronizar cambios del servidor (initialData) sin borrar lo que el usuario escribe
   useEffect(() => {
     if (!isEditing || !initialData) return;
@@ -67,6 +76,7 @@ export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCre
         email: dirtyFields.email ? currentValues.email : (initialData.email || ''),
         telefono: dirtyFields.telefono ? currentValues.telefono : initialData.telefono,
         origen: dirtyFields.origen ? currentValues.origen : initialData.origen,
+        esProspecto: dirtyFields.esProspecto ? currentValues.esProspecto : (initialData.esProspecto ?? true),
         esPropietario: dirtyFields.esPropietario ? currentValues.esPropietario : (initialData.esPropietario || false)
       };
       reset(mergedValues);
@@ -99,12 +109,18 @@ export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCre
       email: '',
       telefono: '',
       origen: '',
+      esProspecto: true,
       esPropietario: isOwnersView || false
     });
     setIsConfirmingClear(false);
   };
 
   const onSubmit = (data: CrearClienteDTO) => {
+    if (!data.esProspecto && !data.esPropietario) {
+      setRoleError(true);
+      return;
+    }
+
     setIsSuccess(true);
     if (!isEditing) {
       localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -116,6 +132,7 @@ export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCre
 
     const dataToSend = {
       ...data,
+      esProspecto: !!data.esProspecto,
       esPropietario: !!data.esPropietario
     };
 
@@ -165,6 +182,7 @@ export const useCrearCliente = ({ initialData, isOwnersView, onSuccess }: UseCre
     isConfirmingClear,
     setIsConfirmingClear,
     handleClearDraft,
-    validateTelefono
+    validateTelefono,
+    roleError
   };
 };

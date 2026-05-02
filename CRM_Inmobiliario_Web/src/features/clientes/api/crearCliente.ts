@@ -7,6 +7,7 @@ export interface CrearClienteDTO {
   email?: string;
   telefono: string;
   origen: string;
+  esProspecto?: boolean;
   esPropietario?: boolean;
 }
 

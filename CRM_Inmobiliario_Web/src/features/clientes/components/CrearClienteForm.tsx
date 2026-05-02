@@ -25,7 +25,8 @@ export const CrearClienteForm = ({ initialData, isOwnersView, onSuccess, onCance
     isConfirmingClear,
     setIsConfirmingClear,
     handleClearDraft,
-    validateTelefono
+    validateTelefono,
+    roleError
   } = useCrearCliente({ initialData, isOwnersView, onSuccess });
 
   return (
@@ -48,6 +49,7 @@ export const CrearClienteForm = ({ initialData, isOwnersView, onSuccess, onCance
           setValue={setValue}
           isSuccess={isSuccess}
           validateTelefono={validateTelefono}
+          roleError={roleError}
         />
 
         <OrigenSelect 
@@ -57,11 +59,19 @@ export const CrearClienteForm = ({ initialData, isOwnersView, onSuccess, onCance
           isSuccess={isSuccess}
         />
 
-        <CrearClienteFooter 
-          isEditing={isEditing}
-          isSuccess={isSuccess}
-          onCancel={onCancel}
-        />
+        <div className="space-y-4">
+          <CrearClienteFooter 
+            isEditing={isEditing}
+            isSuccess={isSuccess}
+            onCancel={onCancel}
+          />
+          
+          {roleError && (
+            <p className="text-center text-rose-500 font-black text-[10px] uppercase tracking-wider animate-bounce">
+              ⚠️ Debes seleccionar al menos un rol (Prospecto o Propietario)
+            </p>
+          )}
+        </div>
       </form>
     </div>
   );
