@@ -38,7 +38,7 @@ export const CrearClienteFooter = ({
         ) : (
           <div className="flex items-center gap-2">
             {isEditing ? <Pencil className="h-4 w-4" /> : null}
-            <span>{isEditing ? 'Actualizar Prospecto' : 'Guardar Prospecto'}</span>
+            <span>{isEditing ? 'Actualizar Contacto' : 'Guardar Contacto'}</span>
           </div>
         )}
       </button>

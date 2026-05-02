@@ -44,6 +44,8 @@ export const CrearClienteForm = ({ initialData, isOwnersView, onSuccess, onCance
         <CrearClienteFields 
           register={register}
           errors={errors}
+          control={control}
+          setValue={setValue}
           isSuccess={isSuccess}
           validateTelefono={validateTelefono}
         />

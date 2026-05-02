@@ -61,6 +61,8 @@ function AppContent({ session }: { session: Session | null }) {
             <Routes>
               <Route path="/" element={<DashboardPrincipal />} />
               <Route path="/calendario" element={<CalendarioView />} />
+              <Route path="/contactos" element={<ClientesList />} />
+              <Route path="/contactos/:id" element={<ClienteDetalle />} />
               <Route path="/prospectos" element={<ClientesList />} />
               <Route path="/prospectos/:id" element={<ClienteDetalle />} />
               <Route path="/propietarios" element={<ClientesList />} />

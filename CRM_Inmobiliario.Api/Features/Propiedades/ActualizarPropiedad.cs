@@ -34,6 +34,7 @@ public static class ActualizarPropiedadFeature
         bool EsCaptacionPropia,
         Guid? CaptadorId = null,
         NuevoCaptadorRequest? NuevoCaptador = null,
+        Guid? PropietarioId = null,
         decimal PorcentajeComision = 5.0m,
         DateTimeOffset? FechaIngreso = null);
 
@@ -109,6 +110,17 @@ public static class ActualizarPropiedadFeature
             propiedad.EsCaptacionPropia = command.EsCaptacionPropia;
             propiedad.PorcentajeComision = command.PorcentajeComision;
             propiedad.AgenteId = finalAgenteId; // Actualizamos el captador real
+
+            // Manejo de Propietario (Spec 015 - Auto Promotion)
+            if (command.PropietarioId.HasValue)
+            {
+                var propietario = await context.Leads.FindAsync(command.PropietarioId.Value);
+                if (propietario != null && !propietario.EsPropietario)
+                {
+                    propietario.EsPropietario = true;
+                }
+            }
+            propiedad.PropietarioId = command.PropietarioId;
             
             if (command.FechaIngreso.HasValue)
             {
