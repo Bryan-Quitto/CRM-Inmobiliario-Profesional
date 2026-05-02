@@ -22,11 +22,11 @@ interface UseEditarTareaProps {
   onSuccess: () => void;
 }
 
-export type EditarTareaFormValues = ActualizarTareaDTO & { clienteNombre?: string; propiedadTitulo?: string };
+export type EditarTareaFormValues = ActualizarTareaDTO & { contactoNombre?: string; propiedadTitulo?: string };
 
 export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTareaProps) => {
   const { mutate } = useSWRConfig();
-  const { clientes, propiedades, updateTarea } = useTareas();
+  const { contactos, propiedades, updateTarea } = useTareas();
   
   const [isLoading, setIsLoading] = useState(!initialData);
   const [isSyncing, setIsSyncing] = useState(!!initialData);
@@ -46,22 +46,22 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
       descripcion: initialData.descripcion || '',
       tipoTarea: initialData.tipoTarea,
       fechaInicio: toLocalISOString(initialData.fechaInicio),
-      clienteId: initialData.clienteId,
+      contactoId: initialData.contactoId,
       propiedadId: initialData.propiedadId,
       lugar: initialData.lugar,
-      clienteNombre: initialData.clienteNombre,
+      contactoNombre: initialData.contactoNombre,
       propiedadTitulo: initialData.propiedadTitulo,
       duracionMinutos: 30
     } : undefined
   });
 
-  const clienteOptions = useMemo(() => 
-    clientes.map(c => ({ 
+  const contactoOptions = useMemo(() => 
+    contactos.map(c => ({ 
       id: c.id, 
       title: [c.nombre, c.apellido].filter(Boolean).join(' '), 
       subtitle: c.telefono 
     })),
-    [clientes]
+    [contactos]
   );
 
   const propiedadOptions = useMemo(() => 
@@ -108,9 +108,9 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
           setValue('fechaInicio', fechaLocal);
         }
 
-        if (shouldUpdate('clienteId', data.clienteId, initialData?.clienteId)) {
-          setValue('clienteId', data.clienteId);
-          setValue('clienteNombre', data.clienteNombre);
+        if (shouldUpdate('contactoId', data.contactoId, initialData?.contactoId)) {
+          setValue('contactoId', data.contactoId);
+          setValue('contactoNombre', data.contactoNombre);
         }
 
         if (shouldUpdate('propiedadId', data.propiedadId, initialData?.propiedadId)) {
@@ -142,14 +142,14 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
     const values = getValues();
     localStorage.removeItem(`tarea_cache_${tareaId}`);
 
-    const cliente = values.clienteId ? clientes.find(c => c.id === values.clienteId) : null;
+    const contacto = values.contactoId ? contactos.find(c => c.id === values.contactoId) : null;
     const propiedad = values.propiedadId ? propiedades.find(p => p.id === values.propiedadId) : null;
 
     const updatedFields: Partial<Tarea> = {
       ...values,
       tipoTarea: values.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
       fechaInicio: new Date(values.fechaInicio).toISOString(),
-      clienteNombre: cliente ? [cliente.nombre, cliente.apellido].filter(Boolean).join(' ') : undefined,
+      contactoNombre: contacto ? [contacto.nombre, contacto.apellido].filter(Boolean).join(' ') : undefined,
       propiedadTitulo: propiedad ? propiedad.titulo : undefined
     };
 
@@ -159,7 +159,7 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
       tipoTarea: data.tipoTarea,
       fechaInicio: new Date(values.fechaInicio).toISOString(),
       duracionMinutos: data.duracionMinutos,
-      clienteId: data.clienteId,
+      contactoId: data.contactoId,
       propiedadId: data.propiedadId,
       lugar: data.lugar
     };
@@ -187,7 +187,7 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
     isLoading,
     isSyncing,
     isReadOnly,
-    clienteOptions,
+    contactoOptions,
     propiedadOptions,
     onSubmit
   };

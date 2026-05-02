@@ -13,13 +13,13 @@ namespace CRM_Inmobiliario.Api.Features.Interacciones;
 public static class RegistrarInteraccionFeature
 {
     public record Command(
-        Guid ClienteId,
+        Guid ContactoId,
         string TipoInteraccion,
         string Notas);
 
     public record Response(
         Guid Id,
-        Guid ClienteId,
+        Guid ContactoId,
         string TipoInteraccion,
         string Notas,
         DateTimeOffset FechaInteraccion);
@@ -30,15 +30,15 @@ public static class RegistrarInteraccionFeature
         {
             var agenteId = user.GetRequiredUserId();
 
-            var cliente = await context.Leads
-                .FirstOrDefaultAsync(l => l.Id == command.ClienteId && l.AgenteId == agenteId);
+            var contacto = await context.Contactos
+                .FirstOrDefaultAsync(l => l.Id == command.ContactoId && l.AgenteId == agenteId);
 
-            if (cliente is null) return Results.BadRequest("El cliente especificado no existe o no te pertenece.");
+            if (contacto is null) return Results.BadRequest("El contacto especificado no existe o no te pertenece.");
 
             var interaccion = new Interaction
             {
                 Id = Guid.NewGuid(),
-                ClienteId = command.ClienteId,
+                ContactoId = command.ContactoId,
                 TipoInteraccion = command.TipoInteraccion,
                 Notas = command.Notas,
                 FechaInteraccion = DateTimeOffset.UtcNow,
@@ -54,7 +54,7 @@ public static class RegistrarInteraccionFeature
 
             var response = new Response(
                 interaccion.Id,
-                interaccion.ClienteId,
+                interaccion.ContactoId,
                 interaccion.TipoInteraccion,
                 interaccion.Notas,
                 interaccion.FechaInteraccion);

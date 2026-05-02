@@ -43,7 +43,7 @@ const BrandingSection: React.FC<BrandingSectionProps> = ({
             await onUpdate(nuevosDatos);
           }}
         />
-        <p className="text-xs text-slate-400 mt-6 leading-relaxed">
+        <p className="text-xs text-slate-400 mt-6 contactoing-relaxed">
           Esta foto se usará en tus fichas técnicas y en la barra lateral.
         </p>
       </div>
@@ -67,7 +67,7 @@ const BrandingSection: React.FC<BrandingSectionProps> = ({
             await onUpdate(nuevosDatos);
           }}
         />
-        <p className="text-xs text-slate-400 mt-6 leading-relaxed">
+        <p className="text-xs text-slate-400 mt-6 contactoing-relaxed">
           El logo aparecerá en la cabecera de tus PDFs profesionales.
         </p>
       </div>

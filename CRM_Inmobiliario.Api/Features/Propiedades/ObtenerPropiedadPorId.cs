@@ -35,6 +35,8 @@ public static class ObtenerPropiedadPorIdFeature
         decimal PorcentajeComision,
         DateTimeOffset FechaIngreso,
         string AgenteNombre,
+        Guid? PropietarioId,
+        string? PropietarioNombre,
         IEnumerable<SectionResponse> Secciones,
         IEnumerable<MediaResponse> MediaSinSeccion,
         PropertyPermissions Permissions,
@@ -119,6 +121,8 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.PorcentajeComision,
                     x.Property.FechaIngreso,
                     x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente desconocido",
+                    x.Property.PropietarioId,
+                    x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null,
                     x.Property.GallerySections
                         .OrderBy(s => s.Orden)
                         .Select(s => new SectionResponse(

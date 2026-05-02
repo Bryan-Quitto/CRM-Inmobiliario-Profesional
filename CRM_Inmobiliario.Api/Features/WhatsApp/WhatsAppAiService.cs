@@ -35,7 +35,7 @@ public sealed class WhatsAppAiService
         {
             _logger.LogInformation("Procesando mensaje de {Phone}: {Message}", phone, messageText);
 
-            // 1. Preparar contexto (Lead, Conversación, Historial, Filtros de Etapa)
+            // 1. Preparar contexto (Contacto, Conversación, Historial, Filtros de Etapa)
             var context = await _conversationManager.PrepareContextAsync(phone, messageText);
             
             // Logear mensaje del usuario en DB
@@ -44,7 +44,7 @@ public sealed class WhatsAppAiService
             // 2. Manejar respuesta automática por etapa (Negociación/Cerrado)
             if (context.AutoResponse != null)
             {
-                _logger.LogInformation("Lead {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
+                _logger.LogInformation("Contacto {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
                 await _conversationManager.LogMessageAsync(phone, "assistant", context.AutoResponse);
                 await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse);
                 return;
@@ -83,7 +83,7 @@ public sealed class WhatsAppAiService
                         foreach (var toolCall in completion.ToolCalls)
                         {
                             _logger.LogInformation("--- TOOL CALL: {Tool} ---", toolCall.FunctionName);
-                            string toolResult = await _toolExecutor.HandleToolCallAsync(toolCall, phone, messageText, context.Lead);
+                            string toolResult = await _toolExecutor.HandleToolCallAsync(toolCall, phone, messageText, context.Contacto);
                             history.Add(new ToolChatMessage(toolCall.Id, toolResult));
                         }
                         requiresAction = true;

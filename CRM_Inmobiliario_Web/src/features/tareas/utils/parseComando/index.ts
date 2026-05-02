@@ -1,7 +1,7 @@
 import type { ComandoParseado } from './types';
 import { 
   extraerTipo, 
-  extraerCliente, 
+  extraerContacto, 
   extraerLugar, 
   extraerFecha, 
   extraerHora 
@@ -18,7 +18,7 @@ export const parseComando = (instruccion: string): ComandoParseado => {
   const tipoTarea = extraerTipo(instruccion);
   if (!tipoTarea) advertencias.push('tipo de tarea');
 
-  const clienteTexto = extraerCliente(instruccion);
+  const contactoTexto = extraerContacto(instruccion);
   const lugarTexto = extraerLugar(instruccion);
 
   const fechaBase = extraerFecha(instruccion, advertencias);
@@ -29,12 +29,12 @@ export const parseComando = (instruccion: string): ComandoParseado => {
   const minutos = horaExtraida?.minutos ?? 0;
   const fechaFinal = conHora(fechaBase, horas, minutos);
 
-  // Generación automática del título: "{tipo} {cliente}" o "{tipo} {lugar}" o solo "{tipo}"
+  // Generación automática del título: "{tipo} {contacto}" o "{tipo} {lugar}" o solo "{tipo}"
   const tipoLabel = tipoTarea ?? 'Tarea';
   let titulo = tipoLabel;
   
-  if (clienteTexto) {
-    titulo = `${tipoLabel} ${clienteTexto}`;
+  if (contactoTexto) {
+    titulo = `${tipoLabel} ${contactoTexto}`;
   } else if (lugarTexto) {
     // Truncar el lugar si es excesivamente largo (max ~25 chars) para el título
     const lugarCorto = lugarTexto.length > 25 ? lugarTexto.slice(0, 22) + '…' : lugarTexto;
@@ -45,7 +45,7 @@ export const parseComando = (instruccion: string): ComandoParseado => {
     tipoTarea,
     titulo,
     fechaInicio: toDatetimeLocal(fechaFinal),
-    clienteTexto,
+    contactoTexto,
     lugarTexto,
     instruccionOriginal: instruccion,
     advertencias,

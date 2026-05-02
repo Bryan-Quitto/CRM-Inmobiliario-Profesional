@@ -43,7 +43,7 @@ public sealed class Agent
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 
     // Relaciones de navegación
-    public ICollection<Lead> Leads { get; set; } = new List<Lead>();
+    public ICollection<Contacto> Contactos { get; set; } = new List<Contacto>();
     public ICollection<Property> Properties { get; set; } = new List<Property>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public ICollection<Interaction> Interactions { get; set; } = new List<Interaction>();

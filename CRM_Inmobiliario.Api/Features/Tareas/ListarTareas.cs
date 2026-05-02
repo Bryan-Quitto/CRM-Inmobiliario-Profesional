@@ -19,10 +19,10 @@ public static class ListarTareasFeature
         int DuracionMinutos,
         string? ColorHex,
         string Estado,
-        string? ClienteNombre,
+        string? ContactoNombre,
         string? PropiedadTitulo,
         string? Lugar,
-        Guid? ClienteId,
+        Guid? ContactoId,
         Guid? PropiedadId,
         string? PropiedadDireccion);
 
@@ -45,10 +45,10 @@ public static class ListarTareasFeature
                     t.DuracionMinutos,
                     t.ColorHex,
                     t.Estado,
-                    t.Cliente != null ? $"{t.Cliente.Nombre} {t.Cliente.Apellido}".Trim() : null,
+                    t.Contacto != null ? $"{t.Contacto.Nombre} {t.Contacto.Apellido}".Trim() : null,
                     t.Propiedad != null ? t.Propiedad.Titulo : null,
                     t.Lugar,
-                    t.ClienteId,
+                    t.ContactoId,
                     t.PropiedadId,
                     t.Propiedad != null ? t.Propiedad.Direccion : null))
                 .ToListAsync();

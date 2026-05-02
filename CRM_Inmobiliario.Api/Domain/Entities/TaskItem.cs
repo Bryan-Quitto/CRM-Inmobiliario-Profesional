@@ -13,8 +13,8 @@ public sealed class TaskItem
     public Guid AgenteId { get; set; }
     public Agent? Agente { get; set; }
 
-    public Guid? ClienteId { get; set; }
-    public Lead? Cliente { get; set; }
+    public Guid? ContactoId { get; set; }
+    public Contacto? Contacto { get; set; }
 
     public Guid? PropiedadId { get; set; }
     public Property? Propiedad { get; set; }

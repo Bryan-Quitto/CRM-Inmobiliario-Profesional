@@ -23,9 +23,9 @@ public class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
             .HasForeignKey(d => d.AgenteId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(d => d.Cliente)
+        builder.HasOne(d => d.Contacto)
             .WithMany(p => p.Tasks)
-            .HasForeignKey(d => d.ClienteId)
+            .HasForeignKey(d => d.ContactoId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(d => d.Propiedad)

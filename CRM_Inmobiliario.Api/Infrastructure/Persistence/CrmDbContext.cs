@@ -11,11 +11,11 @@ public sealed class CrmDbContext : DbContext
 
     public DbSet<Agent> Agents => Set<Agent>();
     public DbSet<Agency> Agencies => Set<Agency>();
-    public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<Contacto> Contactos => Set<Contacto>();
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<PropertyGallerySection> PropertyGallerySections => Set<PropertyGallerySection>();
     public DbSet<PropertyMedia> PropertyMedia => Set<PropertyMedia>();
-    public DbSet<LeadPropertyInterest> LeadPropertyInterests => Set<LeadPropertyInterest>();
+    public DbSet<ContactoInteresPropiedad> ContactoInteresPropiedades => Set<ContactoInteresPropiedad>();
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
     public DbSet<Interaction> Interactions => Set<Interaction>();
     public DbSet<WhatsappConversation> WhatsappConversations => Set<WhatsappConversation>();

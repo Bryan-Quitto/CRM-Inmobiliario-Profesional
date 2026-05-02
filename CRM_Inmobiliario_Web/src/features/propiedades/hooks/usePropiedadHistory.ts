@@ -66,7 +66,7 @@ export const usePropiedadHistory = ({ historial, mutate, mutateHistorial, setSho
         transactionDate: transaction.transactionDate,
         transactionType: transaction.transactionType,
         amount: transaction.amount,
-        leadId: transaction.leadId,
+        contactoId: transaction.contactoId,
         notes: newNotes
       });
       mutate();

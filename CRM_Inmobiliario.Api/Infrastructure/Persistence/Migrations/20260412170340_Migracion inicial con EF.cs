@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -144,7 +144,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LeadPropertyInterests",
+                name: "ContactoInteresPropiedades",
                 columns: table => new
                 {
                     ClienteId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -154,15 +154,15 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LeadPropertyInterests", x => new { x.ClienteId, x.PropiedadId });
+                    table.PrimaryKey("PK_ContactoInteresPropiedades", x => new { x.ClienteId, x.PropiedadId });
                     table.ForeignKey(
-                        name: "FK_LeadPropertyInterests_Leads_ClienteId",
+                        name: "FK_ContactoInteresPropiedades_Leads_ClienteId",
                         column: x => x.ClienteId,
                         principalTable: "Leads",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_LeadPropertyInterests_Properties_PropiedadId",
+                        name: "FK_ContactoInteresPropiedades_Properties_PropiedadId",
                         column: x => x.PropiedadId,
                         principalTable: "Properties",
                         principalColumn: "Id",
@@ -284,8 +284,8 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                 column: "PropiedadId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LeadPropertyInterests_PropiedadId",
-                table: "LeadPropertyInterests",
+                name: "IX_ContactoInteresPropiedades_PropiedadId",
+                table: "ContactoInteresPropiedades",
                 column: "PropiedadId");
 
             migrationBuilder.CreateIndex(
@@ -346,7 +346,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                 name: "Interactions");
 
             migrationBuilder.DropTable(
-                name: "LeadPropertyInterests");
+                name: "ContactoInteresPropiedades");
 
             migrationBuilder.DropTable(
                 name: "PropertyMedia");

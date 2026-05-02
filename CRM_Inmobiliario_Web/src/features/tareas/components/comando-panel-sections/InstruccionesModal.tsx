@@ -6,9 +6,9 @@ const INSTRUCCIONES = [
     icono: Briefcase,
     color: 'text-amber-600 bg-amber-50 border-amber-100',
     ejemplos: [
-      { etiqueta: 'Visita',   texto: '"Visita con [cliente] en [propiedad]..."' },
-      { etiqueta: 'Llamada',  texto: '"Llamada con [cliente]..."' },
-      { etiqueta: 'Reunión',  texto: '"Reunión con [cliente]..."' },
+      { etiqueta: 'Visita',   texto: '"Visita con [contacto] en [propiedad]..."' },
+      { etiqueta: 'Llamada',  texto: '"Llamada con [contacto]..."' },
+      { etiqueta: 'Reunión',  texto: '"Reunión con [contacto]..."' },
       { etiqueta: 'Trámite',  texto: '"Trámite para [propiedad]..."' },
     ]
   },
@@ -126,7 +126,7 @@ export const InstruccionesModal = ({ onClose }: InstruccionesModalProps) => (
                       <span className="shrink-0 mt-0.5 min-w-[52px] text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">
                         {ej.etiqueta}
                       </span>
-                      <span className="text-[12px] font-medium text-slate-700 italic leading-relaxed">
+                      <span className="text-[12px] font-medium text-slate-700 italic contactoing-relaxed">
                         {ej.texto}
                       </span>
                     </div>
@@ -138,7 +138,7 @@ export const InstruccionesModal = ({ onClose }: InstruccionesModalProps) => (
 
           {/* Nota al pie */}
           <div className="pt-2 border-t border-slate-100">
-            <p className="text-[10px] text-slate-400 italic text-center leading-relaxed">
+            <p className="text-[10px] text-slate-400 italic text-center contactoing-relaxed">
               El asistente intentará reconocer variaciones naturales del lenguaje.<br />
               Si no puede interpretar un campo, te lo pedirá en el formulario.
             </p>

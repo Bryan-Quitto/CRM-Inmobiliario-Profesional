@@ -47,10 +47,10 @@ export const OfflinePage: React.FC<OfflinePageProps> = ({
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">
             {isError ? 'Algo no salió bien' : 'Sin conexión a Internet'}
           </h1>
-          <p className="text-slate-600 font-medium leading-relaxed">
+          <p className="text-slate-600 font-medium contactoing-relaxed">
             {isError 
               ? 'Ha ocurrido un error inesperado en la aplicación. No te preocupes, tus datos están a salvo.'
-              : 'Parece que has perdido la conexión. Verifica tu red para continuar gestionando tus prospectos.'}
+              : 'Parece que has perdido la conexión. Verifica tu red para continuar gestionando tus contactos.'}
           </p>
           {isError && error && (
             <div className="mt-4 p-3 bg-slate-100 rounded-xl border border-slate-200 text-left overflow-hidden">

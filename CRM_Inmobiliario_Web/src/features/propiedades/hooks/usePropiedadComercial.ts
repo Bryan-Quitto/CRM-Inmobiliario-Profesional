@@ -113,7 +113,7 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
     };
 
     toast.info("Relistando...", {
-      description: "Se mantendrá el historial de cierre del cliente. 5s para deshacer.",
+      description: "Se mantendrá el historial de cierre del contacto. 5s para deshacer.",
       action: { label: "Deshacer", onClick: () => { isCancelled = true; toast.success("Acción cancelada"); } },
       duration: 5000,
       onAutoClose: commitRelist,
@@ -141,7 +141,7 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
     };
 
     toast.warning("Anulando Operación", {
-      description: "El trato se marcará como caído y el cliente revertirá a Negociación. 5s para deshacer.",
+      description: "El trato se marcará como caído y el contacto revertirá a Negociación. 5s para deshacer.",
       action: { label: "Deshacer", onClick: () => { isCancelled = true; toast.success("Acción cancelada"); } },
       duration: 5000,
       onAutoClose: commitCancel,

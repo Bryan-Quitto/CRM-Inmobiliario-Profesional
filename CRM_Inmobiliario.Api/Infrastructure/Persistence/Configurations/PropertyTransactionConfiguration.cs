@@ -20,9 +20,9 @@ public class PropertyTransactionConfiguration : IEntityTypeConfiguration<Propert
             .HasForeignKey(d => d.PropertyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(d => d.Lead)
-            .WithMany()
-            .HasForeignKey(d => d.LeadId)
+        builder.HasOne(d => d.Contacto)
+            .WithMany(p => p.Transactions)
+            .HasForeignKey(d => d.ContactoId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(d => d.CreatedBy)

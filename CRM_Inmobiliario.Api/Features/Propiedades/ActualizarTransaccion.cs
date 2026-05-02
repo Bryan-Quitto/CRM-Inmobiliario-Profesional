@@ -16,7 +16,7 @@ public static class ActualizarTransaccionFeature
         DateTimeOffset TransactionDate,
         string? TransactionType,
         decimal? Amount,
-        Guid? LeadId,
+        Guid? ContactoId,
         string? Notes);
 
     public static RouteHandlerBuilder MapActualizarTransaccionEndpoint(this IEndpointRouteBuilder app)
@@ -43,14 +43,14 @@ public static class ActualizarTransaccionFeature
             }
 
             var property = transaction.Property;
-            var oldLeadId = transaction.LeadId;
+            var oldContactoId = transaction.ContactoId;
             var oldDate = transaction.TransactionDate;
 
             // 2. Regla de Sincronización: 
             // Si la transacción es del tipo Sale o Rent y coincide con los datos actuales de la propiedad,
             // actualizamos la propiedad también.
             var esCierreActivo = (transaction.TransactionType is "Sale" or "Rent") && 
-                                 (property.FechaCierre == oldDate && property.CerradoConId == oldLeadId);
+                                 (property.FechaCierre == oldDate && property.CerradoConId == oldContactoId);
 
             // 3. Actualizar campos (Forzando UTC para PostgreSQL)
             transaction.TransactionDate = command.TransactionDate.ToUniversalTime();
@@ -61,14 +61,14 @@ public static class ActualizarTransaccionFeature
             }
 
             transaction.Amount = command.Amount;
-            transaction.LeadId = command.LeadId;
+            transaction.ContactoId = command.ContactoId;
             transaction.Notes = command.Notes;
 
             if (esCierreActivo)
             {
                 property.FechaCierre = transaction.TransactionDate;
                 property.PrecioCierre = transaction.Amount;
-                property.CerradoConId = transaction.LeadId;
+                property.CerradoConId = transaction.ContactoId;
                 
                 // Si cambiamos el tipo de transacción, también actualizamos el estado comercial de la propiedad
                 if (transaction.TransactionType == "Sale") property.EstadoComercial = "Vendida";

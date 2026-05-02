@@ -23,7 +23,7 @@ export const PropiedadReversionModal = ({
             <RotateCcw className="h-10 w-10 text-indigo-600" />
           </div>
           <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Ciclo de Vida</h3>
-          <p className="text-slate-500 font-medium mb-10 leading-relaxed px-4">
+          <p className="text-slate-500 font-medium mb-10 contactoing-relaxed px-4">
             La propiedad está marcada como cerrada. <br/>¿Cómo deseas proceder con el re-listado?
           </p>
           
@@ -59,7 +59,7 @@ export const PropiedadReversionModal = ({
                 </div>
                 <div>
                   <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Cancelar (Trato Caído)</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">El cliente volverá a negociación</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">El contacto volverá a negociación</p>
                 </div>
               </div>
             </button>

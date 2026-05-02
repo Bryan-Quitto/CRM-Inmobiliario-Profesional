@@ -102,7 +102,7 @@ export const usePropiedadesActions = ({
 
     toast.warning(isReversion ? "Revirtiendo Cierre" : `Estado: ${nuevoEstado}`, {
       description: isReversion 
-        ? "El cliente volverá a En Negociación. Tienes 5 segundos para deshacer."
+        ? "El contacto volverá a En Negociación. Tienes 5 segundos para deshacer."
         : "La galería ha sido depurada. Tienes 5 segundos para deshacer.",
       action: {
         label: "Deshacer",
@@ -166,7 +166,7 @@ export const usePropiedadesActions = ({
 
     if (type === 'Relist') {
       toast.info("Relistando...", {
-        description: "Se mantendrá el historial de cierre del cliente. 5s para deshacer.",
+        description: "Se mantendrá el historial de cierre del contacto. 5s para deshacer.",
         action: { 
           label: "Deshacer", 
           onClick: () => { 
@@ -180,7 +180,7 @@ export const usePropiedadesActions = ({
       });
     } else {
       toast.warning("Anulando Operación", {
-        description: "El trato se marcará como caído y el cliente revertirá a Negociación. 5s para deshacer.",
+        description: "El trato se marcará como caído y el contacto revertirá a Negociación. 5s para deshacer.",
         action: { 
           label: "Deshacer", 
           onClick: () => { 

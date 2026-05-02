@@ -24,11 +24,11 @@ export const DetalleHeroInfo = ({ propiedad, formatCurrency }: DetalleHeroInfoPr
             </span>
           )}
         </div>
-        <h1 className="text-4xl font-black text-slate-900 leading-tight tracking-tight">{propiedad.titulo}</h1>
+        <h1 className="text-4xl font-black text-slate-900 contactoing-tight tracking-tight">{propiedad.titulo}</h1>
         <div className="flex items-start gap-3 text-slate-500 mt-4">
           <MapPin className="h-6 w-6 text-indigo-600 mt-1 shrink-0" />
           <div>
-            <p className="text-lg font-bold italic leading-tight text-slate-700">{propiedad.direccion}</p>
+            <p className="text-lg font-bold italic contactoing-tight text-slate-700">{propiedad.direccion}</p>
             <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1">{propiedad.sector}, {propiedad.ciudad}</p>
           </div>
         </div>

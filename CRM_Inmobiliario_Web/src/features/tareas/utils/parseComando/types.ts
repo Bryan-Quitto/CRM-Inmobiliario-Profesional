@@ -3,12 +3,12 @@ export type TipoTarea = 'Llamada' | 'Visita' | 'Reunión' | 'Trámite';
 export interface ComandoParseado {
   /** Tipo de la tarea detectado; null si no se pudo determinar */
   tipoTarea: TipoTarea | null;
-  /** Título generado automáticamente: "{tipo} {cliente}" o "{tipo} {lugar}" */
+  /** Título generado automáticamente: "{tipo} {contacto}" o "{tipo} {lugar}" */
   titulo: string;
   /** Fecha y hora resultante en formato "YYYY-MM-DDTHH:mm" (datetime-local) */
   fechaInicio: string;
-  /** Nombre del cliente extraído del texto ("con X") */
-  clienteTexto: string | null;
+  /** Nombre del contacto extraído del texto ("con X") */
+  contactoTexto: string | null;
   /** Lugar o nombre de propiedad extraído ("en X" / "para X") */
   lugarTexto: string | null;
   /** Texto de la instrucción original (para el campo descripción) */

@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
-import { getClienteById } from '../../clientes/api/getClienteById';
-import { eliminarCliente } from '../../clientes/api/eliminarCliente';
-import type { Cliente } from '../../clientes/types';
+import { getContactoById } from '../../contactos/api/getContactoById';
+import { eliminarContacto } from '../../contactos/api/eliminarContacto';
+import type { Contacto } from '../../contactos/types';
 import type { ClientGroup } from '../types/auditoria';
 
 export const useAuditoriaLogs = () => {
@@ -16,8 +16,8 @@ export const useAuditoriaLogs = () => {
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   
-  // Estados para Edición y Borrado de Cliente
-  const [clienteEnEdicion, setClienteEnEdicion] = useState<Cliente | null>(null);
+  // Estados para Edición y Borrado de Contacto
+  const [contactoEnEdicion, setContactoEnEdicion] = useState<Contacto | null>(null);
   const [idABorrar, setIdABorrar] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -36,26 +36,26 @@ export const useAuditoriaLogs = () => {
 
   const handleRetry = () => mutate(undefined, { revalidate: true });
 
-  const handleEditClick = async (clienteId: string) => {
+  const handleEditClick = async (contactoId: string) => {
     try {
-      const fullCliente = await getClienteById(clienteId);
-      setClienteEnEdicion(fullCliente);
+      const fullContacto = await getContactoById(contactoId);
+      setContactoEnEdicion(fullContacto);
     } catch {
-      toast.error('No se pudo cargar la información del cliente para editar.');
+      toast.error('No se pudo cargar la información del contacto para editar.');
     }
   };
 
-  const handleConfirmDelete = async (clienteId: string) => {
+  const handleConfirmDelete = async (contactoId: string) => {
     setIsDeleting(true);
     try {
-      await eliminarCliente(clienteId);
-      toast.success('Prospecto eliminado exitosamente');
+      await eliminarContacto(contactoId);
+      toast.success('Contacto eliminado exitosamente');
       setIdABorrar(null);
       await mutate();
-      globalMutate('/clientes');
+      globalMutate('/contactos');
       globalMutate('/dashboard/kpis');
     } catch {
-      toast.error('No se pudo eliminar el prospecto');
+      toast.error('No se pudo eliminar el contacto');
     } finally {
       setIsDeleting(false);
     }
@@ -75,8 +75,8 @@ export const useAuditoriaLogs = () => {
     toggleClientExpansion,
     handleRetry,
     // Modales
-    clienteEnEdicion,
-    setClienteEnEdicion,
+    contactoEnEdicion,
+    setContactoEnEdicion,
     idABorrar,
     setIdABorrar,
     isDeleting,

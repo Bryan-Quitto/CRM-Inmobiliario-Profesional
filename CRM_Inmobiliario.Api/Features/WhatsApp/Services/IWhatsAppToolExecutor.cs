@@ -5,5 +5,5 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
 public interface IWhatsAppToolExecutor
 {
-    Task<string> HandleToolCallAsync(ChatToolCall toolCall, string customerPhone, string triggerMessage, Lead? currentLead);
+    Task<string> HandleToolCallAsync(ChatToolCall toolCall, string customerPhone, string triggerMessage, Contacto? currentContacto);
 }

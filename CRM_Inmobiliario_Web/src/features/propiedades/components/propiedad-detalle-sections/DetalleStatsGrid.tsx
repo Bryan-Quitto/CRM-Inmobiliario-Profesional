@@ -75,7 +75,7 @@ export const DetalleStatsGrid = ({ propiedad, formatDate }: DetalleStatsGridProp
           </div>
           <div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-            <p className="text-sm font-black text-slate-900 leading-tight tracking-tight mt-0.5" title={stat.value?.toString()}>
+            <p className="text-sm font-black text-slate-900 contactoing-tight tracking-tight mt-0.5" title={stat.value?.toString()}>
               {stat.value}
             </p>
           </div>

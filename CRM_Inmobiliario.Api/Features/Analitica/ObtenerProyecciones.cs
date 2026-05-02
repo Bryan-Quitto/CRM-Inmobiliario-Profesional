@@ -29,7 +29,7 @@ public static class ObtenerProyeccionesEndpoint
             var agenteId = user.GetRequiredUserId();
 
             // 1. Obtenemos los detalles de lo que vamos a sumar (ONE TRIP)
-            var itemsProyeccion = await context.Leads
+            var itemsProyeccion = await context.Contactos
                 .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && l.EtapaEmbudo == "En Negociación")
                 .SelectMany(l => l.PropertyInterests)

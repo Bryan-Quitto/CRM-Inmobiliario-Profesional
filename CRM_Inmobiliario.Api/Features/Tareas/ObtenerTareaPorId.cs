@@ -19,9 +19,9 @@ public static class ObtenerTareaPorIdFeature
         int DuracionMinutos,
         string? ColorHex,
         string Estado,
-        string? ClienteNombre,
+        string? ContactoNombre,
         string? PropiedadTitulo,
-        Guid? ClienteId,
+        Guid? ContactoId,
         Guid? PropiedadId,
         string? Lugar,
         string? PropiedadDireccion);
@@ -34,7 +34,7 @@ public static class ObtenerTareaPorIdFeature
 
             var tarea = await context.Tasks
                 .AsNoTracking()
-                .Include(t => t.Cliente)
+                .Include(t => t.Contacto)
                 .Include(t => t.Propiedad)
                 .FirstOrDefaultAsync(t => t.Id == id && t.AgenteId == agenteId);
 
@@ -49,9 +49,9 @@ public static class ObtenerTareaPorIdFeature
                 tarea.DuracionMinutos,
                 tarea.ColorHex,
                 tarea.Estado,
-                tarea.Cliente != null ? $"{tarea.Cliente.Nombre} {tarea.Cliente.Apellido}" : null,
+                tarea.Contacto != null ? $"{tarea.Contacto.Nombre} {tarea.Contacto.Apellido}" : null,
                 tarea.Propiedad?.Titulo,
-                tarea.ClienteId,
+                tarea.ContactoId,
                 tarea.PropiedadId,
                 tarea.Lugar,
                 tarea.Propiedad?.Direccion

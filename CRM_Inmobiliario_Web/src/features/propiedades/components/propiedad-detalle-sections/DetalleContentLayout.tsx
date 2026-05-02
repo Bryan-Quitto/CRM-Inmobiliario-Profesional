@@ -34,7 +34,7 @@ export const DetalleContentLayout = ({ propiedad }: DetalleContentLayoutProps) =
           <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Descripción</h3>
         </div>
         <div className="bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100">
-          <p className="text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">{propiedad.descripcion}</p>
+          <p className="text-slate-600 font-medium contactoing-relaxed whitespace-pre-wrap">{propiedad.descripcion}</p>
         </div>
       </div>
 

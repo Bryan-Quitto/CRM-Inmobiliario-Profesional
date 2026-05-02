@@ -13,16 +13,16 @@ public static class DesvincularPropiedadFeature
 {
     public static void MapDesvincularPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/clientes/{clienteId:guid}/intereses/{propiedadId:guid}", async (Guid clienteId, Guid propiedadId, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
+        app.MapDelete("/contactos/{contactoId:guid}/intereses/{propiedadId:guid}", async (Guid contactoId, Guid propiedadId, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
-            // Verificar pertenencia del cliente al agente antes de borrar el interés
-            var clientePertenece = await context.Leads.AnyAsync(l => l.Id == clienteId && l.AgenteId == agenteId, ct);
-            if (!clientePertenece) return Results.NotFound("Cliente no encontrado o no te pertenece.");
+            // Verificar pertenencia del contacto al agente antes de borrar el interés
+            var contactoPertenece = await context.Contactos.AnyAsync(l => l.Id == contactoId && l.AgenteId == agenteId, ct);
+            if (!contactoPertenece) return Results.NotFound("Contacto no encontrado o no te pertenece.");
 
-            var rowsAffected = await context.LeadPropertyInterests
-                .Where(i => i.ClienteId == clienteId && i.PropiedadId == propiedadId)
+            var rowsAffected = await context.ContactoInteresPropiedades
+                .Where(i => i.ContactoId == contactoId && i.PropiedadId == propiedadId)
                 .ExecuteDeleteAsync(ct);
 
             if (rowsAffected > 0)

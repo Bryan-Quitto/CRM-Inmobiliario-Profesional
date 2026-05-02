@@ -19,8 +19,8 @@ public static class ListarEventosFeature
         int DuracionMinutos,
         string? ColorHex,
         string Estado,
-        Guid? ClienteId,
-        string? ClienteNombre,
+        Guid? ContactoId,
+        string? ContactoNombre,
         Guid? PropiedadId,
         string? PropiedadTitulo);
 
@@ -36,7 +36,7 @@ public static class ListarEventosFeature
 
             var eventos = await context.Tasks
                 .AsNoTracking()
-                .Include(t => t.Cliente)
+                .Include(t => t.Contacto)
                 .Include(t => t.Propiedad)
                 .Where(t => t.AgenteId == agenteId && 
                             t.FechaInicio >= inicioUtc && 
@@ -50,8 +50,8 @@ public static class ListarEventosFeature
                     t.DuracionMinutos,
                     t.ColorHex,
                     t.Estado,
-                    t.ClienteId,
-                    t.Cliente != null ? $"{t.Cliente.Nombre} {t.Cliente.Apellido}" : null,
+                    t.ContactoId,
+                    t.Contacto != null ? $"{t.Contacto.Nombre} {t.Contacto.Apellido}" : null,
                     t.PropiedadId,
                     t.Propiedad != null ? t.Propiedad.Titulo : null
                 ))

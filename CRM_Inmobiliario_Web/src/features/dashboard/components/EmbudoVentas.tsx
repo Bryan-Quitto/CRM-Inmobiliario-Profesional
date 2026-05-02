@@ -32,7 +32,7 @@ export const EmbudoVentas: React.FC<EmbudoVentasProps> = ({ data, syncing }) => 
           <p className="text-sm font-medium text-slate-500">Distribución estratégica por etapa comercial</p>
         </div>
         <div className="bg-slate-50 p-2 rounded-xl text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-100">
-          Total: {data.totalProspectosActivos} Prospectos
+          Total: {data.totalContactosActivos} Contactos
         </div>
       </div>
 

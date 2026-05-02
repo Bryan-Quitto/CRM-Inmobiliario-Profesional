@@ -15,9 +15,9 @@ namespace CRM_Inmobiliario.Api.Features.Analitica;
 
 public record TrendPoint(string Fecha, int Visitas, int Cierres, int Captaciones);
 
-public record KpiVisita(Guid Id, string Titulo, string Fecha, string? Cliente, string? Propiedad);
-public record KpiCierre(Guid Id, string Cliente, string Propiedad, string FechaCierre);
-public record KpiOferta(Guid Id, string Cliente, string Propiedad, string Fecha);
+public record KpiVisita(Guid Id, string Titulo, string Fecha, string? Contacto, string? Propiedad);
+public record KpiCierre(Guid Id, string Contacto, string Propiedad, string FechaCierre);
+public record KpiOferta(Guid Id, string Contacto, string Propiedad, string Fecha);
 public record KpiCaptacion(Guid Id, string Titulo, string Fecha, decimal Precio);
 
 public record ActividadDetalles(
@@ -58,21 +58,21 @@ public static class ObtenerActividadEndpoint
                     // Conteos Rápidos
                     VisitasCount = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin),
                     CierresCount = a.Properties.SelectMany(p => p.Transactions).Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.TransactionDate >= inicio && t.TransactionDate <= fin),
-                    OfertasCount = a.Leads.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin),
+                    OfertasCount = a.Contactos.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin),
                     CaptacionesCount = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin),
 
                     // Detalles para Modales (Proyectados directamente a DTOs)
                     DetallesVisitas = a.Tasks
                         .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
                         .OrderByDescending(t => t.FechaInicio)
-                        .Select(t => new KpiVisita(t.Id, t.Titulo, t.FechaInicio.ToString("yyyy-MM-dd HH:mm"), t.Cliente != null ? (t.Cliente.Nombre + " " + t.Cliente.Apellido) : null, t.Propiedad != null ? t.Propiedad.Titulo : null))
+                        .Select(t => new KpiVisita(t.Id, t.Titulo, t.FechaInicio.ToString("yyyy-MM-dd HH:mm"), t.Contacto != null ? (t.Contacto.Nombre + " " + t.Contacto.Apellido) : null, t.Propiedad != null ? t.Propiedad.Titulo : null))
                         .ToList(),
                     DetallesCierres = a.Properties.SelectMany(p => p.Transactions)
                         .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.TransactionDate >= inicio && t.TransactionDate <= fin)
                         .OrderByDescending(t => t.TransactionDate)
-                        .Select(t => new KpiCierre(t.Id, t.Lead != null ? t.Lead.Nombre + " " + t.Lead.Apellido : "Sin Cliente", t.Property!.Titulo, t.TransactionDate.ToString("yyyy-MM-dd")))
+                        .Select(t => new KpiCierre(t.Id, t.Contacto != null ? t.Contacto.Nombre + " " + t.Contacto.Apellido : "Sin Contacto", t.Property!.Titulo, t.TransactionDate.ToString("yyyy-MM-dd")))
                         .ToList(),
-                    DetallesOfertas = a.Leads
+                    DetallesOfertas = a.Contactos
                         .Where(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)
                         .OrderByDescending(l => l.FechaCreacion)
                         .Select(l => new KpiOferta(l.Id, l.Nombre + " " + l.Apellido, l.PropertyInterests.Where(i => i.Propiedad != null).Select(i => i.Propiedad!.Titulo).FirstOrDefault() ?? "Sin Propiedad", l.FechaCreacion.ToString("yyyy-MM-dd")))

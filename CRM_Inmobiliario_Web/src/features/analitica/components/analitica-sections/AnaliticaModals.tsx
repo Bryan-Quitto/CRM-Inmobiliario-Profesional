@@ -77,7 +77,7 @@ export const AnaliticaModals = ({
                 <h4 className="text-sm font-black text-slate-900 mb-1 group-hover:text-emerald-600 transition-colors">{v.titulo}</h4>
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
                   <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5"><Calendar size={12} /> {v.fecha}</span>
-                  {v.cliente && <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Cliente: {v.cliente}</span>}
+                  {v.contacto && <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Contacto: {v.contacto}</span>}
                   {v.propiedad && <span className="text-[10px] font-bold text-slate-500">Propiedad: {v.propiedad}</span>}
                 </div>
               </div>
@@ -105,7 +105,7 @@ export const AnaliticaModals = ({
                 <h4 className="text-sm font-black text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">{c.propiedad}</h4>
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
                   <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5"><Calendar size={12} /> {c.fechaCierre}</span>
-                  <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Cliente: {c.cliente}</span>
+                  <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Contacto: {c.contacto}</span>
                 </div>
               </div>
               <div className="ml-4 h-2 w-2 rounded-full bg-blue-400" />
@@ -132,7 +132,7 @@ export const AnaliticaModals = ({
                 <h4 className="text-sm font-black text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">{o.propiedad}</h4>
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
                   <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5"><Calendar size={12} /> {o.fecha}</span>
-                  <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Postulante: {o.cliente}</span>
+                  <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Postulante: {o.contacto}</span>
                 </div>
               </div>
               <div className="ml-4 h-2 w-2 rounded-full bg-indigo-400" />
@@ -190,7 +190,7 @@ export const AnaliticaModals = ({
               <div className="h-8 w-px bg-indigo-200" />
               <div className="text-center flex-1">
                 <span className="block text-[8px] font-bold uppercase text-indigo-400">Entre</span>
-                <span className="text-xl font-black">{eficiencia?.calculos?.leadsConFechaCierre ?? 0} casos</span>
+                <span className="text-xl font-black">{eficiencia?.calculos?.contactosConFechaCierre ?? 0} casos</span>
               </div>
               <div className="h-8 w-px bg-indigo-200" />
               <div className="text-center flex-1">
@@ -207,7 +207,7 @@ export const AnaliticaModals = ({
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <h5 className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{d.propiedad}</h5>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{d.cliente}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{d.contacto}</p>
                     </div>
                     <div className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[10px] font-black">
                       {Math.round(d.dias)} días

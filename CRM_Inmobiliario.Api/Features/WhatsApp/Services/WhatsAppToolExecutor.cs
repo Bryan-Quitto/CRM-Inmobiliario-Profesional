@@ -23,7 +23,7 @@ public sealed class WhatsAppToolExecutor : IWhatsAppToolExecutor
         _handlers = handlers;
     }
 
-    public async Task<string> HandleToolCallAsync(ChatToolCall toolCall, string customerPhone, string triggerMessage, Lead? currentLead)
+    public async Task<string> HandleToolCallAsync(ChatToolCall toolCall, string customerPhone, string triggerMessage, Contacto? currentContacto)
     {
         _logger.LogInformation("Ejecutando herramienta: {ToolName} para {Phone}", toolCall.FunctionName, customerPhone);
         
@@ -39,7 +39,7 @@ public sealed class WhatsAppToolExecutor : IWhatsAppToolExecutor
                 return "Error: Herramienta no encontrada.";
             }
 
-            var result = await handler.ExecuteAsync(args, customerPhone, triggerMessage, currentLead);
+            var result = await handler.ExecuteAsync(args, customerPhone, triggerMessage, currentContacto);
             
             // Centralizamos el guardado de cambios para asegurar que las acciones de los handlers (logs, updates) persistan
             await _context.SaveChangesAsync();

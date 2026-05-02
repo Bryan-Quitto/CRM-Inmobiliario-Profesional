@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Analitica;
 
-public record DetalleCierreEficiencia(Guid Id, string Cliente, string Propiedad, string FechaCreacion, string FechaCierre, double Dias);
-public record EficienciaCalculos(int TotalLeads, int TotalCerrados, int LeadsConFechaCierre, List<DetalleCierreEficiencia> DetallesCierres);
+public record DetalleCierreEficiencia(Guid Id, string Contacto, string Propiedad, string FechaCreacion, string FechaCierre, double Dias);
+public record EficienciaCalculos(int TotalContactos, int TotalCerrados, int ContactosConFechaCierre, List<DetalleCierreEficiencia> DetallesCierres);
 
 public record EficienciaResponse(
     decimal TasaConversion,
@@ -31,29 +31,29 @@ public static class ObtenerEficienciaEndpoint
                 .Where(a => a.Id == agenteId)
                 .Select(a => new
                 {
-                    TotalLeads = a.Leads.Count(),
+                    TotalContactos = a.Contactos.Count(),
                     TotalCerrados = a.Properties.SelectMany(p => p.Transactions)
                         .Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled"),
-                    LeadsConFechaCierre = a.Properties.SelectMany(p => p.Transactions)
-                        .Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.LeadId != null),
+                    ContactosConFechaCierre = a.Properties.SelectMany(p => p.Transactions)
+                        .Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.ContactoId != null),
                     
                     // Detalles de cierres para el cálculo de velocidad
                     DetallesCierres = a.Properties.SelectMany(p => p.Transactions)
-                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.LeadId != null)
+                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.ContactoId != null)
                         .OrderByDescending(t => t.TransactionDate)
                         .Select(t => new DetalleCierreEficiencia(
                             t.Id, 
-                            t.Lead!.Nombre + " " + t.Lead.Apellido, 
+                            t.Contacto!.Nombre + " " + t.Contacto.Apellido, 
                             t.Property!.Titulo,
-                            t.Lead.FechaCreacion.ToString("yyyy-MM-dd"),
+                            t.Contacto.FechaCreacion.ToString("yyyy-MM-dd"),
                             t.TransactionDate.ToString("yyyy-MM-dd"),
-                            (t.TransactionDate - t.Lead.FechaCreacion).TotalDays
+                            (t.TransactionDate - t.Contacto.FechaCreacion).TotalDays
                         ))
                         .ToList(),
 
                     TiempoPromedioResult = a.Properties.SelectMany(p => p.Transactions)
-                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.LeadId != null)
-                        .Select(t => (double?)(t.TransactionDate - t.Lead!.FechaCreacion).TotalDays)
+                        .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.ContactoId != null)
+                        .Select(t => (double?)(t.TransactionDate - t.Contacto!.FechaCreacion).TotalDays)
                         .Average()
                 })
                 .FirstOrDefaultAsync();
@@ -62,14 +62,14 @@ public static class ObtenerEficienciaEndpoint
 
             // Cálculos
             decimal tasaConversion = 0;
-            if (stats.TotalLeads > 0)
+            if (stats.TotalContactos > 0)
             {
-                tasaConversion = Math.Round((decimal)stats.TotalCerrados / stats.TotalLeads * 100, 2);
+                tasaConversion = Math.Round((decimal)stats.TotalCerrados / stats.TotalContactos * 100, 2);
             }
 
             decimal tiempoPromedioDias = Math.Round((decimal)(stats.TiempoPromedioResult ?? 0.0), 1);
 
-            var calculos = new EficienciaCalculos(stats.TotalLeads, stats.TotalCerrados, stats.LeadsConFechaCierre, stats.DetallesCierres);
+            var calculos = new EficienciaCalculos(stats.TotalContactos, stats.TotalCerrados, stats.ContactosConFechaCierre, stats.DetallesCierres);
 
             return Results.Ok(new EficienciaResponse(tasaConversion, tiempoPromedioDias, calculos));
         })

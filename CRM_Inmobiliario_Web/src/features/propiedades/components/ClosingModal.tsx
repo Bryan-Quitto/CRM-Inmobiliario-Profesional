@@ -6,9 +6,9 @@ import { useClosingModal } from '../hooks/useClosingModal';
 interface ClosingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // onConfirm ahora recibe el precio, el ID del socio (cliente o propiedad) y el estado final deseado para la propiedad
+  // onConfirm ahora recibe el precio, el ID del socio (contacto o propiedad) y el estado final deseado para la propiedad
   onConfirm: (precioCierre: number, partnerId: string, finalStatus: string) => Promise<void>;
-  mode: 'property' | 'lead';
+  mode: 'property' | 'contacto';
   initialData?: {
     id: string;
     titulo: string;
@@ -29,7 +29,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
     showTipoCierreDropdown, 
     isSubmitting, 
     isSuccess,
-    clienteOptions,
+    contactoOptions,
     propiedadOptions 
   } = state;
 
@@ -70,18 +70,18 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
               <Check className="h-7 w-7" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-2">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight contactoing-none mb-2">
                 Cierre de Operación
               </h3>
               <p className="text-slate-400 text-xs font-bold uppercase tracking-widest truncate max-w-[280px]">
-                {mode === 'property' ? selectedPartnerData?.titulo : 'Desde Perfil de Cliente'}
+                {mode === 'property' ? selectedPartnerData?.titulo : 'Desde Perfil de Contacto'}
               </p>
             </div>
           </div>
 
           <div className="space-y-6">
-            {/* Selector de Socio (Si es modo Lead, busca Propiedad. Si es modo Property, busca Lead) */}
-            {mode === 'lead' ? (
+            {/* Selector de Socio (Si es modo Contacto, busca Propiedad. Si es modo Property, busca Contacto) */}
+            {mode === 'contacto' ? (
               <DynamicSearchSelect
                 label="Seleccionar Propiedad del Cierre"
                 icon={Home}
@@ -96,7 +96,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
                 label={tipoCierre === 'Alquilada' ? 'Inquilino Final' : 'Comprador Final'}
                 icon={User}
                 placeholder={`Buscar ${tipoCierre === 'Alquilada' ? 'inquilino' : 'comprador'}...`}
-                options={clienteOptions}
+                options={contactoOptions}
                 onSearch={onSearchClients}
                 onChange={(id) => setPartnerId(id)}
                 value={partnerId}
@@ -157,8 +157,8 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
 
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
               <Info className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-              <p className="text-[11px] text-amber-700 font-bold leading-relaxed">
-                Al confirmar, el inmueble pasará a estado <span className="underline italic">{tipoCierre}</span>, el cliente se moverá a la etapa <span className="underline italic">Cerrado</span> y la galería se depurará (excepto portada).
+              <p className="text-[11px] text-amber-700 font-bold contactoing-relaxed">
+                Al confirmar, el inmueble pasará a estado <span className="underline italic">{tipoCierre}</span>, el contacto se moverá a la etapa <span className="underline italic">Cerrado</span> y la galería se depurará (excepto portada).
               </p>
             </div>
           </div>

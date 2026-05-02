@@ -29,7 +29,7 @@ export const EditarTareaForm = ({
     isLoading,
     isSyncing,
     isReadOnly,
-    clienteOptions,
+    contactoOptions,
     propiedadOptions,
     onSubmit
   } = useEditarTarea({ tareaId, initialData, onSuccess });
@@ -60,7 +60,7 @@ export const EditarTareaForm = ({
           isReadOnly={isReadOnly}
           setValue={setValue}
           watch={watch}
-          clienteOptions={clienteOptions}
+          contactoOptions={contactoOptions}
           propiedadOptions={propiedadOptions}
           handleSubmit={handleSubmit}
           onSubmit={onSubmit}

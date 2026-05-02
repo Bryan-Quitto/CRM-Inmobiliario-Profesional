@@ -1,13 +1,13 @@
 import { createContext } from 'react';
 import type { Tarea } from '../types';
-import type { Cliente } from '../../clientes/types';
+import type { Contacto } from '../../contactos/types';
 import type { Propiedad } from '../../propiedades/types';
 
 export interface TareasContextType {
   tareas: Tarea[];
   loading: boolean;
-  clientes: Cliente[];
-  loadingClientes: boolean;
+  contactos: Contacto[];
+  loadingContactos: boolean;
   propiedades: Propiedad[];
   loadingPropiedades: boolean;
   refreshTareas: () => Promise<void>;

@@ -33,11 +33,11 @@ public static class CambiarEstadoProcessor
         // 2. Spec 011 Fase 5 item 3: Relistado automático por transición entre estados de cierre
         bool requiereRelistadoAutomatico = property.CerradoConId.HasValue && esCierre && !esAlquilerSucesivo;
 
-        Lead? lead = null;
+        Contacto? contacto = null;
         if (esCierre && cerradoConId.HasValue)
         {
-            logger.LogInformation("👤 [PROCESSOR] Buscando Lead asociado: {LeadId}", cerradoConId.Value);
-            lead = await context.Leads
+            logger.LogInformation("👤 [PROCESSOR] Buscando Contacto asociado: {ContactoId}", cerradoConId.Value);
+            contacto = await context.Contactos
                 .FirstOrDefaultAsync(l => l.Id == cerradoConId.Value && l.AgenteId == currentUserId, ct);
         }
 
@@ -66,14 +66,14 @@ public static class CambiarEstadoProcessor
             }
         }
 
-        // 3. Revertir Lead si ya no es un cierre
+        // 3. Revertir Contacto si ya no es un cierre
         if (!esCierre && property.CerradoConId.HasValue)
         {
-            var leadToRevert = await context.Leads.FirstOrDefaultAsync(l => l.Id == property.CerradoConId.Value, ct);
-            if (leadToRevert != null)
+            var contactoToRevert = await context.Contactos.FirstOrDefaultAsync(l => l.Id == property.CerradoConId.Value, ct);
+            if (contactoToRevert != null)
             {
-                leadToRevert.EtapaEmbudo = "En Negociación";
-                leadToRevert.FechaCierre = null;
+                contactoToRevert.EtapaEmbudo = "En Negociación";
+                contactoToRevert.FechaCierre = null;
             }
         }
 
@@ -83,11 +83,11 @@ public static class CambiarEstadoProcessor
         property.PrecioCierre = esCierre ? precioCierre : null;
         property.CerradoConId = esCierre ? cerradoConId : null;
 
-        // 5. Registrar Cierre (Lead + Transacción + Interacción)
-        if (esCierre && lead != null)
+        // 5. Registrar Cierre (Contacto + Transacción + Interacción)
+        if (esCierre && contacto != null)
         {
-            lead.EtapaEmbudo = "Cerrado";
-            lead.FechaCierre = ecuadorNow;
+            contacto.EtapaEmbudo = "Cerrado";
+            contacto.FechaCierre = ecuadorNow;
 
             var tipoTransaccion = nuevoEstado == "Alquilada" ? "Rent" : "Sale";
 
@@ -96,7 +96,7 @@ public static class CambiarEstadoProcessor
             {
                 Id = Guid.NewGuid(),
                 PropertyId = property.Id,
-                LeadId = lead.Id,
+                ContactoId = contacto.Id,
                 TransactionType = tipoTransaccion,
                 TransactionStatus = "Active",
                 Amount = precioCierre ?? property.Precio,
@@ -110,7 +110,7 @@ public static class CambiarEstadoProcessor
             context.Interactions.Add(new Interaction
             {
                 AgenteId = currentUserId,
-                ClienteId = lead.Id,
+                ContactoId = contacto.Id,
                 PropiedadId = property.Id,
                 TipoInteraccion = "Cierre",
                 Notas = $"Propiedad '{property.Titulo}' marcada como {nuevoEstado} por {precioCierre:C}."

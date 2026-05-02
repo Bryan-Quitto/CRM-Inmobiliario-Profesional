@@ -5,7 +5,7 @@ import { DynamicSearchSelect, type SearchItem } from '@/components/DynamicSearch
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { getAgentes } from '@/features/configuracion/api/getAgentes';
-import { getClientes } from '@/features/clientes/api/getClientes';
+import { getContactos } from '@/features/contactos/api/getContactos';
 import { swrDefaultConfig } from '@/lib/swr';
 import type { Propiedad } from '../../types';
 
@@ -19,7 +19,7 @@ export const CommissionSection = ({ initialData }: Props) => {
   const [isGuestMode, setIsGuestMode] = useState(false);
 
   const { data: agentes = [] } = useSWR('/configuracion/agentes', getAgentes, swrDefaultConfig);
-  const { data: clientes = [] } = useSWR('/clientes', getClientes, swrDefaultConfig);
+  const { data: contactos = [] } = useSWR('/contactos', getContactos, swrDefaultConfig);
 
   const agenteOptions = useMemo<SearchItem[]>(() => 
     agentes.map(a => ({
@@ -31,14 +31,14 @@ export const CommissionSection = ({ initialData }: Props) => {
     [agentes]
   );
 
-  const clienteOptions = useMemo<SearchItem[]>(() => 
-    clientes.map(c => ({
+  const contactoOptions = useMemo<SearchItem[]>(() => 
+    contactos.map(c => ({
       id: c.id,
       title: `${c.nombre} ${c.apellido || ''}`,
-      subtitle: c.esPropietario ? 'Propietario' : 'Prospecto',
+      subtitle: c.esPropietario ? 'Propietario' : 'Contacto',
       raw: c
     })),
-    [clientes]
+    [contactos]
   );
 
   return (
@@ -58,7 +58,7 @@ export const CommissionSection = ({ initialData }: Props) => {
               label="Asignar Propietario"
               icon={UserCheck}
               placeholder="Buscar por nombre o teléfono..."
-              options={clienteOptions}
+              options={contactoOptions}
               value={field.value}
               initialLabel={initialData?.propietarioNombre}
               onChange={(id) => field.onChange(id)}
@@ -67,7 +67,7 @@ export const CommissionSection = ({ initialData }: Props) => {
           )}
         />
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight px-1 italic">
-          * Si el contacto es un Prospecto, se convertirá automáticamente en Propietario al guardar.
+          * Si el contacto es un Contacto, se convertirá automáticamente en Propietario al guardar.
         </p>
       </div>
 

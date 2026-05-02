@@ -3,7 +3,7 @@ export interface EtapaEmbudoItem {
   cantidad: number;
 }
 
-export interface LeadDashboardItem {
+export interface ContactoDashboardItem {
   id: string;
   nombre: string;
   apellido: string;
@@ -12,9 +12,9 @@ export interface LeadDashboardItem {
 
 export interface DashboardKpis {
   totalPropiedadesDisponibles: number;
-  totalProspectosActivos: number;
+  totalContactosActivos: number;
   tareasPendientesHoy: number;
   seguimientoRequerido: number;
-  leadsSeguimiento: LeadDashboardItem[];
+  contactosSeguimiento: ContactoDashboardItem[];
   embudoVentas: EtapaEmbudoItem[];
 }

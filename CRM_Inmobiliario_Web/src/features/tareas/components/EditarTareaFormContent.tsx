@@ -9,7 +9,7 @@ import {
 import { Controller, type UseFormRegister, type UseFormHandleSubmit, type UseFormWatch, type FieldErrors, type Control, type UseFormSetValue } from 'react-hook-form';
 import { DynamicSearchSelect } from '../../../components/DynamicSearchSelect';
 import { TipoTareaSelect } from './TipoTareaSelect';
-import { buscarClientes } from '../../clientes/api/buscarClientes';
+import { buscarContactos } from '../../contactos/api/buscarContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import type { EditarTareaFormValues } from '../hooks/useEditarTarea';
 
@@ -20,7 +20,7 @@ interface EditarTareaFormContentProps {
   isReadOnly: boolean;
   setValue: UseFormSetValue<EditarTareaFormValues>;
   watch: UseFormWatch<EditarTareaFormValues>;
-  clienteOptions: { id: string; title: string; subtitle: string | undefined }[];
+  contactoOptions: { id: string; title: string; subtitle: string | undefined }[];
   propiedadOptions: { id: string; title: string; subtitle: string }[];
   handleSubmit: UseFormHandleSubmit<EditarTareaFormValues>;
   onSubmit: (data: EditarTareaFormValues) => void;
@@ -33,7 +33,7 @@ export const EditarTareaFormContent = ({
   isReadOnly,
   setValue,
   watch,
-  clienteOptions,
+  contactoOptions,
   propiedadOptions,
   handleSubmit,
   onSubmit
@@ -79,23 +79,23 @@ export const EditarTareaFormContent = ({
       />
 
       <Controller
-        name="clienteId"
+        name="contactoId"
         control={control}
         render={({ field }) => (
           <DynamicSearchSelect
-            label="Cliente (Opcional)"
+            label="Contacto (Opcional)"
             icon={User}
             placeholder="Buscar por nombre o teléfono..."
             value={field.value}
-            initialLabel={formData.clienteNombre}
-            options={clienteOptions}
+            initialLabel={formData.contactoNombre}
+            options={contactoOptions}
             onSearch={async (q) => {
-              const res = await buscarClientes(q);
+              const res = await buscarContactos(q);
               return res.map(c => ({ id: c.id, title: c.nombreCompleto, subtitle: c.telefono }));
             }}
             onChange={(id, title) => {
               field.onChange(id);
-              setValue('clienteNombre', title);
+              setValue('contactoNombre', title);
             }}
           />
         )}

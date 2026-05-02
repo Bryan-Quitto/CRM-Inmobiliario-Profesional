@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import { getTareas } from '../api/getTareas';
-import { getClientes } from '../../clientes/api/getClientes';
+import { getContactos } from '../../contactos/api/getContactos';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import type { Tarea } from '../types';
-import type { Cliente } from '../../clientes/types';
+import type { Contacto } from '../../contactos/types';
 import type { Propiedad } from '../../propiedades/types';
 import { TareasContext } from './TareasContext';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
@@ -16,9 +16,9 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     swrDefaultConfig
   );
 
-  const { data: clientes = [], isValidating: loadingClientes } = useSWR<Cliente[]>(
-    '/clientes',
-    getClientes,
+  const { data: contactos = [], isValidating: loadingContactos } = useSWR<Contacto[]>(
+    '/contactos',
+    getContactos,
     swrDefaultConfig
   );
 
@@ -106,8 +106,8 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const value = {
     tareas,
     loading,
-    clientes,
-    loadingClientes,
+    contactos,
+    loadingContactos,
     propiedades,
     loadingPropiedades,
     refreshTareas,

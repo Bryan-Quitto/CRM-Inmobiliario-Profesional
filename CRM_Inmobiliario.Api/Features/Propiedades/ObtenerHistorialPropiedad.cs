@@ -18,8 +18,8 @@ public static class ObtenerHistorialPropiedadFeature
         DateTimeOffset TransactionDate,
         string? Notes,
         string AgenteNombre,
-        Guid? LeadId,
-        string? LeadNombre);
+        Guid? ContactoId,
+        string? ContactoNombre);
 
     public static RouteHandlerBuilder MapObtenerHistorialPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -40,8 +40,8 @@ public static class ObtenerHistorialPropiedadFeature
                     t.TransactionDate,
                     t.Notes,
                     t.CreatedBy != null ? t.CreatedBy.Nombre + " " + t.CreatedBy.Apellido : "Sistema",
-                    t.LeadId,
-                    t.Lead != null ? t.Lead.Nombre + " " + t.Lead.Apellido : null))
+                    t.ContactoId,
+                    t.Contacto != null ? t.Contacto.Nombre + " " + t.Contacto.Apellido : null))
                 .ToListAsync();
 
             return Results.Ok(historial);

@@ -8,8 +8,8 @@ export interface PropertyTransactionResponse {
   transactionDate: string;
   notes?: string;
   agenteNombre: string;
-  leadId?: string;
-  leadNombre?: string;
+  contactoId?: string;
+  contactoNombre?: string;
 }
 
 export const getHistorialPropiedad = async (id: string): Promise<PropertyTransactionResponse[]> => {

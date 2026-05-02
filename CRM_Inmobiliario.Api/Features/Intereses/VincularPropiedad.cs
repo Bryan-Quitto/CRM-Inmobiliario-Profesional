@@ -17,24 +17,24 @@ public static class VincularPropiedadFeature
 
     public static void MapVincularPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/clientes/{clienteId:guid}/intereses", async (Guid clienteId, Request request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, ILogger<Request> logger, CancellationToken ct) =>
+        app.MapPost("/contactos/{contactoId:guid}/intereses", async (Guid contactoId, Request request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, ILogger<Request> logger, CancellationToken ct) =>
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
             var agenteId = user.GetRequiredUserId();
 
             // 1. Obtener toda la información necesaria en UN SOLO round-trip y validar pertenencia
-            var data = await context.Leads
-                .Where(l => l.Id == clienteId && l.AgenteId == agenteId)
+            var data = await context.Contactos
+                .Where(l => l.Id == contactoId && l.AgenteId == agenteId)
                 .Select(l => new
                 {
-                    ClienteExiste = true,
+                    ContactoExiste = true,
                     PropiedadExiste = context.Properties.Any(p => p.Id == request.PropiedadId && p.AgenteId == agenteId),
-                    InteresExistente = context.LeadPropertyInterests
-                        .FirstOrDefault(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId)
+                    InteresExistente = context.ContactoInteresPropiedades
+                        .FirstOrDefault(i => i.ContactoId == contactoId && i.PropiedadId == request.PropiedadId)
                 })
                 .FirstOrDefaultAsync(ct);
 
-            if (data is null) return Results.NotFound("Cliente no encontrado o no te pertenece.");
+            if (data is null) return Results.NotFound("Contacto no encontrado o no te pertenece.");
             if (!data.PropiedadExiste) return Results.NotFound("Propiedad no encontrada o no te pertenece.");
 
             // 2. Validar nivel de interés
@@ -45,26 +45,25 @@ public static class VincularPropiedadFeature
             }
 
             // 3. Aplicar cambios (Upsert)
-            // 3. Aplicar cambios
             if (data.InteresExistente is not null)
             {
                 // Hacemos el UPDATE directo a SQL saltando la carga de memoria (Zero Tracking)
-                await context.LeadPropertyInterests
-                    .Where(i => i.ClienteId == clienteId && i.PropiedadId == request.PropiedadId)
+                await context.ContactoInteresPropiedades
+                    .Where(i => i.ContactoId == contactoId && i.PropiedadId == request.PropiedadId)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(i => i.NivelInteres, request.NivelInteres)
                         .SetProperty(i => i.FechaRegistro, DateTimeOffset.UtcNow), ct);
             }
             else
             {
-                var nuevoInteres = new LeadPropertyInterest
+                var nuevoInteres = new ContactoInteresPropiedad
                 {
-                    ClienteId = clienteId,
+                    ContactoId = contactoId,
                     PropiedadId = request.PropiedadId,
                     NivelInteres = request.NivelInteres,
                     FechaRegistro = DateTimeOffset.UtcNow
                 };
-                context.LeadPropertyInterests.Add(nuevoInteres);
+                context.ContactoInteresPropiedades.Add(nuevoInteres);
                 await context.SaveChangesAsync(ct);
             }
 
@@ -73,7 +72,7 @@ public static class VincularPropiedadFeature
             await cacheStore.EvictByTagAsync("analytics-data", ct);
             
             sw.Stop();
-            logger.LogInformation("VincularPropiedad finalizada en {ElapsedMilliseconds} ms (Cliente: {ClienteId}, Propiedad: {PropiedadId})", sw.ElapsedMilliseconds, clienteId, request.PropiedadId);
+            logger.LogInformation("VincularPropiedad finalizada en {ElapsedMilliseconds} ms (Contacto: {ContactoId}, Propiedad: {PropiedadId})", sw.ElapsedMilliseconds, contactoId, request.PropiedadId);
 
             return Results.Ok();
         })

@@ -40,11 +40,11 @@ public static class VolverAListarPropiedadFeature
                 // Acción B: Cancelación de Trato (Trato Caído)
                 if (propiedad.CerradoConId.HasValue)
                 {
-                    var lead = await context.Leads.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value && l.AgenteId == agenteId);
-                    if (lead != null)
+                    var contacto = await context.Contactos.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value && l.AgenteId == agenteId);
+                    if (contacto != null)
                     {
-                        lead.EtapaEmbudo = "En Negociación"; // Reversión automática
-                        lead.FechaCierre = null;
+                        contacto.EtapaEmbudo = "En Negociación"; // Reversión automática
+                        contacto.FechaCierre = null;
                     }
                 }
 
@@ -58,7 +58,7 @@ public static class VolverAListarPropiedadFeature
                 {
                     Id = Guid.NewGuid(),
                     PropertyId = id,
-                    LeadId = propiedad.CerradoConId,
+                    ContactoId = propiedad.CerradoConId,
                     TransactionType = "Cancellation",
                     TransactionStatus = "Completed",
                     TransactionDate = ecuadorNow,
@@ -86,7 +86,7 @@ public static class VolverAListarPropiedadFeature
                     CreatedById = agenteId
                 });
                 
-                // Nota: El Lead permanece en su estado actual (Cerrado) según Spec
+                // Nota: El Contacto permanece en su estado actual (Cerrado) según Spec
             }
 
             // Actualizamos estado de la propiedad

@@ -7,8 +7,8 @@ export interface CalendarEvent {
   duracionMinutos: number;
   colorHex?: string;
   estado: string;
-  clienteId?: string;
-  clienteNombre?: string;
+  contactoId?: string;
+  contactoNombre?: string;
   propiedadId?: string;
   propiedadTitulo?: string;
   lugar?: string;

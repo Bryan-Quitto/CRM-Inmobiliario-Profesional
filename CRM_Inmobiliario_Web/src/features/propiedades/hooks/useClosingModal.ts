@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
-import { buscarClientes } from '../../clientes/api/buscarClientes';
+import { buscarContactos } from '../../contactos/api/buscarContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import { useTareas } from '../../tareas/context/useTareas';
 import { type SearchItem } from '@/components/DynamicSearchSelect';
@@ -9,7 +9,7 @@ interface UseClosingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (precioCierre: number, partnerId: string, finalStatus: string) => Promise<void>;
-  mode: 'property' | 'lead';
+  mode: 'property' | 'contacto';
   initialData?: {
     id: string;
     titulo: string;
@@ -27,7 +27,7 @@ export const useClosingModal = ({
   initialData,
   intendedState
 }: UseClosingModalProps) => {
-  const { clientes, propiedades } = useTareas();
+  const { contactos, propiedades } = useTareas();
   
   const [precioCierre, setPrecioCierre] = useState<string>(initialData?.precio.toString() || '');
   const [partnerId, setPartnerId] = useState<string | undefined>(mode === 'property' ? undefined : initialData?.id);
@@ -76,9 +76,9 @@ export const useClosingModal = ({
     }
   }
 
-  const clienteOptions = useMemo(() => 
-    clientes.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
-    [clientes]
+  const contactoOptions = useMemo(() => 
+    contactos.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
+    [contactos]
   );
 
   const propiedadOptions = useMemo(() => 
@@ -99,7 +99,7 @@ export const useClosingModal = ({
       return;
     }
     if (!partnerId) {
-      toast.error(`Por favor, selecciona ${mode === 'property' ? 'al cliente' : 'la propiedad'}.`);
+      toast.error(`Por favor, selecciona ${mode === 'property' ? 'al contacto' : 'la propiedad'}.`);
       return;
     }
 
@@ -118,7 +118,7 @@ export const useClosingModal = ({
   };
 
   const onSearchClients = async (query: string) => {
-    const results = await buscarClientes(query);
+    const results = await buscarContactos(query);
     return results.map(c => ({
       id: c.id,
       title: c.nombreCompleto,
@@ -157,7 +157,7 @@ export const useClosingModal = ({
       showTipoCierreDropdown,
       isSubmitting,
       isSuccess,
-      clienteOptions,
+      contactoOptions,
       propiedadOptions
     },
     actions: {

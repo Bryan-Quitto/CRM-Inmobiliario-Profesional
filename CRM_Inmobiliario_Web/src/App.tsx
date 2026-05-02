@@ -18,8 +18,8 @@ import { PageLoader, SidebarLoader } from './components/layout/Loaders';
 // Lazy Loading de Features
 const DashboardPrincipal = lazy(() => import('./features/dashboard/components/DashboardPrincipal').then(m => ({ default: m.DashboardPrincipal })));
 const CalendarioView = lazy(() => import('./features/calendario/components/CalendarioView'));
-const ClientesList = lazy(() => import('./features/clientes/components/ClientesList').then(m => ({ default: m.ClientesList })));
-const ClienteDetalle = lazy(() => import('./features/clientes/components/ClienteDetalle').then(m => ({ default: m.ClienteDetalle })));
+const ContactosList = lazy(() => import('./features/contactos/components/ContactosList').then(m => ({ default: m.ContactosList })));
+const ContactoDetalle = lazy(() => import('./features/contactos/components/ContactoDetalle').then(m => ({ default: m.ContactoDetalle })));
 const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
 const AnaliticaView = lazy(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView })));
 const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
@@ -61,12 +61,10 @@ function AppContent({ session }: { session: Session | null }) {
             <Routes>
               <Route path="/" element={<DashboardPrincipal />} />
               <Route path="/calendario" element={<CalendarioView />} />
-              <Route path="/contactos" element={<ClientesList />} />
-              <Route path="/contactos/:id" element={<ClienteDetalle />} />
-              <Route path="/prospectos" element={<ClientesList />} />
-              <Route path="/prospectos/:id" element={<ClienteDetalle />} />
-              <Route path="/propietarios" element={<ClientesList />} />
-              <Route path="/propietarios/:id" element={<ClienteDetalle />} />
+              <Route path="/contactos" element={<ContactosList />} />
+              <Route path="/contactos/:id" element={<ContactoDetalle />} />
+              <Route path="/propietarios" element={<ContactosList />} />
+              <Route path="/propietarios/:id" element={<ContactoDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
               <Route path="/ia-logs" element={<AuditoriaLogsView />} />
               <Route path="/kpis" element={<AnaliticaView />} />
