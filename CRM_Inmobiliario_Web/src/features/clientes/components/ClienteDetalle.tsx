@@ -108,27 +108,25 @@ export const ClienteDetalle = () => {
             />
           )}
 
-          {(!cliente.esPropietario || (cliente.intereses && cliente.intereses.length > 0)) && (
-            <ClienteInterestsManager 
-              cliente={cliente}
-              propiedadesOptions={propiedadesOptions}
-              propiedadPendienteId={propiedadPendienteId}
-              setPropiedadPendienteId={setPropiedadPendienteId}
-              nivelInteresPendiente={nivelInteresPendiente}
-              setNivelInteresPendiente={setNivelInteresPendiente}
-              vincularStatus={vincularStatus}
-              handleVincularPropiedad={handleVincularPropiedad}
-              updatingInteresId={updatingInteresId}
-              idInteresABorrar={idInteresABorrar}
-              setIdInteresABorrar={setIdInteresABorrar}
-              isDeletingInteres={isDeletingInteres}
-              dropdownInteresOpenId={dropdownInteresOpenId}
-              setDropdownInteresOpenId={setDropdownInteresOpenId}
-              handleUpdateNivelInteres={handleUpdateNivelInteres}
-              handleDesvincular={handleDesvincular}
-              navigate={navigate}
-            />
-          )}
+          <ClienteInterestsManager 
+            cliente={cliente}
+            propiedadesOptions={propiedadesOptions}
+            propiedadPendienteId={propiedadPendienteId}
+            setPropiedadPendienteId={setPropiedadPendienteId}
+            nivelInteresPendiente={nivelInteresPendiente}
+            setNivelInteresPendiente={setNivelInteresPendiente}
+            vincularStatus={vincularStatus}
+            handleVincularPropiedad={handleVincularPropiedad}
+            updatingInteresId={updatingInteresId}
+            idInteresABorrar={idInteresABorrar}
+            setIdInteresABorrar={setIdInteresABorrar}
+            isDeletingInteres={isDeletingInteres}
+            dropdownInteresOpenId={dropdownInteresOpenId}
+            setDropdownInteresOpenId={setDropdownInteresOpenId}
+            handleUpdateNivelInteres={handleUpdateNivelInteres}
+            handleDesvincular={handleDesvincular}
+            navigate={navigate}
+          />
         </div>
 
         <ClienteTimelineManager 

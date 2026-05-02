@@ -16,37 +16,42 @@ public sealed class Lead
     [MaxLength(100)]
     public string? Apellido { get; set; }
 
-    [MaxLength(255)]
     [EmailAddress]
+    [MaxLength(150)]
     public string? Email { get; set; }
 
     [Required]
     [MaxLength(20)]
     public string Telefono { get; set; } = string.Empty;
 
-    [Required]
     [MaxLength(50)]
-    public string Origen { get; set; } = string.Empty;
+    public string Origen { get; set; } = "Directo";
+
+    [MaxLength(50)]
+    public string EtapaEmbudo { get; set; } = "Nuevo";
+
+    [Required]
+    public bool EsProspecto { get; set; } = true;
 
     [Required]
     [MaxLength(50)]
-    public string EtapaEmbudo { get; set; } = "Nuevo";
+    public string EstadoPropietario { get; set; } = "Activo";
+
+    [Required]
+    public bool EsPropietario { get; set; } = false;
+
+    public string? Notas { get; set; }
+
+    public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? FechaCierre { get; set; }
 
     [Required]
     public Guid AgenteId { get; set; }
     public Agent? Agente { get; set; }
 
-    public string? Notas { get; set; }
-
-    [Required]
-    public bool EsPropietario { get; set; } = false;
-
-    public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
-
-    public DateTimeOffset? FechaCierre { get; set; }
-
     // Relaciones de navegación
     public ICollection<Property> PropertiesOwned { get; set; } = new List<Property>();
+    public ICollection<Property> PropertiesClosed { get; set; } = new List<Property>();
     public ICollection<LeadPropertyInterest> PropertyInterests { get; set; } = new List<LeadPropertyInterest>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public ICollection<Interaction> Interactions { get; set; } = new List<Interaction>();

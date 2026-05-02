@@ -31,6 +31,8 @@ export interface Cliente {
   telefono: string;
   origen: string;
   etapaEmbudo: string;
+  esProspecto: boolean;
+  estadoPropietario: string;
   esPropietario: boolean;
   notas?: string;
   fechaCreacion: string;

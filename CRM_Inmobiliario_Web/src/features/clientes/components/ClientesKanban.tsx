@@ -2,24 +2,20 @@ import React, { useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { Clock, Maximize2, Minimize2 } from 'lucide-react';
+import { ETAPAS, ETAPAS_PROPIETARIO } from '../constants/clientes';
 import type { Cliente } from '../types';
-
-const ETAPAS = [
-  { label: 'Nuevo', value: 'Nuevo', color: 'border-t-blue-500 bg-blue-50/50' },
-  { label: 'Contactado', value: 'Contactado', color: 'border-t-amber-500 bg-amber-50/50' },
-  { label: 'En Negociación', value: 'En Negociación', color: 'border-t-indigo-500 bg-indigo-50/50' },
-  { label: 'Cerrado', value: 'Cerrado', color: 'border-t-emerald-500 bg-emerald-50/50' },
-  { label: 'Perdido', value: 'Perdido', color: 'border-t-rose-500 bg-rose-50/50' },
-];
 
 interface ClientesKanbanProps {
   clientes: Cliente[];
-  onStageChange: (id: string, nuevaEtapa: string) => void;
+  activeSegment: 'prospectos' | 'propietarios' | 'todos';
+  onStageChange: (id: string, nuevaEtapa: string, data?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo?: 'prospecto' | 'propietario') => void;
   onNavigate: (id: string) => void;
 }
 
-export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStageChange, onNavigate }) => {
+export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, activeSegment, onStageChange, onNavigate }) => {
   const [collapsedColumns, setCollapsedColumns] = useState<string[]>([]);
+  const isOwnerMode = activeSegment === 'propietarios';
+  const currentEtapas = isOwnerMode ? ETAPAS_PROPIETARIO : ETAPAS;
 
   const toggleColumn = (value: string) => {
     setCollapsedColumns(prev => 
@@ -28,30 +24,27 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
   };
 
   const columns = useMemo(() => {
-    const grouped: Record<string, Cliente[]> = {
-      'Nuevo': [],
-      'Contactado': [],
-      'En Negociación': [],
-      'Cerrado': [],
-      'Perdido': []
-    };
+    const grouped: Record<string, Cliente[]> = {};
+    currentEtapas.forEach(e => { grouped[e.value] = []; });
     
     clientes.forEach(cliente => {
-      if (grouped[cliente.etapaEmbudo]) {
-        grouped[cliente.etapaEmbudo].push(cliente);
+      const etapa = isOwnerMode ? cliente.estadoPropietario : cliente.etapaEmbudo;
+      if (grouped[etapa]) {
+        grouped[etapa].push(cliente);
       } else {
-        grouped['Nuevo'].push(cliente);
+        const defaultEtapa = currentEtapas[0].value;
+        if (grouped[defaultEtapa]) grouped[defaultEtapa].push(cliente);
       }
     });
     
     return grouped;
-  }, [clientes]);
+  }, [clientes, currentEtapas, isOwnerMode]);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
     if (!destination) return;
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
-    onStageChange(draggableId, destination.droppableId);
+    onStageChange(draggableId, destination.droppableId, undefined, isOwnerMode ? 'propietario' : 'prospecto');
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -63,12 +56,23 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
     return `Hace ${diffInDays} d`;
   };
 
+  const getEtapaColor = (value: string) => {
+    const found = currentEtapas.find(e => e.value === value);
+    // Extraer color del border/bg si existe o usar default
+    if (found?.color.includes('blue')) return 'border-t-blue-500 bg-blue-50/50';
+    if (found?.color.includes('amber')) return 'border-t-amber-500 bg-amber-50/50';
+    if (found?.color.includes('indigo')) return 'border-t-indigo-500 bg-indigo-50/50';
+    if (found?.color.includes('emerald')) return 'border-t-emerald-500 bg-emerald-50/50';
+    if (found?.color.includes('rose')) return 'border-t-rose-500 bg-rose-50/50';
+    return 'border-t-slate-500 bg-slate-50/50';
+  };
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-[calc(100vh-280px)] min-h-[600px] gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200">
-        {ETAPAS.map((etapa) => {
+        {currentEtapas.map((etapa) => {
           const isCollapsed = collapsedColumns.includes(etapa.value);
-          const count = columns[etapa.value].length;
+          const count = columns[etapa.value]?.length || 0;
 
           return (
             <div 
@@ -78,18 +82,18 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
               }`}
             >
               {/* Header de Columna */}
-              <div className={`mb-2 p-3 rounded-xl border-t-4 bg-white shadow-sm flex items-center justify-between overflow-hidden ${etapa.color}`}>
+              <div className={`mb-2 p-3 rounded-xl border-t-4 bg-white shadow-sm flex items-center justify-between overflow-hidden ${getEtapaColor(etapa.value)}`}>
                 {!isCollapsed ? (
                   <>
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="font-black text-slate-800 uppercase tracking-tighter text-[11px] truncate">{etapa.label}</span>
-                      <span className="bg-slate-100 text-slate-500 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-slate-200 shrink-0">
+                      <span className="bg-white text-slate-500 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-slate-200 shrink-0 shadow-sm">
                         {count}
                       </span>
                     </div>
                     <button 
                       onClick={() => toggleColumn(etapa.value)}
-                      className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-50 transition-colors shrink-0 cursor-pointer"
+                      className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-white transition-all shrink-0 cursor-pointer"
                     >
                       <Minimize2 className="h-3 w-3" />
                     </button>
@@ -126,7 +130,7 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
                         snapshot.isDraggingOver ? 'bg-blue-50/40 ring-2 ring-blue-100 ring-inset' : 'bg-slate-100/40'
                       }`}
                     >
-                      {columns[etapa.value].map((cliente, index) => (
+                      {columns[etapa.value]?.map((cliente, index) => (
                         <Draggable key={cliente.id} draggableId={cliente.id} index={index}>
                           {(provided, snapshot) => (
                             <div
@@ -134,11 +138,11 @@ export const ClientesKanban: React.FC<ClientesKanbanProps> = ({ clientes, onStag
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                               onClick={() => !snapshot.isDragging && onNavigate(cliente.id)}
-                              className={`cursor-pointer ${`bg-white p-3 rounded-xl shadow-sm border mb-2 transition-all group cursor-grab active:cursor-grabbing ${
-                                                                                                        snapshot.isDragging 
-                                                                                                          ? 'rotate-1 scale-105 shadow-xl border-blue-400 z-50 ring-2 ring-blue-500/10' 
-                                                                                                          : 'border-slate-100 hover:border-blue-200 hover:shadow-md'
-                                                                                                      }`}`}
+                              className={`cursor-pointer bg-white p-3 rounded-xl shadow-sm border mb-2 transition-all group cursor-grab active:cursor-grabbing ${
+                                snapshot.isDragging 
+                                  ? 'rotate-1 scale-105 shadow-xl border-blue-400 z-50 ring-2 blue-500/10' 
+                                  : 'border-slate-100 hover:border-blue-200 hover:shadow-md'
+                              }`}
                             >
                               <div className="flex items-center gap-3 mb-2">
                                 <div className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-[10px] group-hover:bg-blue-600 transition-colors shrink-0">

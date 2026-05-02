@@ -77,6 +77,7 @@ const ClientesContent = () => {
 
       <ClientesListContent 
         filteredClientes={filteredClientes}
+        activeSegment={activeSegment}
         viewMode={viewMode}
         syncing={syncing}
         onNavigate={(id) => navigate(`${basePath}/${id}`)}

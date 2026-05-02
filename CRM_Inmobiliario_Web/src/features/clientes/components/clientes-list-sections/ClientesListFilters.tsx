@@ -1,10 +1,5 @@
 import { Search, Filter as FilterIcon, ChevronDown, Check, Plus, List, LayoutGrid } from 'lucide-react';
-import { ETAPAS } from '../../constants/clientes';
-
-const FILTER_OPTIONS = [
-  { label: 'Todas las etapas', value: 'Todas' },
-  ...ETAPAS
-];
+import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/clientes';
 
 interface ClientesListFiltersProps {
   activeSegment: 'todos' | 'prospectos' | 'propietarios';
@@ -57,9 +52,9 @@ export const ClientesListFilters = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-2">
         <div className="flex items-center gap-1">
           {[
-            { id: 'todos', label: 'Todos', count: null },
-            { id: 'prospectos', label: 'Prospectos', count: null },
-            { id: 'propietarios', label: 'Propietarios', count: null }
+            { id: 'todos', label: 'Todos' },
+            { id: 'prospectos', label: 'Prospectos' },
+            { id: 'propietarios', label: 'Propietarios' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -78,7 +73,7 @@ export const ClientesListFilters = ({
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        {activeSegment !== 'todos' && (
           <div className="flex bg-slate-100 p-1 rounded-xl">
             <button 
               onClick={() => setViewMode('list')}
@@ -99,9 +94,9 @@ export const ClientesListFilters = ({
               Tablero
             </button>
           </div>
-        </div>
+        )}
       </div>
-      
+
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[300px]">
           <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -125,23 +120,59 @@ export const ClientesListFilters = ({
           </button>
 
           {isFilterOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right">
-              {FILTER_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => { setFilterEtapa(option.value); setIsFilterOpen(false); }}
-                  className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
-                    filterEtapa === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
-                  }`}
-                >
-                  {option.label}
-                  {filterEtapa === option.value && <Check className="h-4 w-4" />}
-                </button>
-              ))}
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right">
+              <button
+                onClick={() => { setFilterEtapa('Todas'); setIsFilterOpen(false); }}
+                className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                  filterEtapa === 'Todas' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                }`}
+              >
+                Todas las etapas
+                {filterEtapa === 'Todas' && <Check className="h-4 w-4" />}
+              </button>
+
+              {(activeSegment === 'prospectos' || activeSegment === 'todos') && (
+                <>
+                  <div className="px-4 py-2 mt-2">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Prospecto</span>
+                  </div>
+                  {ETAPAS.map((option) => (
+                    <button
+                      key={`p-${option.value}`}
+                      onClick={() => { setFilterEtapa(option.value); setIsFilterOpen(false); }}
+                      className={`cursor-pointer w-full px-6 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                        filterEtapa === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                      }`}
+                    >
+                      {option.label}
+                      {filterEtapa === option.value && <Check className="h-4 w-4" />}
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {(activeSegment === 'propietarios' || activeSegment === 'todos') && (
+                <>
+                  <div className="px-4 py-2 mt-2 border-t border-slate-50">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Propietario</span>
+                  </div>
+                  {ETAPAS_PROPIETARIO.map((option) => (
+                    <button
+                      key={`o-${option.value}`}
+                      onClick={() => { setFilterEtapa(option.value); setIsFilterOpen(false); }}
+                      className={`cursor-pointer w-full px-6 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                        filterEtapa === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                      }`}
+                    >
+                      {option.label}
+                      {filterEtapa === option.value && <Check className="h-4 w-4" />}
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </div>    </div>
   );
 };

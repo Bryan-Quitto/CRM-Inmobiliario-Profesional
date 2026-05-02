@@ -9,6 +9,7 @@ interface CrearClienteFieldsProps {
   setValue: (name: keyof CrearClienteDTO, value: string | boolean | undefined) => void;
   isSuccess: boolean;
   validateTelefono: (value: string) => Promise<string | true>;
+  roleError?: boolean;
 }
 
 export const CrearClienteFields = ({
@@ -17,28 +18,42 @@ export const CrearClienteFields = ({
   control,
   setValue,
   isSuccess,
-  validateTelefono
+  validateTelefono,
+  roleError
 }: CrearClienteFieldsProps) => {
+  const esProspecto = useWatch({ control, name: 'esProspecto' });
   const esPropietario = useWatch({ control, name: 'esPropietario' });
 
   return (
     <div className="space-y-8">
       {/* Sección de Roles */}
       <div className="space-y-3">
-        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Roles del Contacto</label>
-        <div className="grid grid-cols-2 gap-3">
-          <div 
-            className="flex items-center gap-3 p-3 rounded-2xl border-2 border-blue-100 bg-blue-50/30 transition-all opacity-60 cursor-not-allowed"
-            title="Por defecto todo contacto es prospecto"
+        <label className={`text-[10px] font-black uppercase tracking-widest ml-1 transition-colors ${roleError ? 'text-rose-500' : 'text-slate-400'}`}>
+          Roles del Contacto {roleError && '(Debe seleccionar al menos uno)'}
+        </label>
+        <div className={`grid grid-cols-2 gap-3 p-1 rounded-3xl transition-all ${roleError ? 'bg-rose-50 ring-2 ring-rose-200' : ''}`}>
+          <button
+            type="button"
+            onClick={() => setValue('esProspecto', !esProspecto)}
+            disabled={isSuccess}
+            className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+              esProspecto 
+                ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10' 
+                : 'border-slate-100 bg-slate-50 hover:border-slate-200'
+            }`}
           >
-            <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Search className="h-4 w-4 text-blue-600" />
+            <div className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${
+              esProspecto ? 'bg-blue-500' : 'bg-slate-200'
+            }`}>
+              <Search className={`h-4 w-4 ${esProspecto ? 'text-white' : 'text-slate-500'}`} />
             </div>
-            <div>
-              <p className="text-xs font-black text-blue-900 uppercase">Prospecto</p>
-              <p className="text-[9px] text-blue-600 font-bold uppercase leading-none mt-0.5">Activo</p>
+            <div className="text-left">
+              <p className={`text-xs font-black uppercase ${esProspecto ? 'text-blue-900' : 'text-slate-500'}`}>Prospecto</p>
+              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 ${esProspecto ? 'text-blue-600' : 'text-slate-400'}`}>
+                {esProspecto ? 'Habilitado' : 'Inactivo'}
+              </p>
             </div>
-          </div>
+          </button>
 
           <button
             type="button"
@@ -51,7 +66,7 @@ export const CrearClienteFields = ({
             }`}
           >
             <div className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${
-              esPropietario ? 'bg-emerald-500' : 'bg-slate-200 group-hover:bg-slate-300'
+              esPropietario ? 'bg-emerald-500' : 'bg-slate-200'
             }`}>
               <UserCheck className={`h-4 w-4 ${esPropietario ? 'text-white' : 'text-slate-500'}`} />
             </div>
@@ -63,6 +78,7 @@ export const CrearClienteFields = ({
             </div>
           </button>
         </div>
+        <input type="hidden" {...register('esProspecto')} />
         <input type="hidden" {...register('esPropietario')} />
       </div>
 
