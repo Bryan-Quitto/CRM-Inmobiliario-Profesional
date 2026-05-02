@@ -14,7 +14,8 @@ import { ClientesSyncIndicator } from './clientes-list-sections/ClientesSyncIndi
 const ClientesContent = () => {
   const navigate = useNavigate();
   const {
-    isOwnersView,
+    activeSegment,
+    setActiveSegment,
     clientes,
     filteredClientes,
     isLoading,
@@ -46,13 +47,16 @@ const ClientesContent = () => {
     return <ClientesSkeletonList />;
   }
 
-  const basePath = isOwnersView ? '/propietarios' : '/prospectos';
+  const basePath = '/contactos';
+  const isOwnersView = activeSegment === 'propietarios';
 
   return (
     <div className="bg-slate-50 min-h-screen relative font-sans antialiased space-y-6 pb-20">
       <ClientesSyncIndicator syncing={syncing} count={clientes.length} />
 
       <ClientesListFilters 
+        activeSegment={activeSegment}
+        setActiveSegment={setActiveSegment}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         filterEtapa={filterEtapa}

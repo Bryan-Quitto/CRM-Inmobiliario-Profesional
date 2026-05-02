@@ -11,23 +11,31 @@ const VIEW_MODE_KEY = 'crm_clientes_view_mode';
 
 export const useClientesList = () => {
   const { pathname } = useLocation();
-  const isOwnersView = pathname.includes('/propietarios');
   const { mutate: globalMutate } = useSWRConfig();
+  
+  const [activeSegment, setActiveSegment] = useState<'todos' | 'prospectos' | 'propietarios'>(() => {
+    if (pathname.includes('/propietarios')) return 'propietarios';
+    if (pathname.includes('/prospectos')) return 'prospectos';
+    return 'todos';
+  });
+
   const { data: allClientes = [], isLoading, isValidating: syncing, mutate } = useSWR<Cliente[]>(
     '/clientes',
     getClientes,
     swrDefaultConfig
   );
   
-  // Filtrar base según la vista (Prospectos vs Propietarios)
+  // Filtrar base según el segmento activo
   const clientes = useMemo(() => {
-    if (isOwnersView) {
-      return allClientes.filter(c => c.esPropietario);
+    switch (activeSegment) {
+      case 'prospectos':
+        return allClientes.filter(c => !c.esPropietario || (c.intereses && c.intereses.length > 0));
+      case 'propietarios':
+        return allClientes.filter(c => c.esPropietario);
+      default:
+        return allClientes;
     }
-    // Para prospectos, mostramos los que están en el embudo (no solo propietarios)
-    // Opcionalmente podrías filtrar los que NO son propietarios si quieres segregación total
-    return allClientes.filter(c => !c.esPropietario); 
-  }, [allClientes, isOwnersView]);
+  }, [allClientes, activeSegment]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClienteForEdit, setSelectedClienteForEdit] = useState<Cliente | null>(null);
@@ -132,7 +140,9 @@ export const useClientesList = () => {
   };
 
   return {
-    isOwnersView,
+    isOwnersView: activeSegment === 'propietarios',
+    activeSegment,
+    setActiveSegment,
     clientes,
     filteredClientes,
     isLoading,
@@ -160,4 +170,3 @@ export const useClientesList = () => {
     mutate
   };
 };
-

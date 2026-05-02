@@ -30,7 +30,7 @@ export const ClientesListModals = ({
   setNotification,
   mutate
 }: ClientesListModalsProps) => {
-  const label = isOwnersView ? 'Propietario' : 'Prospecto';
+  const label = 'Contacto';
 
   return (
     <>

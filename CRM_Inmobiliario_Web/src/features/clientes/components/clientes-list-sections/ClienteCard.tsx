@@ -78,10 +78,17 @@ export const ClienteCard = ({
         <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
           {[cliente.nombre, cliente.apellido].filter(Boolean).join(' ')}
         </h3>
-        <div className="mt-1">
-          <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">
-            REF: {cliente.id.substring(0, 8).toUpperCase()}
-          </span>
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          {(!cliente.esPropietario || (cliente.intereses && cliente.intereses.length > 0)) && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100/50">
+              Prospecto
+            </span>
+          )}
+          {cliente.esPropietario && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/50">
+              Propietario
+            </span>
+          )}
         </div>
       </div>
 

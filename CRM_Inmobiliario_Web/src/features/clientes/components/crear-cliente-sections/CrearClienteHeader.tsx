@@ -32,7 +32,7 @@ export const CrearClienteHeader = ({
 
       <div className="mb-8">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-          {isEditing ? 'Editar Prospecto' : 'Nuevo Prospecto'}
+          {isEditing ? 'Editar Contacto' : 'Nuevo Contacto'}
         </h2>
         <div className="flex flex-wrap items-center gap-2 mt-1 min-h-[24px]">
           <p className="text-slate-500 font-medium text-sm">
