@@ -15,8 +15,8 @@ interface UseCrearTareaProps {
     titulo?: string;
     tipoTarea?: string;
     fechaInicio?: string;
-    clienteId?: string;
-    clienteLabel?: string;
+    contactoId?: string;
+    contactoLabel?: string;
     propiedadId?: string;
     propiedadLabel?: string;
     lugar?: string;
@@ -25,11 +25,11 @@ interface UseCrearTareaProps {
 
 export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTareaProps) => {
   const { mutate } = useSWRConfig();
-  const { clientes, propiedades, addTarea } = useTareas();
+  const { contactos, propiedades, addTarea } = useTareas();
 
-  const clienteOptions = useMemo(() =>
-    clientes.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
-    [clientes]
+  const contactoOptions = useMemo(() =>
+    contactos.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
+    [contactos]
   );
 
   const propiedadOptions = useMemo(() =>
@@ -58,7 +58,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
         descripcion: '',
         tipoTarea: prefill.tipoTarea ?? 'Llamada',
         fechaInicio: prefill.fechaInicio ?? defaultFecha,
-        clienteId: prefill.clienteId,
+        contactoId: prefill.contactoId,
         propiedadId: prefill.propiedadId,
         lugar: prefill.lugar,
       };
@@ -92,7 +92,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
     localStorage.removeItem(DRAFT_STORAGE_KEY);
 
     const tempId = `temp-${new Date().getTime()}`;
-    const cliente = data.clienteId ? clientes.find(c => c.id === data.clienteId) : null;
+    const contacto = data.contactoId ? contactos.find(c => c.id === data.contactoId) : null;
     const propiedad = data.propiedadId ? propiedades.find(p => p.id === data.propiedadId) : null;
 
     const nuevaTareaOptimista: Tarea = {
@@ -101,7 +101,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
       tipoTarea: data.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
       estado: 'Pendiente' as const,
       fechaInicio: new Date(data.fechaInicio).toISOString(),
-      clienteNombre: cliente ? [cliente.nombre, cliente.apellido].filter(Boolean).join(' ') : undefined,
+      contactoNombre: contacto ? [contacto.nombre, contacto.apellido].filter(Boolean).join(' ') : undefined,
       propiedadTitulo: propiedad ? propiedad.titulo : undefined
     };
 
@@ -141,7 +141,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
     setValue,
     watch,
     formData,
-    clienteOptions,
+    contactoOptions,
     propiedadOptions,
     onSubmit,
     handleClearDraft,

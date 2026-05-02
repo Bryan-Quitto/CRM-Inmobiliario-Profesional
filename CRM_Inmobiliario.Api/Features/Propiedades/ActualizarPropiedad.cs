@@ -114,7 +114,7 @@ public static class ActualizarPropiedadFeature
             // Manejo de Propietario (Spec 015 - Auto Promotion)
             if (command.PropietarioId.HasValue)
             {
-                var propietario = await context.Leads.FindAsync(command.PropietarioId.Value);
+                var propietario = await context.Contactos.FindAsync(command.PropietarioId.Value);
                 if (propietario != null && !propietario.EsPropietario)
                 {
                     propietario.EsPropietario = true;

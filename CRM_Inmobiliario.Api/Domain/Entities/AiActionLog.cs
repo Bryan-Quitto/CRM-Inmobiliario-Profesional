@@ -8,9 +8,9 @@ public sealed class AiActionLog
 
     [Required]
     [MaxLength(20)]
-    public string TelefonoCliente { get; set; } = string.Empty;
+    public string TelefonoContacto { get; set; } = string.Empty;
 
-    public Guid? ClienteId { get; set; } // Vínculo fuerte con el Lead
+    public Guid? ContactoId { get; set; } // Vínculo fuerte con el Contacto
 
     [Required]
     [MaxLength(100)]

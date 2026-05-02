@@ -18,15 +18,15 @@ public abstract class BaseWhatsAppToolHandler : IWhatsAppToolHandler
 
     public abstract string ToolName { get; }
 
-    public abstract Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Lead? lead);
+    public abstract Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto);
 
-    protected async Task LogAiActionAsync(string accion, string detalle, string phone, string triggerMessage, Guid? leadId = null)
+    protected async Task LogAiActionAsync(string accion, string detalle, string phone, string triggerMessage, Guid? contactoId = null)
     {
         var log = new AiActionLog
         {
             Id = Guid.NewGuid(),
-            TelefonoCliente = phone,
-            ClienteId = leadId,
+            TelefonoContacto = phone,
+            ContactoId = contactoId,
             Accion = accion,
             DetalleJson = detalle,
             TriggerMessage = triggerMessage,

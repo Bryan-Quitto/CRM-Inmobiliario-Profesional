@@ -47,7 +47,7 @@ export const AuditoriaClientItem = ({
           : 'border-slate-50 hover:border-slate-200 hover:shadow-xl hover:shadow-slate-200/20'
       }`}
     >
-      {/* Header del Cliente */}
+      {/* Header del Contacto */}
       <div className="p-6 flex items-center justify-between gap-4">
         <div 
           className="flex-1 flex items-center gap-5 cursor-pointer"
@@ -81,9 +81,9 @@ export const AuditoriaClientItem = ({
         </div>
 
         <div className="flex items-center gap-3">
-          {group.clienteId && (
+          {group.contactoId && (
             <button 
-              onClick={() => navigate(`/prospectos/${group.clienteId}`)}
+              onClick={() => navigate(`/contactos/${group.contactoId}`)}
               className="hidden sm:flex items-center gap-3 bg-slate-50 hover:bg-slate-900 hover:text-white p-3 pr-5 rounded-2xl transition-all group cursor-pointer border border-slate-100 hover:border-slate-900"
             >
               <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 shadow-sm transition-colors">
@@ -94,7 +94,7 @@ export const AuditoriaClientItem = ({
                   Expediente
                   <ExternalLink size={10} />
                 </p>
-                <p className="text-xs font-black leading-none mt-1">Ver Cliente</p>
+                <p className="text-xs font-black contactoing-none mt-1">Ver Contacto</p>
               </div>
             </button>
           )}
@@ -136,7 +136,7 @@ export const AuditoriaClientItem = ({
             {expandedSection === 'registrado' && (
               <AuditoriaSectionRegistrado 
                 registradoPorIA={group.registradoPorIA}
-                clienteId={group.clienteId}
+                contactoId={group.contactoId}
                 idABorrar={idABorrar}
                 setIdABorrar={setIdABorrar}
                 isDeleting={isDeleting}
@@ -194,7 +194,7 @@ export const AuditoriaClientItem = ({
 
             {expandedSection === 'intereses' && (
               <AuditoriaSectionIntereses 
-                clienteId={group.clienteId}
+                contactoId={group.contactoId}
                 intereses={group.intereses}
                 logs={group.logs}
                 mutate={mutate}

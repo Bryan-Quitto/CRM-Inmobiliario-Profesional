@@ -82,21 +82,21 @@ public class KpiWarmingBackgroundService : BackgroundService
             {
                 // Dashboard
                 Propiedades = a.Properties.Count(p => p.EstadoComercial == "Disponible"),
-                Prospectos = a.Leads.Count(l => l.EtapaEmbudo != "Perdido"),
+                Prospectos = a.Contactos.Count(l => l.EtapaEmbudo != "Perdido"),
                 Tareas = a.Tasks.Count(t => t.Estado == "Pendiente" && t.FechaInicio <= limiteHoyUtc),
-                LeadsSeguimiento = a.Leads
+                ContactosSeguimiento = a.Contactos
                     .Where(l => !etapasExcluidasDashboard.Contains(l.EtapaEmbudo) && l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
-                    .Select(l => new LeadDashboardItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
+                    .Select(l => new ContactoDashboardItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
                     .ToList(),
-                EmbudoRaw = a.Leads
+                EmbudoRaw = a.Contactos
                     .GroupBy(l => l.EtapaEmbudo)
                     .Select(g => new { Etapa = g.Key, Cantidad = g.Count() })
                     .ToList(),
 
                 // Analítica Mensual (One Trip)
                 MensualVisitas = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc),
-                MensualCierres = a.Leads.Count(l => etapasVenta.Contains(l.EtapaEmbudo) && ((l.FechaCierre != null && l.FechaCierre >= inicioMesUtc && l.FechaCierre <= finMesUtc) || (l.FechaCierre == null && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc))),
-                MensualOfertas = a.Leads.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc),
+                MensualCierres = a.Contactos.Count(l => etapasVenta.Contains(l.EtapaEmbudo) && ((l.FechaCierre != null && l.FechaCierre >= inicioMesUtc && l.FechaCierre <= finMesUtc) || (l.FechaCierre == null && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc))),
+                MensualOfertas = a.Contactos.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc),
                 MensualCaptaciones = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicioMesUtc && p.FechaIngreso <= finMesUtc),
 
                 // Crudos para tendencia semanal
@@ -104,7 +104,7 @@ public class KpiWarmingBackgroundService : BackgroundService
                     .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc)
                     .Select(t => t.FechaInicio)
                     .ToList(),
-                RawCierres = a.Leads
+                RawCierres = a.Contactos
                     .Where(l => etapasVenta.Contains(l.EtapaEmbudo) && ((l.FechaCierre != null && l.FechaCierre >= inicioMesUtc && l.FechaCierre <= finMesUtc) || (l.FechaCierre == null && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc)))
                     .Select(l => l.FechaCierre ?? l.FechaCreacion)
                     .ToList(),
@@ -122,8 +122,8 @@ public class KpiWarmingBackgroundService : BackgroundService
                 megaData.Propiedades,
                 megaData.Prospectos,
                 megaData.Tareas,
-                megaData.LeadsSeguimiento.Count,
-                megaData.LeadsSeguimiento,
+                megaData.ContactosSeguimiento.Count,
+                megaData.ContactosSeguimiento,
                 megaData.EmbudoRaw.Select(x => new EtapaEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad)).ToList()
             );
 

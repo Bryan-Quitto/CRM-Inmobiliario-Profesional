@@ -28,7 +28,7 @@ export const AnaliticaProyeccion = ({ proyeccion, isExpanded, onToggleExpand }: 
               {formatCurrency(proyeccion?.proyeccionIngresos ?? 0)}
             </h2>
             <p className="text-slate-400 text-sm font-medium max-w-md">
-              Ingresos estimados basados en inmuebles <span className="text-white font-bold italic">Reservados</span> y clientes activos.
+              Ingresos estimados basados en inmuebles <span className="text-white font-bold italic">Reservados</span> y contactos activos.
             </p>
           </div>
           <div className="flex flex-col items-center gap-4">

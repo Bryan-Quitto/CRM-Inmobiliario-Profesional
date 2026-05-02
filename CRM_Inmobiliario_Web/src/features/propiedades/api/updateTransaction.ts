@@ -4,7 +4,7 @@ export interface UpdateTransactionRequest {
   transactionDate: string;
   transactionType?: string | null;
   amount?: number | null;
-  leadId?: string | null;
+  contactoId?: string | null;
   notes?: string | null;
 }
 

@@ -13,7 +13,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "BuscarPropiedades";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Lead? lead)
+    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
     {
         decimal? maxBudget = args.RootElement.TryGetProperty("presupuestoMaximo", out var b) ? b.GetDecimal() : null;
         decimal? minBudget = args.RootElement.TryGetProperty("presupuestoMinimo", out var mb) ? mb.GetDecimal() : null;
@@ -26,8 +26,8 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         _logger.LogInformation("Iniciando búsqueda jerárquica: Tipo={Type}, Rango={Min}-{Max}, Ubicación={Location}, Keyword={Keyword}", 
             type ?? "Cualquiera", minBudget?.ToString() ?? "0", maxBudget?.ToString() ?? "Max", location ?? "Cualquiera", keyword ?? "Ninguna");
 
-        var descartadosIds = await _context.LeadPropertyInterests
-            .Where(i => i.Cliente!.Telefono == phone && i.NivelInteres == "Descartada")
+        var descartadosIds = await _context.ContactoInteresPropiedades
+            .Where(i => i.Contacto!.Telefono == phone && i.NivelInteres == "Descartada")
             .Select(i => i.PropiedadId)
             .ToListAsync();
 
@@ -87,7 +87,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 
         if (results.Any()) 
         {
-            await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
+            await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
             return JsonSerializer.Serialize(results);
         }
 
@@ -102,7 +102,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, NotaIA = p.EstadoComercial == "Reservada" ? "RESERVADA: Avisar al cliente." : p.EstadoComercial == "Alquilada" ? "ALQUILADA: Avisar al cliente." : (string?)null }).ToListAsync();
             if (results.Any()) 
             {
-                await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
+                await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
                 return "{\"Aviso\": \"No encontré opciones bajo ese presupuesto exacto, pero estas son las más económicas que cumplen con el tipo/ubicación:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
             }
         }
@@ -119,7 +119,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             
             if (results.Any()) 
             {
-                await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
+                await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
                 return "{\"Aviso\": \"No encontré " + type + "s en esa zona/presupuesto, pero aquí tienes las " + type + "s más baratas del catálogo:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
             }
         }
@@ -133,7 +133,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 
         if (results.Any()) 
         {
-            await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, lead?.Id);
+            await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
             return "{\"Aviso\": \"No encontré nada similar a tu búsqueda, pero estas son las ofertas más destacadas del momento:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
         }
 

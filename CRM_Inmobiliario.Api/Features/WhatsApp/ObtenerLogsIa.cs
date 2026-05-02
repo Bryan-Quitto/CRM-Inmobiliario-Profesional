@@ -18,10 +18,10 @@ public static class ObtenerLogsIa
         string NivelInteres,
         DateTimeOffset Fecha);
 
-    public record ClientGroupResponse(
+    public record ContactGroupResponse(
         string Telefono,
         string Nombre,
-        Guid? ClienteId,
+        Guid? ContactoId,
         DateTimeOffset UltimaActividad,
         bool RegistradoPorIA,
         List<LogResponse> Logs,
@@ -48,32 +48,32 @@ public static class ObtenerLogsIa
                     .Take(400)
                     .ToListAsync();
 
-                var telefonos = rawLogs.Select(l => l.TelefonoCliente).Distinct().ToList();
-                var clienteIds = rawLogs.Where(l => l.ClienteId.HasValue).Select(l => l.ClienteId!.Value).Distinct().ToList();
+                var telefonos = rawLogs.Select(l => l.TelefonoContacto).Distinct().ToList();
+                var contactoIds = rawLogs.Where(l => l.ContactoId.HasValue).Select(l => l.ContactoId!.Value).Distinct().ToList();
 
-                var leads = await context.Leads
+                var contactos = await context.Contactos
                     .AsNoTracking()
-                    .Where(l => telefonos.Contains(l.Telefono) || clienteIds.Contains(l.Id))
+                    .Where(l => telefonos.Contains(l.Telefono) || contactoIds.Contains(l.Id))
                     .Include(l => l.PropertyInterests)
                         .ThenInclude(i => i.Propiedad)
                             .ThenInclude(p => p!.Media)
                     .ToListAsync();
 
-                var response = new List<ClientGroupResponse>();
+                var response = new List<ContactGroupResponse>();
 
                 foreach (var tel in telefonos)
                 {
-                    // Priorizar búsqueda por ClienteId, luego por teléfono
-                    var clientLogs = rawLogs.Where(l => l.TelefonoCliente == tel).ToList();
-                    var specificClientId = clientLogs.FirstOrDefault(l => l.ClienteId.HasValue)?.ClienteId;
+                    // Priorizar búsqueda por ContactoId, luego por teléfono
+                    var clientLogs = rawLogs.Where(l => l.TelefonoContacto == tel).ToList();
+                    var specificContactId = clientLogs.FirstOrDefault(l => l.ContactoId.HasValue)?.ContactoId;
                     
-                    var lead = specificClientId.HasValue 
-                        ? leads.FirstOrDefault(l => l.Id == specificClientId)
-                        : leads.FirstOrDefault(l => l.Telefono == tel);
+                    var contacto = specificContactId.HasValue 
+                        ? contactos.FirstOrDefault(l => l.Id == specificContactId)
+                        : contactos.FirstOrDefault(l => l.Telefono == tel);
                     
-                    bool registradoPorIA = clientLogs.Any(l => l.Accion == "Registro Lead" || l.Accion == "Registro de Prospecto");
+                    bool registradoPorIA = clientLogs.Any(l => l.Accion == "Registro Lead" || l.Accion == "Registro de Contacto" || l.Accion == "Registro de Prospecto");
 
-                    var intereses = lead?.PropertyInterests
+                    var intereses = contacto?.PropertyInterests
                         .Where(i => i.Propiedad != null)
                         .Select(i => new InteresResumen(
                         i.PropiedadId,
@@ -85,10 +85,10 @@ public static class ObtenerLogsIa
                         i.FechaRegistro
                     )).OrderByDescending(i => i.Fecha).ToList() ?? new List<InteresResumen>();
 
-                    response.Add(new ClientGroupResponse(
+                    response.Add(new ContactGroupResponse(
                         tel,
-                        lead != null ? $"{lead.Nombre} {lead.Apellido}".Trim() : "Cliente no identificado",
-                        lead?.Id,
+                        contacto != null ? $"{contacto.Nombre} {contacto.Apellido}".Trim() : "Contacto no identificado",
+                        contacto?.Id,
                         clientLogs.First().Fecha,
                         registradoPorIA,
                         clientLogs.Select(l => new LogResponse(l.Id, l.Accion, l.DetalleJson, l.TriggerMessage, l.Fecha)).ToList(),

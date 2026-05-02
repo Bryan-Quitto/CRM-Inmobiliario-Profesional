@@ -96,10 +96,10 @@ export const DetalleHistoryTimeline = ({
                     </div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Agente: {item.agenteNombre}</span>
                   </div>
-                  {item.leadId && (
+                  {item.contactoId && (
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Titular:</span>
-                      <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{item.leadNombre}</span>
+                      <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{item.contactoNombre}</span>
                     </div>
                   )}
                 </div>
@@ -166,7 +166,7 @@ const InlineNoteEditor = ({ transaction, onSave }: { transaction: PropertyTransa
   }
 
   return (
-    <p onDoubleClick={() => setIsEditing(true)} className={`text-sm font-medium leading-relaxed mb-4 italic cursor-text hover:bg-slate-50 p-2 -mx-2 rounded-lg transition-colors border border-transparent hover:border-slate-100 ${transaction.notes ? 'text-slate-600' : 'text-slate-300'}`} title="Doble clic para editar nota">
+    <p onDoubleClick={() => setIsEditing(true)} className={`text-sm font-medium contactoing-relaxed mb-4 italic cursor-text hover:bg-slate-50 p-2 -mx-2 rounded-lg transition-colors border border-transparent hover:border-slate-100 ${transaction.notes ? 'text-slate-600' : 'text-slate-300'}`} title="Doble clic para editar nota">
       {transaction.notes ? `"${transaction.notes}"` : 'Doble clic para añadir nota...'}
     </p>
   );

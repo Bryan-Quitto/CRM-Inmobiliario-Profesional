@@ -100,19 +100,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </span>
           </div>
           
-          <h4 className={`text-sm font-black text-slate-900 truncate leading-tight transition-all ${
+          <h4 className={`text-sm font-black text-slate-900 truncate contactoing-tight transition-all ${
             tarea.estado === 'Completada' ? 'line-through text-slate-400' : ''
           }`}>
             {tarea.titulo}
           </h4>
 
           {/* Relaciones */}
-          {(tarea.clienteNombre || tarea.propiedadTitulo || tarea.lugar) && (
+          {(tarea.contactoNombre || tarea.propiedadTitulo || tarea.lugar) && (
             <div className="mt-2 space-y-1">
-              {tarea.clienteNombre && (
+              {tarea.contactoNombre && (
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
                   <Users className="h-3 w-3 text-slate-300" />
-                  <span className="truncate">{tarea.clienteNombre}</span>
+                  <span className="truncate">{tarea.contactoNombre}</span>
                 </div>
               )}
               {tarea.propiedadTitulo && (

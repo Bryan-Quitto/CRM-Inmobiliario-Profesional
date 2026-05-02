@@ -41,7 +41,7 @@ export const DetalleHeader = ({
           <X className="h-6 w-6" />
         </button>
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none">Detalles del Inmueble</h2>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight contactoing-none">Detalles del Inmueble</h2>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {id.split('-')[0]}</p>
         </div>
       </div>

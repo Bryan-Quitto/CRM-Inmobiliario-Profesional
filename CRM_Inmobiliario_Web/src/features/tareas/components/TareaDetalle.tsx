@@ -57,8 +57,8 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
   };
 
   const handleNavigateToClient = () => {
-    if (tarea.clienteId) {
-      navigate(`/prospectos/${tarea.clienteId}`);
+    if (tarea.contactoId) {
+      navigate(`/contactos/${tarea.contactoId}`);
     }
   };
 
@@ -138,7 +138,7 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
             <Type className="h-4 w-4" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Título</span>
           </div>
-          <h3 className="text-2xl font-black text-slate-900 leading-tight tracking-tight">
+          <h3 className="text-2xl font-black text-slate-900 contactoing-tight tracking-tight">
             {tarea.titulo}
           </h3>
         </div>
@@ -161,7 +161,7 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
               <AlignLeft className="h-4 w-4" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em]">Descripción</span>
             </div>
-            <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
+            <p className="text-sm font-medium text-slate-600 contactoing-relaxed italic">
               "{tarea.descripcion}"
             </p>
           </div>
@@ -169,7 +169,7 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
 
         {/* Relaciones */}
         <div className="space-y-4 pt-6 border-t border-slate-50">
-          {tarea.clienteNombre && (
+          {tarea.contactoNombre && (
             <button 
               onClick={handleNavigateToClient}
               className="w-full flex items-center gap-4 group text-left hover:bg-slate-50 p-2 -m-2 rounded-2xl transition-all cursor-pointer"
@@ -179,10 +179,10 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  Cliente Relacionado
+                  Contacto Relacionado
                   <ExternalLink size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                 </p>
-                <p className="text-base font-black text-slate-900 leading-none mt-1 truncate">{tarea.clienteNombre}</p>
+                <p className="text-base font-black text-slate-900 contactoing-none mt-1 truncate">{tarea.contactoNombre}</p>
               </div>
             </button>
           )}
@@ -200,7 +200,7 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
                   Inmueble de Interés
                   <ExternalLink size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                 </p>
-                <p className="text-base font-black text-slate-900 leading-none mt-1 truncate">{tarea.propiedadTitulo}</p>
+                <p className="text-base font-black text-slate-900 contactoing-none mt-1 truncate">{tarea.propiedadTitulo}</p>
               </div>
             </button>
           )}
@@ -212,7 +212,7 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ubicación de la Tarea</p>
-                <p className="text-base font-bold text-slate-700 leading-tight mt-1 truncate max-w-[200px]">
+                <p className="text-base font-bold text-slate-700 contactoing-tight mt-1 truncate max-w-[200px]">
                   {tarea.lugar || tarea.propiedadDireccion}
                 </p>
               </div>

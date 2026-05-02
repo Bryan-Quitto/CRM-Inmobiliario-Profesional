@@ -5,10 +5,10 @@ export interface Tarea {
   tipoTarea: 'Llamada' | 'Visita' | 'Reunión' | 'Trámite';
   fechaInicio: string;
   estado: 'Pendiente' | 'Completada' | 'Cancelada';
-  clienteNombre?: string;
+  contactoNombre?: string;
   propiedadTitulo?: string;
   propiedadDireccion?: string;
-  clienteId?: string;
+  contactoId?: string;
   propiedadId?: string;
   lugar?: string;
 }
@@ -18,7 +18,7 @@ export interface CrearTareaDTO {
   descripcion?: string;
   tipoTarea: string;
   fechaInicio: string;
-  clienteId?: string;
+  contactoId?: string;
   propiedadId?: string;
   lugar?: string;
 }
@@ -30,7 +30,7 @@ export interface ActualizarTareaDTO {
   fechaInicio: string;
   duracionMinutos: number;
   colorHex?: string;
-  clienteId?: string;
+  contactoId?: string;
   propiedadId?: string;
   lugar?: string;
 }

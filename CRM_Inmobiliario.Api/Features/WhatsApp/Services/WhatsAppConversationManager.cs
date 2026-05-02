@@ -24,20 +24,20 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
 
     public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText)
     {
-        // 1. Búsqueda inteligente del Lead
+        // 1. Búsqueda inteligente del Contacto
         string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
-        var lead = await _context.Leads.AsNoTracking()
+        var contacto = await _context.Contactos.AsNoTracking()
             .FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
         
         // 2. Filtrado por Etapa
         string? autoMsg = null;
-        if (lead != null)
+        if (contacto != null)
         {
-            if (lead.EtapaEmbudo == "En Negociación")
+            if (contacto.EtapaEmbudo == "En Negociación")
             {
                 autoMsg = "*Mensaje Automático:* Hola, hemos recibido tu mensaje. Como te encuentras en proceso de negociación, un asesor humano se contactará contigo en unos momentos para darte una atención personalizada. ¡Gracias por tu paciencia!";
             }
-            else if (lead.EtapaEmbudo == "Cerrado")
+            else if (contacto.EtapaEmbudo == "Cerrado")
             {
                 autoMsg = "*Mensaje Automático:* ¡Hola de nuevo! Es un gusto saludarte. Veo que ya hemos finalizado un proceso exitoso anteriormente. Un asesor se comunicará contigo en breve para asistirte con tus nuevos requerimientos inmobiliarios. ¡Gracias por elegirnos nuevamente!";
             }
@@ -48,11 +48,11 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             .FirstOrDefaultAsync(c => c.Telefono == phone);
         
         List<ChatMessage> history;
-        bool leadExists = lead != null;
+        bool contactExists = contacto != null;
 
         if (conversation == null)
         {
-            history = new List<ChatMessage> { new SystemChatMessage(_promptBuilder.GetSystemPrompt(leadExists, lead?.Nombre)) };
+            history = new List<ChatMessage> { new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre)) };
             conversation = new WhatsappConversation
             {
                 Telefono = phone,
@@ -63,7 +63,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         }
         else
         {
-            history = _promptBuilder.DeserializeHistory(conversation.HistorialJson, leadExists, lead?.Nombre);
+            history = _promptBuilder.DeserializeHistory(conversation.HistorialJson, contactExists, contacto?.Nombre);
         }
 
         // 4. Añadir mensaje del usuario a la historia
@@ -77,7 +77,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             history.Insert(0, systemMessage);
         }
 
-        return new WhatsAppContext(lead, conversation, history, autoMsg);
+        return new WhatsAppContext(contacto, conversation, history, autoMsg);
     }
 
     public async Task SaveStateAsync(string phone, List<ChatMessage> history)

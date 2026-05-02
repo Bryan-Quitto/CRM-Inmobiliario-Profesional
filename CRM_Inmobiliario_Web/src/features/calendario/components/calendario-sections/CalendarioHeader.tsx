@@ -36,7 +36,7 @@ export const CalendarioHeader: React.FC<CalendarioHeaderProps> = ({
             <Calendar size={24} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Calendario</h1>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight contactoing-none">Calendario</h1>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión de Agenda</p>
           </div>
         </div>

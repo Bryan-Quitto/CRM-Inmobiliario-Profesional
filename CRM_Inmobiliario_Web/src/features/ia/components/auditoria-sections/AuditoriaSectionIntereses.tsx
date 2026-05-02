@@ -4,13 +4,13 @@ import { NIVELES_INTERES, currencyFormatter, dateFormatter } from '../../constan
 import type { InteresResumen, LogResponse, ClientGroup } from '../../types/auditoria';
 
 interface SectionInteresesProps {
-  clienteId: string | null;
+  contactoId: string | null;
   intereses: InteresResumen[];
   logs: LogResponse[];
   mutate: () => Promise<ClientGroup[] | undefined>;
 }
 
-export const AuditoriaSectionIntereses = ({ clienteId, intereses, logs, mutate }: SectionInteresesProps) => {
+export const AuditoriaSectionIntereses = ({ contactoId, intereses, logs, mutate }: SectionInteresesProps) => {
   const {
     updatingInteresId,
     interesABorrarId,
@@ -118,7 +118,7 @@ export const AuditoriaSectionIntereses = ({ clienteId, intereses, logs, mutate }
                               {NIVELES_INTERES.map(n => (
                                 <button 
                                   key={n.value}
-                                  onClick={() => { if (clienteId) handleUpdateNivelInteres(clienteId, interes.propiedadId, n.value); }}
+                                  onClick={() => { if (contactoId) handleUpdateNivelInteres(contactoId, interes.propiedadId, n.value); }}
                                   className="w-full text-left px-4 py-2 text-[10px] font-black uppercase hover:bg-slate-50 rounded-xl transition-colors flex items-center justify-between cursor-pointer"
                                 >
                                   {n.label}
@@ -152,7 +152,7 @@ export const AuditoriaSectionIntereses = ({ clienteId, intereses, logs, mutate }
                           <div className="flex items-center gap-1 bg-rose-50 p-1 rounded-xl animate-in zoom-in-95 duration-200 border border-rose-100">
                             <p className="text-[8px] font-black text-rose-500 uppercase px-2">¿Quitar?</p>
                             <button 
-                              onClick={() => clienteId && handleConfirmDeleteInteres(clienteId, interes.propiedadId)}
+                              onClick={() => contactoId && handleConfirmDeleteInteres(contactoId, interes.propiedadId)}
                               disabled={isDeletingInteres}
                               className="h-8 w-8 bg-emerald-500 text-white rounded-lg flex items-center justify-center hover:bg-emerald-600 transition-all cursor-pointer shadow-sm"
                             >
@@ -191,8 +191,8 @@ export const AuditoriaSectionIntereses = ({ clienteId, intereses, logs, mutate }
                         l.detalleJson?.includes(interes.propiedadId)
                       );
                       return (
-                        <p className="text-xs font-bold text-slate-600 leading-relaxed italic border-l-4 border-blue-200 pl-4">
-                          "{logInteres?.triggerMessage || 'La IA detectó interés en base a los requerimientos del cliente.'}"
+                        <p className="text-xs font-bold text-slate-600 contactoing-relaxed italic border-l-4 border-blue-200 pl-4">
+                          "{logInteres?.triggerMessage || 'La IA detectó interés en base a los requerimientos del contacto.'}"
                         </p>
                       );
                     })()}

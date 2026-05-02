@@ -1,7 +1,7 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { ComandoPanel } from './ComandoPanel';
-import { buscarClientes } from '../../clientes/api/buscarClientes';
+import { buscarContactos } from '../../contactos/api/buscarContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import { useTareas } from '../context/useTareas';
 import { CrearTareaForm } from './CrearTareaForm';
@@ -191,21 +191,21 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
         isOpen={isComandoPanelOpen}
         onClose={() => setIsComandoPanelOpen(false)}
         onParsed={async (resultado) => {
-          let clienteId: string | undefined;
-          let clienteLabel: string | undefined;
+          let contactoId: string | undefined;
+          let contactoLabel: string | undefined;
           let propiedadId: string | undefined;
           let propiedadLabel: string | undefined;
           let lugar: string | undefined;
 
-          if (resultado.clienteTexto) {
+          if (resultado.contactoTexto) {
             try {
-              const clientes = await buscarClientes(resultado.clienteTexto);
-              if (clientes.length > 0) {
-                clienteId = clientes[0].id;
-                clienteLabel = clientes[0].nombreCompleto;
+              const contactos = await buscarContactos(resultado.contactoTexto);
+              if (contactos.length > 0) {
+                contactoId = contactos[0].id;
+                contactoLabel = contactos[0].nombreCompleto;
               }
             } catch (e) {
-              console.error('[AsistenteParser] Error resolviendo cliente:', e);
+              console.error('[AsistenteParser] Error resolviendo contacto:', e);
             }
           }
 
@@ -228,8 +228,8 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
             titulo: resultado.titulo,
             tipoTarea: resultado.tipoTarea ?? undefined,
             fechaInicio: resultado.fechaInicio,
-            clienteId,
-            clienteLabel,
+            contactoId,
+            contactoLabel,
             propiedadId,
             propiedadLabel,
             lugar,

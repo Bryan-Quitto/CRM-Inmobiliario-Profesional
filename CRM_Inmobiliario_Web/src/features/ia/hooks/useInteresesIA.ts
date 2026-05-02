@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
-import { vincularPropiedad } from '../../clientes/api/vincularPropiedad';
-import { desvincularPropiedad } from '../../clientes/api/desvincularPropiedad';
+import { vincularPropiedad } from '../../contactos/api/vincularPropiedad';
+import { desvincularPropiedad } from '../../contactos/api/desvincularPropiedad';
 import type { ClientGroup } from '../types/auditoria';
 
 export const useInteresesIA = (mutate: () => Promise<ClientGroup[] | undefined>) => {
@@ -15,10 +15,10 @@ export const useInteresesIA = (mutate: () => Promise<ClientGroup[] | undefined>)
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number; openUp: boolean } | null>(null);
   const [expandedInteresId, setExpandedInteresId] = useState<string | null>(null);
 
-  const handleUpdateNivelInteres = async (clienteId: string, propiedadId: string, nuevoNivel: string) => {
+  const handleUpdateNivelInteres = async (contactoId: string, propiedadId: string, nuevoNivel: string) => {
     setUpdatingInteresId(propiedadId);
     try {
-      await vincularPropiedad(clienteId, propiedadId, nuevoNivel);
+      await vincularPropiedad(contactoId, propiedadId, nuevoNivel);
       toast.success('Interés actualizado correctamente');
       await mutate();
       globalMutate('/dashboard/kpis');
@@ -32,10 +32,10 @@ export const useInteresesIA = (mutate: () => Promise<ClientGroup[] | undefined>)
     }
   };
 
-  const handleConfirmDeleteInteres = async (clienteId: string, propiedadId: string) => {
+  const handleConfirmDeleteInteres = async (contactoId: string, propiedadId: string) => {
     setIsDeletingInteres(true);
     try {
-      await desvincularPropiedad(clienteId, propiedadId);
+      await desvincularPropiedad(contactoId, propiedadId);
       toast.success('Interés eliminado correctamente');
       setInteresABorrarId(null);
       await mutate();

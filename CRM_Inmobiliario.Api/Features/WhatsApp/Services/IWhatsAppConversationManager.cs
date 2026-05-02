@@ -4,7 +4,7 @@ using OpenAI.Chat;
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
 public record WhatsAppContext(
-    Lead? Lead, 
+    Contacto? Contacto, 
     WhatsappConversation Conversation, 
     List<ChatMessage> History, 
     string? AutoResponse = null);

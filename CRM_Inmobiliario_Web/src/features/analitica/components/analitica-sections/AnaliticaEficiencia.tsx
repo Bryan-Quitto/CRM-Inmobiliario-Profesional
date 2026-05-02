@@ -31,7 +31,7 @@ export const AnaliticaEficiencia = ({
               {expandedCard === 'velocidad' ? <Minus size={16} /> : <Plus size={16} />}
             </button>
           </div>
-          <p className="text-indigo-100/70 text-[11px] font-bold leading-tight mt-4 italic">Promedio histórico de éxito comercial.</p>
+          <p className="text-indigo-100/70 text-[11px] font-bold contactoing-tight mt-4 italic">Promedio histórico de éxito comercial.</p>
 
           {expandedCard === 'velocidad' && (
             <div className="mt-6 pt-6 border-t border-white/10 animate-in fade-in duration-300">
@@ -43,7 +43,7 @@ export const AnaliticaEficiencia = ({
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-indigo-200">Cierres Analizados:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-black">{eficiencia?.calculos?.leadsConFechaCierre ?? 0}</span>
+                    <span className="font-black">{eficiencia?.calculos?.contactosConFechaCierre ?? 0}</span>
                     <button 
                       onClick={() => setActiveModal('auditoria-velocidad')}
                       className="p-1 bg-white/10 hover:bg-white/20 rounded-md transition-all cursor-pointer text-indigo-200 hover:text-white"
@@ -53,8 +53,8 @@ export const AnaliticaEficiencia = ({
                     </button>
                   </div>
                 </div>
-                <div className="text-[9px] text-indigo-100/60 leading-relaxed italic">
-                  Cálculo: Suma de (Fecha Cierre - Fecha Creación) / Total de Cierres. Solo se incluyen clientes con fecha de cierre registrada.
+                <div className="text-[9px] text-indigo-100/60 contactoing-relaxed italic">
+                  Cálculo: Suma de (Fecha Cierre - Fecha Creación) / Total de Cierres. Solo se incluyen contactos con fecha de cierre registrada.
                 </div>
               </div>
             </div>
@@ -95,12 +95,12 @@ export const AnaliticaEficiencia = ({
                   <span className="text-lg font-black text-slate-900">{eficiencia?.calculos?.totalCerrados ?? 0}</span>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <span className="block text-[8px] font-black text-slate-400 uppercase mb-1">Total Prospectos</span>
-                  <span className="text-lg font-black text-slate-900">{eficiencia?.calculos?.totalLeads ?? 0}</span>
+                  <span className="block text-[8px] font-black text-slate-400 uppercase mb-1">Total Contactos</span>
+                  <span className="text-lg font-black text-slate-900">{eficiencia?.calculos?.totalContactos ?? 0}</span>
                 </div>
               </div>
               <div className="text-[9px] text-slate-500 font-medium italic text-center">
-                Fórmula: (Cierres / Total Leads) x 100
+                Fórmula: (Cierres / Total Contactos) x 100
               </div>
             </div>
           </div>

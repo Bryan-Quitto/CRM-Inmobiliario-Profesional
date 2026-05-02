@@ -88,7 +88,7 @@ public static class RegistrarPropiedadFeature
             // Manejo de Propietario (Spec 015)
             if (command.PropietarioId.HasValue)
             {
-                var propietario = await context.Leads.FindAsync(command.PropietarioId.Value);
+                var propietario = await context.Contactos.FindAsync(command.PropietarioId.Value);
                 if (propietario != null && !propietario.EsPropietario)
                 {
                     propietario.EsPropietario = true;

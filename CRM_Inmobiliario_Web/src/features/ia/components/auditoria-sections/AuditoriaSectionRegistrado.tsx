@@ -2,7 +2,7 @@ import { Bot, User, Loader2, Check, X, Pencil, Trash2, Calendar } from 'lucide-r
 
 interface SectionRegistradoProps {
   registradoPorIA: boolean;
-  clienteId: string | null;
+  contactoId: string | null;
   idABorrar: string | null;
   setIdABorrar: (id: string | null) => void;
   isDeleting: boolean;
@@ -12,7 +12,7 @@ interface SectionRegistradoProps {
 
 export const AuditoriaSectionRegistrado = ({
   registradoPorIA,
-  clienteId,
+  contactoId,
   idABorrar,
   setIdABorrar,
   isDeleting,
@@ -57,11 +57,11 @@ export const AuditoriaSectionRegistrado = ({
         </div>
 
         <div className="flex items-center gap-3">
-          {idABorrar === clienteId && clienteId ? (
+          {idABorrar === contactoId && contactoId ? (
             <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-xl border border-rose-100 animate-in zoom-in duration-200">
               <p className="text-[10px] font-black text-rose-500 uppercase px-3">¿Borrar?</p>
               <button 
-                onClick={() => handleConfirmDelete(clienteId)}
+                onClick={() => handleConfirmDelete(contactoId)}
                 disabled={isDeleting}
                 className="h-10 w-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center hover:bg-emerald-600 transition-all cursor-pointer shadow-lg shadow-emerald-500/20"
               >
@@ -78,13 +78,13 @@ export const AuditoriaSectionRegistrado = ({
           ) : (
             <>
               <button 
-                onClick={() => clienteId && handleEditClick(clienteId)}
+                onClick={() => contactoId && handleEditClick(contactoId)}
                 className="h-14 w-14 bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl flex items-center justify-center transition-all shadow-sm border border-slate-100 hover:border-blue-200 cursor-pointer group/btn"
               >
                 <Pencil className="h-6 w-6 group-hover/btn:scale-110 transition-transform" />
               </button>
               <button 
-                onClick={() => setIdABorrar(clienteId)}
+                onClick={() => setIdABorrar(contactoId)}
                 className="h-14 w-14 bg-white text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-2xl flex items-center justify-center transition-all shadow-sm border border-slate-100 hover:border-rose-200 cursor-pointer group/btn"
               >
                 <Trash2 className="h-6 w-6 group-hover/btn:scale-110 transition-transform" />

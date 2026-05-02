@@ -7,8 +7,8 @@ export interface PrefillResuelto {
   titulo: string;
   tipoTarea?: string;
   fechaInicio: string;
-  clienteId?: string;
-  clienteLabel?: string;
+  contactoId?: string;
+  contactoLabel?: string;
   propiedadId?: string;
   propiedadLabel?: string;
   lugar?: string;

@@ -15,9 +15,9 @@ public class InteractionConfiguration : IEntityTypeConfiguration<Interaction>
             .HasForeignKey(d => d.AgenteId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(d => d.Cliente)
+        builder.HasOne(d => d.Contacto)
             .WithMany(p => p.Interactions)
-            .HasForeignKey(d => d.ClienteId)
+            .HasForeignKey(d => d.ContactoId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(d => d.Propiedad)

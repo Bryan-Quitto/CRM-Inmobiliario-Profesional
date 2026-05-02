@@ -9,14 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Dashboard;
 
-public record LeadDashboardItem(Guid Id, string Nombre, string Apellido, string EtapaEmbudo);
+public record ContactoDashboardItem(Guid Id, string Nombre, string Apellido, string EtapaEmbudo);
 
 public record DashboardKpisResponse(
     int TotalPropiedadesDisponibles,
     int TotalProspectosActivos,
     int TareasPendientesHoy,
     int SeguimientoRequerido,
-    List<LeadDashboardItem> LeadsSeguimiento,
+    List<ContactoDashboardItem> ContactosSeguimiento,
     List<EtapaEmbudoItem> EmbudoVentas
 );
 
@@ -55,17 +55,17 @@ public static class ObtenerKpisEndpoint
                 .Select(a => new
                 {
                     Propiedades = a.Properties.Count(p => p.EstadoComercial == "Disponible"),
-                    Prospectos = a.Leads.Count(l => l.EtapaEmbudo != "Perdido"),
+                    Prospectos = a.Contactos.Count(l => l.EtapaEmbudo != "Perdido"),
                     Tareas = a.Tasks.Count(t => t.Estado == "Pendiente" && t.FechaInicio <= limiteHoyUtc),
                     
                     // Seguimiento (Proyectamos solo lo necesario)
-                    LeadsSeguimiento = a.Leads
+                    ContactosSeguimiento = a.Contactos
                         .Where(l => !etapasExcluidas.Contains(l.EtapaEmbudo) && l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
-                        .Select(l => new LeadDashboardItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
+                        .Select(l => new ContactoDashboardItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
                         .ToList(),
 
                     // Embudo (Agrupación en memoria tras traer el resumen por etapa)
-                    EmbudoRaw = a.Leads
+                    EmbudoRaw = a.Contactos
                         .GroupBy(l => l.EtapaEmbudo)
                         .Select(g => new { Etapa = g.Key, Cantidad = g.Count() })
                         .ToList()
@@ -83,8 +83,8 @@ public static class ObtenerKpisEndpoint
                 megaData.Propiedades,
                 megaData.Prospectos,
                 megaData.Tareas,
-                megaData.LeadsSeguimiento.Count,
-                megaData.LeadsSeguimiento,
+                megaData.ContactosSeguimiento.Count,
+                megaData.ContactosSeguimiento,
                 embudoFinal
             );
 

@@ -1,6 +1,6 @@
 using CRM_Inmobiliario.Api.Features.Analitica;
 using CRM_Inmobiliario.Api.Features.Calendario;
-using CRM_Inmobiliario.Api.Features.Clientes;
+using CRM_Inmobiliario.Api.Features.Contactos;
 using CRM_Inmobiliario.Api.Features.Configuracion;
 using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Features.Interacciones;
@@ -18,15 +18,15 @@ public static class EndpointRouteBuilderExtensions
     {
         var apiGroup = endpoints.MapGroup("/api").RequireAuthorization();
 
-        // Clientes
-        apiGroup.MapRegistrarClienteEndpoint();
-        apiGroup.MapBuscarClientesEndpoint();
-        apiGroup.MapListarClientesEndpoint().CacheOutput();
-        apiGroup.MapObtenerClientePorIdEndpoint();
-        apiGroup.MapActualizarClienteEndpoint();
-        apiGroup.MapEliminarCliente();
-        apiGroup.MapCambiarEtapaClienteEndpoint();
-        apiGroup.MapRevertirEstadoClienteEndpoint();
+        // Contactos
+        apiGroup.MapRegistrarContactoEndpoint();
+        apiGroup.MapBuscarContactosEndpoint();
+        apiGroup.MapListarContactosEndpoint().CacheOutput();
+        apiGroup.MapObtenerContactoPorIdEndpoint();
+        apiGroup.MapActualizarContactoEndpoint();
+        apiGroup.MapEliminarContactoEndpoint();
+        apiGroup.MapCambiarEtapaContactoEndpoint();
+        apiGroup.MapRevertirEstadoContactoEndpoint();
 
         // Propiedades
         apiGroup.MapRegistrarPropiedadEndpoint();

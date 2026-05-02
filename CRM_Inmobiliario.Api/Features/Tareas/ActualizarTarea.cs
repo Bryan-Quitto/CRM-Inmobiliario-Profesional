@@ -19,7 +19,7 @@ public static class ActualizarTareaFeature
         DateTimeOffset FechaInicio,
         int DuracionMinutos,
         string? ColorHex,
-        Guid? ClienteId,
+        Guid? ContactoId,
         Guid? PropiedadId,
         string? Lugar);
 
@@ -34,12 +34,12 @@ public static class ActualizarTareaFeature
             
             if (tarea is null) return Results.NotFound();
 
-            // Validar existencia de cliente si se provee y que pertenezca al agente
-            if (command.ClienteId.HasValue)
+            // Validar existencia de contacto si se provee y que pertenezca al agente
+            if (command.ContactoId.HasValue)
             {
-                var cliente = await context.Leads
-                    .AnyAsync(l => l.Id == command.ClienteId.Value && l.AgenteId == agenteId);
-                if (!cliente) return Results.BadRequest("El cliente especificado no existe o no te pertenece.");
+                var contacto = await context.Contactos
+                    .AnyAsync(l => l.Id == command.ContactoId.Value && l.AgenteId == agenteId);
+                if (!contacto) return Results.BadRequest("El contacto especificado no existe o no te pertenece.");
             }
 
             // Validar existencia de propiedad si se provee y que pertenezca al agente
@@ -56,7 +56,7 @@ public static class ActualizarTareaFeature
             tarea.FechaInicio = command.FechaInicio;
             tarea.DuracionMinutos = command.DuracionMinutos;
             tarea.ColorHex = command.ColorHex;
-            tarea.ClienteId = command.ClienteId;
+            tarea.ContactoId = command.ContactoId;
             tarea.PropiedadId = command.PropiedadId;
             tarea.Lugar = command.Lugar;
 

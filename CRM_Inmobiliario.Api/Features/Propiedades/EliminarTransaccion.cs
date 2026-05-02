@@ -38,9 +38,9 @@ public static class EliminarTransaccionFeature
 
             // 2. Regla de Cascada Lógica:
             // Si eliminamos una transacción de Sale/Rent que coincide con el titular actual del cierre,
-            // revertimos la propiedad a "Disponible" y al Lead a "En Negociación".
+            // revertimos la propiedad a "Disponible" y al Contacto a "En Negociación".
             var esCierreDefinitorio = (transaction.TransactionType is "Sale" or "Rent") && 
-                                      (property.CerradoConId == transaction.LeadId);
+                                      (property.CerradoConId == transaction.ContactoId);
 
             if (esCierreDefinitorio)
             {
@@ -48,13 +48,13 @@ public static class EliminarTransaccionFeature
                 property.FechaCierre = null;
                 property.PrecioCierre = null;
                 
-                if (transaction.LeadId.HasValue)
+                if (transaction.ContactoId.HasValue)
                 {
-                    var lead = await context.Leads.FirstOrDefaultAsync(l => l.Id == transaction.LeadId.Value, ct);
-                    if (lead != null)
+                    var contacto = await context.Contactos.FirstOrDefaultAsync(l => l.Id == transaction.ContactoId.Value, ct);
+                    if (contacto != null)
                     {
-                        lead.EtapaEmbudo = "En Negociación"; 
-                        lead.FechaCierre = null;
+                        contacto.EtapaEmbudo = "En Negociación"; 
+                        contacto.FechaCierre = null;
                     }
                 }
                 

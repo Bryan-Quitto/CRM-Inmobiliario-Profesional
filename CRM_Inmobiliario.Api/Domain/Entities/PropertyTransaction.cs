@@ -13,8 +13,8 @@ public sealed class PropertyTransaction
     public Guid PropertyId { get; set; }
     public Property? Property { get; set; }
 
-    public Guid? LeadId { get; set; }
-    public Lead? Lead { get; set; }
+    public Guid? ContactoId { get; set; }
+    public Contacto? Contacto { get; set; }
 
     [Required]
     [MaxLength(50)]

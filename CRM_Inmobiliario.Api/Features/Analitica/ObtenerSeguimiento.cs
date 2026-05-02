@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.Analitica;
 
-public record LeadSeguimientoItem(Guid Id, string Nombre, string Apellido, string EtapaEmbudo);
-public record SeguimientoResponse(int SeguimientoRequerido, List<LeadSeguimientoItem> Leads);
+public record ContactoSeguimientoItem(Guid Id, string Nombre, string Apellido, string EtapaEmbudo);
+public record SeguimientoResponse(int SeguimientoRequerido, List<ContactoSeguimientoItem> Contactos);
 
 public static class ObtenerSeguimientoEndpoint
 {
@@ -30,21 +30,21 @@ public static class ObtenerSeguimientoEndpoint
             // D. Seguimiento Crítico: 
             // 1. Interés Medio o Alto
             // 2. Que NO estén en Negociación, Cerrados o Perdidos
-            var leadsConInteres = await context.Leads
+            var contactosConInteres = await context.Contactos
                 .AsNoTracking()
                 .Where(l => l.AgenteId == agenteId && !etapasExcluidas.Contains(l.EtapaEmbudo))
                 .Where(l => l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
-                .Select(l => new LeadSeguimientoItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
+                .Select(l => new ContactoSeguimientoItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
                 .ToListAsync();
 
             logger.LogInformation("--- Analizando Seguimiento Crítico (Filtrado) ---");
-            foreach (var lead in leadsConInteres)
+            foreach (var contacto in contactosConInteres)
             {
-                logger.LogInformation("Lead en seguimiento: {Nombre} {Apellido} | Etapa: {Etapa}", lead.Nombre, lead.Apellido, lead.EtapaEmbudo);
+                logger.LogInformation("Contacto en seguimiento: {Nombre} {Apellido} | Etapa: {Etapa}", contacto.Nombre, contacto.Apellido, contacto.EtapaEmbudo);
             }
-            logger.LogInformation("Total Seguimiento Crítico: {Total}", leadsConInteres.Count);
+            logger.LogInformation("Total Seguimiento Crítico: {Total}", contactosConInteres.Count);
 
-            return Results.Ok(new SeguimientoResponse(leadsConInteres.Count, leadsConInteres));
+            return Results.Ok(new SeguimientoResponse(contactosConInteres.Count, contactosConInteres));
         })
         .WithTags("Analitica")
         .WithName("ObtenerSeguimiento")

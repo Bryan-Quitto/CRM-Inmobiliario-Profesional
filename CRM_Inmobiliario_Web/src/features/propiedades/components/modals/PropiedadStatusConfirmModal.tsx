@@ -25,7 +25,7 @@ export const PropiedadStatusConfirmModal = ({
           <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">
             ¿Confirmar estado {statusConfirmation.nuevoEstado}?
           </h3>
-          <p className="text-slate-500 font-medium leading-relaxed mb-8">
+          <p className="text-slate-500 font-medium contactoing-relaxed mb-8">
             Al marcar esta propiedad como <span className="font-bold text-slate-900">{statusConfirmation.nuevoEstado}</span>, todas las imágenes de la galería serán eliminadas permanentemente para optimizar el almacenamiento, <span className="text-rose-600 font-bold">excepto la foto de portada</span>.
           </p>
           

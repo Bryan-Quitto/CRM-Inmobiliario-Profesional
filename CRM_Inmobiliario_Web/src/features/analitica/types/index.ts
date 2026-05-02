@@ -9,20 +9,20 @@ export interface KpiVisita {
   id: string;
   titulo: string;
   fecha: string;
-  cliente?: string;
+  contacto?: string;
   propiedad?: string;
 }
 
 export interface KpiCierre {
   id: string;
-  cliente: string;
+  contacto: string;
   propiedad: string;
   fechaCierre: string;
 }
 
 export interface KpiOferta {
   id: string;
-  cliente: string;
+  contacto: string;
   propiedad: string;
   fecha: string;
 }
@@ -66,7 +66,7 @@ export interface ProyeccionAnalitica {
 
 export interface DetalleCierreEficiencia {
   id: string;
-  cliente: string;
+  contacto: string;
   propiedad: string;
   fechaCreacion: string;
   fechaCierre: string;
@@ -77,9 +77,9 @@ export interface EficienciaAnalitica {
   tasaConversion: number;
   tiempoPromedioCierreDias: number;
   calculos: {
-    totalLeads: number;
+    totalContactos: number;
     totalCerrados: number;
-    leadsConFechaCierre: number;
+    contactosConFechaCierre: number;
     detallesCierres: DetalleCierreEficiencia[];
   };
 }

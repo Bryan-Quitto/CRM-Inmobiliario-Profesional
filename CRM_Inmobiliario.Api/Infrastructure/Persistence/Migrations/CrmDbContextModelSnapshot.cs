@@ -109,7 +109,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<Guid?>("ClienteId")
+                    b.Property<Guid?>("ContactoId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("DetalleJson")
@@ -118,7 +118,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("Fecha")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("TelefonoCliente")
+                    b.Property<string>("TelefonoContacto")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -128,51 +128,13 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TelefonoCliente", "Fecha")
+                    b.HasIndex("TelefonoContacto", "Fecha")
                         .HasDatabaseName("IX_AiActionLogs_TelefonoFecha");
 
                     b.ToTable("AiActionLogs");
                 });
 
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AgenteId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ClienteId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("FechaInteraccion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Notas")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("PropiedadId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TipoInteraccion")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AgenteId");
-
-                    b.HasIndex("ClienteId");
-
-                    b.HasIndex("PropiedadId");
-
-                    b.ToTable("Interactions");
-                });
-
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Lead", b =>
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Contacto", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -186,8 +148,8 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<bool>("EsPropietario")
                         .HasColumnType("boolean");
@@ -232,14 +194,14 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AgenteId", "EtapaEmbudo", "FechaCierre", "FechaCreacion")
-                        .HasDatabaseName("IX_Leads_Performance_AgenteEtapaFecha");
+                        .HasDatabaseName("IX_Contactos_Performance_AgenteEtapaFecha");
 
-                    b.ToTable("Leads");
+                    b.ToTable("Contactos");
                 });
 
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.LeadPropertyInterest", b =>
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.ContactoInteresPropiedad", b =>
                 {
-                    b.Property<Guid>("ClienteId")
+                    b.Property<Guid>("ContactoId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("PropiedadId")
@@ -253,11 +215,49 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.HasKey("ClienteId", "PropiedadId");
+                    b.HasKey("ContactoId", "PropiedadId");
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("LeadPropertyInterests");
+                    b.ToTable("ContactoInteresPropiedades");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgenteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ContactoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("FechaInteraccion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notas")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("PropiedadId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TipoInteraccion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgenteId");
+
+                    b.HasIndex("ContactoId");
+
+                    b.HasIndex("PropiedadId");
+
+                    b.ToTable("Interactions");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Property", b =>
@@ -464,10 +464,10 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Property<decimal?>("Amount")
                         .HasColumnType("decimal(12,2)");
 
-                    b.Property<Guid>("CreatedById")
+                    b.Property<Guid?>("ContactoId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("LeadId")
+                    b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Notes")
@@ -491,9 +491,9 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("ContactoId");
 
-                    b.HasIndex("LeadId");
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("PropertyId", "TransactionDate")
                         .HasDatabaseName("IX_PropertyTransactions_PropertyDate");
@@ -510,12 +510,12 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("AgenteId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ClienteId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("ColorHex")
                         .HasMaxLength(7)
                         .HasColumnType("character varying(7)");
+
+                    b.Property<Guid?>("ContactoId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Descripcion")
                         .HasColumnType("text");
@@ -550,7 +550,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClienteId");
+                    b.HasIndex("ContactoId");
 
                     b.HasIndex("PropiedadId");
 
@@ -619,6 +619,36 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Agencia");
                 });
 
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Contacto", b =>
+                {
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agente")
+                        .WithMany("Contactos")
+                        .HasForeignKey("AgenteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Agente");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.ContactoInteresPropiedad", b =>
+                {
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "Contacto")
+                        .WithMany("PropertyInterests")
+                        .HasForeignKey("ContactoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Propiedad")
+                        .WithMany("ContactInterests")
+                        .HasForeignKey("PropiedadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contacto");
+
+                    b.Navigation("Propiedad");
+                });
+
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>
                 {
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agente")
@@ -627,9 +657,9 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Lead", "Cliente")
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "Contacto")
                         .WithMany("Interactions")
-                        .HasForeignKey("ClienteId")
+                        .HasForeignKey("ContactoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -640,36 +670,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Agente");
 
-                    b.Navigation("Cliente");
-
-                    b.Navigation("Propiedad");
-                });
-
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Lead", b =>
-                {
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agente")
-                        .WithMany("Leads")
-                        .HasForeignKey("AgenteId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Agente");
-                });
-
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.LeadPropertyInterest", b =>
-                {
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Lead", "Cliente")
-                        .WithMany("PropertyInterests")
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Propiedad")
-                        .WithMany("LeadInterests")
-                        .HasForeignKey("PropiedadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cliente");
+                    b.Navigation("Contacto");
 
                     b.Navigation("Propiedad");
                 });
@@ -686,11 +687,11 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Lead", "CerradoCon")
-                        .WithMany("PropertiesClosed")
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "CerradoCon")
+                        .WithMany()
                         .HasForeignKey("CerradoConId");
 
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Lead", "Propietario")
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "Propietario")
                         .WithMany("PropertiesOwned")
                         .HasForeignKey("PropietarioId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -735,16 +736,16 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyTransaction", b =>
                 {
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "Contacto")
+                        .WithMany("Transactions")
+                        .HasForeignKey("ContactoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Lead", "Lead")
-                        .WithMany()
-                        .HasForeignKey("LeadId")
-                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Property")
                         .WithMany("Transactions")
@@ -752,9 +753,9 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("Contacto");
 
-                    b.Navigation("Lead");
+                    b.Navigation("CreatedBy");
 
                     b.Navigation("Property");
                 });
@@ -767,9 +768,9 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Lead", "Cliente")
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "Contacto")
                         .WithMany("Tasks")
-                        .HasForeignKey("ClienteId")
+                        .HasForeignKey("ContactoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Propiedad")
@@ -779,7 +780,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Agente");
 
-                    b.Navigation("Cliente");
+                    b.Navigation("Contacto");
 
                     b.Navigation("Propiedad");
                 });
@@ -791,35 +792,35 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Agent", b =>
                 {
-                    b.Navigation("Interactions");
+                    b.Navigation("Contactos");
 
-                    b.Navigation("Leads");
+                    b.Navigation("Interactions");
 
                     b.Navigation("Properties");
 
                     b.Navigation("Tasks");
                 });
 
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Lead", b =>
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Contacto", b =>
                 {
                     b.Navigation("Interactions");
-
-                    b.Navigation("PropertiesClosed");
 
                     b.Navigation("PropertiesOwned");
 
                     b.Navigation("PropertyInterests");
 
                     b.Navigation("Tasks");
+
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Property", b =>
                 {
+                    b.Navigation("ContactInterests");
+
                     b.Navigation("GallerySections");
 
                     b.Navigation("Interactions");
-
-                    b.Navigation("LeadInterests");
 
                     b.Navigation("Media");
 

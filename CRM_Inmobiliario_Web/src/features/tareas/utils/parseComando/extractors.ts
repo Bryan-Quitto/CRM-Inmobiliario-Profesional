@@ -26,8 +26,8 @@ export const extraerTipo = (texto: string): TipoTarea | null => {
   return null;
 };
 
-/** Extrae el nombre del cliente: texto después de "con" hasta la siguiente preposición/keyword. */
-export const extraerCliente = (texto: string): string | null => {
+/** Extrae el nombre del contacto: texto después de "con" hasta la siguiente preposición/keyword. */
+export const extraerContacto = (texto: string): string | null => {
   // Busca "con <Nombre Apellido>" — captura 1-3 palabras capitalizadas tras "con"
   const match = texto.match(
     /\bcon\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){0,2})/u

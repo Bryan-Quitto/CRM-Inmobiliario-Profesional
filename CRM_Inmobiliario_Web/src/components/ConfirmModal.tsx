@@ -75,7 +75,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
           {title}
         </h3>
-        <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+        <p className="text-slate-500 text-sm font-medium mb-8 contactoing-relaxed">
           {description}
         </p>
 

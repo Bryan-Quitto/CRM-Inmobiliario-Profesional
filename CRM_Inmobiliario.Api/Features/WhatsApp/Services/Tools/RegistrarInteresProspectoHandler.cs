@@ -13,7 +13,7 @@ public sealed class RegistrarInteresProspectoHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "RegistrarInteresProspecto";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Lead? lead)
+    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
     {
         if (!args.RootElement.TryGetProperty("propiedadId", out var pIdProp) || !Guid.TryParse(pIdProp.GetString(), out var propiedadId))
             return "Error: ID de propiedad inválido.";
@@ -35,21 +35,21 @@ public sealed class RegistrarInteresProspectoHandler : BaseWhatsAppToolHandler
             }
         }
 
-        if (lead == null) return "Error: El cliente debe estar registrado antes de marcar interés.";
+        if (contacto == null) return "Error: El contacto debe estar registrado antes de marcar interés.";
 
-        var interest = await _context.LeadPropertyInterests
-            .FirstOrDefaultAsync(i => i.ClienteId == lead.Id && i.PropiedadId == propiedadId);
+        var interest = await _context.ContactoInteresPropiedades
+            .FirstOrDefaultAsync(i => i.ContactoId == contacto.Id && i.PropiedadId == propiedadId);
 
         if (interest == null)
         {
-            interest = new LeadPropertyInterest
+            interest = new ContactoInteresPropiedad
             {
-                ClienteId = lead.Id,
+                ContactoId = contacto.Id,
                 PropiedadId = propiedadId,
                 NivelInteres = nivel,
                 FechaRegistro = DateTimeOffset.UtcNow
             };
-            _context.LeadPropertyInterests.Add(interest);
+            _context.ContactoInteresPropiedades.Add(interest);
         }
         else
         {
@@ -57,7 +57,7 @@ public sealed class RegistrarInteresProspectoHandler : BaseWhatsAppToolHandler
             interest.FechaRegistro = DateTimeOffset.UtcNow;
         }
 
-        await LogAiActionAsync("RegistroInteres", args.RootElement.GetRawText(), phone, triggerMessage, lead.Id);
+        await LogAiActionAsync("RegistroInteres", args.RootElement.GetRawText(), phone, triggerMessage, contacto.Id);
         
         return $"Interés registrado correctamente como '{nivel}'.";
     }

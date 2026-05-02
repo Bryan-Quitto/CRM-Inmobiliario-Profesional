@@ -18,7 +18,7 @@ public static class RegistrarTareaFeature
         string? Descripcion,
         string TipoTarea,
         DateTimeOffset FechaInicio,
-        Guid? ClienteId,
+        Guid? ContactoId,
         Guid? PropiedadId,
         string? Lugar);
 
@@ -31,13 +31,13 @@ public static class RegistrarTareaFeature
             // LOG DE AUDITORIA API
             Console.WriteLine($"[API] Registrando Tarea: '{command.Titulo}' | Recibido (UTC/Offset): {command.FechaInicio:yyyy-MM-dd HH:mm:ss K} | Local Servidor: {command.FechaInicio.LocalDateTime:yyyy-MM-dd HH:mm:ss}");
 
-            // Validar existencia de cliente si se provee y que pertenezca al agente
-            if (command.ClienteId.HasValue)
+            // Validar existencia de contacto si se provee y que pertenezca al agente
+            if (command.ContactoId.HasValue)
             {
-                var cliente = await context.Leads
-                    .FirstOrDefaultAsync(l => l.Id == command.ClienteId.Value && l.AgenteId == agenteId);
+                var contacto = await context.Contactos
+                    .FirstOrDefaultAsync(l => l.Id == command.ContactoId.Value && l.AgenteId == agenteId);
                 
-                if (cliente is null) return Results.BadRequest("El cliente especificado no existe o no te pertenece.");
+                if (contacto is null) return Results.BadRequest("El contacto especificado no existe o no te pertenece.");
             }
 
             // Validar existencia de propiedad si se provee y que pertenezca al agente
@@ -58,7 +58,7 @@ public static class RegistrarTareaFeature
                 TipoTarea = command.TipoTarea,
                 FechaInicio = command.FechaInicio,
                 DuracionMinutos = 30, // Default para registros rápidos de tareas
-                ClienteId = command.ClienteId,
+                ContactoId = command.ContactoId,
                 PropiedadId = command.PropiedadId,
                 Lugar = command.Lugar,
                 Estado = "Pendiente",

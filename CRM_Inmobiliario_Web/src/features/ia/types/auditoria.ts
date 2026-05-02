@@ -19,7 +19,7 @@ export interface InteresResumen {
 export interface ClientGroup {
   telefono: string;
   nombre: string;
-  clienteId: string | null;
+  contactoId: string | null;
   ultimaActividad: string;
   registradoPorIA: boolean;
   logs: LogResponse[];
@@ -27,7 +27,7 @@ export interface ClientGroup {
 }
 
 export interface MensajeChat {
-  rol: 'cliente' | 'ia';
+  rol: 'contacto' | 'ia';
   contenido: string;
   fecha: string;
 }

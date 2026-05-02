@@ -17,8 +17,8 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ data, syncing }) => {
       description: 'Listas para la venta'
     },
     {
-      title: 'Prospectos Activos',
-      value: data.totalProspectosActivos,
+      title: 'Contactos Activos',
+      value: data.totalContactosActivos,
       icon: <Users className="h-6 w-6" />,
       color: 'bg-indigo-50 text-indigo-600',
       description: 'En seguimiento actual'

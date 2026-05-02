@@ -69,7 +69,7 @@ export const ConfiguracionView: React.FC = () => {
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-4">
-                  <p className="text-slate-600 font-medium leading-relaxed">
+                  <p className="text-slate-600 font-medium contactoing-relaxed">
                     Invita a nuevos agentes y vinculalos a sus respectivas agencias. 
                     Recibirán un correo con un enlace seguro.
                   </p>

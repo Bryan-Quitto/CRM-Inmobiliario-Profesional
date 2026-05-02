@@ -79,10 +79,10 @@ public sealed class Property
     public Agency? Agencia { get; set; }
 
     public Guid? PropietarioId { get; set; }
-    public Lead? Propietario { get; set; }
+    public Contacto? Propietario { get; set; }
 
     public Guid? CerradoConId { get; set; }
-    public Lead? CerradoCon { get; set; }
+    public Contacto? CerradoCon { get; set; }
 
     public DateTimeOffset FechaIngreso { get; set; } = DateTimeOffset.UtcNow;
 
@@ -91,7 +91,7 @@ public sealed class Property
     // Relaciones de navegación
     public ICollection<PropertyGallerySection> GallerySections { get; set; } = new List<PropertyGallerySection>();
     public ICollection<PropertyMedia> Media { get; set; } = new List<PropertyMedia>();
-    public ICollection<LeadPropertyInterest> LeadInterests { get; set; } = new List<LeadPropertyInterest>();
+    public ICollection<ContactoInteresPropiedad> ContactInterests { get; set; } = new List<ContactoInteresPropiedad>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public ICollection<Interaction> Interactions { get; set; } = new List<Interaction>();
     public ICollection<PropertyTransaction> Transactions { get; set; } = new List<PropertyTransaction>();
