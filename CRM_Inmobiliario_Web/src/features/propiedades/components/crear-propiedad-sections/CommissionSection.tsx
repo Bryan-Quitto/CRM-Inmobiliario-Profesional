@@ -1,13 +1,15 @@
+import { useMemo, useState, useEffect } from 'react';
 import { useFormContext, Controller, useWatch } from 'react-hook-form';
 import { UserPlus, UserCircle, UserCheck, Phone, User } from 'lucide-react';
+import useSWR from 'swr';
+
 import type { CrearPropiedadDTO } from '../../api/crearPropiedad';
 import { DynamicSearchSelect, type SearchItem } from '@/components/DynamicSearchSelect';
-import { useMemo, useState } from 'react';
-import useSWR from 'swr';
 import { getAgentes } from '@/features/configuracion/api/getAgentes';
 import { getContactos } from '@/features/contactos/api/getContactos';
 import { swrDefaultConfig } from '@/lib/swr';
 import type { Propiedad } from '../../types';
+import { usePerfil } from '@/features/auth/api/perfil';
 
 interface Props {
   initialData?: Propiedad;
@@ -15,21 +17,35 @@ interface Props {
 
 export const CommissionSection = ({ initialData }: Props) => {
   const { register, control, setValue, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
+  const { perfil } = usePerfil();
   const esCaptacionPropia = useWatch({ control, name: 'esCaptacionPropia' });
   const [isGuestMode, setIsGuestMode] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+
+  // Limpiar captador al desmarcar propia para evitar autoselección
+  useEffect(() => {
+    if (!esCaptacionPropia) {
+      setValue('captadorId', undefined);
+      setValue('nuevoCaptador', undefined);
+    }
+  }, [esCaptacionPropia, setValue]);
 
   const { data: agentes = [] } = useSWR('/configuracion/agentes', getAgentes, swrDefaultConfig);
   const { data: contactos = [] } = useSWR('/contactos', getContactos, swrDefaultConfig);
 
-  const agenteOptions = useMemo<SearchItem[]>(() => 
-    agentes.map(a => ({
-      id: a.id,
-      title: `${a.nombre} ${a.apellido}`,
-      subtitle: a.activo ? 'Agente Activo' : 'Agente Externo/Invitado',
-      raw: a
-    })),
-    [agentes]
-  );
+  const agenteOptions = useMemo<SearchItem[]>(() => {
+    if (!perfil?.id) return [];
+    
+    const currentId = perfil.id.toLowerCase();
+    return agentes
+      .filter(a => a.id.toLowerCase() !== currentId) // Filtro robusto
+      .map(a => ({
+        id: a.id,
+        title: `${a.nombre} ${a.apellido}`,
+        subtitle: a.activo ? 'Agente Activo' : 'Agente Externo/Invitado',
+        raw: a
+      }));
+  }, [agentes, perfil]);
 
   const contactoOptions = useMemo<SearchItem[]>(() => 
     contactos.map(c => ({
@@ -40,6 +56,18 @@ export const CommissionSection = ({ initialData }: Props) => {
     })),
     [contactos]
   );
+
+  const handleModeChange = (mode: 'list' | 'guest' | 'anonymous') => {
+    setIsGuestMode(mode === 'guest');
+    setIsAnonymous(mode === 'anonymous');
+    
+    // Limpiar campos según el modo
+    setValue('captadorId', undefined);
+    setValue('nuevoCaptador', undefined);
+  };
+
+  // Solo mostramos el nombre inicial si NO era captación propia originalmente
+  const captadorInitialLabel = !initialData?.esCaptacionPropia ? initialData?.agenteNombre : undefined;
 
   return (
     <div className="md:col-span-6 space-y-8">
@@ -104,27 +132,41 @@ export const CommissionSection = ({ initialData }: Props) => {
       {/* Buscador de Captador (Solo si no es propia) */}
       {!esCaptacionPropia && (
         <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex items-center justify-between px-1">
+          <div className="flex flex-col gap-3 px-1">
             <label className="text-xs font-black text-slate-400 uppercase tracking-widest">¿Quién captó la propiedad?</label>
-            <button
-              type="button"
-              onClick={() => {
-                setIsGuestMode(!isGuestMode);
-                setValue('captadorId', undefined);
-                setValue('nuevoCaptador', undefined);
-              }}
-              className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              {isGuestMode ? <UserCircle className="h-3 w-3" /> : <UserPlus className="h-3 w-3" />}
-              {isGuestMode ? 'Seleccionar de la lista' : 'El agente no está registrado'}
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleModeChange('list')}
+                className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all flex items-center gap-2 cursor-pointer ${!isGuestMode && !isAnonymous ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
+              >
+                <UserCircle className="h-3 w-3" />
+                De la lista
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange('guest')}
+                className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all flex items-center gap-2 cursor-pointer ${isGuestMode ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
+              >
+                <UserPlus className="h-3 w-3" />
+                Agente Invitado
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange('anonymous')}
+                className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all flex items-center gap-2 cursor-pointer ${isAnonymous ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
+              >
+                <User className="h-3 w-3" />
+                Agente Anónimo
+              </button>
+            </div>
           </div>
 
-          {!isGuestMode ? (
+          {!isGuestMode && !isAnonymous ? (
             <Controller
               name="captadorId"
               control={control}
-              rules={{ required: !esCaptacionPropia && !isGuestMode ? 'Debes seleccionar un captador' : false }}
+              rules={{ required: !esCaptacionPropia && !isGuestMode && !isAnonymous ? 'Debes seleccionar un captador' : false }}
               render={({ field }) => (
                 <DynamicSearchSelect
                   label="Buscar Agente Captador"
@@ -132,13 +174,13 @@ export const CommissionSection = ({ initialData }: Props) => {
                   placeholder="Nombre del compañero..."
                   options={agenteOptions}
                   value={field.value}
-                  initialLabel={initialData?.agenteNombre}
+                  initialLabel={captadorInitialLabel}
                   onChange={(id) => field.onChange(id)}
                   error={errors.captadorId?.message}
                 />
               )}
             />
-          ) : (
+          ) : isGuestMode ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/50 p-6 rounded-3xl border-2 border-dashed border-slate-200">
               <div className="md:col-span-2 flex items-center gap-2 mb-2">
                 <UserPlus className="h-4 w-4 text-blue-500" />
@@ -173,6 +215,18 @@ export const CommissionSection = ({ initialData }: Props) => {
                     placeholder="Ej. 0987654321"
                   />
                 </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-xl flex items-center gap-4 animate-in zoom-in-95 duration-300">
+              <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
+                <User className="h-6 w-6 text-slate-400" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-white uppercase tracking-tight">Modo: Agente Anónimo</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                  La propiedad se registrará sin un captador específico asignado.
+                </p>
               </div>
             </div>
           )}

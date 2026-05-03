@@ -34,7 +34,7 @@ public static class EliminarImagenesSeleccionadasFeature
             {
                 // 0. Verificar que la propiedad pertenece al agente
                 var propiedad = await context.Properties
-                    .FirstOrDefaultAsync(p => p.Id == propiedadId && p.AgenteId == agenteId, ct);
+                    .FirstOrDefaultAsync(p => p.Id == propiedadId && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId), ct);
 
                 if (propiedad == null)
                     return Results.NotFound("La propiedad no existe o no pertenece a este agente.");

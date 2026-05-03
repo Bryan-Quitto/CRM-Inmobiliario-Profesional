@@ -51,11 +51,13 @@ public static class ListarPropiedadesFeature
 
             if (agenciaId.HasValue)
             {
-                query = query.Where(p => p.AgenciaId == agenciaId);
+                // En agencia ves todo lo de la agencia O lo que tú mismo hayas registrado (por si acaso)
+                query = query.Where(p => p.AgenciaId == agenciaId || p.CreatedByAgenteId == currentUserId);
             }
             else
             {
-                query = query.Where(p => p.AgenteId == currentUserId);
+                // Independiente: Ves lo que captaste O lo que registraste tú mismo
+                query = query.Where(p => p.AgenteId == currentUserId || p.CreatedByAgenteId == currentUserId);
             }
 
             var propiedades = await query
@@ -82,14 +84,15 @@ public static class ListarPropiedadesFeature
                     x.Property.EstadoComercial,
                     x.Property.EsCaptacionPropia,
                     x.Property.PorcentajeComision,
-                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente desconocido",
+                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente Anónimo",
                     x.Property.Media
                         .Where(m => m.EsPrincipal)
                         .Select(m => m.UrlPublica)
                         .FirstOrDefault(),
                     new PropertyPermissions(
-                        x.Property.AgenteId == currentUserId,
-                        x.Property.AgenteId == currentUserId || (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || x.Property.EstadoComercial == "Disponible"
+                        // Permiso de edición si eres el captador O el creador
+                        x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId,
+                        x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId || (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || x.Property.EstadoComercial == "Disponible"
                     ),
                     x.ActiveTransaction))
                 .ToListAsync();

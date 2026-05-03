@@ -52,7 +52,7 @@ public static class RegistrarPropiedadFeature
                 .Select(a => new { a.AgenciaId })
                 .FirstOrDefaultAsync(ct);
 
-            Guid finalAgenteId;
+            Guid? finalAgenteId = null;
 
             if (command.EsCaptacionPropia)
             {
@@ -74,16 +74,14 @@ public static class RegistrarPropiedadFeature
                     Email = $"invitado_{Guid.NewGuid().ToString()[..8]}@crm-inmobiliario.com",
                     Activo = false,
                     AgenciaId = currentAgent?.AgenciaId,
+                    CreatedById = currentUserId,
                     Rol = "Agente",
                     FechaCreacion = DateTimeOffset.UtcNow
                 };
                 context.Agents.Add(nuevoAgente);
                 finalAgenteId = nuevoAgente.Id;
             }
-            else
-            {
-                return Results.BadRequest(new { Message = "Debes especificar quién captó la propiedad si no es captación propia." });
-            }
+            // Si es null, se considera Agente Anónimo
 
             // Manejo de Propietario (Spec 015)
             if (command.PropietarioId.HasValue)
@@ -120,6 +118,7 @@ public static class RegistrarPropiedadFeature
                 EsCaptacionPropia = command.EsCaptacionPropia,
                 PorcentajeComision = command.PorcentajeComision,
                 AgenteId = finalAgenteId,
+                CreatedByAgenteId = currentUserId,
                 AgenciaId = currentAgent?.AgenciaId,
                 PropietarioId = command.PropietarioId,
                 FechaIngreso = command.FechaIngreso ?? DateTimeOffset.UtcNow

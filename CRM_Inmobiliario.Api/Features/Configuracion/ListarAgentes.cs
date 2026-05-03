@@ -24,20 +24,20 @@ public static class ListarAgentesFeature
                 .Select(a => new { a.AgenciaId })
                 .FirstOrDefaultAsync();
 
-            if (currentAgent?.AgenciaId == null)
+            var query = context.Agents.AsNoTracking();
+
+            if (currentAgent?.AgenciaId != null)
             {
-                // Si es independiente, solo se ve a sí mismo (o tal vez nada para esta búsqueda)
-                var self = await context.Agents
-                    .AsNoTracking()
-                    .Where(a => a.Id == currentUserId)
-                    .Select(a => new AgentResponse(a.Id, a.Nombre, a.Apellido, a.Telefono, a.Email, a.Activo))
-                    .ToListAsync();
-                return Results.Ok(self);
+                // En una agencia, ves a tus colegas Y a los que tú mismo hayas invitado/creado
+                query = query.Where(a => a.AgenciaId == currentAgent.AgenciaId || a.CreatedById == currentUserId);
+            }
+            else
+            {
+                // Si eres independiente, te ves a ti mismo Y a los agentes que tú hayas invitado/creado
+                query = query.Where(a => a.Id == currentUserId || a.CreatedById == currentUserId);
             }
 
-            var agentes = await context.Agents
-                .AsNoTracking()
-                .Where(a => a.AgenciaId == currentAgent.AgenciaId)
+            var agentes = await query
                 .OrderBy(a => a.Nombre)
                 .Select(a => new AgentResponse(a.Id, a.Nombre, a.Apellido, a.Telefono, a.Email, a.Activo))
                 .ToListAsync();

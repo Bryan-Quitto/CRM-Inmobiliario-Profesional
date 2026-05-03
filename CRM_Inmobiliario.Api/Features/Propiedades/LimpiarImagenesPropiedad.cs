@@ -26,10 +26,10 @@ public static class LimpiarImagenesPropiedadFeature
             
             try
             {
-                var propiedad = await context.Properties
-                    .AnyAsync(p => p.Id == propiedadId && p.AgenteId == agenteId, ct);
+                var exists = await context.Properties
+                    .AnyAsync(p => p.Id == propiedadId && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId), ct);
 
-                if (!propiedad)
+                if (!exists)
                     return Results.NotFound("Propiedad no encontrada.");
 
                 // 1. Obtener rutas de archivos de imágenes que NO son principales

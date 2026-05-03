@@ -17,12 +17,17 @@ export const DetalleHeroInfo = ({ propiedad, formatCurrency }: DetalleHeroInfoPr
           <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${propiedad.operacion === 'Venta' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
             {propiedad.operacion}
           </span>
-          {propiedad.esCaptacionPropia && (
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest flex items-center gap-1 ${propiedad.permissions?.canEditMasterData ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-              <Handshake className="h-3 w-3" /> 
-              {propiedad.permissions?.canEditMasterData ? 'Captación Propia' : `Captación de ${propiedad.agenteNombre}`}
-            </span>
-          )}
+          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest flex items-center gap-1 ${
+            propiedad.esCaptacionPropia && propiedad.permissions?.canEditMasterData 
+              ? 'bg-indigo-600 text-white' 
+              : 'bg-slate-100 text-slate-500 border border-slate-200'
+          }`}>
+            <Handshake className="h-3 w-3" /> 
+            {propiedad.esCaptacionPropia 
+              ? (propiedad.permissions?.canEditMasterData ? 'Captación Propia' : `Captación de ${propiedad.agenteNombre}`)
+              : (propiedad.agenteNombre === 'Agente Anónimo' ? 'Agente Anónimo' : `Captación: ${propiedad.agenteNombre}`)
+            }
+          </span>
         </div>
         <h1 className="text-4xl font-black text-slate-900 contactoing-tight tracking-tight">{propiedad.titulo}</h1>
         <div className="flex items-start gap-3 text-slate-500 mt-4">

@@ -24,7 +24,7 @@ public static class EliminarImagenPropiedadFeature
 
             var media = await context.PropertyMedia
                 .Include(m => m.Propiedad)
-                .FirstOrDefaultAsync(m => m.Id == imagenId && m.PropiedadId == propiedadId && m.Propiedad!.AgenteId == agenteId);
+                .FirstOrDefaultAsync(m => m.Id == imagenId && m.PropiedadId == propiedadId && (m.Propiedad!.AgenteId == agenteId || m.Propiedad!.CreatedByAgenteId == agenteId));
 
             if (media == null)
                 return Results.NotFound("Imagen no encontrada.");

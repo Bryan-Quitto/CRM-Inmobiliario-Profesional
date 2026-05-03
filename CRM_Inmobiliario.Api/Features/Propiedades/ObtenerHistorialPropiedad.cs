@@ -28,9 +28,9 @@ public static class ObtenerHistorialPropiedadFeature
             var agenteId = user.GetRequiredUserId();
 
             // The One Trip Pattern: Única proyección LINQ optimizada
-            var historial = await context.PropertyTransactions
+            var logs = await context.PropertyTransactions
                 .AsNoTracking()
-                .Where(t => t.PropertyId == id && t.Property!.AgenteId == agenteId)
+                .Where(t => t.PropertyId == id && (t.Property!.AgenteId == agenteId || t.Property!.CreatedByAgenteId == agenteId))
                 .OrderByDescending(t => t.TransactionDate)
                 .Select(t => new Response(
                     t.Id,
@@ -44,7 +44,7 @@ public static class ObtenerHistorialPropiedadFeature
                     t.Contacto != null ? t.Contacto.Nombre + " " + t.Contacto.Apellido : null))
                 .ToListAsync();
 
-            return Results.Ok(historial);
+            return Results.Ok(logs);
         })
         .WithTags("Propiedades")
         .WithName("ObtenerHistorialPropiedad")

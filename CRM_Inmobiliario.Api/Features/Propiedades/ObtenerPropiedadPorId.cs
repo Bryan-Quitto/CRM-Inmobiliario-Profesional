@@ -83,7 +83,7 @@ public static class ObtenerPropiedadPorIdFeature
                 .AsNoTracking()
                 .AsSplitQuery()
                 .Where(p => p.Id == id && 
-                           (p.AgenteId == currentUserId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)))
+                           (p.AgenteId == currentUserId || p.CreatedByAgenteId == currentUserId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)))
                 .Select(p => new
                 {
                     Property = p,
@@ -120,7 +120,7 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.EsCaptacionPropia,
                     x.Property.PorcentajeComision,
                     x.Property.FechaIngreso,
-                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente desconocido",
+                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente Anónimo",
                     x.Property.PropietarioId,
                     x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null,
                     x.Property.GallerySections
@@ -150,11 +150,11 @@ public static class ObtenerPropiedadPorIdFeature
                             m.EsPrincipal,
                             m.Orden)),
                     new PropertyPermissions(
-                        // Solo el dueño de la captación edita datos y galería
-                        x.Property.AgenteId == currentUserId,
-                        x.Property.AgenteId == currentUserId,
-                        // Cambio de estado permitido si es el dueño O si es el dueño de la transacción activa
-                        x.Property.AgenteId == currentUserId || (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || x.Property.EstadoComercial == "Disponible"
+                        // Permiso de edición si eres el captador O el creador
+                        x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId,
+                        x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId,
+                        // Cambio de estado permitido si eres el dueño O el creador O el dueño de la transacción activa
+                        x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId || (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || x.Property.EstadoComercial == "Disponible"
                     ),
                     x.ActiveTransaction))
                 .FirstOrDefaultAsync();

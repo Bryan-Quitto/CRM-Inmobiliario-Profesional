@@ -24,10 +24,10 @@ public static class EstablecerImagenPrincipalFeature
             try 
             {
                 // Verificar que la propiedad pertenezca al agente
-                var propiedadExiste = await context.Properties
-                    .AnyAsync(p => p.Id == propiedadId && p.AgenteId == agenteId);
+                var autorizacion = await context.Properties
+                    .AnyAsync(p => p.Id == propiedadId && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId));
 
-                if (!propiedadExiste)
+                if (!autorizacion)
                     return Results.NotFound("Propiedad no encontrada o no tiene permisos.");
 
                 // Realizamos TODA la actualización en una sola sentencia SQL atómica.

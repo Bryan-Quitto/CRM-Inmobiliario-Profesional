@@ -28,10 +28,10 @@ public static class SubirImagenPropiedadFeature
             if (file == null || file.Length == 0)
                 return Results.BadRequest("No se proporcionó ningún archivo.");
 
-            // 1. Verificar si la propiedad existe y pertenece al agente
+            // 1. Verificar si la propiedad existe y pertenece al agente (captador o creador)
             var propiedad = await context.Properties
                 .Include(p => p.Media)
-                .FirstOrDefaultAsync(p => p.Id == id && p.AgenteId == agenteId);
+                .FirstOrDefaultAsync(p => p.Id == id && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId));
 
             if (propiedad == null)
                 return Results.NotFound("Propiedad no encontrada o no tiene permisos.");
