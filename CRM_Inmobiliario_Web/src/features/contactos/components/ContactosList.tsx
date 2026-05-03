@@ -31,9 +31,6 @@ const ContactosContent = () => {
     setIsModalOpen,
     selectedContactoForEdit,
     setSelectedContactoForEdit,
-    openDropdownId,
-    setOpenDropdownId,
-    dropdownRef,
     notification,
     setNotification,
     closingContacto,
@@ -63,10 +60,7 @@ const ContactosContent = () => {
         setFilterEtapa={setFilterEtapa}
         viewMode={viewMode}
         setViewMode={setViewMode}
-        isFilterOpen={openDropdownId === 'filter'}
-        setIsFilterOpen={(open) => setOpenDropdownId(open ? 'filter' : null)}
         onOpenCreateModal={() => setIsModalOpen(true)}
-        dropdownRef={dropdownRef}
       />
 
       <ContactosListStats 
@@ -83,9 +77,6 @@ const ContactosContent = () => {
         onNavigate={(id) => navigate(`${basePath}/${id}`)}
         onEdit={setSelectedContactoForEdit}
         onStageChange={handleStageChange}
-        openDropdownId={openDropdownId}
-        setOpenDropdownId={setOpenDropdownId}
-        dropdownRef={dropdownRef}
       />
 
       <ContactosListModals 

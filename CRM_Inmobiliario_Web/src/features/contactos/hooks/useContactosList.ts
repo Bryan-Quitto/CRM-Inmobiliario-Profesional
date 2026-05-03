@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useSWR, { useSWRConfig } from 'swr';
 import Fuse from 'fuse.js';
@@ -13,7 +13,7 @@ export const useContactosList = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { mutate: globalMutate } = useSWRConfig();
-  
+
   const activeSegment = useMemo(() => {
     if (pathname.includes('/propietarios')) return 'propietarios' as const;
     if (pathname.includes('/clientes')) return 'clientes' as const;
@@ -30,12 +30,12 @@ export const useContactosList = () => {
     getContactos,
     swrDefaultConfig
   );
-  
+
   // Filtrar base según el segmento activo
   const contactos = useMemo(() => {
     switch (activeSegment) {
       case 'clientes':
-        return allContactos.filter(c => c.esContacto); 
+        return allContactos.filter(c => c.esContacto);
       case 'propietarios':
         return allContactos.filter(c => c.esPropietario);
       default:
@@ -45,9 +45,7 @@ export const useContactosList = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedContactoForEdit, setSelectedContactoForEdit] = useState<Contacto | null>(null);
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterEtapa, setFilterEtapa] = useState('Todas');
@@ -70,16 +68,6 @@ export const useContactosList = () => {
       localStorage.setItem(VIEW_MODE_KEY, viewModeRaw);
     }
   }, [viewModeRaw, activeSegment]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setOpenDropdownId(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   useEffect(() => {
     if (notification) {
@@ -120,10 +108,9 @@ export const useContactosList = () => {
   }), [contactos]);
 
   const handleStageChange = (id: string, nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo: 'contacto' | 'propietario' = 'contacto') => {
-    setOpenDropdownId(null);
     const contacto = allContactos.find(c => c.id === id);
     if (!contacto) return;
-    
+
     const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
     if (etapaActual === nuevaEtapa) return;
 
@@ -134,7 +121,7 @@ export const useContactosList = () => {
 
     const optimisticData = allContactos.map(c => {
       if (c.id === id) {
-        return tipo === 'propietario' 
+        return tipo === 'propietario'
           ? { ...c, estadoPropietario: nuevaEtapa }
           : { ...c, etapaEmbudo: nuevaEtapa };
       }
@@ -143,10 +130,10 @@ export const useContactosList = () => {
 
     mutate(optimisticData, false);
     setNotification({ type: 'success', message: `${tipo === 'propietario' ? 'Propietario' : 'Cliente'} movido a ${nuevaEtapa}` });
-    
+
     actualizarEtapaContacto(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad, tipo)
       .then(async () => {
-        await mutate(); 
+        await mutate();
         globalMutate('/dashboard/kpis');
         globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
         globalMutate('/propiedades');
@@ -184,9 +171,6 @@ export const useContactosList = () => {
     setIsModalOpen,
     selectedContactoForEdit,
     setSelectedContactoForEdit,
-    openDropdownId,
-    setOpenDropdownId,
-    dropdownRef,
     notification,
     setNotification,
     closingContacto,

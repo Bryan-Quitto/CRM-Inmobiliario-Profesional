@@ -10,9 +10,6 @@ interface ContactosListContentProps {
   onNavigate: (id: string) => void;
   onEdit: (contacto: Contacto) => void;
   onStageChange: (id: string, etapa: string, data?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo?: 'contacto' | 'propietario') => void;
-  openDropdownId: string | null;
-  setOpenDropdownId: (id: string | null) => void;
-  dropdownRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const ContactosListContent = ({
@@ -23,9 +20,6 @@ export const ContactosListContent = ({
   onNavigate,
   onEdit,
   onStageChange,
-  openDropdownId,
-  setOpenDropdownId,
-  dropdownRef
 }: ContactosListContentProps) => {
   if (viewMode === 'kanban') {
     return (
@@ -49,9 +43,6 @@ export const ContactosListContent = ({
           onNavigate={onNavigate}
           onEdit={onEdit}
           onStageChange={onStageChange}
-          isOpenDropdown={openDropdownId === contacto.id}
-          setOpenDropdownId={setOpenDropdownId}
-          dropdownRef={dropdownRef}
         />
       ))}
     </div>
