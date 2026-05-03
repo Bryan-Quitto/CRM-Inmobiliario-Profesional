@@ -48,8 +48,8 @@ export const CrearContactoFields = ({
               <Search className={`h-4 w-4 ${esContacto ? 'text-white' : 'text-slate-500'}`} />
             </div>
             <div className="text-left">
-              <p className={`text-xs font-black uppercase ${esContacto ? 'text-blue-900' : 'text-slate-500'}`}>Contacto</p>
-              <p className={`text-[9px] font-bold uppercase contactoing-none mt-0.5 ${esContacto ? 'text-blue-600' : 'text-slate-400'}`}>
+              <p className={`text-xs font-black uppercase ${esContacto ? 'text-blue-900' : 'text-slate-500'}`}>Cliente</p>
+              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 ${esContacto ? 'text-blue-600' : 'text-slate-400'}`}>
                 {esContacto ? 'Habilitado' : 'Inactivo'}
               </p>
             </div>

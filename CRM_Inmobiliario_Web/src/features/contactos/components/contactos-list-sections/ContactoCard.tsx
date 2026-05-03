@@ -4,7 +4,7 @@ import type { Contacto } from '../../types';
 
 interface ContactoCardProps {
   contacto: Contacto;
-  activeSegment: 'todos' | 'contactos' | 'propietarios';
+  activeSegment: 'todos' | 'clientes' | 'propietarios';
   syncing: boolean;
   onNavigate: (id: string) => void;
   onEdit: (contacto: Contacto) => void;
@@ -57,7 +57,7 @@ export const ContactoCard = ({
               }}
               className={`cursor-pointer px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all flex items-center gap-2 ${getEtapaStyles(currentEtapa, isOwnerMode)}`}
             >
-              {isOwnerMode ? `Propietario: ${currentEtapa}` : currentEtapa}
+              {currentEtapa}
               <ChevronDown className={`h-3 w-3 transition-transform ${isOpenDropdown ? 'rotate-180' : ''}`} />
             </button>
           )}
@@ -94,20 +94,26 @@ export const ContactoCard = ({
         <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
           {[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}
         </h3>
-        <div className="flex flex-wrap items-center gap-2 mt-2">
+        <div className="flex flex-col gap-2 mt-2">
           {contacto.esContacto && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100/50">
-              Contacto
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100/50">
+                Cliente
+              </span>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getEtapaStyles(contacto.etapaEmbudo, false)}`}>
+                {contacto.etapaEmbudo}
+              </span>
+            </div>
           )}
           {contacto.esPropietario && (
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
-              contacto.propiedadesCaptadas && contacto.propiedadesCaptadas.some(p => p.estadoComercial === 'Disponible' || p.estadoComercial === 'En Negociación')
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
-                : 'bg-slate-50 text-slate-400 border-slate-100'
-            }`}>
-              Propietario: {contacto.propiedadesCaptadas && contacto.propiedadesCaptadas.some(p => p.estadoComercial === 'Disponible' || p.estadoComercial === 'En Negociación') ? 'Activo' : 'Cerrado'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/50">
+                Propietario
+              </span>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getEtapaStyles(contacto.estadoPropietario, true)}`}>
+                {contacto.estadoPropietario}
+              </span>
+            </div>
           )}
         </div>
       </div>

@@ -16,7 +16,7 @@ public static class ListarContactosFeature
         string Origen,
         string EtapaEmbudo,
         string EstadoPropietario,
-        bool EsProspecto,
+        bool EsContacto,
         bool EsPropietario,
         DateTimeOffset FechaCreacion);
 

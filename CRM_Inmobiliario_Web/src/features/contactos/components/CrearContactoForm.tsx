@@ -68,7 +68,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
           
           {roleError && (
             <p className="text-center text-rose-500 font-black text-[10px] uppercase tracking-wider animate-bounce">
-              ⚠️ Debes seleccionar al menos un rol (Contacto o Propietario)
+              ⚠️ Debes seleccionar al menos un rol (Cliente o Propietario)
             </p>
           )}
         </div>

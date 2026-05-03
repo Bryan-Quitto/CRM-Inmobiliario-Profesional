@@ -2,8 +2,8 @@ import { Search, Filter as FilterIcon, ChevronDown, Check, Plus, List, LayoutGri
 import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/contactos';
 
 interface ContactosListFiltersProps {
-  activeSegment: 'todos' | 'contactos' | 'propietarios';
-  setActiveSegment: (segment: 'todos' | 'contactos' | 'propietarios') => void;
+  activeSegment: 'todos' | 'clientes' | 'propietarios';
+  setActiveSegment: (segment: 'todos' | 'clientes' | 'propietarios') => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   filterEtapa: string;
@@ -53,12 +53,12 @@ export const ContactosListFilters = ({
         <div className="flex items-center gap-1">
           {[
             { id: 'todos', label: 'Todos' },
-            { id: 'contactos', label: 'Contactos' },
+            { id: 'clientes', label: 'Clientes' },
             { id: 'propietarios', label: 'Propietarios' }
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveSegment(tab.id as 'todos' | 'contactos' | 'propietarios')}
+              onClick={() => setActiveSegment(tab.id as 'todos' | 'clientes' | 'propietarios')}
               className={`cursor-pointer px-4 py-2.5 text-sm font-bold transition-all relative ${
                 activeSegment === tab.id 
                   ? 'text-blue-600' 
@@ -131,10 +131,10 @@ export const ContactosListFilters = ({
                 {filterEtapa === 'Todas' && <Check className="h-4 w-4" />}
               </button>
 
-              {(activeSegment === 'contactos' || activeSegment === 'todos') && (
+              {(activeSegment === 'clientes' || activeSegment === 'todos') && (
                 <>
                   <div className="px-4 py-2 mt-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contacto</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cliente</span>
                   </div>
                   {ETAPAS.map((option) => (
                     <button
