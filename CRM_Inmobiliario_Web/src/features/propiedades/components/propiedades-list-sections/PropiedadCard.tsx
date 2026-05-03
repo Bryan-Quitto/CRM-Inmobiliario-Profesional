@@ -33,8 +33,7 @@ export const PropiedadCard = ({
 
   return (
     <div 
-      onClick={() => handleOpenDetail(p.id)}
-      className={`cursor-pointer bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative ${
+      className={`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative ${
         openDropdownId === p.id ? 'z-[60]' : 'z-10'
       }`}
     >
@@ -155,11 +154,12 @@ export const PropiedadCard = ({
               </div>
             </div>
           </div>
-          <div 
-            className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-all border border-slate-100"
+          <button 
+            onClick={() => handleOpenDetail(p.id)}
+            className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-all border border-slate-100 cursor-pointer hover:scale-110 active:scale-95 shadow-sm"
           >
             <Plus className="h-5 w-5" />
-          </div>
+          </button>
         </div>
       </div>
     </div>
