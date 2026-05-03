@@ -28,6 +28,9 @@ public sealed class Agent
     public Guid? AgenciaId { get; set; }
     public Agency? Agencia { get; set; }
 
+    public Guid? CreatedById { get; set; }
+    public Agent? CreatedBy { get; set; }
+
     [MaxLength(500)]
     public string? FotoUrl { get; set; }
 

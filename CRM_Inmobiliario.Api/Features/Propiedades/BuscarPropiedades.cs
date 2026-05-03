@@ -27,7 +27,7 @@ public static class BuscarPropiedadesFeature
 
             var propiedades = await context.Properties
                 .AsNoTracking()
-                .Where(p => p.AgenteId == agenteId)
+                .Where(p => p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId)
                 .Where(p => p.Titulo.ToLower().Contains(normalizedQuery))
                 .OrderBy(p => p.Titulo)
                 .Take(20)

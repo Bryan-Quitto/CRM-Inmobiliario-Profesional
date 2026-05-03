@@ -54,40 +54,43 @@ public static class ActualizarPropiedadFeature
                 return Results.NotFound();
             }
 
-            // SEGURIDAD: Solo el dueño de la captación puede editar datos maestros
-            if (propiedad.AgenteId != currentUserId)
+            // SEGURIDAD: Solo el captador O el creador del registro pueden editar datos maestros
+            if (propiedad.AgenteId != currentUserId && propiedad.CreatedByAgenteId != currentUserId)
             {
-                return Results.Json(new { message = "Solo el agente que captó la propiedad puede editar sus datos maestros y galería." }, statusCode: StatusCodes.Status403Forbidden);
+                return Results.Json(new { message = "Solo el agente que captó la propiedad o quien registró el inmueble puede editar sus datos maestros y galería." }, statusCode: StatusCodes.Status403Forbidden);
             }
 
             // Lógica de Captador
-            Guid finalAgenteId = currentUserId;
+            Guid? finalAgenteId = null;
 
-            if (!command.EsCaptacionPropia)
+            if (command.EsCaptacionPropia)
             {
-                if (command.CaptadorId.HasValue)
-                {
-                    finalAgenteId = command.CaptadorId.Value;
-                }
-                else if (command.NuevoCaptador != null)
-                {
-                    // Crear agente "invitado" (inactivo)
-                    var nuevoAgente = new Agent
-                    {
-                        Id = Guid.NewGuid(),
-                        Nombre = command.NuevoCaptador.Nombre,
-                        Apellido = command.NuevoCaptador.Apellido,
-                        Telefono = command.NuevoCaptador.Telefono,
-                        Email = $"invitado_{Guid.NewGuid().ToString()[..8]}@crm-inmobiliario.com",
-                        Activo = false,
-                        AgenciaId = propiedad.AgenciaId,
-                        Rol = "Agente",
-                        FechaCreacion = DateTimeOffset.UtcNow
-                    };
-                    context.Agents.Add(nuevoAgente);
-                    finalAgenteId = nuevoAgente.Id;
-                }
+                finalAgenteId = currentUserId;
             }
+            else if (command.CaptadorId.HasValue)
+            {
+                finalAgenteId = command.CaptadorId.Value;
+            }
+            else if (command.NuevoCaptador != null)
+            {
+                // Crear agente "invitado" (inactivo)
+                var nuevoAgente = new Agent
+                {
+                    Id = Guid.NewGuid(),
+                    Nombre = command.NuevoCaptador.Nombre,
+                    Apellido = command.NuevoCaptador.Apellido,
+                    Telefono = command.NuevoCaptador.Telefono,
+                    Email = $"invitado_{Guid.NewGuid().ToString()[..8]}@crm-inmobiliario.com",
+                    Activo = false,
+                    AgenciaId = propiedad.AgenciaId,
+                    CreatedById = currentUserId,
+                    Rol = "Agente",
+                    FechaCreacion = DateTimeOffset.UtcNow
+                };
+                context.Agents.Add(nuevoAgente);
+                finalAgenteId = nuevoAgente.Id;
+            }
+            // Si finalAgenteId sigue siendo null, se guarda como Anónimo
 
             propiedad.Titulo = command.Titulo;
             propiedad.Descripcion = command.Descripcion;

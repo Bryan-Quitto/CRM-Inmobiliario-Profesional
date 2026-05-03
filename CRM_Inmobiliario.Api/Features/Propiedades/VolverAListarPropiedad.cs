@@ -24,7 +24,7 @@ public static class VolverAListarPropiedadFeature
             // Cargamos la propiedad para validar y actualizar
             var propiedad = await context.Properties
                 .Include(p => p.Transactions.Where(t => t.TransactionStatus == "Active"))
-                .FirstOrDefaultAsync(p => p.Id == id && p.AgenteId == agenteId);
+                .FirstOrDefaultAsync(p => p.Id == id && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId));
 
             if (propiedad is null)
             {

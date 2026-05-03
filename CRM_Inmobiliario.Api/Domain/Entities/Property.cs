@@ -71,9 +71,11 @@ public sealed class Property
     [Required]
     public decimal PorcentajeComision { get; set; } = 5.0m;
 
-    [Required]
-    public Guid AgenteId { get; set; }
+    public Guid? AgenteId { get; set; }
     public Agent? Agente { get; set; }
+
+    public Guid? CreatedByAgenteId { get; set; }
+    public Agent? CreatedByAgente { get; set; }
 
     public Guid? AgenciaId { get; set; }
     public Agency? Agencia { get; set; }

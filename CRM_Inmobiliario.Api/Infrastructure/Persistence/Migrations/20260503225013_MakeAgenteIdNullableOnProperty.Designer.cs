@@ -3,6 +3,7 @@ using System;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260503225013_MakeAgenteIdNullableOnProperty")]
+    partial class MakeAgenteIdNullableOnProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -300,9 +303,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<Guid?>("CreatedByAgenteId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("text");
@@ -379,8 +379,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("AgenciaId");
 
                     b.HasIndex("CerradoConId");
-
-                    b.HasIndex("CreatedByAgenteId");
 
                     b.HasIndex("PropietarioId");
 
@@ -706,10 +704,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CerradoConId");
 
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "CreatedByAgente")
-                        .WithMany()
-                        .HasForeignKey("CreatedByAgenteId");
-
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "Propietario")
                         .WithMany("PropertiesOwned")
                         .HasForeignKey("PropietarioId")
@@ -720,8 +714,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Agente");
 
                     b.Navigation("CerradoCon");
-
-                    b.Navigation("CreatedByAgente");
 
                     b.Navigation("Propietario");
                 });
