@@ -63,6 +63,8 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/calendario" element={<CalendarioView />} />
               <Route path="/contactos" element={<ContactosList />} />
               <Route path="/contactos/:id" element={<ContactoDetalle />} />
+              <Route path="/clientes" element={<ContactosList />} />
+              <Route path="/clientes/:id" element={<ContactoDetalle />} />
               <Route path="/propietarios" element={<ContactosList />} />
               <Route path="/propietarios/:id" element={<ContactoDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />

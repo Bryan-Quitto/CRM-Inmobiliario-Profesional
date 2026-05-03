@@ -39,8 +39,8 @@ export const ContactoDetalle = () => {
     isClosingModalOpen,
     setIsClosingModalOpen,
     isUpdatingEtapa,
-    showEtapaDropdown,
-    setShowEtapaDropdown,
+    activeDropdown,
+    setActiveDropdown,
     revertConfirmation,
     setRevertConfirmation,
     idInteresABorrar,
@@ -91,8 +91,8 @@ export const ContactoDetalle = () => {
       <ContactoHeader 
         contacto={contacto}
         isUpdatingEtapa={isUpdatingEtapa}
-        showEtapaDropdown={showEtapaDropdown}
-        setShowEtapaDropdown={setShowEtapaDropdown}
+        activeDropdown={activeDropdown}
+        setActiveDropdown={setActiveDropdown}
         handleStageChange={handleStageChange}
         navigate={navigate}
       />
@@ -108,25 +108,27 @@ export const ContactoDetalle = () => {
             />
           )}
 
-          <ContactoInterestsManager 
-            contacto={contacto}
-            propiedadesOptions={propiedadesOptions}
-            propiedadPendienteId={propiedadPendienteId}
-            setPropiedadPendienteId={setPropiedadPendienteId}
-            nivelInteresPendiente={nivelInteresPendiente}
-            setNivelInteresPendiente={setNivelInteresPendiente}
-            vincularStatus={vincularStatus}
-            handleVincularPropiedad={handleVincularPropiedad}
-            updatingInteresId={updatingInteresId}
-            idInteresABorrar={idInteresABorrar}
-            setIdInteresABorrar={setIdInteresABorrar}
-            isDeletingInteres={isDeletingInteres}
-            dropdownInteresOpenId={dropdownInteresOpenId}
-            setDropdownInteresOpenId={setDropdownInteresOpenId}
-            handleUpdateNivelInteres={handleUpdateNivelInteres}
-            handleDesvincular={handleDesvincular}
-            navigate={navigate}
-          />
+          {contacto.esContacto && (
+            <ContactoInterestsManager 
+              contacto={contacto}
+              propiedadesOptions={propiedadesOptions}
+              propiedadPendienteId={propiedadPendienteId}
+              setPropiedadPendienteId={setPropiedadPendienteId}
+              nivelInteresPendiente={nivelInteresPendiente}
+              setNivelInteresPendiente={setNivelInteresPendiente}
+              vincularStatus={vincularStatus}
+              handleVincularPropiedad={handleVincularPropiedad}
+              updatingInteresId={updatingInteresId}
+              idInteresABorrar={idInteresABorrar}
+              setIdInteresABorrar={setIdInteresABorrar}
+              isDeletingInteres={isDeletingInteres}
+              dropdownInteresOpenId={dropdownInteresOpenId}
+              setDropdownInteresOpenId={setDropdownInteresOpenId}
+              handleUpdateNivelInteres={handleUpdateNivelInteres}
+              handleDesvincular={handleDesvincular}
+              navigate={navigate}
+            />
+          )}
         </div>
 
         <ContactoTimelineManager 

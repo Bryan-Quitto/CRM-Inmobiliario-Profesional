@@ -4,7 +4,7 @@ import type { Contacto } from '../../types';
 
 interface ContactosListContentProps {
   filteredContactos: Contacto[];
-  activeSegment: 'todos' | 'contactos' | 'propietarios';
+  activeSegment: 'todos' | 'clientes' | 'propietarios';
   viewMode: 'list' | 'kanban';
   syncing: boolean;
   onNavigate: (id: string) => void;

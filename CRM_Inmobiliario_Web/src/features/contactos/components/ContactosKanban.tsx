@@ -7,7 +7,7 @@ import type { Contacto } from '../types';
 
 interface ContactosKanbanProps {
   contactos: Contacto[];
-  activeSegment: 'contactos' | 'propietarios' | 'todos';
+  activeSegment: 'clientes' | 'propietarios' | 'todos';
   onStageChange: (id: string, nuevaEtapa: string, data?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo?: 'contacto' | 'propietario') => void;
   onNavigate: (id: string) => void;
 }

@@ -15,7 +15,7 @@ interface Params {
 export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params) => {
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
   const [isUpdatingEtapa, setIsUpdatingEtapa] = useState(false);
-  const [showEtapaDropdown, setShowEtapaDropdown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<'cliente' | 'propietario' | null>(null);
   const [revertConfirmation, setRevertConfirmation] = useState<{ etapa: string } | null>(null);
 
   const handleRevertStatus = async (nuevaEtapa: string, liberarPropiedades: boolean) => {
@@ -44,26 +44,33 @@ export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params)
     }
   };
 
-  const handleStageChange = async (nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }) => {
-    if (!id || !contacto || contacto.etapaEmbudo === nuevaEtapa) return;
-    setShowEtapaDropdown(false);
+  const handleStageChange = async (nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo: 'cliente' | 'propietario' = 'cliente') => {
+    if (!id || !contacto) return;
+    
+    const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
+    if (etapaActual === nuevaEtapa) return;
+    
+    setActiveDropdown(null);
 
-    if (nuevaEtapa === 'Cerrado' && !confirmedData) {
+    if (tipo === 'cliente' && nuevaEtapa === 'Cerrado' && !confirmedData) {
       setIsClosingModalOpen(true);
       return;
     }
 
-    if ((contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Perdido') && nuevaEtapa !== 'Cerrado' && nuevaEtapa !== 'Perdido') {
+    if (tipo === 'cliente' && (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Perdido') && nuevaEtapa !== 'Cerrado' && nuevaEtapa !== 'Perdido') {
       setRevertConfirmation({ etapa: nuevaEtapa });
       return;
     }
 
     setIsUpdatingEtapa(true);
-    mutate({ ...contacto, etapaEmbudo: nuevaEtapa }, false);
+    mutate(tipo === 'propietario' 
+      ? { ...contacto, estadoPropietario: nuevaEtapa }
+      : { ...contacto, etapaEmbudo: nuevaEtapa }, 
+    false);
 
     try {
-      await actualizarEtapaContacto(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad);
-      toast.success(`Contacto movido a ${nuevaEtapa}`);
+      await actualizarEtapaContacto(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad, tipo === 'propietario' ? 'propietario' : 'contacto');
+      toast.success(`${tipo === 'propietario' ? 'Propietario' : 'Cliente'} movido a ${nuevaEtapa}`);
       await mutate();
 
       globalMutate('/dashboard/kpis');
@@ -88,8 +95,8 @@ export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params)
     isClosingModalOpen,
     setIsClosingModalOpen,
     isUpdatingEtapa,
-    showEtapaDropdown,
-    setShowEtapaDropdown,
+    activeDropdown,
+    setActiveDropdown,
     revertConfirmation,
     setRevertConfirmation,
     handleRevertStatus,

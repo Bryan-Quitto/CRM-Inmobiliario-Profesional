@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useSWR, { useSWRConfig } from 'swr';
 import Fuse from 'fuse.js';
 import { getContactos } from '../api/getContactos';
@@ -10,14 +10,20 @@ import type { Contacto } from '../types';
 const VIEW_MODE_KEY = 'crm_contactos_view_mode';
 
 export const useContactosList = () => {
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const { mutate: globalMutate } = useSWRConfig();
   
-  const [activeSegment, setActiveSegment] = useState<'todos' | 'contactos' | 'propietarios'>(() => {
-    if (pathname.includes('/propietarios')) return 'propietarios';
-    if (pathname.includes('/contactos')) return 'contactos';
-    return 'todos';
-  });
+  const activeSegment = useMemo(() => {
+    if (pathname.includes('/propietarios')) return 'propietarios' as const;
+    if (pathname.includes('/clientes')) return 'clientes' as const;
+    return 'todos' as const;
+  }, [pathname]);
+
+  const setActiveSegment = (segment: 'todos' | 'clientes' | 'propietarios') => {
+    const path = segment === 'todos' ? '/contactos' : `/${segment}`;
+    navigate(path);
+  };
 
   const { data: allContactos = [], isLoading, isValidating: syncing, mutate } = useSWR<Contacto[]>(
     '/contactos',
@@ -28,7 +34,7 @@ export const useContactosList = () => {
   // Filtrar base según el segmento activo
   const contactos = useMemo(() => {
     switch (activeSegment) {
-      case 'contactos':
+      case 'clientes':
         return allContactos.filter(c => c.esContacto); 
       case 'propietarios':
         return allContactos.filter(c => c.esPropietario);
@@ -45,16 +51,25 @@ export const useContactosList = () => {
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterEtapa, setFilterEtapa] = useState('Todas');
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>(() => {
+  const [viewModeRaw, setViewModeRaw] = useState<'list' | 'kanban'>(() => {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
     return (saved as 'list' | 'kanban') || 'list';
   });
 
+  const viewMode = activeSegment === 'todos' ? 'list' : viewModeRaw;
+
+  const setViewMode = (mode: 'list' | 'kanban') => {
+    if (activeSegment === 'todos') return;
+    setViewModeRaw(mode);
+  };
+
   const [closingContacto, setClosingContacto] = useState<Contacto | null>(null);
 
   useEffect(() => {
-    localStorage.setItem(VIEW_MODE_KEY, viewMode);
-  }, [viewMode]);
+    if (activeSegment !== 'todos') {
+      localStorage.setItem(VIEW_MODE_KEY, viewModeRaw);
+    }
+  }, [viewModeRaw, activeSegment]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -127,7 +142,7 @@ export const useContactosList = () => {
     });
 
     mutate(optimisticData, false);
-    setNotification({ type: 'success', message: `${tipo === 'propietario' ? 'Propietario' : 'Contacto'} movido a ${nuevaEtapa}` });
+    setNotification({ type: 'success', message: `${tipo === 'propietario' ? 'Propietario' : 'Cliente'} movido a ${nuevaEtapa}` });
     
     actualizarEtapaContacto(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad, tipo)
       .then(async () => {
