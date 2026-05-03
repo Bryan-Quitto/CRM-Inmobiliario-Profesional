@@ -54,8 +54,7 @@ export const ContactoPropertiesOwned = ({ contacto, onNavigate }: ContactoProper
         {propiedades.map((prop) => (
           <div 
             key={prop.id}
-            className="p-5 hover:bg-slate-50 transition-colors group relative cursor-pointer"
-            onClick={() => onNavigate(`/propiedades/${prop.id}`)}
+            className="p-5 hover:bg-slate-50 transition-colors group relative"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
@@ -86,7 +85,10 @@ export const ContactoPropertiesOwned = ({ contacto, onNavigate }: ContactoProper
                   </div>
                 </div>
               </div>
-              <button className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all shadow-sm cursor-pointer">
+              <button 
+                onClick={() => onNavigate(`/propiedades?id=${prop.id}`)}
+                className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all shadow-sm cursor-pointer"
+              >
                 <ExternalLink className="h-4 w-4" />
               </button>
             </div>
