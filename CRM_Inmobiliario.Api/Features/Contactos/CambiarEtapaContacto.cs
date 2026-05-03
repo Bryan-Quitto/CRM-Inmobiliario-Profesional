@@ -17,20 +17,21 @@ public static class CambiarEtapaContactoFeature
         app.MapPatch("/contactos/{id:guid}/etapa", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, ILogger<CrmDbContext> logger, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
+            var esTipoPropietario = string.Equals(command.Tipo, "Propietario", StringComparison.OrdinalIgnoreCase);
+            
             logger.LogInformation("[CierreDebug] Iniciando cambio de etapa para contacto {Id} a '{Etapa}' (Tipo: {Tipo}).", id, command.NuevaEtapa, command.Tipo);
 
             // 1. Validar que la nueva etapa sea válida para el tipo
-            var etapasValidas = command.Tipo == "Propietario"
-                ? new[] { "Activo", "Inactivo", "Vendido", "Rentado", "Retirado" }
-                : new[] { "Nuevo", "Contactado", "Cita", "Negociación", "Cerrado Ganado", "Cerrado Perdido" };
+            var etapasValidas = esTipoPropietario
+                ? new[] { "Activo", "Inactivo", "Vendido", "Rentado", "Retirado", "Cerrado" }
+                : new[] { "Nuevo", "Contactado", "Cita", "En Negociación", "Negociación", "Cerrado", "Cerrado Ganado", "Perdido", "Cerrado Perdido" };
 
             if (!etapasValidas.Contains(command.NuevaEtapa))
             {
-                return Results.BadRequest(new { Message = "Etapa no válida para el tipo de contacto." });
+                return Results.BadRequest(new { Message = $"Etapa '{command.NuevaEtapa}' no válida para el tipo '{command.Tipo}'." });
             }
 
-            // Iniciar transacción para asegurar atomicidad
-            using var transaction = await context.Database.BeginTransactionAsync(ct);
+            // Buscar contacto y actualizar etapa
             try
             {
                 // Buscar contacto
@@ -43,7 +44,7 @@ public static class CambiarEtapaContactoFeature
                 }
 
                 // Actualizar etapa según el tipo
-                if (command.Tipo == "Propietario")
+                if (esTipoPropietario)
                 {
                     contacto.EstadoPropietario = command.NuevaEtapa;
                 }
@@ -52,13 +53,15 @@ public static class CambiarEtapaContactoFeature
                     contacto.EtapaEmbudo = command.NuevaEtapa;
                 }
 
-                // Lógica especial para cierres (Cerrado Ganado / Vendido / Rentado)
-                if (command.NuevaEtapa == "Cerrado Ganado" || command.NuevaEtapa == "Vendido" || command.NuevaEtapa == "Rentado")
+                // Lógica especial para cierres (Cerrado Ganado / Vendido / Rentado / Cerrado)
+                var esCierreExitoso = new[] { "Cerrado", "Cerrado Ganado", "Vendido", "Rentado" }.Contains(command.NuevaEtapa);
+                
+                if (esCierreExitoso)
                 {
                     contacto.FechaCierre = DateTimeOffset.UtcNow;
 
-                    // Si se marca como Cerrado Ganado, buscar propiedades vinculadas
-                    if (command.NuevaEtapa == "Cerrado Ganado")
+                    // Si se marca como Cerrado / Cerrado Ganado, buscar propiedades vinculadas
+                    if (!esTipoPropietario && (command.NuevaEtapa == "Cerrado" || command.NuevaEtapa == "Cerrado Ganado"))
                     {
                         var propiedadesVinculadas = await context.ContactoInteresPropiedades
                             .Where(lpi => lpi.ContactoId == id)
@@ -124,7 +127,6 @@ public static class CambiarEtapaContactoFeature
                 }
 
                 await context.SaveChangesAsync(ct);
-                await transaction.CommitAsync(ct);
 
                 // Limpiar caché y precalentar KPIs
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
@@ -135,7 +137,6 @@ public static class CambiarEtapaContactoFeature
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync(ct);
                 logger.LogError(ex, "Error al cambiar etapa de contacto {Id}", id);
                 return Results.Problem("Error interno al procesar el cambio de etapa.");
             }

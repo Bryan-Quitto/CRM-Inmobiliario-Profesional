@@ -1,4 +1,5 @@
 import { Search, Filter as FilterIcon, ChevronDown, Check, Plus, List, LayoutGrid } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/contactos';
 
 interface ContactosListFiltersProps {
@@ -10,10 +11,7 @@ interface ContactosListFiltersProps {
   setFilterEtapa: (etapa: string) => void;
   viewMode: 'list' | 'kanban';
   setViewMode: (mode: 'list' | 'kanban') => void;
-  isFilterOpen: boolean;
-  setIsFilterOpen: (open: boolean) => void;
   onOpenCreateModal: () => void;
-  dropdownRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const ContactosListFilters = ({
@@ -25,11 +23,23 @@ export const ContactosListFilters = ({
   setFilterEtapa,
   viewMode,
   setViewMode,
-  isFilterOpen,
-  setIsFilterOpen,
   onOpenCreateModal,
-  dropdownRef
 }: ContactosListFiltersProps) => {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+    if (isFilterOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isFilterOpen]);
+
   return (
     <div className="flex flex-col space-y-6 mb-10">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -109,7 +119,7 @@ export const ContactosListFilters = ({
           />
         </div>
 
-        <div className="relative" ref={isFilterOpen ? dropdownRef : null}>
+        <div className="relative" ref={filterRef}>
           <button 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
             className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:border-slate-300 transition-all shadow-sm cursor-pointer"
@@ -130,6 +140,7 @@ export const ContactosListFilters = ({
                 Todas las etapas
                 {filterEtapa === 'Todas' && <Check className="h-4 w-4" />}
               </button>
+
 
               {(activeSegment === 'clientes' || activeSegment === 'todos') && (
                 <>
