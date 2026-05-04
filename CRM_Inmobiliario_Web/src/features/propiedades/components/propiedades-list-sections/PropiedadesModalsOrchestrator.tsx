@@ -104,7 +104,8 @@ export const PropiedadesModalsOrchestrator = ({
           id: closingPropiedad.propiedad.id,
           titulo: closingPropiedad.propiedad.titulo,
           precio: closingPropiedad.propiedad.precio,
-          operacion: closingPropiedad.propiedad.operacion
+          operacion: closingPropiedad.propiedad.operacion,
+          propietarioId: closingPropiedad.propiedad.propietarioId
         } : undefined}
       />
 

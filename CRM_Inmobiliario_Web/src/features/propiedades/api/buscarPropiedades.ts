@@ -5,6 +5,7 @@ export interface PropiedadBusqueda {
   titulo: string;
   ciudad: string;
   sector: string;
+  propietarioId?: string;
 }
 
 export const buscarPropiedades = async (query: string): Promise<PropiedadBusqueda[]> => {

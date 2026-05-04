@@ -28,82 +28,94 @@ export const usePropiedadesActions = ({
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const handleStatusChange = async (id: string, nuevoEstado: string, confirmed = false) => {
-    setOpenDropdownId(null);
+    console.log(`[DEBUG] handleStatusChange: id=${id}, nuevoEstado=${nuevoEstado}, confirmed=${confirmed}`);
+    
     const propiedad = propiedades.find(p => p.id === id);
-    if (!propiedad || propiedad.estadoComercial === nuevoEstado) return;
+    if (!propiedad) {
+      console.error("[DEBUG] Propiedad no encontrada");
+      return;
+    }
+    
+    if (propiedad.estadoComercial === nuevoEstado) return;
 
+    // 1. Modales de flujo
     if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && !confirmed) {
+      setOpenDropdownId(null);
       setClosingPropiedad({ propiedad, nuevoEstado });
       return;
     }
 
     if ((nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && !confirmed) {
+      setOpenDropdownId(null);
       setShowReversionModal({ type: 'status', id, targetStatus: nuevoEstado });
       return;
     }
 
     if (nuevoEstado === 'Inactiva' && !confirmed && propiedad.estadoComercial !== 'Vendida' && propiedad.estadoComercial !== 'Alquilada') {
+      setOpenDropdownId(null);
       setStatusConfirmation({ id, nuevoEstado });
       return;
     }
 
+    // 2. Ejecución de cambio
     setStatusConfirmation(null);
     setClosingPropiedad(null);
+    setOpenDropdownId(null);
+
     const optimisticData = propiedades.map(p => p.id === id ? { ...p, estadoComercial: nuevoEstado } : p);
 
     if (!confirmed) {
+      const toastId = toast.loading(`Cambiando a ${nuevoEstado}...`);
+      setUpdatingId(id);
+      
       try {
-        setUpdatingId(id);
-        await mutate(actualizarEstadoPropiedad(id, nuevoEstado).then(() => optimisticData), {
+        await actualizarEstadoPropiedad(id, nuevoEstado);
+        
+        await mutate(optimisticData, {
           optimisticData,
           rollbackOnError: true,
           revalidate: true
         });
-        toast.success(`Inmueble marcado como ${nuevoEstado}`);
+        
+        toast.success(`Inmueble marcado como ${nuevoEstado}`, { id: toastId });
         globalMutate('/dashboard/kpis');
         globalMutate((key: unknown) => typeof key === 'string' && key.startsWith('/analitica/'));
       } catch (error) {
-        const err = error as { response?: { data?: { message?: string } } };
-        if (nuevoEstado === 'Reservada' && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada')) {
-            toast.error("Acción no permitida", {
-                description: "Debe primero cambiar la propiedad a Disponible antes de reservarla."
-            });
-        } else {
-            toast.error(err.response?.data?.message || 'No se pudo actualizar el estado.');
-        }
+        console.error(`[DEBUG] Error al cambiar estado:`, error);
+        toast.error('No se pudo actualizar el estado', { id: toastId });
+        mutate();
       } finally {
         setUpdatingId(null);
       }
       return;
     }
 
+    // 3. Flujo de Reversión (con Undo Pattern)
     let isCancelled = false;
     const isReversion = (nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada');
 
     const commitStatusChange = async () => {
       if (isCancelled) return;
-
+      setUpdatingId(id);
       try {
-        setUpdatingId(id);
         await actualizarEstadoPropiedad(id, nuevoEstado);
         if (nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva') {
             await limpiarImagenesPropiedad(id);
         }
-        mutate();
+        await mutate();
         globalMutate('/dashboard/kpis');
         globalMutate((key: unknown) => typeof key === 'string' && key.startsWith('/analitica/'));
-        toast.success(isReversion ? "Cierre revertido con éxito" : `Propiedad "${propiedad.titulo}" actualizada y depurada.`);
+        toast.success(isReversion ? "Cierre revertido" : `Propiedad actualizada`);
       } catch {
-        toast.error("Error al procesar el cambio de estado.");
+        toast.error("Error al procesar el cambio");
+        mutate();
       } finally {
         setUpdatingId(null);
       }
     };
 
     toast.warning(isReversion ? "Revirtiendo Cierre" : `Estado: ${nuevoEstado}`, {
-      description: isReversion 
-        ? "El contacto volverá a En Negociación. Tienes 5 segundos para deshacer."
-        : "La galería ha sido depurada. Tienes 5 segundos para deshacer.",
+      description: "Tienes 5 segundos para deshacer.",
       action: {
         label: "Deshacer",
         onClick: () => {
@@ -112,7 +124,7 @@ export const usePropiedadesActions = ({
           toast.success("Acción cancelada");
         },
       },
-      duration: 6000,
+      duration: 5500,
       onAutoClose: commitStatusChange,
       onDismiss: commitStatusChange
     });
@@ -124,23 +136,44 @@ export const usePropiedadesActions = ({
     if (!closingPropiedad) return;
     const { propiedad } = closingPropiedad;
     
-    try {
-      setUpdatingId(propiedad.id);
-      await actualizarEstadoPropiedad(propiedad.id, tipoCierre, precioCierre, cerradoConId);
-      if (tipoCierre === 'Vendida') {
-        await limpiarImagenesPropiedad(propiedad.id);
+    const targetEstado = tipoCierre;
+
+    setClosingPropiedad(null);
+    const optimisticData = propiedades.map(p => p.id === propiedad.id ? { ...p, estadoComercial: targetEstado } : p);
+    mutate(optimisticData, false);
+    
+    const toastId = toast.loading(`Procesando ${targetEstado.toLowerCase()}...`);
+
+    const executeClose = async (statusToApply: string, retryCount = 0) => {
+      try {
+        setUpdatingId(propiedad.id);
+        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre, cerradoConId);
+
+        if (statusToApply === 'Vendida') {
+          await limpiarImagenesPropiedad(propiedad.id);
+        }
+
+        await mutate();
+        globalMutate('/dashboard/kpis');
+        globalMutate((key: unknown) => typeof key === 'string' && key.startsWith('/analitica/'));
+        
+        toast.success(`Propiedad ${statusToApply.toLowerCase()} con éxito`, { id: toastId });
+      } catch (error) {
+        console.error(`[CLOSING] Error:`, error);
+        mutate(propiedades, false);
+        toast.error(`Error al registrar cierre`, {
+          id: toastId,
+          action: {
+            label: "Reintentar",
+            onClick: () => executeClose(statusToApply, retryCount + 1)
+          }
+        });
+      } finally {
+        setUpdatingId(null);
       }
-      await mutate();
-      globalMutate('/dashboard/kpis');
-      globalMutate((key: unknown) => typeof key === 'string' && key.startsWith('/analitica/'));
-      toast.success(`Propiedad ${tipoCierre === 'Vendida' ? 'vendida' : 'alquilada'} con éxito`);
-    } catch (error) {
-      console.error('Error al cerrar:', error);
-      throw error;
-    } finally {
-      setUpdatingId(null);
-      setClosingPropiedad(null);
-    }
+    };
+
+    executeClose(targetEstado);
   };
 
   const handleRelistPropiedad = async (id: string, reason: string, type: 'Relist' | 'Cancel') => {
@@ -150,51 +183,33 @@ export const usePropiedadesActions = ({
     let isCancelled = false;
     const commitRelist = async () => {
       if (isCancelled) return;
+      setUpdatingId(id);
       try {
-        setUpdatingId(id);
         await relistPropiedad(id, reason, type);
-        mutate();
-        toast.success(type === 'Relist' ? "Nuevo ciclo comercial iniciado" : "Operación cancelada con éxito");
+        await mutate();
+        toast.success(type === 'Relist' ? "Nuevo ciclo comercial" : "Operación cancelada");
         globalMutate('/dashboard/kpis');
         globalMutate((key: unknown) => typeof key === 'string' && key.startsWith('/analitica/'));
       } catch {
-        toast.error(type === 'Relist' ? "Error al relistar" : "Error al cancelar la operación");
+        toast.error("Error en la operación");
+        mutate();
       } finally {
         setUpdatingId(null);
       }
     };
 
-    if (type === 'Relist') {
-      toast.info("Relistando...", {
-        description: "Se mantendrá el historial de cierre del contacto. 5s para deshacer.",
-        action: { 
-          label: "Deshacer", 
-          onClick: () => { 
-            isCancelled = true; 
-            toast.success("Acción cancelada"); 
-          } 
-        },
-        duration: 5000,
-        onAutoClose: commitRelist,
-        onDismiss: commitRelist
-      });
-    } else {
-      toast.warning("Anulando Operación", {
-        description: "El trato se marcará como caído y el contacto revertirá a Negociación. 5s para deshacer.",
-        action: { 
-          label: "Deshacer", 
-          onClick: () => { 
-            isCancelled = true; 
-            toast.success("Acción cancelada"); 
-          } 
-        },
-        duration: 5000,
-        onAutoClose: commitRelist,
-        onDismiss: commitRelist
-      });
-    }
+    toast.info(type === 'Relist' ? "Relistando..." : "Anulando Operación", {
+      description: "Tienes 5 segundos para deshacer.",
+      action: { 
+        label: "Deshacer", 
+        onClick: () => { isCancelled = true; toast.success("Acción cancelada"); } 
+      },
+      duration: 5000,
+      onAutoClose: commitRelist,
+      onDismiss: commitRelist
+    });
     
-    mutate(); // Revalidación local previa
+    mutate(); 
   };
 
   return {
@@ -204,5 +219,3 @@ export const usePropiedadesActions = ({
     handleRelistPropiedad
   };
 };
-
-
