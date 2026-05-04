@@ -84,7 +84,8 @@ export const DetalleModalsOrchestrator = ({
           id: propiedad.id,
           titulo: propiedad.titulo,
           precio: propiedad.precio,
-          operacion: propiedad.operacion
+          operacion: propiedad.operacion,
+          propietarioId: propiedad.propietarioId
         }}
       />
 

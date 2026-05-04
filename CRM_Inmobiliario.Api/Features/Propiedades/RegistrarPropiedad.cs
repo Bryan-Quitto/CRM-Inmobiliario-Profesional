@@ -87,9 +87,11 @@ public static class RegistrarPropiedadFeature
             if (command.PropietarioId.HasValue)
             {
                 var propietario = await context.Contactos.FindAsync(command.PropietarioId.Value);
-                if (propietario != null && !propietario.EsPropietario)
+                if (propietario != null)
                 {
                     propietario.EsPropietario = true;
+                    // Fix Prueba 4: Si se le asigna una nueva propiedad, debe pasar a Activo
+                    propietario.EstadoPropietario = "Activo";
                 }
             }
 

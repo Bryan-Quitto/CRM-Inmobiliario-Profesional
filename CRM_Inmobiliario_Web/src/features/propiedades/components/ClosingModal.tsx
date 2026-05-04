@@ -14,6 +14,7 @@ interface ClosingModalProps {
     titulo: string;
     precio: number;
     operacion: string;
+    propietarioId?: string;
   };
   intendedState?: string;
 }

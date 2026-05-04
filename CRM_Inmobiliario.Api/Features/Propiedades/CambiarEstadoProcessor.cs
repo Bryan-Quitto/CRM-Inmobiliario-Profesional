@@ -116,6 +116,59 @@ public static class CambiarEstadoProcessor
                 Notas = $"Propiedad '{property.Titulo}' marcada como {nuevoEstado} por {precioCierre:C}."
             });
         }
+
+        // 6. Sincronización de Estado del Propietario (Spec 015 & Fix Prueba 3/4)
+        if (property.PropietarioId.HasValue)
+        {
+            logger.LogInformation("👤 [PROCESSOR] Sincronizando estado del Propietario ID: {PropietarioId}", property.PropietarioId.Value);
+            
+            // Intentar obtener el propietario con sus propiedades para la lógica de conteo
+            var propietario = await context.Contactos
+                .Include(c => c.PropertiesOwned)
+                .FirstOrDefaultAsync(c => c.Id == property.PropietarioId.Value, ct);
+
+            if (propietario != null)
+            {
+                string estadoAnterior = propietario.EstadoPropietario;
+                
+                if (esCierre)
+                {
+                    // Si estamos cerrando, verificamos si le quedan otras propiedades ACTIVAS (no cerradas)
+                    // Nota: 'property' ya tiene el nuevo estado 'nuevoEstado' (Vendida/Alquilada) aplicado en el paso 4
+                    bool tieneOtrasActivas = propietario.PropertiesOwned
+                        .Any(p => p.Id != property.Id && p.EstadoComercial != "Vendida" && p.EstadoComercial != "Alquilada" && p.EstadoComercial != "Inactiva");
+
+                    if (!tieneOtrasActivas)
+                    {
+                        logger.LogInformation("🏁 [PROCESSOR] El propietario {Nombre} no tiene otras propiedades activas. Cambiando: {Old} -> Cerrado", propietario.Nombre, estadoAnterior);
+                        propietario.EstadoPropietario = "Cerrado";
+                    }
+                    else 
+                    {
+                        logger.LogInformation("🏠 [PROCESSOR] El propietario {Nombre} aún tiene otras propiedades activas.", propietario.Nombre);
+                    }
+                }
+                else if (nuevoEstado != "Inactiva")
+                {
+                    // Si la propiedad vuelve a estar disponible, el dueño debe estar Activo
+                    if (propietario.EstadoPropietario != "Activo")
+                    {
+                        logger.LogInformation("📈 [PROCESSOR] Reactivando propietario {Nombre}: {Old} -> Activo", propietario.Nombre, estadoAnterior);
+                        propietario.EstadoPropietario = "Activo";
+                    }
+                }
+
+                // Forzar el marcado de la entidad como modificada si hubo cambio
+                if (estadoAnterior != propietario.EstadoPropietario)
+                {
+                    context.Entry(propietario).State = EntityState.Modified;
+                }
+            }
+            else
+            {
+                logger.LogWarning("⚠️ [PROCESSOR] No se encontró el contacto Propietario con ID {Id}", property.PropietarioId.Value);
+            }
+        }
     }
 
     private static void FinalizarTransaccionesActivas(Property property)
