@@ -59,6 +59,17 @@ public static class EliminarTransaccionFeature
                 }
                 
                 property.CerradoConId = null;
+
+                // Reactivamos al propietario
+                if (property.PropietarioId.HasValue)
+                {
+                    var propietario = await context.Contactos.FirstOrDefaultAsync(c => c.Id == property.PropietarioId.Value, ct);
+                    if (propietario != null && propietario.EstadoPropietario != "Activo")
+                    {
+                        propietario.EstadoPropietario = "Activo";
+                        context.Entry(propietario).State = EntityState.Modified;
+                    }
+                }
             }
 
             // Phase 5: Estrictamente prohibido el borrado físico.

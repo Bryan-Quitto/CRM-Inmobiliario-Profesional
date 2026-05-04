@@ -22,6 +22,8 @@ export const usePropiedadesFiltering = (propiedades: Propiedad[]) => {
     let result = propiedades;
     if (searchQuery.trim()) {
       result = fuse.search(searchQuery).map(r => r.item);
+    } else {
+      result = [...result].sort((a, b) => new Date(b.fechaIngreso).getTime() - new Date(a.fechaIngreso).getTime());
     }
     return result.filter(p => {
       const matchesEstado = filterEstado === 'Todos' || p.estadoComercial === filterEstado;

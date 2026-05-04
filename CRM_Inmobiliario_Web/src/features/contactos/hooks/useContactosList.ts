@@ -93,6 +93,8 @@ export const useContactosList = () => {
 
     if (searchQuery.trim()) {
       result = fuse.search(searchQuery).map(r => r.item);
+    } else {
+      result = [...result].sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime());
     }
 
     return result.filter(contacto => {

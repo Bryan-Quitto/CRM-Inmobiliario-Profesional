@@ -89,6 +89,17 @@ public static class VolverAListarPropiedadFeature
                 // Nota: El Contacto permanece en su estado actual (Cerrado) según Spec
             }
 
+            // Reactivamos al propietario si corresponde
+            if (propiedad.PropietarioId.HasValue)
+            {
+                var propietario = await context.Contactos.FindAsync(propiedad.PropietarioId.Value);
+                if (propietario != null && propietario.EstadoPropietario != "Activo")
+                {
+                    propietario.EstadoPropietario = "Activo";
+                    context.Entry(propietario).State = EntityState.Modified;
+                }
+            }
+
             // Actualizamos estado de la propiedad
             propiedad.EstadoComercial = "Disponible";
             propiedad.CerradoConId = null;

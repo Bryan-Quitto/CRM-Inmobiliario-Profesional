@@ -8,7 +8,7 @@ interface DetalleHeroInfoProps {
 
 export const DetalleHeroInfo = ({ propiedad, formatCurrency }: DetalleHeroInfoProps) => {
   return (
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
       <div className="flex-1">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-widest">
@@ -45,6 +45,12 @@ export const DetalleHeroInfo = ({ propiedad, formatCurrency }: DetalleHeroInfoPr
       <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 flex flex-col items-end min-w-[200px]">
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Precio de Lista</p>
         <p className="text-4xl font-black text-indigo-600 tracking-tight">{formatCurrency(propiedad.precio)}</p>
+        {propiedad.precioCierre ? (
+          <div className="mt-4 pt-4 border-t border-slate-200 w-full flex flex-col items-end">
+            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Precio de Cierre</p>
+            <p className="text-2xl font-black text-emerald-600 tracking-tight">{formatCurrency(propiedad.precioCierre)}</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );
