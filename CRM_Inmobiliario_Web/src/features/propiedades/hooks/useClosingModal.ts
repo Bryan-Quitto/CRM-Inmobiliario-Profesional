@@ -91,14 +91,17 @@ export const useClosingModal = ({
 
   const propiedadOptions = useMemo(() => 
     propiedades
-      .filter(p => p.estadoComercial === 'Disponible')
+      .filter(p => {
+        const isOwner = mode === 'contacto' && p.propietarioId === initialData?.id;
+        return p.estadoComercial === 'Disponible' && !isOwner;
+      })
       .map(p => ({ 
         id: p.id, 
         title: p.titulo, 
         subtitle: `${p.sector}, ${p.ciudad}`,
         raw: p 
       })),
-    [propiedades]
+    [propiedades, mode, initialData?.id]
   );
 
   const handleConfirm = async () => {
@@ -144,7 +147,13 @@ export const useClosingModal = ({
 
   const onSearchProperties = async (query: string) => {
     const results = await buscarPropiedades(query);
-    return results.map(p => ({
+    // Filtrar si el contacto ya es dueño de esa propiedad (No puede comprar lo que ya es suyo)
+    const filteredResults = results.filter(p => {
+      const isOwner = mode === 'contacto' && p.propietarioId === initialData?.id;
+      return !isOwner;
+    });
+
+    return filteredResults.map(p => ({
       id: p.id,
       title: p.titulo,
       subtitle: `${p.sector}, ${p.ciudad}`,

@@ -21,10 +21,10 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [showReversionModal, setShowReversionModal] = useState<{ type: 'transaction' | 'status', id?: string, targetStatus?: string } | null>(null);
 
-  const handleClosingConfirm = async (precioCierre: number, cerradoConId: string) => {
+  const handleClosingConfirm = async (precioCierre: number, cerradoConId: string, finalStatus: string) => {
     if (!propiedad) return;
 
-    const targetEstado = propiedad.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida';
+    const targetEstado = finalStatus;
     const oldEstado = propiedad.estadoComercial;
 
     // 1. UI OPTIMISTA: Cerramos modal y actualizamos estado visualmente DE INMEDIATO
@@ -43,8 +43,9 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
         // Ejecutar cierre en backend usando el estado EXPLÍCITO capturado al inicio
         await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre, cerradoConId);
 
-        // Limpieza de imágenes (solo si no es alquiler)
-        if (propiedad.operacion !== 'Alquiler') {
+        // Limpieza de imágenes (solo si el estado final es Vendida)
+        // Antes se basaba en operacion, ahora se basa en el estado resultante para mayor precisión
+        if (statusToApply === 'Vendida') {
           await limpiarImagenesPropiedad(propiedad.id);
         }
 

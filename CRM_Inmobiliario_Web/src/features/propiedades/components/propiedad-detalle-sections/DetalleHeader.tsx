@@ -1,6 +1,6 @@
-import { X, Pencil, MessageSquare, ChevronDown, Check, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { X, Pencil, MessageSquare } from 'lucide-react';
 import PDFLinkInternal from '../PDFLinkInternal';
+import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
 import type { Propiedad } from '../../types';
 
 interface DetalleHeaderProps {
@@ -14,14 +14,6 @@ interface DetalleHeaderProps {
   handleStatusChange: (status: string) => void;
   handleWhatsAppShare: () => void;
 }
-
-const ESTADOS = [
-  { label: 'Disponible', value: 'Disponible' },
-  { label: 'Reservada', value: 'Reservada' },
-  { label: 'Vendida', value: 'Vendida' },
-  { label: 'Alquilada', value: 'Alquilada' },
-  { label: 'Inactiva', value: 'Inactiva' },
-];
 
 export const DetalleHeader = ({
   id,
@@ -66,39 +58,14 @@ export const DetalleHeader = ({
           </button>
         )}
 
-        <div className="relative">
-          <button
-            onClick={() => {
-              if (propiedad.permissions && !propiedad.permissions.canChangeStatus) {
-                const responsable = propiedad.activeTransaction?.agenteNombre || 'otro agente';
-                toast.warning('Acción restringida', {
-                  description: `Esta propiedad está en proceso por ${responsable}.`
-                });
-                return;
-              }
-              setIsStatusDropdownOpen(!isStatusDropdownOpen);
-            }}
-            disabled={isUpdatingStatus}
-            className={`cursor-pointer px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 ${propiedad.estadoComercial === 'Disponible' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-white'} ${propiedad.permissions && !propiedad.permissions.canChangeStatus ? 'opacity-70 grayscale-[0.5]' : ''}`}
-          >
-            {isUpdatingStatus ? <Loader2 className="h-3 w-3 animate-spin" /> : propiedad.estadoComercial}
-            {(!propiedad.permissions || propiedad.permissions.canChangeStatus) && <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />}
-          </button>
-          {isStatusDropdownOpen && (!propiedad.permissions || propiedad.permissions.canChangeStatus) && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[100] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
-              {ESTADOS.map((estado) => (
-                <button
-                  key={estado.value}
-                  onClick={() => handleStatusChange(estado.value)}
-                  className={`cursor-pointer w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${propiedad.estadoComercial === estado.value ? 'text-indigo-600 bg-indigo-50/30' : 'text-slate-600'}`}
-                >
-                  {estado.label}
-                  {propiedad.estadoComercial === estado.value && <Check className="h-3.5 w-3.5" />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <PropiedadStatusDropdown
+          propiedad={propiedad}
+          isUpdating={isUpdatingStatus}
+          isOpen={isStatusDropdownOpen}
+          onToggle={setIsStatusDropdownOpen}
+          onStatusChange={(_id, status) => handleStatusChange(status)}
+          variant="header"
+        />
       </div>
     </div>
   );

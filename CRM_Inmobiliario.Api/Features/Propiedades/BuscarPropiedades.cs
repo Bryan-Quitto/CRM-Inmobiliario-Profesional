@@ -10,7 +10,7 @@ namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class BuscarPropiedadesFeature
 {
-    public record PropiedadBusquedaResponse(Guid Id, string Titulo, string Ciudad, string Sector);
+    public record PropiedadBusquedaResponse(Guid Id, string Titulo, string Ciudad, string Sector, Guid? PropietarioId);
 
     public static void MapBuscarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
@@ -35,7 +35,8 @@ public static class BuscarPropiedadesFeature
                     p.Id, 
                     p.Titulo, 
                     p.Ciudad, 
-                    p.Sector))
+                    p.Sector,
+                    p.PropietarioId))
                 .ToListAsync();
 
             return Results.Ok(propiedades);

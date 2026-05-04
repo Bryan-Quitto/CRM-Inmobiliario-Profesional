@@ -22,6 +22,7 @@ public static class ListarPropiedadesFeature
         bool EsCaptacionPropia,
         decimal PorcentajeComision,
         string AgenteNombre,
+        Guid? PropietarioId,
         string? ImagenPortadaUrl,
         PropertyPermissions Permissions,
         ActiveTransactionInfo? ActiveTransaction);
@@ -85,6 +86,7 @@ public static class ListarPropiedadesFeature
                     x.Property.EsCaptacionPropia,
                     x.Property.PorcentajeComision,
                     x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente Anónimo",
+                    x.Property.PropietarioId,
                     x.Property.Media
                         .Where(m => m.EsPrincipal)
                         .Select(m => m.UrlPublica)

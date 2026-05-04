@@ -1,6 +1,7 @@
-import { AlertCircle, RotateCcw } from 'lucide-react';
+import { RotateCcw, AlertCircle } from 'lucide-react';
 import { CrearPropiedadForm } from '../CrearPropiedadForm';
 import { ClosingModal } from '../ClosingModal';
+import { PropiedadStatusConfirmModal } from '../modals/PropiedadStatusConfirmModal';
 import type { Propiedad } from '../../types';
 
 interface DetalleModalsOrchestratorProps {
@@ -16,7 +17,7 @@ interface DetalleModalsOrchestratorProps {
   setClosingState: (state?: string) => void;
   setShowReversionModal: (modal: { type: 'transaction' | 'status', id?: string, targetStatus?: string } | null) => void;
   handleStatusChange: (status: string, confirmed?: boolean) => void;
-  handleClosingConfirm: (precioCierre: number, cerradoConId: string) => Promise<void>;
+  handleClosingConfirm: (precioCierre: number, cerradoConId: string, finalStatus: string) => Promise<void>;
   handleRelist: (targetStatus?: string) => Promise<void>;
   handleCancelTransaction: (targetStatus?: string) => Promise<void>;
   mutate: () => void;
@@ -43,23 +44,12 @@ export const DetalleModalsOrchestrator = ({
   return (
     <>
       {/* Modal de Limpieza por Estado */}
-      {statusConfirmation && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-8 text-center">
-              <div className="h-20 w-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <AlertCircle className="h-10 w-10 text-rose-600" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">¿Confirmar estado {statusConfirmation}?</h3>
-              <p className="text-slate-500 font-medium mb-8">Se eliminarán permanentemente <span className="text-rose-600 font-bold">todas las secciones y fotos</span>, excepto la de portada.</p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button onClick={() => setStatusConfirmation(null)} className="flex-1 px-6 py-4 bg-slate-50 text-slate-600 font-bold rounded-2xl cursor-pointer">Cancelar</button>
-                <button onClick={() => handleStatusChange(statusConfirmation, true)} className="flex-1 px-6 py-4 bg-rose-600 text-white font-black rounded-2xl hover:bg-rose-700 shadow-xl cursor-pointer">Sí, confirmar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <PropiedadStatusConfirmModal 
+        isOpen={!!statusConfirmation}
+        onClose={() => setStatusConfirmation(null)}
+        onConfirm={(_id, status, confirmed) => handleStatusChange(status, confirmed)}
+        statusConfirmation={statusConfirmation ? { id: propiedad.id, nuevoEstado: statusConfirmation } : null}
+      />
 
       {/* Modal de Edición */}
       {showEditModal && (
