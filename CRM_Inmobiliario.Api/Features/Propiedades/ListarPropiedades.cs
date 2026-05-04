@@ -24,6 +24,7 @@ public static class ListarPropiedadesFeature
         string AgenteNombre,
         Guid? PropietarioId,
         string? ImagenPortadaUrl,
+        DateTimeOffset FechaIngreso,
         PropertyPermissions Permissions,
         ActiveTransactionInfo? ActiveTransaction);
 
@@ -91,6 +92,7 @@ public static class ListarPropiedadesFeature
                         .Where(m => m.EsPrincipal)
                         .Select(m => m.UrlPublica)
                         .FirstOrDefault(),
+                    x.Property.FechaIngreso,
                     new PropertyPermissions(
                         // Permiso de edición si eres el captador O el creador
                         x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId,

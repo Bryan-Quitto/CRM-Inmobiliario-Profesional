@@ -130,11 +130,11 @@ public static class CambiarEstadoProcessor
             if (propietario != null)
             {
                 string estadoAnterior = propietario.EstadoPropietario;
+                bool esEstadoCierreOInactiva = nuevoEstado is "Vendida" or "Alquilada" or "Inactiva";
                 
-                if (esCierre)
+                if (esEstadoCierreOInactiva)
                 {
-                    // Si estamos cerrando, verificamos si le quedan otras propiedades ACTIVAS (no cerradas)
-                    // Nota: 'property' ya tiene el nuevo estado 'nuevoEstado' (Vendida/Alquilada) aplicado en el paso 4
+                    // Si estamos cerrando o inactivando, verificamos si le quedan otras propiedades ACTIVAS (no cerradas ni inactivas)
                     bool tieneOtrasActivas = propietario.PropertiesOwned
                         .Any(p => p.Id != property.Id && p.EstadoComercial != "Vendida" && p.EstadoComercial != "Alquilada" && p.EstadoComercial != "Inactiva");
 
@@ -148,9 +148,9 @@ public static class CambiarEstadoProcessor
                         logger.LogInformation("🏠 [PROCESSOR] El propietario {Nombre} aún tiene otras propiedades activas.", propietario.Nombre);
                     }
                 }
-                else if (nuevoEstado != "Inactiva")
+                else
                 {
-                    // Si la propiedad vuelve a estar disponible, el dueño debe estar Activo
+                    // Si la propiedad vuelve a estar disponible, reservada, etc., el dueño debe estar Activo
                     if (propietario.EstadoPropietario != "Activo")
                     {
                         logger.LogInformation("📈 [PROCESSOR] Reactivando propietario {Nombre}: {Old} -> Activo", propietario.Nombre, estadoAnterior);

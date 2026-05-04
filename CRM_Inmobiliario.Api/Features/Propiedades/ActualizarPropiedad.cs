@@ -118,9 +118,16 @@ public static class ActualizarPropiedadFeature
             if (command.PropietarioId.HasValue)
             {
                 var propietario = await context.Contactos.FindAsync(command.PropietarioId.Value);
-                if (propietario != null && !propietario.EsPropietario)
+                if (propietario != null)
                 {
-                    propietario.EsPropietario = true;
+                    if (!propietario.EsPropietario)
+                    {
+                        propietario.EsPropietario = true;
+                    }
+                    if (propiedad.EstadoComercial != "Vendida" && propiedad.EstadoComercial != "Alquilada" && propiedad.EstadoComercial != "Inactiva")
+                    {
+                        propietario.EstadoPropietario = "Activo";
+                    }
                 }
             }
             propiedad.PropietarioId = command.PropietarioId;

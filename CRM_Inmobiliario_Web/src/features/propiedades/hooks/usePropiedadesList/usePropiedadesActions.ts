@@ -38,14 +38,24 @@ export const usePropiedadesActions = ({
     
     if (propiedad.estadoComercial === nuevoEstado) return;
 
-    // 1. Modales de flujo
+    // 1. Validaciones y Modales de flujo
+    if ((propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && 
+        (nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && 
+        !confirmed) {
+      setOpenDropdownId(null);
+      toast.error('Acción no permitida', {
+        description: 'Debes cambiar la propiedad a "Disponible" para cerrar el ciclo anterior antes de registrar una nueva transacción.'
+      });
+      return;
+    }
+
     if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && !confirmed) {
       setOpenDropdownId(null);
       setClosingPropiedad({ propiedad, nuevoEstado });
       return;
     }
 
-    if ((nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && !confirmed) {
+    if ((propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && !confirmed) {
       setOpenDropdownId(null);
       setShowReversionModal({ type: 'status', id, targetStatus: nuevoEstado });
       return;

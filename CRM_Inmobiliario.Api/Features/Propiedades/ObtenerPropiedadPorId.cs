@@ -37,6 +37,7 @@ public static class ObtenerPropiedadPorIdFeature
         string AgenteNombre,
         Guid? PropietarioId,
         string? PropietarioNombre,
+        decimal? PrecioCierre,
         IEnumerable<SectionResponse> Secciones,
         IEnumerable<MediaResponse> MediaSinSeccion,
         PropertyPermissions Permissions,
@@ -123,6 +124,7 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente Anónimo",
                     x.Property.PropietarioId,
                     x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null,
+                    x.Property.PrecioCierre,
                     x.Property.GallerySections
                         .OrderBy(s => s.Orden)
                         .Select(s => new SectionResponse(
