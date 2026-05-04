@@ -4,6 +4,7 @@ export interface ContactoBusqueda {
   id: string;
   nombreCompleto: string;
   telefono: string;
+  esContacto: boolean;
 }
 
 export const buscarContactos = async (query: string): Promise<ContactoBusqueda[]> => {

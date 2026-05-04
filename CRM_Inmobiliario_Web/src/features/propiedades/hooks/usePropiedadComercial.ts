@@ -23,23 +23,66 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
 
   const handleClosingConfirm = async (precioCierre: number, cerradoConId: string) => {
     if (!propiedad) return;
-    try {
-      setIsUpdatingStatus(true);
-      await actualizarEstadoPropiedad(propiedad.id, propiedad.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida', precioCierre, cerradoConId);
 
-      if (propiedad.operacion !== 'Alquiler') {
-        await limpiarImagenesPropiedad(propiedad.id);
+    const targetEstado = propiedad.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida';
+    const oldEstado = propiedad.estadoComercial;
+
+    // 1. UI OPTIMISTA: Cerramos modal y actualizamos estado visualmente DE INMEDIATO
+    setIsClosingModalOpen(false);
+    mutate({ ...propiedad, estadoComercial: targetEstado }, false);
+    
+    const toastId = toast.loading(`Procesando ${targetEstado.toLowerCase()}...`, {
+      description: "Estamos registrando la transacción en segundo plano."
+    });
+
+    const executeClose = async (statusToApply: string, retryCount = 0) => {
+      try {
+        setIsUpdatingStatus(true);
+        console.log(`[CLOSING] Iniciando proceso de cierre para ${propiedad.id} como ${statusToApply} (Intento ${retryCount + 1})`);
+        
+        // Ejecutar cierre en backend usando el estado EXPLÍCITO capturado al inicio
+        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre, cerradoConId);
+
+        // Limpieza de imágenes (solo si no es alquiler)
+        if (propiedad.operacion !== 'Alquiler') {
+          await limpiarImagenesPropiedad(propiedad.id);
+        }
+
+        // Sincronizar estado final
+        await mutate();
+        await mutateHistorial();
+        
+        toast.success(`Propiedad ${statusToApply.toLowerCase()} con éxito`, { id: toastId });
+      } catch (error) {
+        console.error(`[CLOSING] Error en intento ${retryCount + 1}:`, error);
+        
+        // Revertir UI si falla y no hay más reintentos automáticos
+        mutate({ ...propiedad, estadoComercial: oldEstado }, false);
+
+        toast.error(`Error al registrar ${statusToApply.toLowerCase()}`, {
+          id: toastId,
+          duration: Infinity,
+          description: retryCount >= 1 
+            ? "El reintento falló. Por favor, intenta de nuevo manualmente o contacta a soporte."
+            : "Hubo un problema de conexión al procesar el cierre.",
+          action: {
+            label: retryCount >= 1 ? "Entendido" : "Reintentar",
+            onClick: () => {
+              if (retryCount < 1) {
+                executeClose(statusToApply, retryCount + 1);
+              } else {
+                toast.dismiss(toastId);
+              }
+            }
+          }
+        });
+      } finally {
+        setIsUpdatingStatus(false);
       }
+    };
 
-      await mutate();
-      toast.success(`Propiedad ${propiedad.operacion === 'Alquiler' ? 'alquilada' : 'vendida'} con éxito`);
-      setIsClosingModalOpen(false);
-    } catch (error) {
-      console.error('Error al cerrar:', error);
-      throw error;
-    } finally {
-      setIsUpdatingStatus(false);
-    }
+    // Lanzar en segundo plano (Fire and Forget) con el estado capturado
+    executeClose(targetEstado);
   };
 
   const handleStatusChange = (nuevoEstado: string, confirmed = false) => {

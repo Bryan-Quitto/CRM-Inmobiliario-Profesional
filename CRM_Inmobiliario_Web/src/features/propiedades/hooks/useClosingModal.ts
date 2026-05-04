@@ -15,6 +15,7 @@ interface UseClosingModalProps {
     titulo: string;
     precio: number;
     operacion: string;
+    propietarioId?: string;
   };
   intendedState?: string;
 }
@@ -38,7 +39,8 @@ export const useClosingModal = ({
   const [tipoCierre, setTipoCierre] = useState<string>(() => {
     if (intendedState) return intendedState;
     if (mode === 'property' && initialData) {
-      return initialData.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida';
+      // Mapeo robusto: Solo Venta es Vendida, cualquier otra cosa (Renta/Alquiler) es Alquilada
+      return initialData.operacion === 'Venta' ? 'Vendida' : 'Alquilada';
     }
     return 'Vendida';
   });
@@ -54,11 +56,11 @@ export const useClosingModal = ({
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
     if (isOpen) {
-      // Resetear estados al abrir
+      // Resetear estados al abrir con mapeo explícito
       if (intendedState) {
         setTipoCierre(intendedState);
       } else if (mode === 'property' && initialData) {
-        setTipoCierre(initialData.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida');
+        setTipoCierre(initialData.operacion === 'Venta' ? 'Vendida' : 'Alquilada');
       } else {
         setTipoCierre('Vendida');
       }
@@ -77,8 +79,14 @@ export const useClosingModal = ({
   }
 
   const contactoOptions = useMemo(() => 
-    contactos.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
-    [contactos]
+    contactos
+      .filter(c => {
+        const isOwner = mode === 'property' && initialData?.propietarioId === c.id;
+        // Solo mostrar si NO es el dueño y es un prospecto comercial (esContacto)
+        return !isOwner && c.esContacto;
+      })
+      .map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
+    [contactos, mode, initialData?.propietarioId]
   );
 
   const propiedadOptions = useMemo(() => 
@@ -119,7 +127,14 @@ export const useClosingModal = ({
 
   const onSearchClients = async (query: string) => {
     const results = await buscarContactos(query);
-    return results.map(c => ({
+    // 1. Filtrar al propietario actual
+    // 2. Filtrar a quienes NO son prospectos (solo son propietarios)
+    const filteredResults = results.filter(c => {
+      const isOwner = mode === 'property' && initialData?.propietarioId === c.id;
+      return !isOwner && c.esContacto;
+    });
+
+    return filteredResults.map(c => ({
       id: c.id,
       title: c.nombreCompleto,
       subtitle: c.telefono,
