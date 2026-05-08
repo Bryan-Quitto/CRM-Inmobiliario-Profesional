@@ -44,37 +44,38 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
     if (isEditing && dataToMap) {
       const fecha = dataToMap.fechaIngreso ? dataToMap.fechaIngreso.split('T')[0] : ecuadorDate;
       
+      // Mapeo robusto que soporta tanto camelCase como PascalCase (de la BD/AutoMapper)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const raw = dataToMap as any;
+      const raw = dataToMap as any; 
+      const esCaptacionPropia = (raw.EsCaptacionPropia ?? dataToMap.esCaptacionPropia) as boolean;
+      const finalCaptadorId = !esCaptacionPropia ? ((raw.AgenteId || dataToMap.agenteId) as string) : undefined;
       
       return {
         ...dataToMap,
-        titulo: raw.Titulo || dataToMap.titulo,
-        descripcion: raw.Descripcion || dataToMap.descripcion,
-        precio: raw.Precio || dataToMap.precio,
-        direccion: raw.Direccion || dataToMap.direccion,
-        sector: raw.Sector || dataToMap.sector,
-        ciudad: raw.Ciudad || dataToMap.ciudad,
-        tipoPropiedad: raw.TipoPropiedad || dataToMap.tipoPropiedad,
+        titulo: (raw.Titulo || dataToMap.titulo) as string,
+        descripcion: (raw.Descripcion || dataToMap.descripcion) as string,
+        precio: (raw.Precio || dataToMap.precio) as number,
+        direccion: (raw.Direccion || dataToMap.direccion) as string,
+        sector: (raw.Sector || dataToMap.sector) as string,
+        ciudad: (raw.Ciudad || dataToMap.ciudad) as string,
+        tipoPropiedad: (raw.TipoPropiedad || dataToMap.tipoPropiedad) as string,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         operacion: (raw.Operacion || dataToMap.operacion) as any,
-        urlRemax: raw.UrlRemax || dataToMap.urlRemax || '',
-        googleMapsUrl: raw.GoogleMapsUrl || dataToMap.googleMapsUrl || '',
+        urlRemax: (raw.UrlRemax || dataToMap.urlRemax || '') as string,
+        googleMapsUrl: (raw.GoogleMapsUrl || dataToMap.googleMapsUrl || '') as string,
         
-        habitaciones: raw.Habitaciones ?? dataToMap.habitaciones,
-        banos: raw.Banos ?? dataToMap.banos,
-        areaTotal: raw.AreaTotal ?? dataToMap.areaTotal,
-        areaTerreno: raw.AreaTerreno ?? dataToMap.areaTerreno,
-        areaConstruccion: raw.AreaConstruccion ?? dataToMap.areaConstruccion,
-        estacionamientos: raw.Estacionamientos ?? dataToMap.estacionamientos,
-        mediosBanos: raw.MediosBanos ?? dataToMap.mediosBanos,
-        aniosAntiguedad: raw.AniosAntiguedad ?? dataToMap.aniosAntiguedad,
+        habitaciones: (raw.Habitaciones ?? dataToMap.habitaciones) as number,
+        banos: (raw.Banos ?? dataToMap.banos) as number,
+        areaTotal: (raw.AreaTotal ?? dataToMap.areaTotal) as number,
+        areaTerreno: (raw.AreaTerreno ?? dataToMap.areaTerreno) as number,
+        areaConstruccion: (raw.AreaConstruccion ?? dataToMap.areaConstruccion) as number,
+        estacionamientos: (raw.Estacionamientos ?? dataToMap.estacionamientos) as number,
+        mediosBanos: (raw.MediosBanos ?? dataToMap.mediosBanos) as number,
+        aniosAntiguedad: (raw.AniosAntiguedad ?? dataToMap.aniosAntiguedad) as number,
 
-        esCaptacionPropia: raw.EsCaptacionPropia ?? dataToMap.esCaptacionPropia,
-        captadorId: !(raw.EsCaptacionPropia ?? dataToMap.esCaptacionPropia) 
-          ? (raw.AgenteId || dataToMap.agenteId) 
-          : undefined,
-        porcentajeComision: raw.PorcentajeComision ?? dataToMap.porcentajeComision ?? 5,
+        esCaptacionPropia,
+        captadorId: finalCaptadorId,
+        porcentajeComision: (raw.PorcentajeComision ?? dataToMap.porcentajeComision ?? 5) as number,
         fechaIngreso: fecha
       };
     }

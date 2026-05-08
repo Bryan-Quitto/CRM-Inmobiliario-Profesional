@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { useFormContext, Controller, useWatch } from 'react-hook-form';
 import { UserPlus, UserCircle, UserCheck, Phone, User } from 'lucide-react';
 import useSWR from 'swr';
@@ -19,16 +19,33 @@ export const CommissionSection = ({ initialData }: Props) => {
   const { register, control, setValue, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
   const { perfil } = usePerfil();
   const esCaptacionPropia = useWatch({ control, name: 'esCaptacionPropia' });
-  const [isGuestMode, setIsGuestMode] = useState(false);
-  const [isAnonymous, setIsAnonymous] = useState(false);
 
-  // Limpiar captador al desmarcar propia para evitar autoselección
-  useEffect(() => {
-    if (!esCaptacionPropia) {
-      setValue('captadorId', undefined);
-      setValue('nuevoCaptador', undefined);
+  // Estados para cambios MANUALES del usuario
+  const [userSelectedMode, setUserSelectedMode] = useState<'list' | 'guest' | 'anonymous' | null>(null);
+
+  // Modo derivado para la UI (prioriza selección manual, cae a detección por initialData)
+  const { isGuestMode, isAnonymous } = useMemo(() => {
+    if (userSelectedMode) {
+      return {
+        isGuestMode: userSelectedMode === 'guest',
+        isAnonymous: userSelectedMode === 'anonymous'
+      };
     }
-  }, [esCaptacionPropia, setValue]);
+
+    // Detección automática basada en datos iniciales
+    if (initialData && !initialData.esCaptacionPropia) {
+      const esAnonimo = initialData.agenteNombre?.toLowerCase() === 'agente anónimo';
+      // Es invitado si no tiene ID pero sí nombre, y el nombre no es el del agente anónimo
+      const esInvitado = !initialData.agenteId && !!initialData.agenteNombre && !esAnonimo;
+      
+      return {
+        isGuestMode: esInvitado,
+        isAnonymous: esAnonimo
+      };
+    }
+
+    return { isGuestMode: false, isAnonymous: false };
+  }, [userSelectedMode, initialData]);
 
   const { data: agentes = [] } = useSWR('/configuracion/agentes', getAgentes, swrDefaultConfig);
   const { data: contactos = [] } = useSWR('/contactos', getContactos, swrDefaultConfig);
@@ -58,8 +75,7 @@ export const CommissionSection = ({ initialData }: Props) => {
   );
 
   const handleModeChange = (mode: 'list' | 'guest' | 'anonymous') => {
-    setIsGuestMode(mode === 'guest');
-    setIsAnonymous(mode === 'anonymous');
+    setUserSelectedMode(mode);
     
     // Limpiar campos según el modo
     setValue('captadorId', undefined);
