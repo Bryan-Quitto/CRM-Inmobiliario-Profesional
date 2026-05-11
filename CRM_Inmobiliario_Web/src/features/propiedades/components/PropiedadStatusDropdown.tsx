@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, Check, Loader2 } from 'lucide-react';
+import { ChevronDown, Check, Loader2, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { ESTADOS } from '../constants/propiedades';
 import type { Propiedad } from '../types';
@@ -33,15 +33,18 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
     return found?.color || 'bg-slate-500 border-slate-400 text-white';
   };
 
+  const canEdit = p.permissions?.canChangeStatus;
+
   // Usamos onMouseDown para interceptar el clic antes de que cualquier otra capa lo detenga
   const handlePriorityToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (p.permissions && !p.permissions.canChangeStatus) {
-      const responsable = p.activeTransaction?.agenteNombre || 'otro agente';
+    if (!canEdit) {
+      // Priorizar el nombre de quien tiene la transacción activa, sino el captador
+      const responsable = p.activeTransaction?.agenteNombre || p.agenteNombre || 'otro agente';
       toast.warning('Acción restringida', {
-        description: `Esta propiedad está en proceso por ${responsable}.`
+        description: `Esta propiedad está siendo gestionada por ${responsable}. Contacta con el agente para cambios.`
       });
       return;
     }
@@ -81,15 +84,16 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
               variant === 'header' 
                 ? 'px-3 py-1.5 rounded-full text-[10px]' 
                 : 'px-3 py-1 rounded-full text-[10px] border'
-            } ${getStatusStyles(p.estadoComercial)} ${p.permissions && !p.permissions.canChangeStatus ? 'opacity-70 grayscale-[0.5]' : ''}`}
+            } ${getStatusStyles(p.estadoComercial)} ${!canEdit ? 'opacity-80' : ''}`}
           >
+            {!canEdit && <Lock className="h-2.5 w-2.5" />}
             {p.estadoComercial}
-            {(!p.permissions || p.permissions.canChangeStatus) && (
+            {canEdit && (
               <ChevronDown className={`transition-transform duration-300 ${variant === 'header' ? 'h-3.5 w-3.5' : 'h-3 w-3'} ${isOpen ? 'rotate-180' : ''}`} />
             )}
           </button>
 
-          {isOpen && (!p.permissions || p.permissions.canChangeStatus) && (
+          {isOpen && canEdit && (
             <div 
               className={`absolute mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[100] py-2 animate-in fade-in zoom-in duration-200 backdrop-blur-xl bg-white/95 ${
                 variant === 'header' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'

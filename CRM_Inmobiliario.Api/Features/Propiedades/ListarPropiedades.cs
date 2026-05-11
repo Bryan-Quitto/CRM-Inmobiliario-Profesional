@@ -96,7 +96,14 @@ public static class ListarPropiedadesFeature
                     new PropertyPermissions(
                         // Permiso de edición si eres el captador O el creador
                         x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId,
-                        x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId || (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || x.Property.EstadoComercial == "Disponible"
+                        // Cambio de estado permitido si:
+                        // 1. Eres el dueño (captador) O el creador (staff)
+                        // 2. Eres el autor de la transacción activa (quien la reservó/vendió)
+                        // 3. La propiedad está disponible (cualquiera de la agencia puede iniciar un proceso)
+                        x.Property.AgenteId == currentUserId || 
+                        x.Property.CreatedByAgenteId == currentUserId || 
+                        (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || 
+                        x.Property.EstadoComercial == "Disponible"
                     ),
                     x.ActiveTransaction))
                 .ToListAsync();
