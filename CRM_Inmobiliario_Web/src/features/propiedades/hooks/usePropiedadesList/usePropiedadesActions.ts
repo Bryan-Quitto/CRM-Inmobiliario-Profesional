@@ -79,7 +79,7 @@ export const usePropiedadesActions = ({
       setUpdatingId(id);
       
       try {
-        await actualizarEstadoPropiedad(id, nuevoEstado);
+        await actualizarEstadoPropiedad(id, nuevoEstado, undefined, undefined, propiedad.version);
         
         await mutate(optimisticData, {
           optimisticData,
@@ -108,7 +108,7 @@ export const usePropiedadesActions = ({
       if (isCancelled) return;
       setUpdatingId(id);
       try {
-        await actualizarEstadoPropiedad(id, nuevoEstado);
+        await actualizarEstadoPropiedad(id, nuevoEstado, undefined, undefined, propiedad.version);
         if (nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva') {
             await limpiarImagenesPropiedad(id);
         }
@@ -157,7 +157,7 @@ export const usePropiedadesActions = ({
     const executeClose = async (statusToApply: string, retryCount = 0) => {
       try {
         setUpdatingId(propiedad.id);
-        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre, cerradoConId);
+        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre, cerradoConId, propiedad.version);
 
         if (statusToApply === 'Vendida') {
           await limpiarImagenesPropiedad(propiedad.id);
@@ -168,12 +168,17 @@ export const usePropiedadesActions = ({
         globalMutate((key: unknown) => typeof key === 'string' && key.startsWith('/analitica/'));
         
         toast.success(`Propiedad ${statusToApply.toLowerCase()} con éxito`, { id: toastId });
-      } catch (error) {
+      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error(`[CLOSING] Error:`, error);
         mutate(propiedades, false);
-        toast.error(`Error al registrar cierre`, {
+        
+        const isConflict = error.response?.status === 409;
+        const errorMessage = error.response?.data?.Message || error.response?.data?.message || error.message || "Error al procesar la operación";
+        
+        toast.error(isConflict ? "Conflicto de actualización" : "Error al procesar", {
           id: toastId,
-          action: {
+          description: errorMessage,
+          action: isConflict ? undefined : {
             label: "Reintentar",
             onClick: () => executeClose(statusToApply, retryCount + 1)
           }

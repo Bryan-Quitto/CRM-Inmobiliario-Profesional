@@ -42,7 +42,8 @@ public static class ObtenerPropiedadPorIdFeature
         IEnumerable<SectionResponse> Secciones,
         IEnumerable<MediaResponse> MediaSinSeccion,
         PropertyPermissions Permissions,
-        ActiveTransactionInfo? ActiveTransaction);
+        ActiveTransactionInfo? ActiveTransaction,
+        string Version);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -166,7 +167,8 @@ public static class ObtenerPropiedadPorIdFeature
                         (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || 
                         x.Property.EstadoComercial == "Disponible"
                     ),
-                    x.ActiveTransaction))
+                    x.ActiveTransaction,
+                    x.Property.Version.ToString()))
                 .FirstOrDefaultAsync();
 
             return propiedad is not null 

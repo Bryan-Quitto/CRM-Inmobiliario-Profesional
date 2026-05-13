@@ -90,6 +90,9 @@ public sealed class Property
 
     public DateTimeOffset? FechaCierre { get; set; }
 
+    [Timestamp]
+    public uint Version { get; set; }
+
     // Relaciones de navegación
     public ICollection<PropertyGallerySection> GallerySections { get; set; } = new List<PropertyGallerySection>();
     public ICollection<PropertyMedia> Media { get; set; } = new List<PropertyMedia>();

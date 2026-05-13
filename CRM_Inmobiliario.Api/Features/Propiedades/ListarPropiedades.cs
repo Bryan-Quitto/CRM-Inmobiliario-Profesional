@@ -26,7 +26,8 @@ public static class ListarPropiedadesFeature
         string? ImagenPortadaUrl,
         DateTimeOffset FechaIngreso,
         PropertyPermissions Permissions,
-        ActiveTransactionInfo? ActiveTransaction);
+        ActiveTransactionInfo? ActiveTransaction,
+        string Version);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -105,7 +106,8 @@ public static class ListarPropiedadesFeature
                         (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || 
                         x.Property.EstadoComercial == "Disponible"
                     ),
-                    x.ActiveTransaction))
+                    x.ActiveTransaction,
+                    x.Property.Version.ToString()))
                 .ToListAsync();
 
             return Results.Ok(propiedades);

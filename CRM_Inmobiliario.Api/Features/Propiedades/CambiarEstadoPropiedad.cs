@@ -10,12 +10,13 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.OutputCaching;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class CambiarEstadoPropiedadFeature
 {
-    public record Command(string NuevoEstado, decimal? PrecioCierre = null, Guid? CerradoConId = null);
+    public record Command(string NuevoEstado, decimal? PrecioCierre = null, Guid? CerradoConId = null, string? Version = null);
 
     public static void MapCambiarEstadoPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -58,7 +59,13 @@ public static class CambiarEstadoPropiedadFeature
                     logger, 
                     ct);
 
-                // 3. PERSISTENCIA Y EFECTOS SECUNDARIOS
+                // 3. CONFIGURACIÓN DE CONCURRENCIA (Spec 010)
+                if (!string.IsNullOrEmpty(command.Version) && uint.TryParse(command.Version, out uint parsedVersion))
+                {
+                    context.Entry(validation.Property!).Property(p => p.Version).OriginalValue = parsedVersion;
+                }
+
+                // 4. PERSISTENCIA Y EFECTOS SECUNDARIOS
                 logger.LogInformation("💾 [ESTADO] Ejecutando SaveChangesAsync...");
                 await context.SaveChangesAsync(CancellationToken.None);
                 
@@ -68,6 +75,11 @@ public static class CambiarEstadoPropiedadFeature
 
                 logger.LogInformation("🏁 [ESTADO] Proceso completado exitosamente para {Id}", id);
                 return Results.NoContent();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                logger.LogWarning(ex, "⚠️ [ESTADO] Conflicto de concurrencia al actualizar la propiedad {Id}", id);
+                return Results.Conflict(new { Message = "La propiedad fue modificada por otro usuario al mismo tiempo. Por favor, refresca la página e intenta de nuevo." });
             }
             catch (Exception ex)
             {
