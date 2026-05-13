@@ -65,4 +65,5 @@ export interface Propiedad {
   imagenPortadaUrl?: string;
   permissions?: PropertyPermissions;
   activeTransaction?: ActiveTransactionInfo;
+  version?: string;
 }

@@ -26,8 +26,15 @@ public static class LimpiarImagenesPropiedadFeature
             
             try
             {
+                var currentUserAgenciaId = await context.Agents
+                    .AsNoTracking()
+                    .Where(a => a.Id == agenteId)
+                    .Select(a => a.AgenciaId)
+                    .FirstOrDefaultAsync(ct);
+
                 var exists = await context.Properties
-                    .AnyAsync(p => p.Id == propiedadId && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId), ct);
+                    .AnyAsync(p => p.Id == propiedadId && 
+                                  (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)), ct);
 
                 if (!exists)
                     return Results.NotFound("Propiedad no encontrada.");

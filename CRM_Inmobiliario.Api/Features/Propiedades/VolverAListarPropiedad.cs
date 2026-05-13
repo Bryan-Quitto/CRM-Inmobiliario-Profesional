@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
+using CRM_Inmobiliario.Api.Features.Dashboard;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
@@ -15,7 +17,7 @@ public static class VolverAListarPropiedadFeature
 
     public static RouteHandlerBuilder MapVolverAListarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPost("/propiedades/{id:guid}/relist", async (Guid id, Request? request, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapPost("/propiedades/{id:guid}/relist", async (Guid id, Request? request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
             var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
@@ -89,26 +91,53 @@ public static class VolverAListarPropiedadFeature
                 // Nota: El Contacto permanece en su estado actual (Cerrado) según Spec
             }
 
-            // Reactivamos al propietario si corresponde
+            // Reactivamos al propietario si corresponde y definimos el estado final de la propiedad
+            var estadoFinalPropiedad = "Disponible";
+
             if (propiedad.PropietarioId.HasValue)
             {
                 var propietario = await context.Contactos.FindAsync(propiedad.PropietarioId.Value);
-                if (propietario != null && propietario.EstadoPropietario != "Activo")
+                if (propietario != null)
                 {
-                    propietario.EstadoPropietario = "Activo";
-                    context.Entry(propietario).State = EntityState.Modified;
+                    if (propietario.EstadoPropietario == "Inactivo")
+                    {
+                        estadoFinalPropiedad = "Inactiva";
+                    }
+                    else if (propietario.EstadoPropietario == "Cerrado")
+                    {
+                        propietario.EstadoPropietario = "Activo";
+                        context.Entry(propietario).State = EntityState.Modified;
+                    }
+                    else if (propietario.EstadoPropietario != "Activo")
+                    {
+                        propietario.EstadoPropietario = "Activo";
+                        context.Entry(propietario).State = EntityState.Modified;
+                    }
                 }
             }
 
             // Actualizamos estado de la propiedad
-            propiedad.EstadoComercial = "Disponible";
+            propiedad.EstadoComercial = estadoFinalPropiedad;
             propiedad.CerradoConId = null;
             propiedad.FechaCierre = null;
             propiedad.PrecioCierre = null;
 
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync(ct);
+                
+                // Invalidar caches e informar al warming service
+                warmingService.NotifyChange(agenteId);
+                await cacheStore.EvictByTagAsync("dashboard-data", ct);
+                await cacheStore.EvictByTagAsync("analytics-data", ct);
+                await cacheStore.EvictByTagAsync("properties-data", ct);
 
-            return Results.Ok(new { Message = mode == "Cancel" ? "Operación cancelada con éxito" : "Propiedad relistada con éxito" });
+                return Results.Ok(new { Message = mode == "Cancel" ? "Operación cancelada con éxito" : "Propiedad relistada con éxito" });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Results.Conflict(new { Message = "La propiedad fue modificada por otro usuario al mismo tiempo. Por favor, refresca la página e intenta de nuevo." });
+            }
         })
         .WithTags("Propiedades")
         .WithName("VolverAListarPropiedad");

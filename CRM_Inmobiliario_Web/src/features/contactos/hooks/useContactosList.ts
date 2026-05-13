@@ -143,8 +143,8 @@ export const useContactosList = () => {
       .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error('Error al actualizar etapa:', err);
         mutate();
-        const msg = err.response?.data?.Message || 'No se pudo sincronizar el cambio de estado.';
-        setNotification({ type: 'error', message: msg });
+        const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || 'No se pudo sincronizar el cambio de estado.';
+        setNotification({ type: 'error', message: errorMessage });
       });
   };
 

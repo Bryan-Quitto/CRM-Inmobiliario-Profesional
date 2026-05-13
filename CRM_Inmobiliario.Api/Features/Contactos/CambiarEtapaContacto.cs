@@ -43,6 +43,32 @@ public static class CambiarEtapaContactoFeature
                     return Results.NotFound();
                 }
 
+                // 2. Lógica de Case 10: Retención de Estado por Relaciones Canceladas
+                if (!esTipoPropietario && (command.NuevaEtapa == "Perdido" || command.NuevaEtapa == "Cerrado Perdido"))
+                {
+                    // Validar si tiene propiedades cerradas activamente
+                    var tieneCierresActivos = await context.Properties
+                        .AnyAsync(p => p.CerradoConId == id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"), ct);
+                    
+                    if (tieneCierresActivos)
+                    {
+                        return Results.BadRequest(new { Message = "No puedes marcar como perdido a un cliente con propiedades cerradas activas. Anula la transacción de la propiedad primero." });
+                    }
+                }
+
+                if (esTipoPropietario && command.NuevaEtapa == "Inactivo")
+                {
+                    // Pasar propiedades Disponibles y Reservadas a Inactiva
+                    var propiedadesAInactivar = await context.Properties
+                        .Where(p => p.PropietarioId == id && (p.EstadoComercial == "Disponible" || p.EstadoComercial == "Reservada"))
+                        .ToListAsync(ct);
+
+                    foreach (var p in propiedadesAInactivar)
+                    {
+                        p.EstadoComercial = "Inactiva";
+                    }
+                }
+
                 // Actualizar etapa según el tipo
                 if (esTipoPropietario)
                 {

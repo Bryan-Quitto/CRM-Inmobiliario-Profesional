@@ -28,8 +28,15 @@ public static class EliminarTodasLasImagenesFeature
             try
             {
                 // 0. Verificar que la propiedad pertenece al agente
+                var currentUserAgenciaId = await context.Agents
+                    .AsNoTracking()
+                    .Where(a => a.Id == agenteId)
+                    .Select(a => a.AgenciaId)
+                    .FirstOrDefaultAsync(ct);
+
                 var propiedad = await context.Properties
-                    .FirstOrDefaultAsync(p => p.Id == propiedadId && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId), ct);
+                    .FirstOrDefaultAsync(p => p.Id == propiedadId && 
+                                             (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)), ct);
                 
                 if (propiedad == null)
                     return Results.NotFound("La propiedad no existe o no pertenece a este agente.");

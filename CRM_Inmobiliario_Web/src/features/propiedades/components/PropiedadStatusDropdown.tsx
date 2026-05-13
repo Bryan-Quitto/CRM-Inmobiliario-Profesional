@@ -27,9 +27,6 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
 }) => {
   const getStatusStyles = (estado: string) => {
     const found = ESTADOS.find(e => e.value === estado);
-    if (variant === 'header') {
-      return estado === 'Disponible' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-white';
-    }
     return found?.color || 'bg-slate-500 border-slate-400 text-white';
   };
 

@@ -137,7 +137,14 @@ public static class ActualizarPropiedadFeature
                 propiedad.FechaIngreso = command.FechaIngreso.Value;
             }
 
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Results.Conflict(new { Message = "La propiedad fue modificada por otro usuario al mismo tiempo. Por favor, refresca la página e intenta de nuevo." });
+            }
 
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);

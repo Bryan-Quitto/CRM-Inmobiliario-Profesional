@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { mutate as globalMutate } from 'swr';
 import type { KeyedMutator } from 'swr';
 import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { relistPropiedad } from '../api/relistPropiedad';
@@ -41,7 +42,7 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
         console.log(`[CLOSING] Iniciando proceso de cierre para ${propiedad.id} como ${statusToApply} (Intento ${retryCount + 1})`);
         
         // Ejecutar cierre en backend usando el estado EXPLÍCITO capturado al inicio
-        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre, cerradoConId);
+        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre, cerradoConId, propiedad.version);
 
         // Limpieza de imágenes (solo si el estado final es Vendida)
         // Antes se basaba en operacion, ahora se basa en el estado resultante para mayor precisión
@@ -52,21 +53,25 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
         // Sincronizar estado final
         await mutate();
         await mutateHistorial();
+        globalMutate('/propiedades'); // Invalidar caché global del listado
         
         toast.success(`Propiedad ${statusToApply.toLowerCase()} con éxito`, { id: toastId });
-      } catch (error) {
+      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error(`[CLOSING] Error en intento ${retryCount + 1}:`, error);
         
         // Revertir UI si falla y no hay más reintentos automáticos
         mutate({ ...propiedad, estadoComercial: oldEstado }, false);
 
-        toast.error(`Error al registrar ${statusToApply.toLowerCase()}`, {
+        const isConflict = error.response?.status === 409;
+        const errorMessage = error.response?.data?.Message || error.response?.data?.message || error.message || "Error al procesar la operación";
+
+        toast.error(isConflict ? "Conflicto de actualización" : `Error al registrar ${statusToApply.toLowerCase()}`, {
           id: toastId,
           duration: Infinity,
-          description: retryCount >= 1 
+          description: isConflict ? errorMessage : (retryCount >= 1 
             ? "El reintento falló. Por favor, intenta de nuevo manualmente o contacta a soporte."
-            : "Hubo un problema de conexión al procesar el cierre.",
-          action: {
+            : errorMessage),
+          action: isConflict ? undefined : {
             label: retryCount >= 1 ? "Entendido" : "Reintentar",
             onClick: () => {
               if (retryCount < 1) {
@@ -117,12 +122,13 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
     setStatusConfirmation(null);
     setIsClosingModalOpen(false);
 
+    const toastId = toast.loading(`Actualizando a ${nuevoEstado}...`);
+
     const optimisticData = { ...propiedad, estadoComercial: nuevoEstado };
     mutate(optimisticData, false);
-    toast.success(`Estado actualizado a ${nuevoEstado}`);
 
     const action = async () => {
-      await actualizarEstadoPropiedad(propiedad.id, nuevoEstado);
+      await actualizarEstadoPropiedad(propiedad.id, nuevoEstado, undefined, undefined, propiedad.version);
       if (confirmed && (nuevoEstado === 'Vendida' || nuevoEstado === 'Inactiva')) {
         await limpiarImagenesPropiedad(propiedad.id);
       }
@@ -130,12 +136,17 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
 
     action()
       .then(() => {
+        toast.success(`Estado actualizado a ${nuevoEstado}`, { id: toastId });
         mutate();
         mutateHistorial();
+        globalMutate('/propiedades'); // Invalidar caché global del listado
       })
-      .catch((err) => {
+      .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || "Error al actualizar estado";
+        toast.error(errorMessage, { id: toastId });
         console.error('Error al cambiar estado:', err);
-        mutate();
+        mutate(propiedad, false); // Rollback sincrónico instantáneo
+        mutate(); // Forzar revalidación
       });
   };
 
@@ -150,9 +161,13 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
         await relistPropiedad(propiedad.id, "Fin de contrato / Relistado natural", "Relist");
         mutate();
         mutateHistorial();
+        globalMutate('/propiedades'); // Invalidar caché global del listado
         toast.success("Nuevo ciclo comercial iniciado");
-      } catch {
-        toast.error("Error al relistar");
+      } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+        const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || "Error al relistar";
+        toast.error(errorMessage);
+        mutate(propiedad, false); // Rollback
+        mutate();
       }
     };
 
@@ -178,9 +193,13 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
         await relistPropiedad(propiedad.id, "Operación anulada / Trato caído", "Cancel");
         mutate();
         mutateHistorial();
+        globalMutate('/propiedades'); // Invalidar caché global del listado
         toast.success("Operación cancelada con éxito");
-      } catch {
-        toast.error("Error al cancelar la operación");
+      } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+        const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || "Error al cancelar la operación";
+        toast.error(errorMessage);
+        mutate(propiedad, false); // Rollback
+        mutate();
       }
     };
 

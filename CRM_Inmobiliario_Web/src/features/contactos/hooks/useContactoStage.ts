@@ -77,9 +77,10 @@ export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params)
       globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
       globalMutate('/propiedades');
       globalMutate('/contactos');
-    } catch (err) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       console.error('Error al actualizar etapa:', err);
-      toast.error('No se pudo actualizar la etapa');
+      const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || 'No se pudo actualizar la etapa';
+      toast.error(errorMessage);
       mutate(); 
     } finally {
       setIsUpdatingEtapa(false);
