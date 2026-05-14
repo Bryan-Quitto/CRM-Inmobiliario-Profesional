@@ -5,7 +5,6 @@ import type { Propiedad } from '../../types';
 export const usePropiedadesUI = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [statusConfirmation, setStatusConfirmation] = useState<{ id: string; nuevoEstado: string } | null>(null);
   const [closingPropiedad, setClosingPropiedad] = useState<{ propiedad: Propiedad; nuevoEstado: string } | null>(null);
@@ -25,13 +24,6 @@ export const usePropiedadesUI = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
-
   const handleOpenDetail = (id: string) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set('id', id);
@@ -47,8 +39,6 @@ export const usePropiedadesUI = () => {
   return {
     isModalOpen,
     setIsModalOpen,
-    notification,
-    setNotification,
     openDropdownId,
     setOpenDropdownId,
     statusConfirmation,

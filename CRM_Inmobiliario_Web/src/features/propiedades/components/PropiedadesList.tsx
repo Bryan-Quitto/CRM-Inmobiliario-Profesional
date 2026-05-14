@@ -1,5 +1,5 @@
 import { SWRConfig } from 'swr';
-import { Loader2, CheckCircle2, AlertCircle, X, Home } from 'lucide-react';
+import { Loader2, Home } from 'lucide-react';
 import { localStorageProvider } from '@/lib/swr';
 import { usePropiedadesList } from '../hooks/usePropiedadesList';
 
@@ -23,8 +23,6 @@ const PropiedadesContent = () => {
     setFilterEstado,
     isModalOpen,
     setIsModalOpen,
-    notification,
-    setNotification,
     updatingId,
     openDropdownId,
     setOpenDropdownId,
@@ -60,18 +58,6 @@ const PropiedadesContent = () => {
             <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sincronizando Catálogo...</span>
           </div>
-        </div>
-      )}
-
-      {notification && (
-        <div className={`fixed bottom-8 right-8 z-[200] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 animate-in slide-in-from-bottom-10 duration-300 ${
-          notification.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white'
-        }`}>
-          {notification.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-          <span className="font-bold text-sm tracking-tight">{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-black/10 rounded-lg p-1 transition-all cursor-pointer">
-            <X className="h-4 w-4" />
-          </button>
         </div>
       )}
 
@@ -131,7 +117,6 @@ const PropiedadesContent = () => {
         mutate={mutate}
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
-        setNotification={setNotification}
         statusConfirmation={statusConfirmation}
         setStatusConfirmation={setStatusConfirmation}
         handleStatusChange={handleStatusChange}

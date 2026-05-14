@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useSWR, { useSWRConfig } from 'swr';
 import Fuse from 'fuse.js';
+import { toast } from 'sonner';
 import { getContactos } from '../api/getContactos';
 import { actualizarEtapaContacto } from '../api/actualizarEtapaContacto';
 import { swrDefaultConfig } from '@/lib/swr';
@@ -46,7 +47,6 @@ export const useContactosList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedContactoForEdit, setSelectedContactoForEdit] = useState<Contacto | null>(null);
 
-  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterEtapa, setFilterEtapa] = useState('Todas');
   const [viewModeRaw, setViewModeRaw] = useState<'list' | 'kanban'>(() => {
@@ -68,13 +68,6 @@ export const useContactosList = () => {
       localStorage.setItem(VIEW_MODE_KEY, viewModeRaw);
     }
   }, [viewModeRaw, activeSegment]);
-
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
 
   const fuse = useMemo(() => {
     return new Fuse(contactos, {
@@ -131,7 +124,7 @@ export const useContactosList = () => {
     });
 
     mutate(optimisticData, false);
-    setNotification({ type: 'success', message: `${tipo === 'propietario' ? 'Propietario' : 'Cliente'} movido a ${nuevaEtapa}` });
+    toast.success(`${tipo === 'propietario' ? 'Propietario' : 'Cliente'} movido a ${nuevaEtapa}`);
 
     actualizarEtapaContacto(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad, tipo)
       .then(async () => {
@@ -144,7 +137,7 @@ export const useContactosList = () => {
         console.error('Error al actualizar etapa:', err);
         mutate();
         const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || 'No se pudo sincronizar el cambio de estado.';
-        setNotification({ type: 'error', message: errorMessage });
+        toast.error(errorMessage);
       });
   };
 
@@ -173,8 +166,6 @@ export const useContactosList = () => {
     setIsModalOpen,
     selectedContactoForEdit,
     setSelectedContactoForEdit,
-    notification,
-    setNotification,
     closingContacto,
     setClosingContacto,
     handleStageChange,

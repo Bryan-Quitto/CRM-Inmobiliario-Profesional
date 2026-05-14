@@ -63,7 +63,7 @@ export const DetalleHistoryTimeline = ({
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                   <div className="flex items-center gap-2">
                     <div className="h-6 w-6 bg-slate-100 rounded-lg flex items-center justify-center text-[10px] font-black text-slate-400 uppercase tracking-tighter shadow-inner">
-                      {item.agenteNombre[0]}
+                      {item.agenteNombre?.[0] || '?'}
                     </div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Agente: {item.agenteNombre}</span>
                   </div>
