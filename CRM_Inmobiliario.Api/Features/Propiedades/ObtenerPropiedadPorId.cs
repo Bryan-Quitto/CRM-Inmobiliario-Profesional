@@ -38,6 +38,8 @@ public static class ObtenerPropiedadPorIdFeature
         string AgenteNombre,
         Guid? PropietarioId,
         string? PropietarioNombre,
+        Guid? CerradoConId,
+        string? CerradoConNombre,
         decimal? PrecioCierre,
         IEnumerable<SectionResponse> Secciones,
         IEnumerable<MediaResponse> MediaSinSeccion,
@@ -86,7 +88,10 @@ public static class ObtenerPropiedadPorIdFeature
                 .AsNoTracking()
                 .AsSplitQuery()
                 .Where(p => p.Id == id && 
-                           (p.AgenteId == currentUserId || p.CreatedByAgenteId == currentUserId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)))
+                           (p.AgenteId == currentUserId || 
+                            p.CreatedByAgenteId == currentUserId || 
+                            (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId) ||
+                            p.Transactions.Any(t => t.CreatedById == currentUserId)))
                 .Select(p => new
                 {
                     Property = p,
@@ -127,6 +132,8 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente Anónimo",
                     x.Property.PropietarioId,
                     x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null,
+                    x.Property.CerradoConId,
+                    x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null,
                     x.Property.PrecioCierre,
                     x.Property.GallerySections
                         .OrderBy(s => s.Orden)

@@ -23,6 +23,8 @@ public static class ListarPropiedadesFeature
         decimal PorcentajeComision,
         string AgenteNombre,
         Guid? PropietarioId,
+        Guid? CerradoConId,
+        string? CerradoConNombre,
         string? ImagenPortadaUrl,
         DateTimeOffset FechaIngreso,
         PropertyPermissions Permissions,
@@ -54,13 +56,17 @@ public static class ListarPropiedadesFeature
 
             if (agenciaId.HasValue)
             {
-                // En agencia ves todo lo de la agencia O lo que tú mismo hayas registrado (por si acaso)
-                query = query.Where(p => p.AgenciaId == agenciaId || p.CreatedByAgenteId == currentUserId);
+                // En agencia ves todo lo de la agencia, lo que tú registraste o donde hayas participado
+                query = query.Where(p => p.AgenciaId == agenciaId || 
+                                       p.CreatedByAgenteId == currentUserId || 
+                                       p.Transactions.Any(t => t.CreatedById == currentUserId));
             }
             else
             {
-                // Independiente: Ves lo que captaste O lo que registraste tú mismo
-                query = query.Where(p => p.AgenteId == currentUserId || p.CreatedByAgenteId == currentUserId);
+                // Independiente: Ves lo que captaste, lo que registraste o donde hayas participado
+                query = query.Where(p => p.AgenteId == currentUserId || 
+                                       p.CreatedByAgenteId == currentUserId || 
+                                       p.Transactions.Any(t => t.CreatedById == currentUserId));
             }
 
             var propiedades = await query
@@ -89,6 +95,8 @@ public static class ListarPropiedadesFeature
                     x.Property.PorcentajeComision,
                     x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente Anónimo",
                     x.Property.PropietarioId,
+                    x.Property.CerradoConId,
+                    x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null,
                     x.Property.Media
                         .Where(m => m.EsPrincipal)
                         .Select(m => m.UrlPublica)

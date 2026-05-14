@@ -49,13 +49,11 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     isStatusDropdownOpen,
     showEditModal,
     isReordering,
-    transactionMenuOpen,
     showReversionModal,
     setNewSectionName,
     setIsCreatingInline,
     setIsStatusDropdownOpen,
     setShowEditModal,
-    setTransactionMenuOpen,
     setStatusConfirmation,
     setIsClosingModalOpen,
     setClosingState,
@@ -70,7 +68,6 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     handleClearGallery,
     handleReorder,
     handleMoveSection,
-    handleDeleteTransaction,
     handleInlineUpdateNote,
     handleStatusChange,
     handleRelist,
@@ -170,9 +167,6 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
 
           <DetalleHistoryTimeline
             historial={historial}
-            transactionMenuOpen={transactionMenuOpen}
-            setTransactionMenuOpen={setTransactionMenuOpen}
-            handleDeleteTransaction={handleDeleteTransaction}
             handleInlineUpdateNote={handleInlineUpdateNote}
             formatDate={formatDate}
             formatCurrency={formatCurrency}

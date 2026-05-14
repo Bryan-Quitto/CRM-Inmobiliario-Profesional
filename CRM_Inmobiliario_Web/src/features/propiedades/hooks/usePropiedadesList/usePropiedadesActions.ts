@@ -195,6 +195,10 @@ export const usePropiedadesActions = ({
     const propiedad = propiedades.find(p => p.id === id);
     if (!propiedad) return;
 
+    // CAPTURAMOS los datos ANTES de la mutación porque el backend los limpiará
+    const idCliente = propiedad.cerradoConId;
+    const nombreCliente = propiedad.cerradoConNombre;
+
     let isCancelled = false;
     const commitRelist = async () => {
       if (isCancelled) return;
@@ -205,6 +209,20 @@ export const usePropiedadesActions = ({
         toast.success(type === 'Relist' ? "Nuevo ciclo comercial" : "Operación cancelada");
         globalMutate('/dashboard/kpis');
         globalMutate((key: unknown) => typeof key === 'string' && key.startsWith('/analitica/'));
+
+        // Suggestion Toast (Explicitly Bottom-Right) - Solo en Relist natural
+        if (type === 'Relist' && idCliente) {
+          const clienteLabel = nombreCliente ? ` para ${nombreCliente}` : '';
+          toast.info("💡 Sugerencia de Seguimiento", {
+            position: 'bottom-right',
+            description: `El contrato ha terminado${clienteLabel}. ¿Deseas ofrecerle nuevas opciones?`,
+            duration: 10000,
+            action: {
+              label: "Ir",
+              onClick: () => window.open(`/clientes/${idCliente}`, '_blank')
+            }
+          });
+        }
       } catch {
         toast.error("Error en la operación");
         mutate();

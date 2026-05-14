@@ -33,7 +33,10 @@ public static class CambiarEstadoValidator
             .Include(p => p.Transactions.Where(t => t.TransactionStatus == "Active"))
                 .ThenInclude(t => t.CreatedBy)
             .FirstOrDefaultAsync(p => p.Id == propertyId && 
-                (p.AgenteId == currentUserId || p.CreatedByAgenteId == currentUserId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)), ct);
+                (p.AgenteId == currentUserId || 
+                 p.CreatedByAgenteId == currentUserId || 
+                 (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId) ||
+                 p.Transactions.Any(t => t.CreatedById == currentUserId)), ct);
 
         if (property == null)
         {

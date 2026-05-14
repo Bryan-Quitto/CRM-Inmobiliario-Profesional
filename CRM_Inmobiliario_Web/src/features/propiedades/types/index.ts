@@ -59,6 +59,7 @@ export interface Propiedad {
   precioCierre?: number;
   fechaCierre?: string;
   cerradoConId?: string;
+  cerradoConNombre?: string;
   media?: MultimediaPropiedad[]; // Mantenido por compatibilidad si es necesario
   secciones?: SeccionGaleria[];
   mediaSinSeccion?: MultimediaPropiedad[];
