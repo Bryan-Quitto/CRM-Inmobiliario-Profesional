@@ -157,12 +157,33 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
     let isCancelled = false;
     const commitRelist = async () => {
       if (isCancelled) return;
+      
+      // CAPTURAMOS los datos ANTES de la mutación porque el backend los limpiará
+      const idCliente = propiedad.cerradoConId;
+      const nombreCliente = propiedad.cerradoConNombre;
+
       try {
         await relistPropiedad(propiedad.id, "Fin de contrato / Relistado natural", "Relist");
         mutate();
         mutateHistorial();
         globalMutate('/propiedades'); // Invalidar caché global del listado
+        
+        // Success Toast (Top-Right default)
         toast.success("Nuevo ciclo comercial iniciado");
+
+        // Suggestion Toast (Explicitly Bottom-Right)
+        if (idCliente) {
+          const clienteLabel = nombreCliente ? ` para ${nombreCliente}` : '';
+          toast.info("💡 Sugerencia de Seguimiento", {
+            position: 'bottom-right',
+            description: `El contrato ha terminado${clienteLabel}. ¿Deseas ofrecerle nuevas opciones?`,
+            duration: 10000,
+            action: {
+              label: "Ir",
+              onClick: () => window.open(`/clientes/${idCliente}`, '_blank')
+            }
+          });
+        }
       } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || "Error al relistar";
         toast.error(errorMessage);

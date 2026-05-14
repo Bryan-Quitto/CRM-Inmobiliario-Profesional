@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
-import { History, TrendingUp, RotateCcw, X, MoreVertical, Trash2, Loader2, Check } from 'lucide-react';
+import { History, TrendingUp, RotateCcw, X, Loader2, Check } from 'lucide-react';
 import type { PropertyTransactionResponse } from '../../api/getHistorialPropiedad';
 
 interface DetalleHistoryTimelineProps {
   historial?: PropertyTransactionResponse[];
-  transactionMenuOpen: string | null;
-  setTransactionMenuOpen: (id: string | null) => void;
-  handleDeleteTransaction: (id: string) => Promise<void>;
   handleInlineUpdateNote: (transaction: PropertyTransactionResponse, notes: string) => Promise<void>;
   formatDate: (date: string) => string;
   formatCurrency: (amount: number) => string;
@@ -14,9 +11,6 @@ interface DetalleHistoryTimelineProps {
 
 export const DetalleHistoryTimeline = ({
   historial,
-  transactionMenuOpen,
-  setTransactionMenuOpen,
-  handleDeleteTransaction,
   handleInlineUpdateNote,
   formatDate,
   formatCurrency
@@ -59,29 +53,6 @@ export const DetalleHistoryTimeline = ({
                   {item.amount && (
                     <span className="text-sm font-black text-slate-900">{formatCurrency(item.amount)}</span>
                   )}
-
-                  <div className="relative">
-                    <button
-                      onClick={() => {
-                        setTransactionMenuOpen(transactionMenuOpen === item.id ? null : item.id);
-                      }}
-                      className="p-1 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-
-                    {transactionMenuOpen === item.id && (
-                      <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-100 rounded-xl shadow-2xl z-[100] py-1 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                        <button 
-                          onClick={() => handleDeleteTransaction(item.id)}
-                          className="w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
-                        >
-                          <Trash2 size={12} />
-                          Eliminar
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
 
                 <InlineNoteEditor 

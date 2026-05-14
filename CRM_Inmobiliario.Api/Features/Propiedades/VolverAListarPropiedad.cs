@@ -23,10 +23,22 @@ public static class VolverAListarPropiedadFeature
             var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
             var mode = request?.Mode ?? "Relist";
 
+            // Obtenemos la agencia del agente actual para validación multi-tenant
+            var agenciaId = await context.Agents
+                .AsNoTracking()
+                .Where(a => a.Id == agenteId)
+                .Select(a => a.AgenciaId)
+                .FirstOrDefaultAsync(ct);
+
             // Cargamos la propiedad para validar y actualizar
             var propiedad = await context.Properties
                 .Include(p => p.Transactions.Where(t => t.TransactionStatus == "Active"))
-                .FirstOrDefaultAsync(p => p.Id == id && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId));
+                .FirstOrDefaultAsync(p => p.Id == id && (
+                    p.AgenteId == agenteId || 
+                    p.CreatedByAgenteId == agenteId || 
+                    (agenciaId != null && p.AgenciaId == agenciaId) ||
+                    p.Transactions.Any(t => t.CreatedById == agenteId)
+                ), ct);
 
             if (propiedad is null)
             {
@@ -42,7 +54,9 @@ public static class VolverAListarPropiedadFeature
                 // Acción B: Cancelación de Trato (Trato Caído)
                 if (propiedad.CerradoConId.HasValue)
                 {
-                    var contacto = await context.Contactos.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value && l.AgenteId == agenteId);
+                    // FIX: Permitimos revertir el contacto si tenemos acceso a la propiedad, 
+                    // eliminando la restricción de que el agente relistando deba ser el dueño del contacto.
+                    var contacto = await context.Contactos.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value);
                     if (contacto != null)
                     {
                         contacto.EtapaEmbudo = "En Negociación"; // Reversión automática

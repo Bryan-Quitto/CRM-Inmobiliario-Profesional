@@ -21,10 +21,8 @@ export const usePropiedadDetalle = ({ id, onCoverUpdated }: UsePropiedadDetalleP
 
   // 4. History Layer (Transactions, Notes)
   const history = usePropiedadHistory({ 
-    historial, 
     mutate, 
-    mutateHistorial, 
-    setShowReversionModal: comercial.setShowReversionModal 
+    mutateHistorial
   });
 
   // 5. Shared / General UI States

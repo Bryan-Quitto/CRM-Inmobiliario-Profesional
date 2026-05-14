@@ -30,7 +30,7 @@ public static class ObtenerHistorialPropiedadFeature
             // The One Trip Pattern: Única proyección LINQ optimizada
             var logs = await context.PropertyTransactions
                 .AsNoTracking()
-                .Where(t => t.PropertyId == id && (t.Property!.AgenteId == agenteId || t.Property!.CreatedByAgenteId == agenteId))
+                .Where(t => t.PropertyId == id && (t.Property!.AgenteId == agenteId || t.CreatedById == agenteId))
                 .OrderByDescending(t => t.TransactionDate)
                 .Select(t => new Response(
                     t.Id,
