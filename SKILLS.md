@@ -14,7 +14,7 @@ This file defines the strict technical standards and architectural rules for the
 - **WHEN TO USE SDD (High Complexity):** IF the requirement involves creating a new database entity, bootstrapping a module from scratch, or defining interactions between multiple architectural components -> THEN the agent MUST generate and agree upon a specification document (`spec.md`) before writing any code.
 - **WHEN NOT TO USE SDD (Low Complexity / Maintenance):** IF the requirement is fixing a bug, optimizing a query, refactoring an isolated block of code, adjusting UI components, or updating an existing trigger/procedure -> THEN the use of SDD is STRICTLY PROHIBITED. Execute the code changes directly, surgically, and concisely.
 
-## Architectural Standards
+### Architectural Standards
 
 ### Backend (Vertical Slice Architecture)
 - **Rule:** Strict prohibition of MVC, Clean Architecture, or Onion.
@@ -25,7 +25,9 @@ This file defines the strict technical standards and architectural rules for the
 ### Frontend (Feature-Sliced Design)
 - **Rule:** Organize React code by features in `/src/features/`.
 - **Organization:** Avoid global centralization of components, hooks, or services.
+- **Rule (Universal Logic SSoT):** STRICT prohibition of duplicating business logic, complex validations, or lifecycle mutations across multiple components or hooks. Any action affecting the state of an entity (Property, Contact, Task, etc.) MUST reside in a centralized, view-agnostic logic hook (e.g., `usePropertyCommercialLogic.ts`). UI-specific hooks must delegate execution and revalidation strategies to these central providers to ensure consistency and prevent race conditions.
 - **CRITICAL THRESHOLD:** Components and Hooks MUST NOT exceed **250 lines**. If a file exceeds this limit, it MUST be modularized:
+
     - **Components:** Extract sub-components to a `components/` sub-folder or split logical sections.
     - **Hooks:** Split into specialized sub-hooks (e.g., `useData`, `useActions`, `useUI`) and coordinate them via a primary orchestrator hook.
 

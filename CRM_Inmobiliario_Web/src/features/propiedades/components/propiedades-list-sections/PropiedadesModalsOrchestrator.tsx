@@ -16,7 +16,6 @@ interface PropiedadesModalsOrchestratorProps {
   mutate: () => void;
   isModalOpen: boolean;
   setIsModalOpen: (open: boolean) => void;
-  setNotification: (notif: { type: 'success' | 'error'; message: string } | null) => void;
   statusConfirmation: { id: string; nuevoEstado: string } | null;
   setStatusConfirmation: (conf: { id: string; nuevoEstado: string } | null) => void;
   handleStatusChange: (id: string, nuevoEstado: string, confirmed?: boolean) => void;
@@ -38,7 +37,6 @@ export const PropiedadesModalsOrchestrator = ({
   mutate,
   isModalOpen,
   setIsModalOpen,
-  setNotification,
   statusConfirmation,
   setStatusConfirmation,
   handleStatusChange,
@@ -79,7 +77,7 @@ export const PropiedadesModalsOrchestrator = ({
             onSuccess={() => { 
               mutate(); 
               setIsModalOpen(false); 
-              setNotification({ type: 'success', message: 'Inmueble registrado correctamente.' }); 
+              toast.success('Inmueble registrado correctamente.'); 
             }} 
             onCancel={() => setIsModalOpen(false)} 
           />

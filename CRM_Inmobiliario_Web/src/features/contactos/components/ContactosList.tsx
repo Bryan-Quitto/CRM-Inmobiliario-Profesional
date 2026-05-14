@@ -31,8 +31,6 @@ const ContactosContent = () => {
     setIsModalOpen,
     selectedContactoForEdit,
     setSelectedContactoForEdit,
-    notification,
-    setNotification,
     closingContacto,
     setClosingContacto,
     handleStageChange,
@@ -88,8 +86,6 @@ const ContactosContent = () => {
         closingContacto={closingContacto}
         setClosingContacto={setClosingContacto}
         onClosingConfirm={handleClosingConfirm}
-        notification={notification}
-        setNotification={setNotification}
         mutate={mutate}
       />
     </div>

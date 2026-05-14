@@ -23,8 +23,11 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Aquí podrías enviar el error a un servicio de logging (Sentry, LogRocket, etc.)
-    console.error('Uncaught error:', error, errorInfo);
+    console.group('🚨 [GLOBAL_ERROR]');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('Component Stack:', errorInfo.componentStack);
+    console.groupEnd();
   }
 
   private handleReset = () => {

@@ -7,6 +7,24 @@ import { Toaster } from 'sonner'
 // Polyfill de Buffer para compatibilidad con librerías de PDF
 window.Buffer = window.Buffer || Buffer;
 
+// Monitorización global de errores para depuración de producción/test
+window.onerror = function(message, source, lineno, colno, error) {
+  console.group('🔥 [WINDOW_ERROR]');
+  console.error('Message:', message);
+  console.error('Stack:', error?.stack);
+  console.error('Location:', `${source}:${lineno}:${colno}`);
+  console.groupEnd();
+};
+
+window.onunhandledrejection = function(event) {
+  console.group('☄️ [UNHANDLED_REJECTION]');
+  console.error('Reason:', event.reason);
+  if (event.reason instanceof Error) {
+    console.error('Stack:', event.reason.stack);
+  }
+  console.groupEnd();
+};
+
 import { SWRConfig } from 'swr'
 import { api } from './lib/axios'
 import { localStorageProvider, swrDefaultConfig } from './lib/swr'

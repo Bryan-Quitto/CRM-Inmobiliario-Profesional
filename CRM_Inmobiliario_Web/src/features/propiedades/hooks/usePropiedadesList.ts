@@ -1,12 +1,9 @@
-import { useSWRConfig } from 'swr';
 import { usePropiedadesData } from './usePropiedadesList/usePropiedadesData';
 import { usePropiedadesFiltering } from './usePropiedadesList/usePropiedadesFiltering';
 import { usePropiedadesUI } from './usePropiedadesList/usePropiedadesUI';
 import { usePropiedadesActions } from './usePropiedadesList/usePropiedadesActions';
 
 export const usePropiedadesList = () => {
-  const { mutate: globalMutate } = useSWRConfig();
-  
   // 1. Data Layer
   const { 
     propiedades, 
@@ -38,7 +35,6 @@ export const usePropiedadesList = () => {
   } = usePropiedadesActions({
     propiedades,
     mutate,
-    globalMutate,
     setOpenDropdownId: ui.setOpenDropdownId,
     setClosingPropiedad: ui.setClosingPropiedad,
     setShowReversionModal: ui.setShowReversionModal,

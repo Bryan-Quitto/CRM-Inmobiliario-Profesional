@@ -17,8 +17,10 @@ public static class VolverAListarPropiedadFeature
 
     public static RouteHandlerBuilder MapVolverAListarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPost("/propiedades/{id:guid}/relist", async (Guid id, Request? request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, CancellationToken ct) =>
+        return app.MapPost("/propiedades/{id:guid}/relist", async (Guid id, Request? request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, ILogger<CrmDbContext> logger, CancellationToken ct) =>
         {
+            logger.LogInformation("[RELIST] Iniciando relistado para propiedad {Id}, Mode: {Mode}", id, request?.Mode ?? "Relist");
+            
             var agenteId = user.GetRequiredUserId();
             var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
             var mode = request?.Mode ?? "Relist";
@@ -29,6 +31,8 @@ public static class VolverAListarPropiedadFeature
                 .Where(a => a.Id == agenteId)
                 .Select(a => a.AgenciaId)
                 .FirstOrDefaultAsync(ct);
+            
+            logger.LogInformation("[RELIST] AgenteId: {AgenteId}, AgenciaId: {AgenciaId}", agenteId, agenciaId);
 
             // Cargamos la propiedad para validar y actualizar
             var propiedad = await context.Properties
@@ -42,8 +46,11 @@ public static class VolverAListarPropiedadFeature
 
             if (propiedad is null)
             {
+                logger.LogWarning("[RELIST] Propiedad {Id} no encontrada o acceso denegado", id);
                 return Results.NotFound();
             }
+
+            logger.LogInformation("[RELIST] Propiedad encontrada: {Titulo}, PropietarioId: {PropietarioId}, CerradoConId: {CerradoConId}", propiedad.Titulo, propiedad.PropietarioId, propiedad.CerradoConId);
 
             // Identificamos la transacción de cierre activa (Sale o Rent)
             var transaccionActiva = propiedad.Transactions
@@ -51,14 +58,14 @@ public static class VolverAListarPropiedadFeature
 
             if (mode == "Cancel")
             {
+                logger.LogInformation("[RELIST] Modo CANCEL: Anulando operación");
                 // Acción B: Cancelación de Trato (Trato Caído)
                 if (propiedad.CerradoConId.HasValue)
                 {
-                    // FIX: Permitimos revertir el contacto si tenemos acceso a la propiedad, 
-                    // eliminando la restricción de que el agente relistando deba ser el dueño del contacto.
                     var contacto = await context.Contactos.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value);
                     if (contacto != null)
                     {
+                        logger.LogInformation("[RELIST] Revirtiendo contacto {ContactoId} a En Negociación", contacto.Id);
                         contacto.EtapaEmbudo = "En Negociación"; // Reversión automática
                         contacto.FechaCierre = null;
                     }
@@ -66,6 +73,7 @@ public static class VolverAListarPropiedadFeature
 
                 if (transaccionActiva != null)
                 {
+                    logger.LogInformation("[RELIST] Marcando transacción {TransId} como Cancelled", transaccionActiva.Id);
                     transaccionActiva.TransactionStatus = "Cancelled"; // Prohibido borrado físico
                 }
 
@@ -84,9 +92,11 @@ public static class VolverAListarPropiedadFeature
             }
             else
             {
+                logger.LogInformation("[RELIST] Modo RELIST: Fin de ciclo natural");
                 // Acción A: Relistado Natural (Fin de Ciclo)
                 if (transaccionActiva != null)
                 {
+                    logger.LogInformation("[RELIST] Marcando transacción {TransId} como Completed", transaccionActiva.Id);
                     transaccionActiva.TransactionStatus = "Completed";
                 }
 
@@ -110,9 +120,11 @@ public static class VolverAListarPropiedadFeature
 
             if (propiedad.PropietarioId.HasValue)
             {
+                logger.LogInformation("[RELIST] Verificando estado del propietario {PropietarioId}", propiedad.PropietarioId);
                 var propietario = await context.Contactos.FindAsync(propiedad.PropietarioId.Value);
                 if (propietario != null)
                 {
+                    logger.LogInformation("[RELIST] EstadoPropietario actual: {Estado}", propietario.EstadoPropietario);
                     if (propietario.EstadoPropietario == "Inactivo")
                     {
                         estadoFinalPropiedad = "Inactiva";
@@ -136,10 +148,14 @@ public static class VolverAListarPropiedadFeature
             propiedad.FechaCierre = null;
             propiedad.PrecioCierre = null;
 
+            logger.LogInformation("[RELIST] Guardando cambios. Estado final: {Estado}", estadoFinalPropiedad);
+
             try
             {
                 await context.SaveChangesAsync(ct);
                 
+                logger.LogInformation("[RELIST] Éxito: Cambios guardados en DB");
+
                 // Invalidar caches e informar al warming service
                 warmingService.NotifyChange(agenteId);
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
@@ -150,7 +166,13 @@ public static class VolverAListarPropiedadFeature
             }
             catch (DbUpdateConcurrencyException)
             {
+                logger.LogError("[RELIST] Error de concurrencia al relistar propiedad {Id}", id);
                 return Results.Conflict(new { Message = "La propiedad fue modificada por otro usuario al mismo tiempo. Por favor, refresca la página e intenta de nuevo." });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "[RELIST] ERROR CRÍTICO al relistar propiedad {Id}", id);
+                throw;
             }
         })
         .WithTags("Propiedades")
