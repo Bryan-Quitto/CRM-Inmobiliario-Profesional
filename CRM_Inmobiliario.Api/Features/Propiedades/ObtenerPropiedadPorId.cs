@@ -131,7 +131,7 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.PorcentajeComision,
                     x.Property.FechaIngreso,
                     x.Property.AgenteId,
-                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente Anónimo",
+                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : string.Empty,
                     x.Property.PropietarioId,
                     x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null,
                     x.Property.CerradoConId,

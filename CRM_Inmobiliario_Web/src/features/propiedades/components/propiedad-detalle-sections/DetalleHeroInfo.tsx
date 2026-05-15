@@ -25,7 +25,7 @@ export const DetalleHeroInfo = ({ propiedad, formatCurrency }: DetalleHeroInfoPr
             <Handshake className="h-3 w-3" /> 
             {propiedad.esCaptacionPropia 
               ? (propiedad.permissions?.canEditMasterData ? 'Captación Propia' : `Captación de ${propiedad.agenteNombre}`)
-              : (propiedad.agenteNombre === 'Agente Anónimo' ? 'Agente Anónimo' : `Captación: ${propiedad.agenteNombre}`)
+              : `Captación: ${propiedad.agenteNombre || 'Externa'}`
             }
           </span>
           <span className="text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200">
