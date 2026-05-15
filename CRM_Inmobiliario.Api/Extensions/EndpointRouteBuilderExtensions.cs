@@ -27,6 +27,9 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapEliminarContactoEndpoint();
         apiGroup.MapCambiarEtapaContactoEndpoint();
         apiGroup.MapRevertirEstadoContactoEndpoint();
+        apiGroup.MapCompartirContactoEndpoint();
+        apiGroup.MapRevocarCompartidoEndpoint();
+        apiGroup.MapObtenerAgentesCompartidosEndpoint();
 
         // Propiedades
         apiGroup.MapRegistrarPropiedadEndpoint();

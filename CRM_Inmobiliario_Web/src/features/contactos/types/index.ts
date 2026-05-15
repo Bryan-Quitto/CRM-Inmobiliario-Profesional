@@ -40,6 +40,14 @@ export interface Contacto {
   interacciones?: Interaccion[];
   intereses?: Interes[];
   propiedadesCaptadas?: PropiedadCaptada[];
+  esCompartido?: boolean;
+  nombreAgenteDueno?: string | null;
+}
+
+export interface AgenteCompartido {
+  id: string;
+  nombreCompleto: string;
+  fotoUrl: string | null;
 }
 
 export interface RegistrarInteraccionDTO {

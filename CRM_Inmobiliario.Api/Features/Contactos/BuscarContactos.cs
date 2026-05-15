@@ -23,7 +23,7 @@ public static class BuscarContactosFeature
             var searchTerm = $"%{query.ToLower()}%";
 
             var contactos = await context.Contactos
-                .Where(l => l.AgenteId == agenteId &&
+                .Where(l => (l.AgenteId == agenteId || l.CompartidoCon.Any(c => c.AgenteId == agenteId)) &&
                            (EF.Functions.ILike(l.Nombre, searchTerm) ||
                             EF.Functions.ILike(l.Apellido ?? "", searchTerm) ||
                             EF.Functions.ILike(l.Telefono, searchTerm)))

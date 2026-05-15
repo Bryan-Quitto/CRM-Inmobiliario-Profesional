@@ -22,7 +22,7 @@ public static class CambiarEstadoProcessor
         CancellationToken ct)
     {
         var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
-        var esCierre = nuevoEstado is "Vendida" or "Alquilada";
+        var esCierre = nuevoEstado is "Vendida" or "Alquilada" or "Vendido" or "Rentado";
         
         // 1. Soporte para Alquileres Sucesivos Automáticos (Fase 5 item 3)
         bool esAlquilerSucesivo = property.EstadoComercial == "Alquilada" 
@@ -37,8 +37,17 @@ public static class CambiarEstadoProcessor
         if (esCierre && cerradoConId.HasValue)
         {
             logger.LogInformation("👤 [PROCESSOR] Buscando Contacto asociado: {ContactoId}", cerradoConId.Value);
+            
+            // Permitir contacto si es el dueño O si tiene visibilidad compartida (Spec 017)
             contacto = await context.Contactos
-                .FirstOrDefaultAsync(l => l.Id == cerradoConId.Value && l.AgenteId == currentUserId, ct);
+                .Include(c => c.CompartidoCon)
+                .FirstOrDefaultAsync(c => c.Id == cerradoConId.Value 
+                    && (c.AgenteId == currentUserId || c.CompartidoCon.Any(ac => ac.AgenteId == currentUserId)), ct);
+            
+            if (contacto == null)
+            {
+                logger.LogWarning("⚠️ [PROCESSOR] No se encontró el contacto {ContactoId} o el agente {AgenteId} no tiene permisos de visibilidad sobre él.", cerradoConId.Value, currentUserId);
+            }
         }
 
         if (requiereRelistadoAutomatico)

@@ -10,7 +10,7 @@ namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
 public static class ListarAgentesFeature
 {
-    public record AgentResponse(Guid Id, string Nombre, string Apellido, string? Telefono, string Email, bool Activo);
+    public record AgentResponse(Guid Id, string Nombre, string Apellido, string? Telefono, string Email, bool Activo, string? FotoUrl);
 
     public static void MapListarAgentesEndpoint(this IEndpointRouteBuilder app)
     {
@@ -39,7 +39,7 @@ public static class ListarAgentesFeature
 
             var agentes = await query
                 .OrderBy(a => a.Nombre)
-                .Select(a => new AgentResponse(a.Id, a.Nombre, a.Apellido, a.Telefono, a.Email, a.Activo))
+                .Select(a => new AgentResponse(a.Id, a.Nombre, a.Apellido, a.Telefono, a.Email, a.Activo, a.FotoUrl))
                 .ToListAsync();
 
             return Results.Ok(agentes);
