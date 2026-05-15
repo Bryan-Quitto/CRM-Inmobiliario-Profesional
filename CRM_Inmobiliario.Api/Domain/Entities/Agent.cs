@@ -46,6 +46,7 @@ public sealed class Agent
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 
     // Relaciones de navegación
+    public ICollection<ContactoAgenteCompartido> ContactosCompartidos { get; set; } = new List<ContactoAgenteCompartido>();
     public ICollection<Contacto> Contactos { get; set; } = new List<Contacto>();
     public ICollection<Property> Properties { get; set; } = new List<Property>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();

@@ -12,6 +12,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<Agent> Agents => Set<Agent>();
     public DbSet<Agency> Agencies => Set<Agency>();
     public DbSet<Contacto> Contactos => Set<Contacto>();
+    public DbSet<ContactoAgenteCompartido> ContactoAgenteCompartidos => Set<ContactoAgenteCompartido>();
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<PropertyGallerySection> PropertyGallerySections => Set<PropertyGallerySection>();
     public DbSet<PropertyMedia> PropertyMedia => Set<PropertyMedia>();

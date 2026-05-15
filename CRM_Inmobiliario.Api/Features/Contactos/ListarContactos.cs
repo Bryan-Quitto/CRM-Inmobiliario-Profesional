@@ -18,7 +18,9 @@ public static class ListarContactosFeature
         string EstadoPropietario,
         bool EsContacto,
         bool EsPropietario,
-        DateTimeOffset FechaCreacion);
+        DateTimeOffset FechaCreacion,
+        bool EsCompartido,
+        string? NombreAgenteDueno);
 
     public static RouteHandlerBuilder MapListarContactosEndpoint(this IEndpointRouteBuilder app)
     {
@@ -28,7 +30,7 @@ public static class ListarContactosFeature
 
             var contactos = await context.Contactos
                 .AsNoTracking()
-                .Where(l => l.AgenteId == agenteId)
+                .Where(l => l.AgenteId == agenteId || l.CompartidoCon.Any(c => c.AgenteId == agenteId))
                 .OrderByDescending(l => l.FechaCreacion)
                 .Select(l => new ContactoResponse(
                     l.Id,
@@ -41,7 +43,9 @@ public static class ListarContactosFeature
                     l.EstadoPropietario,
                     l.EsProspecto,
                     l.EsPropietario,
-                    l.FechaCreacion))
+                    l.FechaCreacion,
+                    l.AgenteId != agenteId,
+                    l.AgenteId != agenteId ? $"{l.Agente!.Nombre} {l.Agente.Apellido}" : null))
                 .ToListAsync();
 
             return Results.Ok(contactos);

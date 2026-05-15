@@ -50,6 +50,7 @@ public sealed class Contacto
     public Agent? Agente { get; set; }
 
     // Relaciones de navegación
+    public ICollection<ContactoAgenteCompartido> CompartidoCon { get; set; } = new List<ContactoAgenteCompartido>();
     public ICollection<Property> PropertiesOwned { get; set; } = new List<Property>();
     public ICollection<PropertyTransaction> Transactions { get; set; } = new List<PropertyTransaction>();
     public ICollection<ContactoInteresPropiedad> PropertyInterests { get; set; } = new List<ContactoInteresPropiedad>();

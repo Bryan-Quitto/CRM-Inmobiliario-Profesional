@@ -7,6 +7,7 @@ export interface AgenteResponse {
   telefono?: string;
   email: string;
   activo: boolean;
+  fotoUrl?: string;
 }
 
 export const getAgentes = async (): Promise<AgenteResponse[]> => {

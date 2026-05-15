@@ -54,7 +54,7 @@ public static class ObtenerContactoPorIdFeature
             var contacto = await context.Contactos
                 .AsNoTracking()
                 .AsSplitQuery()
-                .Where(c => c.Id == id && c.AgenteId == agenteId)
+                .Where(c => c.Id == id && (c.AgenteId == agenteId || c.CompartidoCon.Any(ac => ac.AgenteId == agenteId)))
                 .Select(c => new ContactoDetalleResponse(
                     c.Id,
                     c.Nombre,
