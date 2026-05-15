@@ -19,6 +19,7 @@ export const CommissionSection = ({ initialData }: Props) => {
   const { register, control, setValue, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
   const { perfil } = usePerfil();
   const esCaptacionPropia = useWatch({ control, name: 'esCaptacionPropia' });
+  const esCaptadorActivo = useWatch({ control, name: 'esCaptadorActivo' });
 
   // Estados para cambios MANUALES del usuario
   const [userSelectedMode, setUserSelectedMode] = useState<'list' | 'guest' | 'anonymous' | null>(null);
@@ -80,6 +81,21 @@ export const CommissionSection = ({ initialData }: Props) => {
     // Limpiar campos según el modo
     setValue('captadorId', undefined);
     setValue('nuevoCaptador', undefined);
+
+    // Si es invitado o anónimo, por defecto el captador NO es activo (gestiona el creador)
+    if (mode === 'guest' || mode === 'anonymous') {
+      setValue('esCaptadorActivo', false);
+    } else {
+      setValue('esCaptadorActivo', true);
+    }
+  };
+
+  const handleToggleCaptacionPropia = (checked: boolean) => {
+    setValue('esCaptacionPropia', checked);
+    if (checked) {
+      setValue('esCaptadorActivo', true);
+      setUserSelectedMode(null);
+    }
   };
 
   // Solo mostramos el nombre inicial si NO era captación propia originalmente
@@ -120,7 +136,12 @@ export const CommissionSection = ({ initialData }: Props) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label className="flex items-center gap-3 p-4 bg-blue-50/50 border-2 border-blue-100/50 rounded-[24px] hover:bg-blue-50 transition-all group cursor-pointer">
           <div className="relative inline-flex items-center">
-            <input type="checkbox" {...register('esCaptacionPropia')} className="sr-only peer" />
+            <input 
+              type="checkbox" 
+              checked={esCaptacionPropia}
+              onChange={(e) => handleToggleCaptacionPropia(e.target.checked)}
+              className="sr-only peer" 
+            />
             <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
           </div>
           <div>
@@ -175,6 +196,32 @@ export const CommissionSection = ({ initialData }: Props) => {
                 <User className="h-3 w-3" />
                 Agente Anónimo
               </button>
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 border-2 border-slate-100 rounded-[24px] flex items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-900 uppercase tracking-tight">¿El agente usa el sistema?</span>
+                {esCaptadorActivo ? (
+                  <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase rounded-md tracking-tighter">Activo</span>
+                ) : (
+                  <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[8px] font-black uppercase rounded-md tracking-tighter">Gestionado por ti</span>
+                )}
+              </div>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest opacity-70">
+                {esCaptadorActivo 
+                  ? "El agente captador podrá editar y cambiar estados." 
+                  : "Tú mantendrás el control total de edición de esta propiedad."}
+              </span>
+            </div>
+            <div className="relative inline-flex items-center">
+              <input 
+                type="checkbox" 
+                {...register('esCaptadorActivo')}
+                className="sr-only peer" 
+              />
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600 shadow-inner"></div>
             </div>
           </div>
 

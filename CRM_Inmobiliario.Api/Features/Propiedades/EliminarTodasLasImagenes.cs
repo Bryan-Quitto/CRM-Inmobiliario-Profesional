@@ -27,19 +27,15 @@ public static class EliminarTodasLasImagenesFeature
 
             try
             {
-                // 0. Verificar que la propiedad pertenece al agente
-                var currentUserAgenciaId = await context.Agents
-                    .AsNoTracking()
-                    .Where(a => a.Id == agenteId)
-                    .Select(a => a.AgenciaId)
-                    .FirstOrDefaultAsync(ct);
-
+                // 0. Verificar que el usuario tiene permisos de gestión sobre la propiedad
                 var propiedad = await context.Properties
-                    .FirstOrDefaultAsync(p => p.Id == propiedadId && 
-                                             (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)), ct);
-                
+                    .FirstOrDefaultAsync(p => p.Id == propiedadId, ct);
+
                 if (propiedad == null)
-                    return Results.NotFound("La propiedad no existe o no pertenece a este agente.");
+                    return Results.NotFound("La propiedad no existe.");
+
+                if (!PropertyPermissionsHelper.CanManage(propiedad, agenteId))
+                    return Results.Json(new { Message = "No tienes permisos para eliminar imágenes de esta propiedad." }, statusCode: StatusCodes.Status403Forbidden);
 
                 // 1. Obtener primero las rutas de almacenamiento para poder borrar del Storage después
                 var storagePaths = await context.PropertyMedia

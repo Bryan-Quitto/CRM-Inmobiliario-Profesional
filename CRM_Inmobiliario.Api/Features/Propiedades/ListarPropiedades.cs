@@ -103,16 +103,16 @@ public static class ListarPropiedadesFeature
                         .FirstOrDefault(),
                     x.Property.FechaIngreso,
                     new PropertyPermissions(
-                        // Permiso de edición si eres el captador O el creador
-                        x.Property.AgenteId == currentUserId || x.Property.CreatedByAgenteId == currentUserId,
-                        // Cambio de estado permitido si:
-                        // 1. Eres el dueño (captador) O el creador (staff)
-                        // 2. Eres el autor de la transacción activa (quien la reservó/vendió)
-                        // 3. La propiedad está disponible (cualquiera de la agencia puede iniciar un proceso)
-                        x.Property.AgenteId == currentUserId || 
-                        x.Property.CreatedByAgenteId == currentUserId || 
-                        (x.ActiveTransaction != null && x.ActiveTransaction.AgenteId == currentUserId) || 
-                        x.Property.EstadoComercial == "Disponible"
+                        // Permiso de edición si:
+                        // 1. Eres el captador Y está marcado como activo
+                        // 2. Eres el creador Y el captador está marcado como inactivo (o no hay captador)
+                        (x.Property.AgenteId == currentUserId && x.Property.EsCaptadorActivo) || 
+                        (x.Property.CreatedByAgenteId == currentUserId && (!x.Property.EsCaptadorActivo || x.Property.AgenteId == null)),
+                        
+                        // Cambio de estado permitido SI Y SOLO SI:
+                        // Eres el dueño/gestor según la regla de Agente Activo.
+                        (x.Property.AgenteId == currentUserId && x.Property.EsCaptadorActivo) || 
+                        (x.Property.CreatedByAgenteId == currentUserId && (!x.Property.EsCaptadorActivo || x.Property.AgenteId == null))
                     ),
                     x.ActiveTransaction,
                     x.Property.Version.ToString()))

@@ -50,6 +50,7 @@ export interface Propiedad {
   aniosAntiguedad?: number;
   estadoComercial: string;
   esCaptacionPropia: boolean;
+  esCaptadorActivo: boolean;
   porcentajeComision: number;
   fechaIngreso: string;
   agenteId: string;

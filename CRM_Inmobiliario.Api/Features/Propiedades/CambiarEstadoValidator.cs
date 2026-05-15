@@ -30,6 +30,7 @@ public static class CambiarEstadoValidator
             .FirstOrDefaultAsync(ct);
 
         var property = await context.Properties
+            .Include(p => p.Agente)
             .Include(p => p.Transactions.Where(t => t.TransactionStatus == "Active"))
                 .ThenInclude(t => t.CreatedBy)
             .FirstOrDefaultAsync(p => p.Id == propertyId && 
@@ -45,27 +46,26 @@ public static class CambiarEstadoValidator
         }
 
         // 2. SEGURIDAD: Guardián de Estados (Multi-Agente)
-        var activeTransaction = property.Transactions.OrderByDescending(t => t.TransactionDate).FirstOrDefault(t => t.TransactionStatus == "Active");
-        
-        if (property.EstadoComercial is "Reservada" or "Vendida" or "Alquilada" && nuevoEstado is "Disponible" or "Inactiva")
+        // Lógica de Dueño/Gestor según EsCaptadorActivo
+        bool esDuenioGestor = (property.EsCaptadorActivo && property.AgenteId == currentUserId) || 
+                             (!property.EsCaptadorActivo && property.CreatedByAgenteId == currentUserId);
+
+        // Regla ESTRICTA: Solo el dueño/gestor puede cambiar estados. 
+        // El autor de la transacción ya no tiene este permiso (Spec 015 Update).
+        if (!esDuenioGestor)
         {
-            bool esAutorTransaccion = activeTransaction != null && activeTransaction.CreatedById == currentUserId;
-            bool esDuenioCaptacion = property.AgenteId == currentUserId;
+            var autorId = property.EsCaptadorActivo ? property.AgenteId : property.CreatedByAgenteId;
+            var autorNombre = property.EsCaptadorActivo 
+                ? (property.Agente != null ? $"{property.Agente.Nombre} {property.Agente.Apellido}" : "el agente captador")
+                : "el agente que registró la propiedad";
 
-            if (!esAutorTransaccion && !esDuenioCaptacion)
-            {
-                var responsable = activeTransaction?.CreatedBy != null 
-                    ? $"{activeTransaction.CreatedBy.Nombre} {activeTransaction.CreatedBy.Apellido}"
-                    : "otro agente";
+            string msg = property.EstadoComercial == "Disponible"
+                ? (property.EsCaptadorActivo 
+                    ? $"Solo el agente captador ({autorNombre}) puede modificar los estados."
+                    : $"Solo el agente ({autorNombre}) que registró la propiedad puede modificar los estados.")
+                : $"Esta propiedad está siendo gestionada por {autorNombre}. Contáctese con dicho agente para cualquier cambio de estado.";
 
-                var msg = property.EstadoComercial switch
-                {
-                    "Reservada" => $"Esta propiedad está en proceso por el agente {responsable}. Contáctese con el agente si desea hacer alguna modificación.",
-                    _ => $"Esta propiedad ya fue {property.EstadoComercial.ToLower()} por el agente {responsable}. Contáctese con el agente si desea hacer alguna modificación."
-                };
-
-                return new ValidationResult(false, msg, StatusCodes.Status400BadRequest);
-            }
+            return new ValidationResult(false, msg, StatusCodes.Status400BadRequest);
         }
 
         // 3. Spec 011: Validación de estado Reservada sobre Cierre

@@ -28,13 +28,16 @@ public static class SubirImagenPropiedadFeature
             if (file == null || file.Length == 0)
                 return Results.BadRequest("No se proporcionó ningún archivo.");
 
-            // 1. Verificar si la propiedad existe y pertenece al agente (captador o creador)
+            // 1. Verificar si la propiedad existe y el usuario tiene permisos de gestión
             var propiedad = await context.Properties
                 .Include(p => p.Media)
-                .FirstOrDefaultAsync(p => p.Id == id && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId));
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (propiedad == null)
-                return Results.NotFound("Propiedad no encontrada o no tiene permisos.");
+                return Results.NotFound("Propiedad no encontrada.");
+
+            if (!PropertyPermissionsHelper.CanManage(propiedad, agenteId))
+                return Results.Json(new { Message = "No tienes permisos para subir imágenes a esta propiedad." }, statusCode: StatusCodes.Status403Forbidden);
 
             // 2. Validar extensión de imagen
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();

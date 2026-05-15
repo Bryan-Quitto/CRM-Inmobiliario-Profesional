@@ -48,6 +48,7 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const raw = dataToMap as any; 
       const esCaptacionPropia = (raw.EsCaptacionPropia ?? dataToMap.esCaptacionPropia) as boolean;
+      const esCaptadorActivo = (raw.EsCaptadorActivo ?? dataToMap.esCaptadorActivo ?? true) as boolean;
       const finalCaptadorId = !esCaptacionPropia ? ((raw.AgenteId || dataToMap.agenteId) as string) : undefined;
       
       return {
@@ -74,6 +75,7 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
         aniosAntiguedad: (raw.AniosAntiguedad ?? dataToMap.aniosAntiguedad) as number,
 
         esCaptacionPropia,
+        esCaptadorActivo,
         captadorId: finalCaptadorId,
         porcentajeComision: (raw.PorcentajeComision ?? dataToMap.porcentajeComision ?? 5) as number,
         fechaIngreso: fecha
@@ -85,7 +87,7 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          return { fechaIngreso: ecuadorDate, porcentajeComision: 5, ...parsed };
+          return { fechaIngreso: ecuadorDate, porcentajeComision: 5, esCaptadorActivo: true, ...parsed };
         } catch (e) { console.error('Error al parsear borrador:', e); }
       }
     }
@@ -97,6 +99,7 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
       urlRemax: '',
       fechaIngreso: ecuadorDate,
       esCaptacionPropia: true,
+      esCaptadorActivo: true,
       porcentajeComision: 5
     };
   }, [isEditing]);
