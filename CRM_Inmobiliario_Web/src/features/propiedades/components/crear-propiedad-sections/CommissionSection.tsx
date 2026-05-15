@@ -22,30 +22,27 @@ export const CommissionSection = ({ initialData }: Props) => {
   const esCaptadorActivo = useWatch({ control, name: 'esCaptadorActivo' });
 
   // Estados para cambios MANUALES del usuario
-  const [userSelectedMode, setUserSelectedMode] = useState<'list' | 'guest' | 'anonymous' | null>(null);
+  const [userSelectedMode, setUserSelectedMode] = useState<'list' | 'guest' | null>(null);
 
   // Modo derivado para la UI (prioriza selección manual, cae a detección por initialData)
-  const { isGuestMode, isAnonymous } = useMemo(() => {
+  const { isGuestMode } = useMemo(() => {
     if (userSelectedMode) {
       return {
-        isGuestMode: userSelectedMode === 'guest',
-        isAnonymous: userSelectedMode === 'anonymous'
+        isGuestMode: userSelectedMode === 'guest'
       };
     }
 
     // Detección automática basada en datos iniciales
     if (initialData && !initialData.esCaptacionPropia) {
-      const esAnonimo = initialData.agenteNombre?.toLowerCase() === 'agente anónimo';
-      // Es invitado si no tiene ID pero sí nombre, y el nombre no es el del agente anónimo
-      const esInvitado = !initialData.agenteId && !!initialData.agenteNombre && !esAnonimo;
+      // Es invitado si no tiene ID pero sí nombre
+      const esInvitado = !initialData.agenteId && !!initialData.agenteNombre;
       
       return {
-        isGuestMode: esInvitado,
-        isAnonymous: esAnonimo
+        isGuestMode: esInvitado
       };
     }
 
-    return { isGuestMode: false, isAnonymous: false };
+    return { isGuestMode: false };
   }, [userSelectedMode, initialData]);
 
   const { data: agentes = [] } = useSWR('/configuracion/agentes', getAgentes, swrDefaultConfig);
@@ -75,15 +72,15 @@ export const CommissionSection = ({ initialData }: Props) => {
     [contactos]
   );
 
-  const handleModeChange = (mode: 'list' | 'guest' | 'anonymous') => {
+  const handleModeChange = (mode: 'list' | 'guest') => {
     setUserSelectedMode(mode);
     
     // Limpiar campos según el modo
     setValue('captadorId', undefined);
     setValue('nuevoCaptador', undefined);
 
-    // Si es invitado o anónimo, por defecto el captador NO es activo (gestiona el creador)
-    if (mode === 'guest' || mode === 'anonymous') {
+    // Si es invitado, por defecto el captador NO es activo (gestiona el creador)
+    if (mode === 'guest') {
       setValue('esCaptadorActivo', false);
     } else {
       setValue('esCaptadorActivo', true);
@@ -175,7 +172,7 @@ export const CommissionSection = ({ initialData }: Props) => {
               <button
                 type="button"
                 onClick={() => handleModeChange('list')}
-                className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all flex items-center gap-2 cursor-pointer ${!isGuestMode && !isAnonymous ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
+                className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all flex items-center gap-2 cursor-pointer ${!isGuestMode ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
               >
                 <UserCircle className="h-3 w-3" />
                 De la lista
@@ -187,14 +184,6 @@ export const CommissionSection = ({ initialData }: Props) => {
               >
                 <UserPlus className="h-3 w-3" />
                 Agente Invitado
-              </button>
-              <button
-                type="button"
-                onClick={() => handleModeChange('anonymous')}
-                className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all flex items-center gap-2 cursor-pointer ${isAnonymous ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
-              >
-                <User className="h-3 w-3" />
-                Agente Anónimo
               </button>
             </div>
           </div>
@@ -225,11 +214,11 @@ export const CommissionSection = ({ initialData }: Props) => {
             </div>
           </div>
 
-          {!isGuestMode && !isAnonymous ? (
+          {!isGuestMode ? (
             <Controller
               name="captadorId"
               control={control}
-              rules={{ required: !esCaptacionPropia && !isGuestMode && !isAnonymous ? 'Debes seleccionar un captador' : false }}
+              rules={{ required: !esCaptacionPropia && !isGuestMode ? 'Debes seleccionar un captador' : false }}
               render={({ field }) => (
                 <DynamicSearchSelect
                   label="Buscar Agente Captador"
@@ -243,7 +232,7 @@ export const CommissionSection = ({ initialData }: Props) => {
                 />
               )}
             />
-          ) : isGuestMode ? (
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/50 p-6 rounded-3xl border-2 border-dashed border-slate-200">
               <div className="md:col-span-2 flex items-center gap-2 mb-2">
                 <UserPlus className="h-4 w-4 text-blue-500" />
@@ -278,18 +267,6 @@ export const CommissionSection = ({ initialData }: Props) => {
                     placeholder="Ej. 0987654321"
                   />
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-xl flex items-center gap-4 animate-in zoom-in-95 duration-300">
-              <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
-                <User className="h-6 w-6 text-slate-400" />
-              </div>
-              <div>
-                <p className="text-xs font-black text-white uppercase tracking-tight">Modo: Agente Anónimo</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                  La propiedad se registrará sin un captador específico asignado.
-                </p>
               </div>
             </div>
           )}

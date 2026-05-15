@@ -93,7 +93,7 @@ public static class ListarPropiedadesFeature
                     x.Property.EstadoComercial,
                     x.Property.EsCaptacionPropia,
                     x.Property.PorcentajeComision,
-                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : "Agente Anónimo",
+                    x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : string.Empty,
                     x.Property.PropietarioId,
                     x.Property.CerradoConId,
                     x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null,

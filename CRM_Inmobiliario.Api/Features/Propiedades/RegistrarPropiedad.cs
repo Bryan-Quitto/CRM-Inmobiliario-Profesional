@@ -82,7 +82,9 @@ public static class RegistrarPropiedadFeature
                 context.Agents.Add(nuevoAgente);
                 finalAgenteId = nuevoAgente.Id;
             }
-            // Si es null, se considera Agente Anónimo
+
+            // Fallback final: Si sigue siendo null, se asigna al usuario actual
+            finalAgenteId ??= currentUserId;
 
             // Manejo de Propietario (Spec 015)
             if (command.PropietarioId.HasValue)

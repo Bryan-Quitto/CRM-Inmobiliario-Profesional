@@ -91,7 +91,9 @@ public static class ActualizarPropiedadFeature
                 context.Agents.Add(nuevoAgente);
                 finalAgenteId = nuevoAgente.Id;
             }
-            // Si finalAgenteId sigue siendo null, se guarda como Anónimo
+            
+            // Fallback: Si sigue siendo null, mantenemos el que tenía o asignamos al creador
+            finalAgenteId ??= propiedad.AgenteId ?? propiedad.CreatedByAgenteId ?? currentUserId;
 
             propiedad.Titulo = command.Titulo;
             propiedad.Descripcion = command.Descripcion;
