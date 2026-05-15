@@ -21,17 +21,19 @@ public static class EstablecerImagenPrincipalFeature
         {
             var agenteId = user.GetRequiredUserId();
 
-            try 
+            try
             {
-                // Verificar que la propiedad pertenezca al agente
-                var autorizacion = await context.Properties
-                    .AnyAsync(p => p.Id == propiedadId && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId));
+                // Verificar que el usuario tiene permisos de gestión sobre la propiedad
+                var propiedad = await context.Properties
+                    .FirstOrDefaultAsync(p => p.Id == propiedadId);
 
-                if (!autorizacion)
-                    return Results.NotFound("Propiedad no encontrada o no tiene permisos.");
+                if (propiedad == null)
+                    return Results.NotFound("Propiedad no encontrada.");
 
-                // Realizamos TODA la actualización en una sola sentencia SQL atómica.
-                // Ponemos EsPrincipal = true si el ID coincide, y false si no coincide.
+                if (!PropertyPermissionsHelper.CanManage(propiedad, agenteId))
+                    return Results.Json(new { Message = "No tienes permisos para modificar esta propiedad." }, statusCode: StatusCodes.Status403Forbidden);
+
+                // Realizamos TODA la actualización en una sola sentencia SQL atómica.                // Ponemos EsPrincipal = true si el ID coincide, y false si no coincide.
                 var filasAfectadas = await context.PropertyMedia
                     .Where(m => m.PropiedadId == propiedadId)
                     .ExecuteUpdateAsync(s => s.SetProperty(m => m.EsPrincipal, m => m.Id == imagenId));

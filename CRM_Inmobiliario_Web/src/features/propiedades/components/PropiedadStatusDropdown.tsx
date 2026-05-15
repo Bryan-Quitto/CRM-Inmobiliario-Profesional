@@ -38,10 +38,18 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
     e.stopPropagation();
     
     if (!canEdit) {
-      // Priorizar el nombre de quien tiene la transacción activa, sino el captador
-      const responsable = p.activeTransaction?.agenteNombre || p.agenteNombre || 'otro agente';
+      // La autoridad es el captador si es activo, sino el creador.
+      // El autor de la transacción ya NO tiene permisos de cambio de estado.
+      const responsable = p.agenteNombre || 'el agente asignado';
+      
+      // Personalizar el mensaje según quién sea el responsable
+      // Si el backend mandó canEdit: false, es porque el usuario no es el dueño gestor.
+      const mensaje = p.esCaptadorActivo 
+        ? `Solo el agente captador (${responsable}) puede modificar los estados.`
+        : `Solo el agente (${responsable}) que registró la propiedad puede modificar los estados.`;
+
       toast.warning('Acción restringida', {
-        description: `Esta propiedad está siendo gestionada por ${responsable}. Contacta con el agente para cambios.`
+        description: mensaje
       });
       return;
     }

@@ -24,10 +24,13 @@ public static class EliminarImagenPropiedadFeature
 
             var media = await context.PropertyMedia
                 .Include(m => m.Propiedad)
-                .FirstOrDefaultAsync(m => m.Id == imagenId && m.PropiedadId == propiedadId && (m.Propiedad!.AgenteId == agenteId || m.Propiedad!.CreatedByAgenteId == agenteId));
+                .FirstOrDefaultAsync(m => m.Id == imagenId && m.PropiedadId == propiedadId);
 
             if (media == null)
                 return Results.NotFound("Imagen no encontrada.");
+
+            if (!PropertyPermissionsHelper.CanManage(media.Propiedad!, agenteId))
+                return Results.Json(new { Message = "No tienes permisos para eliminar imágenes de esta propiedad." }, statusCode: StatusCodes.Status403Forbidden);
 
             try
             {

@@ -71,6 +71,12 @@ public sealed class Property
     [Required]
     public decimal PorcentajeComision { get; set; } = 5.0m;
 
+    /// <summary>
+    /// Indica si el agente captador es quien gestionará la propiedad en el sistema.
+    /// Si es false, los permisos de edición y cambio de estado recaen sobre el creador (CreatedByAgenteId).
+    /// </summary>
+    public bool EsCaptadorActivo { get; set; } = true;
+
     public Guid? AgenteId { get; set; }
     public Agent? Agente { get; set; }
 

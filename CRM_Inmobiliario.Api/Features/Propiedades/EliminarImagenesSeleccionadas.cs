@@ -32,12 +32,15 @@ public static class EliminarImagenesSeleccionadasFeature
 
             try
             {
-                // 0. Verificar que la propiedad pertenece al agente
+                // 0. Verificar que el usuario tiene permisos de gestión sobre la propiedad
                 var propiedad = await context.Properties
-                    .FirstOrDefaultAsync(p => p.Id == propiedadId && (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId), ct);
+                    .FirstOrDefaultAsync(p => p.Id == propiedadId, ct);
 
                 if (propiedad == null)
-                    return Results.NotFound("La propiedad no existe o no pertenece a este agente.");
+                    return Results.NotFound("La propiedad no existe.");
+
+                if (!PropertyPermissionsHelper.CanManage(propiedad, agenteId))
+                    return Results.Json(new { Message = "No tienes permisos para eliminar imágenes de esta propiedad." }, statusCode: StatusCodes.Status403Forbidden);
 
                 // 1. Obtener las rutas de almacenamiento de las imágenes seleccionadas
                 var storagePaths = await context.PropertyMedia

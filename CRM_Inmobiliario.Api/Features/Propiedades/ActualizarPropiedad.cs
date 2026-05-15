@@ -32,6 +32,7 @@ public static class ActualizarPropiedadFeature
         int? MediosBanos,
         int? AniosAntiguedad,
         bool EsCaptacionPropia,
+        bool EsCaptadorActivo = true,
         Guid? CaptadorId = null,
         NuevoCaptadorRequest? NuevoCaptador = null,
         Guid? PropietarioId = null,
@@ -54,10 +55,10 @@ public static class ActualizarPropiedadFeature
                 return Results.NotFound();
             }
 
-            // SEGURIDAD: Solo el captador O el creador del registro pueden editar datos maestros
-            if (propiedad.AgenteId != currentUserId && propiedad.CreatedByAgenteId != currentUserId)
+            // SEGURIDAD: Validación por Agente Activo (Spec 015 Custom)
+            if (!PropertyPermissionsHelper.CanManage(propiedad, currentUserId))
             {
-                return Results.Json(new { message = "Solo el agente que captó la propiedad o quien registró el inmueble puede editar sus datos maestros y galería." }, statusCode: StatusCodes.Status403Forbidden);
+                return Results.Json(new { message = "No tienes permisos para editar esta propiedad. Contacta al agente responsable." }, statusCode: StatusCodes.Status403Forbidden);
             }
 
             // Lógica de Captador
@@ -111,6 +112,7 @@ public static class ActualizarPropiedadFeature
             propiedad.MediosBanos = command.MediosBanos;
             propiedad.AniosAntiguedad = command.AniosAntiguedad;
             propiedad.EsCaptacionPropia = command.EsCaptacionPropia;
+            propiedad.EsCaptadorActivo = command.EsCaptadorActivo;
             propiedad.PorcentajeComision = command.PorcentajeComision;
             propiedad.AgenteId = finalAgenteId; // Actualizamos el captador real
 
