@@ -42,6 +42,9 @@ export interface Contacto {
   propiedadesCaptadas?: PropiedadCaptada[];
   esCompartido?: boolean;
   nombreAgenteDueno?: string | null;
+  numeroInteracciones?: number;
+  numeroIntereses?: number;
+  numeroPropiedadesCaptadas?: number;
 }
 
 export interface AgenteCompartido {

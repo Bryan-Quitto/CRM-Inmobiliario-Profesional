@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useSWR, { useSWRConfig } from 'swr';
-import Fuse from 'fuse.js';
 import { toast } from 'sonner';
 import { getContactos } from '../api/getContactos';
 import { actualizarEtapaContacto } from '../api/actualizarEtapaContacto';
 import { swrDefaultConfig } from '@/lib/swr';
+import { useContactosFiltering } from './useContactosFiltering';
 import type { Contacto } from '../types';
 
 const VIEW_MODE_KEY = 'crm_contactos_view_mode';
@@ -47,8 +47,6 @@ export const useContactosList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedContactoForEdit, setSelectedContactoForEdit] = useState<Contacto | null>(null);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterEtapa, setFilterEtapa] = useState('Todas');
   const [viewModeRaw, setViewModeRaw] = useState<'list' | 'kanban'>(() => {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
     return (saved as 'list' | 'kanban') || 'list';
@@ -69,32 +67,7 @@ export const useContactosList = () => {
     }
   }, [viewModeRaw, activeSegment]);
 
-  const fuse = useMemo(() => {
-    return new Fuse(contactos, {
-      keys: [
-        { name: 'nombre', weight: 0.7 },
-        { name: 'apellido', weight: 0.7 },
-        { name: 'email', weight: 0.3 }
-      ],
-      threshold: 0.3,
-      distance: 100
-    });
-  }, [contactos]);
-
-  const filteredContactos = useMemo(() => {
-    let result = contactos;
-
-    if (searchQuery.trim()) {
-      result = fuse.search(searchQuery).map(r => r.item);
-    } else {
-      result = [...result].sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime());
-    }
-
-    return result.filter(contacto => {
-      const matchesEtapa = filterEtapa === 'Todas' || contacto.etapaEmbudo === filterEtapa;
-      return matchesEtapa;
-    });
-  }, [contactos, searchQuery, filterEtapa, fuse]);
+  const filteringProps = useContactosFiltering(contactos);
 
   const stats = useMemo(() => ({
     total: contactos.length,
@@ -152,14 +125,9 @@ export const useContactosList = () => {
     activeSegment,
     setActiveSegment,
     contactos,
-    filteredContactos,
     isLoading,
     syncing,
     stats,
-    searchQuery,
-    setSearchQuery,
-    filterEtapa,
-    setFilterEtapa,
     viewMode,
     setViewMode,
     isModalOpen,
@@ -170,6 +138,7 @@ export const useContactosList = () => {
     setClosingContacto,
     handleStageChange,
     handleClosingConfirm,
-    mutate
+    mutate,
+    ...filteringProps
   };
 };

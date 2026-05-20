@@ -10,6 +10,8 @@ import { ContactosListContent } from './contactos-list-sections/ContactosListCon
 import { ContactosListModals } from './contactos-list-sections/ContactosListModals';
 import { ContactosSkeletonList } from './contactos-list-sections/ContactosSkeletonList';
 import { ContactosSyncIndicator } from './contactos-list-sections/ContactosSyncIndicator';
+import { AdvancedFiltersDrawer } from './contactos-list-sections/AdvancedFiltersDrawer';
+import { useState } from 'react';
 
 const ContactosContent = () => {
   const navigate = useNavigate();
@@ -23,8 +25,20 @@ const ContactosContent = () => {
     stats,
     searchQuery,
     setSearchQuery,
-    filterEtapa,
-    setFilterEtapa,
+    filterVisibilidad,
+    setFilterVisibilidad,
+    filterOrigen,
+    setFilterOrigen,
+    filterEstadoCliente,
+    setFilterEstadoCliente,
+    filterEstadoPropietario,
+    setFilterEstadoPropietario,
+    advancedFilters,
+    setAdvancedFilters,
+    sortBy,
+    setSortBy,
+    sortDirection,
+    setSortDirection,
     viewMode,
     setViewMode,
     isModalOpen,
@@ -38,9 +52,13 @@ const ContactosContent = () => {
     mutate
   } = useContactosList();
 
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
+
   if (isLoading) {
     return <ContactosSkeletonList />;
   }
+
+  const activeAdvancedCount = Object.values(advancedFilters).filter(v => v !== undefined && v !== '').length;
 
   const basePath = '/contactos';
   const isOwnersView = activeSegment === 'propietarios';
@@ -54,11 +72,32 @@ const ContactosContent = () => {
         setActiveSegment={setActiveSegment}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        filterEtapa={filterEtapa}
-        setFilterEtapa={setFilterEtapa}
+        filterVisibilidad={filterVisibilidad}
+        setFilterVisibilidad={setFilterVisibilidad}
+        filterOrigen={filterOrigen}
+        setFilterOrigen={setFilterOrigen}
+        filterEstadoCliente={filterEstadoCliente}
+        setFilterEstadoCliente={setFilterEstadoCliente}
+        filterEstadoPropietario={filterEstadoPropietario}
+        setFilterEstadoPropietario={setFilterEstadoPropietario}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        sortDirection={sortDirection}
+        setSortDirection={setSortDirection}
         viewMode={viewMode}
         setViewMode={setViewMode}
         onOpenCreateModal={() => setIsModalOpen(true)}
+        onOpenAdvancedFilters={() => setIsAdvancedFiltersOpen(true)}
+        advancedFiltersCount={activeAdvancedCount}
+      />
+
+      <AdvancedFiltersDrawer
+        contactos={contactos}
+        isOpen={isAdvancedFiltersOpen}
+        onClose={() => setIsAdvancedFiltersOpen(false)}
+        filters={advancedFilters}
+        setFilters={setAdvancedFilters}
+        activeCount={activeAdvancedCount}
       />
 
       <ContactosListStats 
