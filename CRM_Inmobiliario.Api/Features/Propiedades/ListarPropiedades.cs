@@ -31,7 +31,10 @@ public static class ListarPropiedadesFeature
         DateTimeOffset FechaIngreso,
         PropertyPermissions Permissions,
         ActiveTransactionInfo? ActiveTransaction,
-        string Version);
+        string Version,
+        int Habitaciones,
+        decimal AreaTotal,
+        int? AniosAntiguedad);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -119,7 +122,10 @@ public static class ListarPropiedadesFeature
                         (x.Property.CreatedByAgenteId == currentUserId && (!x.Property.EsCaptadorActivo || x.Property.AgenteId == null))
                     ),
                     x.ActiveTransaction,
-                    x.Property.Version.ToString()))
+                    x.Property.Version.ToString(),
+                    x.Property.Habitaciones,
+                    x.Property.AreaTotal,
+                    x.Property.AniosAntiguedad))
                 .ToListAsync();
 
             return Results.Ok(propiedades);

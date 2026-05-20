@@ -23,6 +23,14 @@ export const usePropiedadesList = () => {
     setSearchQuery,
     filterEstado,
     setFilterEstado,
+    filterTipo,
+    setFilterTipo,
+    advancedFilters,
+    setAdvancedFilters,
+    sortBy,
+    setSortBy,
+    sortDirection,
+    setSortDirection,
     filteredPropiedades
   } = usePropiedadesFiltering(propiedades);
 
@@ -55,11 +63,19 @@ export const usePropiedadesList = () => {
     mutate,
     handleCoverUpdate,
 
-    // Filtering
+    // Filtering & Sorting
     searchQuery,
     setSearchQuery,
     filterEstado,
     setFilterEstado,
+    filterTipo,
+    setFilterTipo,
+    advancedFilters,
+    setAdvancedFilters,
+    sortBy,
+    setSortBy,
+    sortDirection,
+    setSortDirection,
 
     // UI State
     ...ui,

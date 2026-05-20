@@ -30,12 +30,13 @@ _Nota: Esta sección se actualizará conforme avance el desarrollo del proyecto.
   - *Scraper Avanzado Remax:* Motor de extracción optimizado para sortear el HTML dinámico de Angular usando Ejes XPath direccionales (`following::*`) y `Regex Fallbacks`. Extrae minuciosamente métricas técnicas e inyecta la data en tiempo real. 
   - *Smart-Fill UX:* Sistema reactivo que rastrea y resalta visualmente en amarillo advertencia cualquier recuadro que el scraper no pudo autocompletar, reduciendo fricción y pidiendo al usuario solo que cierre los vacíos.
   - *Ciclo de Vida y Ledger Inmutable (Spec 011):* Control estricto de transiciones de estado de cierres (Alquiler/Venta). Prohíbe el borrado físico de transacciones clave para preservar la integridad de auditoría; la reversión se maneja mediante decisiones semánticas integradas en UI ("Relistado" o "Trato Caído"). Se implementa edición en línea (inline-editing) *solo* para notas, manteniendo montos y fechas blindados bajo un patrón de bitácora append-only.
-- **Clientes y Contactos (`clientes`):** Listado y gestión de perfiles de clientes, tanto vendedores como compradores/arrendatarios, con un historial sólido.
+- **Contactos y Clientes (`contactos`):** Listado y gestión de perfiles de clientes, tanto vendedores como compradores/arrendatarios, con un historial sólido. Se apoya en módulos de backend como `Interacciones` e `Intereses`.
   - *Módulo ClienteDetalle:* Implementa la política Zero-Wait para vinculación, edición y eliminación de Inmuebles de Interés utilizando "Optimistic UI" para que los elementos reaccionen instantáneamente (0ms) en la pantalla.
   - *Búsqueda Difusa Integrada:* Selección de propiedades motorizada por `fuse.js` alimentado por el estado base general de SWR para una experiencia nativa sin demoras de red.
 - **Gestión de Tareas (`tareas`):** Agenda de pendientes o "to-dos" que permiten al asesor estar al día sobre seguimientos.
 - **Calendario / Citas (`calendario`):** Componente organizacional para mapear visitas técnicas y demostraciones de propiedades.
 - **Configuración de la Cuenta (`configuracion`):** Ajustes globales o personales de cada agente/agencia.
+- **Asistente IA y WhatsApp (`ia` / `WhatsApp`):** Integración de inteligencia artificial conversacional por WhatsApp. Incluye webhooks para mensajes, interfaz para revisar el historial de conversaciones y visor de auditoría de logs de IA.
 
 ## Directorios Principales
 - **Backend (API):** `C:\Users\THINKPAD\Desktop\CRM Inmobiliario Profesional\CRM_Inmobiliario.Api`

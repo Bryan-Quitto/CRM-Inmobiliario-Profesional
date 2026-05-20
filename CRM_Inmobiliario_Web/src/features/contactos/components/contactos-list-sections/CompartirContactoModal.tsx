@@ -39,11 +39,12 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
   // Fuse.js para Propiedades
   const fusePropiedades = useMemo(() => {
     if (!propiedades) return null;
-    return new Fuse<Propiedad>(propiedades, {
+    // Filtrar para no mostrar propiedades donde el usuario actual ya es el gestor
+    return new Fuse<Propiedad>(propiedades.filter(p => p.gestorId !== perfil?.id), {
       keys: ['titulo', 'sector', 'ciudad'],
       threshold: 0.3
     });
-  }, [propiedades]);
+  }, [propiedades, perfil]);
 
   const searchResults = useMemo(() => {
     if (!query) return [];
