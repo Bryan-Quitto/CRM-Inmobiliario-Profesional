@@ -20,7 +20,10 @@ public static class ListarContactosFeature
         bool EsPropietario,
         DateTimeOffset FechaCreacion,
         bool EsCompartido,
-        string? NombreAgenteDueno);
+        string? NombreAgenteDueno,
+        int NumeroInteracciones,
+        int NumeroIntereses,
+        int NumeroPropiedadesCaptadas);
 
     public static RouteHandlerBuilder MapListarContactosEndpoint(this IEndpointRouteBuilder app)
     {
@@ -45,7 +48,10 @@ public static class ListarContactosFeature
                     l.EsPropietario,
                     l.FechaCreacion,
                     l.AgenteId != agenteId,
-                    l.AgenteId != agenteId ? $"{l.Agente!.Nombre} {l.Agente.Apellido}" : null))
+                    l.AgenteId != agenteId ? $"{l.Agente!.Nombre} {l.Agente.Apellido}" : null,
+                    l.Interactions.Count,
+                    l.PropertyInterests.Count,
+                    l.PropertiesOwned.Count))
                 .ToListAsync();
 
             return Results.Ok(contactos);

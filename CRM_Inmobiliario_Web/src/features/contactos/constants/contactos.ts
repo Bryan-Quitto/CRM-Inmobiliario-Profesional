@@ -20,6 +20,14 @@ export const TIPO_NOTA_OPCIONES = [
   { label: 'Correo', value: 'Correo' }
 ];
 
+export const ORIGENES = [
+  { label: 'Facebook Ads', value: 'Facebook Ads' },
+  { label: 'Google Search', value: 'Google Search' },
+  { label: 'Referido', value: 'Referido' },
+  { label: 'Portal Inmobiliario', value: 'Portal Inmobiliario' },
+  { label: 'WhatsApp Directo', value: 'WhatsApp Directo' },
+];
+
 export const NIVELES_INTERES = [
   { label: 'Alto 🔥', value: 'Alto', color: 'text-rose-600 bg-rose-50' },
   { label: 'Medio ⚡', value: 'Medio', color: 'text-amber-600 bg-amber-50' },
