@@ -70,6 +70,7 @@ const PropiedadesContent = () => {
       )}
 
       <PropiedadesFilters 
+        propiedades={propiedades}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         filterEstado={filterEstado}

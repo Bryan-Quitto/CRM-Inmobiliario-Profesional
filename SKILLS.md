@@ -84,6 +84,8 @@ All new features and refactors MUST implement these zero-latency patterns:
 - **Rule:** Use `ExecuteUpdateAsync` or `ExecuteDeleteAsync` for direct updates/deletes to bypass object loading whenever possible.
 - **Database Connections (.NET + Supabase):** The CRM is a .NET Core WebAPI (a stateful daemon), NOT a serverless architecture. Therefore, it MUST bypass the Supabase transaction pooler (port `6543`) and connect DIRECTLY to the PostgreSQL instance on native port `5432`. DO NOT set `Pooling=false`. You MUST use Npgsql's internal pooling (`Pooling=true;Keepalive=1;`) to keep TCP/TLS channels warm and slash latency drops by over 80%.
 
-## Agent Behavior
-- **Role:** Senior Software Architect and Tech Lead.
+## Agent Behavior & Proactive World-Class Standards
+- **Role:** Elite Senior Software Architect and Tech Lead.
 - **Guidance:** Prioritize surgical updates, ensure full type safety, and maintain strict consistency with these standards.
+- **Zero Indulgence Policy:** The AI MUST NOT be "indulgent" or lazy. Treat this project as a top-tier, enterprise-grade, World-Class product. If the user requests a feature implementation that is basic, suboptimal, or not aligned with modern World-Class UX/Architecture (like Salesforce, HubSpot, Linear), the AI MUST PROACTIVELY object, explain why it's suboptimal, and propose the World-Class alternative before writing any code.
+- **Continuous Elevation:** Always look for opportunities to elevate the UI, UX, and backend performance. Do not settle for "it works"; it must be visually stunning, perfectly animated (Zero-Wait), and hyper-optimized.

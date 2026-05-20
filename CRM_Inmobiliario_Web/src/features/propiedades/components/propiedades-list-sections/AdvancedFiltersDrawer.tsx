@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Search } from 'lucide-react';
 import type { AdvancedFiltersState } from '../../hooks/usePropiedadesList/usePropiedadesFiltering';
+import { DynamicFilterInput } from './DynamicFilterInput';
+import { FilterSelectorDropdown } from './FilterSelectorDropdown';
+import { AVAILABLE_PROPERTY_FILTERS, DEFAULT_ACTIVE_FILTER_KEYS } from '../../types/filters.types';
+import type { Propiedad } from '../../types';
 
 interface AdvancedFiltersDrawerProps {
+  propiedades: Propiedad[];
   isOpen: boolean;
   onClose: () => void;
   filters: AdvancedFiltersState;
@@ -10,24 +15,27 @@ interface AdvancedFiltersDrawerProps {
   activeCount: number;
 }
 
-export const AdvancedFiltersDrawer = ({ isOpen, onClose, filters, setFilters, activeCount }: AdvancedFiltersDrawerProps) => {
+export const AdvancedFiltersDrawer = ({ propiedades, isOpen, onClose, filters, setFilters, activeCount }: AdvancedFiltersDrawerProps) => {
+  const [activeKeys, setActiveKeys] = useState<string[]>(() => {
+    const keys = new Set(DEFAULT_ACTIVE_FILTER_KEYS);
+    Object.keys(filters).forEach(k => {
+      const baseKey = k.replace(/Min$|Max$/, '');
+      if (filters[k] !== undefined && filters[k] !== '') {
+        keys.add(baseKey);
+      }
+    });
+    return Array.from(keys);
+  });
+
   if (!isOpen) return null;
 
-  const handleChange = (key: keyof AdvancedFiltersState, value: string) => {
+  const handleChange = (key: string, value: string | boolean | number) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const clearFilters = () => {
-    setFilters({
-      operacion: 'Todas',
-      precioMin: '',
-      precioMax: '',
-      areaMin: '',
-      areaMax: '',
-      habitacionesMin: '',
-      banosMin: '',
-      estacionamientosMin: ''
-    });
+    setFilters({ operacion: 'Todas' });
+    setActiveKeys([...DEFAULT_ACTIVE_FILTER_KEYS]);
   };
 
   return (
@@ -51,118 +59,34 @@ export const AdvancedFiltersDrawer = ({ isOpen, onClose, filters, setFilters, ac
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-8">
-          
-          {/* Rango de Precio */}
-          <div className="flex flex-col gap-3">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-400">Rango de Precio ($)</label>
-            <div className="flex items-center gap-3">
-              <input 
-                type="number" 
-                placeholder="Mínimo"
-                value={filters.precioMin}
-                onChange={e => handleChange('precioMin', e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-8 pb-32">
+          {activeKeys.map(key => {
+            const filterDef = AVAILABLE_PROPERTY_FILTERS.find(f => f.key === key);
+            if (!filterDef) return null;
+            return (
+              <DynamicFilterInput 
+                key={key}
+                propiedades={propiedades}
+                filterDef={filterDef}
+                filters={filters}
+                onChange={handleChange}
+                onRemove={() => {
+                  setActiveKeys(prev => prev.filter(k => k !== key));
+                  if (filterDef.type === 'range') {
+                    setFilters(prev => ({ ...prev, [`${key}Min`]: '', [`${key}Max`]: '' }));
+                  } else {
+                    setFilters(prev => ({ ...prev, [key]: '' }));
+                  }
+                }}
+                isRemovable={true} // Permitimos remover cualquier filtro para máxima flexibilidad
               />
-              <span className="text-slate-400 font-bold">-</span>
-              <input 
-                type="number" 
-                placeholder="Máximo"
-                value={filters.precioMax}
-                onChange={e => handleChange('precioMax', e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
-              />
-            </div>
-          </div>
+            );
+          })}
 
-          {/* Rango de Área */}
-          <div className="flex flex-col gap-3">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-400">Área Total (m²)</label>
-            <div className="flex items-center gap-3">
-              <input 
-                type="number" 
-                placeholder="Mínima"
-                value={filters.areaMin}
-                onChange={e => handleChange('areaMin', e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
-              />
-              <span className="text-slate-400 font-bold">-</span>
-              <input 
-                type="number" 
-                placeholder="Máxima"
-                value={filters.areaMax}
-                onChange={e => handleChange('areaMax', e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Habitaciones */}
-          <div className="flex flex-col gap-3">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-400">Habitaciones (Mínimo)</label>
-            <div className="grid grid-cols-6 gap-2">
-              <button
-                onClick={() => handleChange('habitacionesMin', '')}
-                className={`col-span-2 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${!filters.habitacionesMin ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-              >
-                Cualquiera
-              </button>
-              {['1', '2', '3', '4'].map(val => (
-                <button
-                  key={val}
-                  onClick={() => handleChange('habitacionesMin', val)}
-                  className={`col-span-1 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${filters.habitacionesMin === val ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                >
-                  {val}+
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Baños */}
-          <div className="flex flex-col gap-3">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-400">Baños (Mínimo)</label>
-            <div className="grid grid-cols-6 gap-2">
-              <button
-                onClick={() => handleChange('banosMin', '')}
-                className={`col-span-2 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${!filters.banosMin ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-              >
-                Cualquiera
-              </button>
-              {['1', '2', '3', '4'].map(val => (
-                <button
-                  key={val}
-                  onClick={() => handleChange('banosMin', val)}
-                  className={`col-span-1 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${filters.banosMin === val ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                >
-                  {val}+
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Estacionamientos */}
-          <div className="flex flex-col gap-3">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-400">Estacionamientos (Mínimo)</label>
-            <div className="grid grid-cols-6 gap-2">
-              <button
-                onClick={() => handleChange('estacionamientosMin', '')}
-                className={`col-span-2 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${!filters.estacionamientosMin ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-              >
-                Cualquiera
-              </button>
-              {['1', '2', '3', '4'].map(val => (
-                <button
-                  key={val}
-                  onClick={() => handleChange('estacionamientosMin', val)}
-                  className={`col-span-1 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${filters.estacionamientosMin === val ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                >
-                  {val}+
-                </button>
-              ))}
-            </div>
-          </div>
-
+          <FilterSelectorDropdown 
+            activeKeys={activeKeys}
+            onAddFilter={key => setActiveKeys(prev => [...prev, key])}
+          />
         </div>
 
         {/* Footer */}
