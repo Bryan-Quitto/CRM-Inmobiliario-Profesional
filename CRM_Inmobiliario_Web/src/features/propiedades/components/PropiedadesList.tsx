@@ -21,6 +21,14 @@ const PropiedadesContent = () => {
     setSearchQuery,
     filterEstado,
     setFilterEstado,
+    filterTipo,
+    setFilterTipo,
+    advancedFilters,
+    setAdvancedFilters,
+    sortBy,
+    setSortBy,
+    sortDirection,
+    setSortDirection,
     isModalOpen,
     setIsModalOpen,
     updatingId,
@@ -66,6 +74,14 @@ const PropiedadesContent = () => {
         setSearchQuery={setSearchQuery}
         filterEstado={filterEstado}
         setFilterEstado={setFilterEstado}
+        filterTipo={filterTipo}
+        setFilterTipo={setFilterTipo}
+        advancedFilters={advancedFilters}
+        setAdvancedFilters={setAdvancedFilters}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        sortDirection={sortDirection}
+        setSortDirection={setSortDirection}
         openDropdownId={openDropdownId}
         setOpenDropdownId={setOpenDropdownId}
         setIsModalOpen={setIsModalOpen}
