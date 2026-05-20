@@ -3,8 +3,8 @@ import { Search, Filter as FilterIcon, ChevronDown, Check, Plus, ArrowUp, ArrowD
 import { ESTADOS } from '../../constants/propiedades';
 import { TIPOS_PROPIEDAD } from '../../constants/propertyForm';
 import type { SortOption, SortDirection, AdvancedFiltersState } from '../../hooks/usePropiedadesList/usePropiedadesFiltering';
-import { defaultAdvancedFilters } from '../../hooks/usePropiedadesList/usePropiedadesFiltering';
 import { AdvancedFiltersDrawer } from './AdvancedFiltersDrawer';
+import type { Propiedad } from '../../types';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'fechaIngreso', label: 'Fecha de Ingreso' },
@@ -15,6 +15,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 ];
 
 interface PropiedadesFiltersProps {
+  propiedades: Propiedad[];
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   filterEstado: string;
@@ -34,6 +35,7 @@ interface PropiedadesFiltersProps {
 }
 
 export const PropiedadesFilters = ({
+  propiedades,
   searchQuery,
   setSearchQuery,
   filterEstado,
@@ -81,9 +83,9 @@ export const PropiedadesFilters = ({
   // Calcular filtros avanzados activos (excluyendo 'operacion' porque ahora está en la barra principal)
   const activeAdvancedFiltersCount = Object.keys(advancedFilters).reduce((count, key) => {
     if (key === 'operacion') return count;
-    const value = advancedFilters[key as keyof AdvancedFiltersState];
-    const defaultValue = defaultAdvancedFilters[key as keyof AdvancedFiltersState];
-    return value !== defaultValue && value !== '' ? count + 1 : count;
+    const value = advancedFilters[key];
+    if (value === '' || value === null || value === undefined) return count;
+    return count + 1;
   }, 0);
 
   return (
@@ -296,6 +298,7 @@ export const PropiedadesFilters = ({
 
       {/* Drawer */}
       <AdvancedFiltersDrawer 
+        propiedades={propiedades}
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
         filters={advancedFilters}

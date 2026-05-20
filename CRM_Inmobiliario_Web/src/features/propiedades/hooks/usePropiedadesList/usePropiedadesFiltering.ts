@@ -1,30 +1,15 @@
 import { useState, useMemo } from 'react';
 import Fuse from 'fuse.js';
 import type { Propiedad } from '../../types';
+import { AVAILABLE_PROPERTY_FILTERS } from '../../types/filters.types';
 
 export type SortOption = 'fechaIngreso' | 'precio' | 'areaTotal' | 'habitaciones' | 'aniosAntiguedad';
 export type SortDirection = 'asc' | 'desc';
 
-export interface AdvancedFiltersState {
-  operacion: string;
-  precioMin: string;
-  precioMax: string;
-  areaMin: string;
-  areaMax: string;
-  habitacionesMin: string;
-  banosMin: string;
-  estacionamientosMin: string;
-}
+export type AdvancedFiltersState = Record<string, string | boolean | number>;
 
 export const defaultAdvancedFilters: AdvancedFiltersState = {
-  operacion: 'Todas',
-  precioMin: '',
-  precioMax: '',
-  areaMin: '',
-  areaMax: '',
-  habitacionesMin: '',
-  banosMin: '',
-  estacionamientosMin: ''
+  operacion: 'Todas'
 };
 
 export const usePropiedadesFiltering = (propiedades: Propiedad[]) => {
@@ -53,17 +38,52 @@ export const usePropiedadesFiltering = (propiedades: Propiedad[]) => {
       const matchEstado = filterEstado === 'Todos' || p.estadoComercial === filterEstado;
       const matchTipo = filterTipo === 'Todos' || p.tipoPropiedad === filterTipo;
       
-      const matchOperacion = advancedFilters.operacion === 'Todas' || p.operacion === advancedFilters.operacion;
-      const matchPrecioMin = !advancedFilters.precioMin || p.precio >= Number(advancedFilters.precioMin);
-      const matchPrecioMax = !advancedFilters.precioMax || p.precio <= Number(advancedFilters.precioMax);
-      const matchAreaMin = !advancedFilters.areaMin || (p.areaTotal || 0) >= Number(advancedFilters.areaMin);
-      const matchAreaMax = !advancedFilters.areaMax || (p.areaTotal || 0) <= Number(advancedFilters.areaMax);
-      const matchHabitaciones = !advancedFilters.habitacionesMin || (p.habitaciones || 0) >= Number(advancedFilters.habitacionesMin);
-      const matchBanos = !advancedFilters.banosMin || (p.banos || 0) >= Number(advancedFilters.banosMin);
-      const matchEstacionamientos = !advancedFilters.estacionamientosMin || (p.estacionamientos || 0) >= Number(advancedFilters.estacionamientosMin);
+      let matchAdvanced = true;
 
-      return matchEstado && matchTipo && matchOperacion && matchPrecioMin && matchPrecioMax && 
-             matchAreaMin && matchAreaMax && matchHabitaciones && matchBanos && matchEstacionamientos;
+      for (const filterDef of AVAILABLE_PROPERTY_FILTERS) {
+        const { key, type } = filterDef;
+        const propValue = p[key as keyof Propiedad];
+
+        if (type === 'range') {
+          const minVal = advancedFilters[`${key}Min`];
+          const maxVal = advancedFilters[`${key}Max`];
+          
+          if (minVal && Number(propValue || 0) < Number(minVal)) {
+            matchAdvanced = false;
+            break;
+          }
+          if (maxVal && Number(propValue || 0) > Number(maxVal)) {
+            matchAdvanced = false;
+            break;
+          }
+        } else if (type === 'select') {
+          const val = advancedFilters[key];
+          if (val && val !== 'Todas' && val !== 'Todos' && propValue !== val) {
+            matchAdvanced = false;
+            break;
+          }
+        } else if (type === 'text') {
+          const val = advancedFilters[key];
+          if (val && typeof propValue === 'string' && typeof val === 'string') {
+            if (!propValue.toLowerCase().includes(val.toLowerCase())) {
+              matchAdvanced = false;
+              break;
+            }
+          }
+        } else if (type === 'boolean') {
+          const val = advancedFilters[key];
+          // Boolean filters from UI might be actual booleans or empty strings if unchecked/reset
+          if (val !== undefined && val !== null && val !== '') {
+            const isChecked = val === true || val === 'true';
+            if (Boolean(propValue) !== isChecked) {
+              matchAdvanced = false;
+              break;
+            }
+          }
+        }
+      }
+
+      return matchEstado && matchTipo && matchAdvanced;
     };
 
     let result = propiedades.filter(applyFilters);
