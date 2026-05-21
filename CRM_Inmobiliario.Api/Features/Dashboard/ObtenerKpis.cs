@@ -13,7 +13,7 @@ public record ContactoDashboardItem(Guid Id, string Nombre, string Apellido, str
 
 public record DashboardKpisResponse(
     int TotalPropiedadesDisponibles,
-    int TotalProspectosActivos,
+    int TotalContactosActivos,
     int TareasPendientesHoy,
     int SeguimientoRequerido,
     List<ContactoDashboardItem> ContactosSeguimiento,
@@ -55,7 +55,7 @@ public static class ObtenerKpisEndpoint
                 .Select(a => new
                 {
                     Propiedades = a.Properties.Count(p => p.EstadoComercial == "Disponible"),
-                    Prospectos = a.Contactos.Count(l => l.EtapaEmbudo != "Perdido"),
+                    ContactosActivos = a.Contactos.Count(l => l.EtapaEmbudo != "Perdido" && l.EtapaEmbudo != "Cerrado"),
                     Tareas = a.Tasks.Count(t => t.Estado == "Pendiente" && t.FechaInicio <= limiteHoyUtc),
                     
                     // Seguimiento (Proyectamos solo lo necesario)
@@ -81,7 +81,7 @@ public static class ObtenerKpisEndpoint
 
             var kpis = new DashboardKpisResponse(
                 megaData.Propiedades,
-                megaData.Prospectos,
+                megaData.ContactosActivos,
                 megaData.Tareas,
                 megaData.ContactosSeguimiento.Count,
                 megaData.ContactosSeguimiento,

@@ -82,7 +82,7 @@ public class KpiWarmingBackgroundService : BackgroundService
             {
                 // Dashboard
                 Propiedades = a.Properties.Count(p => p.EstadoComercial == "Disponible"),
-                Prospectos = a.Contactos.Count(l => l.EtapaEmbudo != "Perdido"),
+                ContactosActivos = a.Contactos.Count(l => l.EtapaEmbudo != "Perdido" && l.EtapaEmbudo != "Cerrado"),
                 Tareas = a.Tasks.Count(t => t.Estado == "Pendiente" && t.FechaInicio <= limiteHoyUtc),
                 ContactosSeguimiento = a.Contactos
                     .Where(l => !etapasExcluidasDashboard.Contains(l.EtapaEmbudo) && l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
@@ -117,16 +117,15 @@ public class KpiWarmingBackgroundService : BackgroundService
 
         if (megaData != null)
         {
-            // DASHBOARD RESPONSE ASSEMBLY
-            var kpis = new DashboardKpisResponse(
-                megaData.Propiedades,
-                megaData.Prospectos,
-                megaData.Tareas,
-                megaData.ContactosSeguimiento.Count,
-                megaData.ContactosSeguimiento,
-                megaData.EmbudoRaw.Select(x => new EtapaEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad)).ToList()
-            );
-
+        // DASHBOARD RESPONSE ASSEMBLY
+        var kpis = new DashboardKpisResponse(
+            megaData.Propiedades,
+            megaData.ContactosActivos,
+            megaData.Tareas,
+            megaData.ContactosSeguimiento.Count,
+            megaData.ContactosSeguimiento,
+            megaData.EmbudoRaw.Select(x => new EtapaEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad)).ToList()
+        );
             // WEEKLY TREND PROCESSING (Extracted logic)
             var trendSemanas = WeeklyTrendProcessor.CalculateTrends(
                 nowEcuador, 
