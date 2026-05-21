@@ -46,13 +46,20 @@ export const DynamicFilterInput = ({ contactos, filterDef, filters, onChange, on
     return new Fuse(uniqueValues, { keys: ['title'], threshold: 0.3 });
   }, [uniqueValues]);
 
+  const currentQuery = useMemo(() => {
+    const val = filters[key];
+    if (typeof val !== 'string') return '';
+    if (!val.includes(',')) return val.trim();
+    const parts = val.split(',');
+    return parts[parts.length - 1].trim();
+  }, [filters, key]);
+
   const suggestions = useMemo(() => {
     if (type !== 'text') return [];
-    const query = filters[key] as string;
-    if (!query) return uniqueValues.slice(0, 5);
+    if (!currentQuery) return uniqueValues.slice(0, 5);
     if (!fuse) return [];
-    return fuse.search(query).map(r => r.item).slice(0, 5);
-  }, [fuse, filters, key, uniqueValues, type]);
+    return fuse.search(currentQuery).map(r => r.item).slice(0, 5);
+  }, [fuse, currentQuery, uniqueValues, type]);
 
   const renderInput = () => {
     switch (type) {
@@ -77,7 +84,14 @@ export const DynamicFilterInput = ({ contactos, filterDef, filters, onChange, on
                     key={item.id}
                     type="button"
                     onClick={() => {
-                      onChange(key, item.title);
+                      const val = filters[key] as string || '';
+                      let newVal = item.title;
+                      if (val.includes(',')) {
+                        const parts = val.split(',');
+                        parts[parts.length - 1] = ' ' + item.title;
+                        newVal = parts.join(',').trim();
+                      }
+                      onChange(key, newVal);
                       setShowSuggestions(false);
                     }}
                     className="w-full px-4 py-2 text-left hover:bg-slate-50 transition-colors text-sm font-medium text-slate-700 cursor-pointer"
