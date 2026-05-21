@@ -91,9 +91,14 @@ export const useContactosFiltering = (contactos: Contacto[]) => {
         } else if (type === 'text') {
           const val = advancedFilters[key];
           if (val && typeof contactValue === 'string' && typeof val === 'string') {
-            if (!contactValue.toLowerCase().includes(val.toLowerCase())) {
-              matchAdvanced = false;
-              break;
+            const searchTerms = val.toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+            if (searchTerms.length > 0) {
+              const contactValLower = contactValue.toLowerCase();
+              const matchesAny = searchTerms.some(term => contactValLower.includes(term));
+              if (!matchesAny) {
+                matchAdvanced = false;
+                break;
+              }
             }
           }
         } else if (type === 'boolean') {

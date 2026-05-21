@@ -4,10 +4,10 @@ import { ETAPAS, ETAPAS_PROPIETARIO, ORIGENES } from '../../constants/contactos'
 import type { SortOptionContacto, SortDirectionContacto } from '../../hooks/useContactosFiltering';
 
 const SORT_OPTIONS: { value: SortOptionContacto; label: string }[] = [
-  { value: 'fechaCreacion', label: 'Fecha de Ingreso' },
+  { value: 'fechaCreacion', label: 'Fecha Ingreso' },
   { value: 'nombre', label: 'Nombre (A-Z)' },
-  { value: 'intereses', label: 'Nivel de Interés' },
-  { value: 'propiedades', label: 'Volumen de Captación' },
+  { value: 'intereses', label: 'Intereses' },
+  { value: 'propiedades', label: 'Captaciones' },
   { value: 'interacciones', label: 'Interacciones' }
 ];
 
@@ -144,7 +144,7 @@ export const ContactosListFilters = ({
       <div className="flex flex-wrap items-end gap-3" ref={dropdownRef}>
         
         {/* Búsqueda rápida */}
-        <div className="flex flex-col gap-1.5 flex-1 min-w-[250px]">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
           <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Búsqueda rápida</label>
           <div className="relative">
             <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -164,11 +164,11 @@ export const ContactosListFilters = ({
           <div className="relative">
             <button 
               onClick={() => setOpenDropdownId(openDropdownId === 'visibilidad' ? null : 'visibilidad')}
-              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] min-w-[150px]"
+              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[130px]"
             >
-              <Eye className="h-4 w-4 text-slate-500" />
-              <span>{filterVisibilidad}</span>
-              <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'visibilidad' ? 'rotate-180' : ''}`} />
+              <Eye className="h-4 w-4 text-slate-500 shrink-0" />
+              <span className="truncate flex-1 text-left">{filterVisibilidad}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'visibilidad' ? 'rotate-180' : ''}`} />
             </button>
 
             {openDropdownId === 'visibilidad' && (
@@ -196,11 +196,11 @@ export const ContactosListFilters = ({
           <div className="relative">
             <button 
               onClick={() => setOpenDropdownId(openDropdownId === 'origen' ? null : 'origen')}
-              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] min-w-[170px]"
+              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
             >
-              <Globe className="h-4 w-4 text-slate-500" />
-              <span>{filterOrigen === 'Todos' ? 'Todos los orígenes' : filterOrigen}</span>
-              <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'origen' ? 'rotate-180' : ''}`} />
+              <Globe className="h-4 w-4 text-slate-500 shrink-0" />
+              <span className="truncate flex-1 text-left">{filterOrigen === 'Todos' ? 'Todos los orígenes' : filterOrigen}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'origen' ? 'rotate-180' : ''}`} />
             </button>
 
             {openDropdownId === 'origen' && (
@@ -238,11 +238,11 @@ export const ContactosListFilters = ({
             <div className="relative">
               <button 
                 onClick={() => setOpenDropdownId(openDropdownId === 'estado_cliente' ? null : 'estado_cliente')}
-                className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] min-w-[170px]"
+                className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
               >
-                <Users className="h-4 w-4 text-slate-500" />
-                <span>{filterEstadoCliente === 'Todos' ? 'Todos los estados' : filterEstadoCliente}</span>
-                <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'estado_cliente' ? 'rotate-180' : ''}`} />
+                <Users className="h-4 w-4 text-slate-500 shrink-0" />
+                <span className="truncate flex-1 text-left">{filterEstadoCliente === 'Todos' ? 'Todos los estados' : filterEstadoCliente}</span>
+                <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_cliente' ? 'rotate-180' : ''}`} />
               </button>
 
               {openDropdownId === 'estado_cliente' && (
@@ -281,11 +281,11 @@ export const ContactosListFilters = ({
             <div className="relative">
               <button 
                 onClick={() => setOpenDropdownId(openDropdownId === 'estado_propietario' ? null : 'estado_propietario')}
-                className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] min-w-[170px]"
+                className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
               >
-                <Briefcase className="h-4 w-4 text-slate-500" />
-                <span>{filterEstadoPropietario === 'Todos' ? 'Todos los estados' : filterEstadoPropietario}</span>
-                <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'estado_propietario' ? 'rotate-180' : ''}`} />
+                <Briefcase className="h-4 w-4 text-slate-500 shrink-0" />
+                <span className="truncate flex-1 text-left">{filterEstadoPropietario === 'Todos' ? 'Todos los estados' : filterEstadoPropietario}</span>
+                <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_propietario' ? 'rotate-180' : ''}`} />
               </button>
 
               {openDropdownId === 'estado_propietario' && (
@@ -324,11 +324,11 @@ export const ContactosListFilters = ({
             <div className="flex bg-white border border-slate-200 rounded-xl shadow-sm hover:border-slate-300 transition-all h-[42px]">
               <button 
                 onClick={() => setOpenDropdownId(openDropdownId === 'sort' ? null : 'sort')}
-                className="flex items-center gap-2 pl-4 pr-2 py-2.5 text-sm font-bold text-slate-600 transition-all cursor-pointer border-r border-slate-100"
+                className="flex items-center gap-2 pl-4 pr-2 py-2.5 text-sm font-bold text-slate-600 transition-all cursor-pointer border-r border-slate-100 w-[140px]"
               >
-                <ArrowUpDown className="h-4 w-4 text-slate-500" />
-                <span>{SORT_OPTIONS.find(o => o.value === sortBy)?.label || 'Seleccionar...'}</span>
-                <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${openDropdownId === 'sort' ? 'rotate-180' : ''}`} />
+                <ArrowUpDown className="h-4 w-4 text-slate-500 shrink-0" />
+                <span className="truncate flex-1 text-left">{SORT_OPTIONS.find(o => o.value === sortBy)?.label || 'Seleccionar...'}</span>
+                <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'sort' ? 'rotate-180' : ''}`} />
               </button>
               <button
                 onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
@@ -358,20 +358,27 @@ export const ContactosListFilters = ({
           </div>
         </div>
 
-        {/* Botón Filtros Avanzados */}
+        {/* Botón Filtros Avanzados — solo icono */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-black uppercase tracking-wider text-transparent select-none ml-1">Filtros</label>
-          <button 
-            onClick={onOpenAdvancedFilters}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer h-[42px] border ${
-              advancedFiltersCount > 0 
-                ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100' 
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            <span>Filtros {advancedFiltersCount > 0 ? `(${advancedFiltersCount})` : ''}</span>
-          </button>
+          <label className="text-[10px] font-black uppercase tracking-wider text-transparent select-none ml-1">_</label>
+          <div className="relative">
+            <button 
+              onClick={onOpenAdvancedFilters}
+              title="Filtros avanzados"
+              className={`relative flex items-center justify-center w-[42px] h-[42px] rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer border ${
+                advancedFiltersCount > 0 
+                  ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100' 
+                  : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+              }`}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+            {advancedFiltersCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center bg-blue-600 text-white text-[9px] font-black rounded-full shadow-sm pointer-events-none">
+                {advancedFiltersCount}
+              </span>
+            )}
+          </div>
         </div>
 
       </div>
