@@ -7,7 +7,7 @@ interface ClosingModalProps {
   isOpen: boolean;
   onClose: () => void;
   // onConfirm ahora recibe el precio, el ID del socio (contacto o propiedad) y el estado final deseado para la propiedad
-  onConfirm: (precioCierre: number, partnerId: string, finalStatus: string) => Promise<void>;
+  onConfirm: (precioCierre: number | null, partnerId: string, finalStatus: string) => Promise<void>;
   mode: 'property' | 'contacto';
   initialData?: {
     id: string;
@@ -47,6 +47,8 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
 
   if (!isOpen) return null;
 
+  const isReserva = tipoCierre === 'Reservada' || tipoCierre === 'En Negociación';
+
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       <div 
@@ -72,7 +74,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
             </div>
             <div>
               <h3 className="text-2xl font-black text-slate-900 tracking-tight contactoing-none mb-2">
-                Cierre de Operación
+                {isReserva ? 'Iniciar Reserva / Negociación' : 'Cierre de Operación'}
               </h3>
               <p className="text-slate-400 text-xs font-bold uppercase tracking-widest truncate max-w-[280px]">
                 {mode === 'property' ? selectedPartnerData?.titulo : 'Desde Perfil de Contacto'}
@@ -106,7 +108,8 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
 
             <div className="grid grid-cols-2 gap-4">
                {/* Input Precio */}
-              <div className="space-y-2">
+               {!isReserva && (
+                 <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
                   Precio de Cierre
                 </label>
@@ -121,6 +124,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
                   />
                 </div>
               </div>
+               )}
 
               {/* Selector Tipo de Cierre */}
               <div className="space-y-2 relative">
@@ -134,10 +138,10 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
                   <span className={tipoCierre === 'Alquilada' ? 'text-blue-600' : 'text-emerald-600'}>
                     {tipoCierre}
                   </span>
-                  <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${showTipoCierreDropdown ? 'rotate-180' : ''}`} />
+                  {!isReserva && <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${showTipoCierreDropdown ? 'rotate-180' : ''}`} />}
                 </button>
 
-                {showTipoCierreDropdown && (
+                {showTipoCierreDropdown && !isReserva && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
                     {['Vendida', 'Alquilada'].map((op) => (
                       <button
@@ -156,10 +160,13 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
               </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
-              <Info className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-              <p className="text-[11px] text-amber-700 font-bold contactoing-relaxed">
-                Al confirmar, el inmueble pasará a estado <span className="underline italic">{tipoCierre}</span>, el contacto se moverá a la etapa <span className="underline italic">Cerrado</span> y la galería se depurará (excepto portada).
+            <div className={`bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3 ${isReserva ? 'bg-indigo-50 border-indigo-100' : ''}`}>
+              <Info className={`h-5 w-5 shrink-0 mt-0.5 ${isReserva ? 'text-indigo-500' : 'text-amber-500'}`} />
+              <p className={`text-[11px] font-bold contactoing-relaxed ${isReserva ? 'text-indigo-700' : 'text-amber-700'}`}>
+                {isReserva 
+                  ? <>Al confirmar, la propiedad se marcará como <span className="underline italic">Reservada</span> y el contacto pasará a la etapa <span className="underline italic">En Negociación</span>. Si en el futuro la reserva se cae, el sistema volverá la propiedad a Disponible automáticamente.</>
+                  : <>Al confirmar, el inmueble pasará a estado <span className="underline italic">{tipoCierre}</span>, el contacto se moverá a la etapa <span className="underline italic">Cerrado</span> y la galería se depurará (excepto portada).</>
+                }
               </p>
             </div>
           </div>
@@ -184,10 +191,10 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
               ) : isSuccess ? (
                 <>
                   <Check className="h-6 w-6 animate-bounce" />
-                  ¡Cierre Exitoso!
+                  {isReserva ? '¡Reserva Exitosa!' : '¡Cierre Exitoso!'}
                 </>
               ) : (
-                `Confirmar ${tipoCierre === 'Alquilada' ? 'Alquiler' : 'Venta'}`
+                isReserva ? 'Confirmar Reserva' : `Confirmar ${tipoCierre === 'Alquilada' ? 'Alquiler' : 'Venta'}`
               )}
             </button>
             

@@ -47,6 +47,7 @@ const ContactosContent = () => {
     setSelectedContactoForEdit,
     closingContacto,
     setClosingContacto,
+    closingIntendedStage,
     handleStageChange,
     handleClosingConfirm,
     mutate
@@ -124,6 +125,7 @@ const ContactosContent = () => {
         setSelectedContactoForEdit={setSelectedContactoForEdit}
         closingContacto={closingContacto}
         setClosingContacto={setClosingContacto}
+        closingIntendedStage={closingIntendedStage}
         onClosingConfirm={handleClosingConfirm}
         mutate={mutate}
       />

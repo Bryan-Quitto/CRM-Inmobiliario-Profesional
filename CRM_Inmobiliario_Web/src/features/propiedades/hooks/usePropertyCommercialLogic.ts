@@ -79,7 +79,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
       return;
     }
 
-    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada') && !confirmed) {
+    if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada' || nuevoEstado === 'Reservada') && !confirmed) {
       callbacks?.onOpenClosingModal(nuevoEstado);
       return;
     }

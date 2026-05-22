@@ -38,6 +38,7 @@ export const ContactoDetalle = () => {
     vincularStatus,
     isClosingModalOpen,
     setIsClosingModalOpen,
+    intendedStage,
     isUpdatingEtapa,
     activeDropdown,
     setActiveDropdown,
@@ -156,6 +157,7 @@ export const ContactoDetalle = () => {
         contacto={contacto}
         isClosingModalOpen={isClosingModalOpen}
         setIsClosingModalOpen={setIsClosingModalOpen}
+        intendedStage={intendedStage}
         handleClosingConfirm={handleClosingConfirm}
         revertConfirmation={revertConfirmation}
         setRevertConfirmation={setRevertConfirmation}

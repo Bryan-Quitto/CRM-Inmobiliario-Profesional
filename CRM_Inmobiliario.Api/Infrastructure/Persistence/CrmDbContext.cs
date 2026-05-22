@@ -1,5 +1,8 @@
 using CRM_Inmobiliario.Api.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence;
 
@@ -23,6 +26,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<AiActionLog> AiActionLogs => Set<AiActionLog>();
     public DbSet<WhatsappMessage> WhatsappMessages => Set<WhatsappMessage>();
     public DbSet<PropertyTransaction> PropertyTransactions => Set<PropertyTransaction>();
+    public DbSet<ContactoHistorialEmbudo> ContactoHistorialEmbudos => Set<ContactoHistorialEmbudo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,5 +54,31 @@ public sealed class CrmDbContext : DbContext
                 }
             }
         }
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var entries = ChangeTracker.Entries<Contacto>()
+            .Where(e => e.State == EntityState.Modified);
+
+        foreach (var entry in entries)
+        {
+            var originalEtapa = entry.OriginalValues.GetValue<string>("EtapaEmbudo");
+            var currentEtapa = entry.CurrentValues.GetValue<string>("EtapaEmbudo");
+
+            if (originalEtapa != currentEtapa)
+            {
+                ContactoHistorialEmbudos.Add(new ContactoHistorialEmbudo
+                {
+                    Id = Guid.NewGuid(),
+                    ContactoId = entry.Entity.Id,
+                    EtapaAnterior = originalEtapa ?? string.Empty,
+                    EtapaNueva = currentEtapa ?? string.Empty,
+                    FechaCambio = DateTimeOffset.UtcNow
+                });
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 }

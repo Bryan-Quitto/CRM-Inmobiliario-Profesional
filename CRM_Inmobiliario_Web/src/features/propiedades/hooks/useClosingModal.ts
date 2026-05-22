@@ -8,7 +8,7 @@ import { type SearchItem } from '@/components/DynamicSearchSelect';
 interface UseClosingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (precioCierre: number, partnerId: string, finalStatus: string) => Promise<void>;
+  onConfirm: (precioCierre: number | null, partnerId: string, finalStatus: string) => Promise<void>;
   mode: 'property' | 'contacto';
   initialData?: {
     id: string;
@@ -39,7 +39,7 @@ export const useClosingModal = ({
   const [tipoCierre, setTipoCierre] = useState<string>(() => {
     if (intendedState) return intendedState;
     if (mode === 'property' && initialData) {
-      // Mapeo robusto: Solo Venta es Vendida, cualquier otra cosa (Renta/Alquiler) es Alquilada
+      if (initialData.operacion === 'Reservada') return 'Reservada';
       return initialData.operacion === 'Venta' ? 'Vendida' : 'Alquilada';
     }
     return 'Vendida';
@@ -105,7 +105,8 @@ export const useClosingModal = ({
   );
 
   const handleConfirm = async () => {
-    if (!precioCierre || isNaN(Number(precioCierre))) {
+    const isReserva = tipoCierre === 'Reservada' || tipoCierre === 'En Negociación';
+    if (!isReserva && (!precioCierre || isNaN(Number(precioCierre)))) {
       toast.error('Por favor, ingresa un precio válido.');
       return;
     }
@@ -116,7 +117,7 @@ export const useClosingModal = ({
 
     setIsSubmitting(true);
     try {
-      await onConfirm(Number(precioCierre), partnerId, tipoCierre);
+      await onConfirm(isReserva ? null : Number(precioCierre), partnerId, tipoCierre);
       setIsSuccess(true);
       setTimeout(() => {
         onClose();
@@ -168,7 +169,10 @@ export const useClosingModal = ({
     if (item && item.raw) {
       const p = item.raw as { titulo: string, operacion: string };
       setSelectedPartnerData({ titulo: p.titulo, operacion: p.operacion || 'Venta' });
-      setTipoCierre(p.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida');
+      // Si el modal está en modo reserva, no cambiar a Vendida/Alquilada, a menos que sea un cierre.
+      if (intendedState !== 'Reservada' && intendedState !== 'En Negociación') {
+         setTipoCierre(p.operacion === 'Alquiler' ? 'Alquilada' : 'Vendida');
+      }
     }
   };
 
