@@ -195,7 +195,7 @@ export const AnaliticaModals = ({
               <div className="h-8 w-px bg-indigo-200" />
               <div className="text-center flex-1">
                 <span className="block text-[8px] font-bold uppercase text-indigo-400">Promedio</span>
-                <span className="text-xl font-black text-indigo-600">{eficiencia?.tiempoPromedioCierreDias ?? 0} d</span>
+                <span className="text-xl font-black text-indigo-600">{eficiencia?.tiempoPromedioGlobalDias ?? 0} d</span>
               </div>
             </div>
           </div>

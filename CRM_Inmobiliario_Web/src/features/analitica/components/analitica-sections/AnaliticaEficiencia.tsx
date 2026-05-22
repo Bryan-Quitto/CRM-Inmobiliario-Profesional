@@ -22,7 +22,11 @@ export const AnaliticaEficiencia = ({
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] mb-1">Velocidad de Cierre</p>
-              <h3 className="text-5xl font-black tracking-tighter">{eficiencia?.tiempoPromedioCierreDias ?? 0} <span className="text-2xl opacity-50 italic">días</span></h3>
+              <h3 className="text-5xl font-black tracking-tighter">{eficiencia?.tiempoPromedioGlobalDias ?? 0} <span className="text-2xl opacity-50 italic">días</span></h3>
+              <div className="mt-3 space-y-1">
+                <p className="text-[11px] text-indigo-100"><span className="font-bold opacity-70">Como Vendedor:</span> {eficiencia?.tiempoPromedioVendedorDias ?? 0} días</p>
+                <p className="text-[11px] text-indigo-100"><span className="font-bold opacity-70">Como Captador:</span> {eficiencia?.tiempoPromedioCaptadorDias ?? 0} días</p>
+              </div>
             </div>
             <button 
               onClick={() => setExpandedCard(expandedCard === 'velocidad' ? null : 'velocidad')}
@@ -66,8 +70,11 @@ export const AnaliticaEficiencia = ({
         <div className="flex items-center justify-between w-full">
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Tasa de Éxito</p>
-            <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{eficiencia?.tasaConversion ?? 0}%</h3>
-            <p className="text-[11px] font-bold text-slate-500 mt-1">Cierres Totales</p>
+            <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{eficiencia?.tasaConversionGlobal ?? 0}%</h3>
+            <div className="mt-3 space-y-1">
+              <p className="text-[11px] text-slate-500"><span className="font-bold opacity-70">Como Vendedor:</span> {eficiencia?.tasaConversionVendedor ?? 0}%</p>
+              <p className="text-[11px] text-slate-500"><span className="font-bold opacity-70">Como Captador:</span> {eficiencia?.tasaConversionCaptador ?? 0}%</p>
+            </div>
           </div>
           <div className="flex flex-col items-center gap-2">
             <div className="h-14 w-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:rotate-12 transition-all">
@@ -91,16 +98,18 @@ export const AnaliticaEficiencia = ({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <span className="block text-[8px] font-black text-slate-400 uppercase mb-1">Cierres (Ganados)</span>
-                  <span className="text-lg font-black text-slate-900">{eficiencia?.calculos?.totalCerrados ?? 0}</span>
+                  <span className="block text-[8px] font-black text-slate-400 uppercase mb-1">Como Vendedor</span>
+                  <span className="text-lg font-black text-slate-900">{eficiencia?.calculos?.totalCerradosVendedor ?? 0} <span className="text-xs font-medium text-slate-500">cerrados</span></span>
+                  <span className="block text-[9px] font-medium text-slate-500 mt-1">de {eficiencia?.calculos?.totalContactos ?? 0} contactos</span>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <span className="block text-[8px] font-black text-slate-400 uppercase mb-1">Total Contactos</span>
-                  <span className="text-lg font-black text-slate-900">{eficiencia?.calculos?.totalContactos ?? 0}</span>
+                  <span className="block text-[8px] font-black text-slate-400 uppercase mb-1">Como Captador</span>
+                  <span className="text-lg font-black text-slate-900">{eficiencia?.calculos?.totalCerradosCaptador ?? 0} <span className="text-xs font-medium text-slate-500">vendidas</span></span>
+                  <span className="block text-[9px] font-medium text-slate-500 mt-1">de {eficiencia?.calculos?.totalCaptaciones ?? 0} captaciones</span>
                 </div>
               </div>
               <div className="text-[9px] text-slate-500 font-medium italic text-center">
-                Fórmula: (Cierres / Total Contactos) x 100
+                Fórmula Global: (Cierres Únicos / Universo Global) x 100
               </div>
             </div>
           </div>
