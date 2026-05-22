@@ -73,13 +73,22 @@ export interface DetalleCierreEficiencia {
   dias: number;
 }
 
+export interface EficienciaCalculos {
+  totalContactos: number;
+  totalCerradosVendedor: number;
+  contactosConFechaCierre: number;
+  totalCaptaciones: number;
+  totalCerradosCaptador: number;
+  captacionesConFechaCierre: number;
+  detallesCierres: DetalleCierreEficiencia[];
+}
+
 export interface EficienciaAnalitica {
-  tasaConversion: number;
-  tiempoPromedioCierreDias: number;
-  calculos: {
-    totalContactos: number;
-    totalCerrados: number;
-    contactosConFechaCierre: number;
-    detallesCierres: DetalleCierreEficiencia[];
-  };
+  tasaConversionGlobal: number;
+  tasaConversionVendedor: number;
+  tasaConversionCaptador: number;
+  tiempoPromedioGlobalDias: number;
+  tiempoPromedioVendedorDias: number;
+  tiempoPromedioCaptadorDias: number;
+  calculos: EficienciaCalculos;
 }

@@ -79,6 +79,8 @@ secrets.json
 
 # --- [ Miscellaneous ] ---
 .gemini/
+.agents/
+.antigravitycli/
 *.log
 *.tmp
 *.bak

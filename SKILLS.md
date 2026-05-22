@@ -13,6 +13,9 @@ This file defines the strict technical standards and architectural rules for the
 - **CRITICAL RULE:** SDD is NOT a silver bullet. Agents must evaluate the scope of the task before generating any formal specification.
 - **WHEN TO USE SDD (High Complexity):** IF the requirement involves creating a new database entity, bootstrapping a module from scratch, or defining interactions between multiple architectural components -> THEN the agent MUST generate and agree upon a specification document (`spec.md`) before writing any code.
 - **WHEN NOT TO USE SDD (Low Complexity / Maintenance):** IF the requirement is fixing a bug, optimizing a query, refactoring an isolated block of code, adjusting UI components, or updating an existing trigger/procedure -> THEN the use of SDD is STRICTLY PROHIBITED. Execute the code changes directly, surgically, and concisely.
+### Memory & Context Management (Engram Protocol)
+- **CRITICAL RULE - PROJECT KEY:** Whenever interacting with Engram MCP tools (e.g., `mem_save`, `mem_update`, `mem_search`, `mem_session_start`, `mem_capture_passive`), the AI MUST STRICTLY use the exact string `"CRM Inmobiliario Profesional"` as the project identifier.
+- **PROHIBITION:** NEVER use directory paths, hyphenated versions (`CRM-Inmobiliario-Profesional`), snake_case, or sub-folder names. Any deviation pollutes the global memory database and will be considered a critical failure in following instructions.
 
 ### Architectural Standards
 
