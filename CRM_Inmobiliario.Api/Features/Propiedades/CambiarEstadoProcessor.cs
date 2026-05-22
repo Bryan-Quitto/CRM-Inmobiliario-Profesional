@@ -23,6 +23,8 @@ public static class CambiarEstadoProcessor
     {
         var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
         var esCierre = nuevoEstado is "Vendida" or "Alquilada" or "Vendido" or "Rentado";
+        var esReserva = nuevoEstado == "Reservada";
+        var esCierreOReserva = esCierre || esReserva;
         
         // 1. Soporte para Alquileres Sucesivos Automáticos (Fase 5 item 3)
         bool esAlquilerSucesivo = property.EstadoComercial == "Alquilada" 
@@ -34,7 +36,7 @@ public static class CambiarEstadoProcessor
         bool requiereRelistadoAutomatico = property.CerradoConId.HasValue && esCierre && !esAlquilerSucesivo;
 
         Contacto? contacto = null;
-        if (esCierre && cerradoConId.HasValue)
+        if (esCierreOReserva && cerradoConId.HasValue)
         {
             logger.LogInformation("👤 [PROCESSOR] Buscando Contacto asociado: {ContactoId}", cerradoConId.Value);
             
@@ -75,13 +77,22 @@ public static class CambiarEstadoProcessor
             }
         }
 
-        // 3. Revertir Contacto si ya no es un cierre
-        if (!esCierre && property.CerradoConId.HasValue)
+        // 3. Revertir Contacto si ya no es un cierre ni reserva (ej. pasa de Reservada a Disponible)
+        if (!esCierreOReserva && property.CerradoConId.HasValue)
         {
             var contactoToRevert = await context.Contactos.FirstOrDefaultAsync(l => l.Id == property.CerradoConId.Value, ct);
             if (contactoToRevert != null)
             {
-                contactoToRevert.EtapaEmbudo = "En Negociación";
+                if (property.EstadoComercial == "Reservada")
+                {
+                    // Si se cae una reserva, el contacto pasa a Perdido
+                    contactoToRevert.EtapaEmbudo = "Perdido";
+                }
+                else
+                {
+                    // Si se cae un cierre, asume que vuelve a negociación
+                    contactoToRevert.EtapaEmbudo = "En Negociación";
+                }
                 contactoToRevert.FechaCierre = null;
             }
         }
@@ -90,7 +101,14 @@ public static class CambiarEstadoProcessor
         property.EstadoComercial = nuevoEstado;
         property.FechaCierre = esCierre ? ecuadorNow : null;
         property.PrecioCierre = esCierre ? precioCierre : null;
-        property.CerradoConId = esCierre ? cerradoConId : null;
+        property.CerradoConId = esCierreOReserva ? cerradoConId : null;
+
+        // 4.5. Registrar Reserva
+        if (esReserva && contacto != null)
+        {
+            contacto.EtapaEmbudo = "En Negociación";
+            logger.LogInformation("🤝 [PROCESSOR] Propiedad {Titulo} Reservada. Contacto {Nombre} pasó a En Negociación.", property.Titulo, contacto.Nombre);
+        }
 
         // 5. Registrar Cierre (Contacto + Transacción + Interacción)
         if (esCierre && contacto != null)

@@ -60,6 +60,7 @@ export const useContactosList = () => {
   };
 
   const [closingContacto, setClosingContacto] = useState<Contacto | null>(null);
+  const [closingIntendedStage, setClosingIntendedStage] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeSegment !== 'todos') {
@@ -82,7 +83,8 @@ export const useContactosList = () => {
     const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
     if (etapaActual === nuevaEtapa) return;
 
-    if (tipo === 'contacto' && nuevaEtapa === 'Cerrado' && !confirmedData) {
+    if (tipo === 'contacto' && (nuevaEtapa === 'Cerrado' || nuevaEtapa === 'En Negociación') && !confirmedData) {
+      setClosingIntendedStage(nuevaEtapa);
       setClosingContacto(contacto);
       return;
     }
@@ -114,9 +116,9 @@ export const useContactosList = () => {
       });
   };
 
-  const handleClosingConfirm = async (precioCierre: number, propiedadId: string, nuevoEstadoPropiedad: string) => {
+  const handleClosingConfirm = async (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => {
     if (!closingContacto) return;
-    handleStageChange(closingContacto.id, 'Cerrado', { propiedadId, precioCierre, nuevoEstadoPropiedad });
+    handleStageChange(closingContacto.id, closingIntendedStage || 'Cerrado', { propiedadId, precioCierre: precioCierre || 0, nuevoEstadoPropiedad });
     setClosingContacto(null);
   };
 
@@ -136,6 +138,7 @@ export const useContactosList = () => {
     setSelectedContactoForEdit,
     closingContacto,
     setClosingContacto,
+    closingIntendedStage,
     handleStageChange,
     handleClosingConfirm,
     mutate,

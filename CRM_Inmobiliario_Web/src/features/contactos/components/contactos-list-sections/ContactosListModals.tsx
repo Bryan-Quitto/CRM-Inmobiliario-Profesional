@@ -11,7 +11,8 @@ interface ContactosListModalsProps {
   setSelectedContactoForEdit: (contacto: Contacto | null) => void;
   closingContacto: Contacto | null;
   setClosingContacto: (contacto: Contacto | null) => void;
-  onClosingConfirm: (precioCierre: number, propiedadId: string, nuevoEstadoPropiedad: string) => Promise<void>;
+  closingIntendedStage?: string | null;
+  onClosingConfirm: (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => Promise<void>;
   mutate: () => void;
 }
 
@@ -23,6 +24,7 @@ export const ContactosListModals = ({
   setSelectedContactoForEdit,
   closingContacto,
   setClosingContacto,
+  closingIntendedStage,
   onClosingConfirm,
   mutate
 }: ContactosListModalsProps) => {
@@ -63,11 +65,12 @@ export const ContactosListModals = ({
         onClose={() => setClosingContacto(null)}
         onConfirm={onClosingConfirm}
         mode="contacto"
+        intendedState={closingIntendedStage || undefined}
         initialData={closingContacto ? {
           id: closingContacto.id,
           titulo: [closingContacto.nombre, closingContacto.apellido].filter(Boolean).join(' '),
           precio: 0,
-          operacion: 'Venta'
+          operacion: closingIntendedStage === 'En Negociación' ? 'Reservada' : 'Venta'
         } : undefined}
       />
     </>

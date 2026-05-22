@@ -10,7 +10,7 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class CambiarEtapaContactoFeature
 {
-    public record Command(string NuevaEtapa, string Tipo, decimal? PrecioCierre = null);
+    public record Command(string NuevaEtapa, string Tipo, decimal? PrecioCierre = null, Guid? PropiedadId = null);
 
     public static void MapCambiarEtapaContactoEndpoint(this IEndpointRouteBuilder app)
     {
@@ -53,6 +53,33 @@ public static class CambiarEtapaContactoFeature
                     if (tieneCierresActivos)
                     {
                         return Results.BadRequest(new { Message = "No puedes marcar como perdido a un cliente con propiedades cerradas activas. Anula la transacción de la propiedad primero." });
+                    }
+                }
+
+                // 2.5 Contingencia de Reservas: Si cae la negociación
+                if (!esTipoPropietario && (command.NuevaEtapa == "Nuevo" || command.NuevaEtapa == "Contactado" || command.NuevaEtapa == "Perdido" || command.NuevaEtapa == "Cerrado Perdido"))
+                {
+                    if (contacto.EtapaEmbudo == "En Negociación")
+                    {
+                        var propiedadReservada = await context.Properties.FirstOrDefaultAsync(p => p.CerradoConId == id && p.EstadoComercial == "Reservada", ct);
+                        if (propiedadReservada != null)
+                        {
+                            propiedadReservada.EstadoComercial = "Disponible";
+                            propiedadReservada.CerradoConId = null;
+                            logger.LogInformation("↩️ [CONTACTO] Negociación cancelada. Propiedad {PropiedadId} vuelve a Disponible.", propiedadReservada.Id);
+                        }
+                    }
+                }
+
+                // 2.6 Sincronización de Reservas: Contacto -> Propiedad
+                if (!esTipoPropietario && command.NuevaEtapa == "En Negociación" && command.PropiedadId.HasValue)
+                {
+                    var propiedadAReservar = await context.Properties.FirstOrDefaultAsync(p => p.Id == command.PropiedadId.Value && (p.AgenteId == agenteId || p.PropietarioId != null), ct);
+                    if (propiedadAReservar != null)
+                    {
+                        propiedadAReservar.EstadoComercial = "Reservada";
+                        propiedadAReservar.CerradoConId = id;
+                        logger.LogInformation("🤝 [CONTACTO] Contacto {ContactoId} pasó a En Negociación. Propiedad {PropiedadId} reservada.", id, propiedadAReservar.Id);
                     }
                 }
 

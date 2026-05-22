@@ -29,18 +29,20 @@ public static class ObtenerProyeccionesEndpoint
             var agenteId = user.GetRequiredUserId();
 
             // 1. Obtenemos los detalles de lo que vamos a sumar (ONE TRIP)
-            var itemsProyeccion = await context.ContactoInteresPropiedades
+            var itemsProyeccion = await context.Properties
                 .AsNoTracking()
-                .Where(i => i.Propiedad!.EstadoComercial == "Reservada" && 
-                            i.Contacto!.EtapaEmbudo == "En Negociación" &&
-                            (i.Propiedad.AgenteId == agenteId || i.Contacto.AgenteId == agenteId))
-                .Select(i => new ItemCalculoProyeccion(
-                    i.Propiedad!.Titulo,
-                    i.Propiedad!.Precio,
-                    i.Propiedad!.PorcentajeComision,
-                    (i.Propiedad!.AgenteId == i.Contacto!.AgenteId) 
-                        ? i.Propiedad.Precio * (i.Propiedad.PorcentajeComision / 100m) 
-                        : i.Propiedad.Precio * ((i.Propiedad.PorcentajeComision / 2m) / 100m)
+                .Include(p => p.CerradoCon)
+                .Where(p => p.EstadoComercial == "Reservada" && 
+                            p.CerradoCon != null && 
+                            p.CerradoCon.EtapaEmbudo == "En Negociación" &&
+                            (p.AgenteId == agenteId || p.CerradoCon.AgenteId == agenteId))
+                .Select(p => new ItemCalculoProyeccion(
+                    p.Titulo,
+                    p.Precio,
+                    p.PorcentajeComision,
+                    (p.AgenteId == p.CerradoCon!.AgenteId) 
+                        ? p.Precio * (p.PorcentajeComision / 100m) 
+                        : p.Precio * ((p.PorcentajeComision / 2m) / 100m)
                 ))
                 .ToListAsync();
 

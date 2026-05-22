@@ -14,6 +14,7 @@ interface Params {
 
 export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params) => {
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
+  const [intendedStage, setIntendedStage] = useState<string | null>(null);
   const [isUpdatingEtapa, setIsUpdatingEtapa] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<'cliente' | 'propietario' | null>(null);
   const [revertConfirmation, setRevertConfirmation] = useState<{ etapa: string } | null>(null);
@@ -52,12 +53,13 @@ export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params)
     
     setActiveDropdown(null);
 
-    if (tipo === 'cliente' && nuevaEtapa === 'Cerrado' && !confirmedData) {
+    if (tipo === 'cliente' && (nuevaEtapa === 'Cerrado' || nuevaEtapa === 'En Negociación') && !confirmedData) {
+      setIntendedStage(nuevaEtapa);
       setIsClosingModalOpen(true);
       return;
     }
 
-    if (tipo === 'cliente' && (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Perdido') && nuevaEtapa !== 'Cerrado' && nuevaEtapa !== 'Perdido') {
+    if (tipo === 'cliente' && (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Perdido' || contacto.etapaEmbudo === 'En Negociación') && nuevaEtapa !== 'Cerrado' && nuevaEtapa !== 'Perdido' && nuevaEtapa !== 'En Negociación') {
       setRevertConfirmation({ etapa: nuevaEtapa });
       return;
     }
@@ -87,14 +89,15 @@ export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params)
     }
   };
 
-  const handleClosingConfirm = async (precioCierre: number, propiedadId: string, nuevoEstadoPropiedad: string) => {
-    await handleStageChange('Cerrado', { propiedadId, precioCierre, nuevoEstadoPropiedad });
+  const handleClosingConfirm = async (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => {
+    await handleStageChange(intendedStage || 'Cerrado', { propiedadId, precioCierre: precioCierre || 0, nuevoEstadoPropiedad });
     setIsClosingModalOpen(false);
   };
 
   return {
     isClosingModalOpen,
     setIsClosingModalOpen,
+    intendedStage,
     isUpdatingEtapa,
     activeDropdown,
     setActiveDropdown,

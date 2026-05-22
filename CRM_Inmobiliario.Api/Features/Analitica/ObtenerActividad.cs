@@ -62,7 +62,7 @@ public static class ObtenerActividadEndpoint
                         t.TransactionStatus != "Cancelled" && 
                         t.TransactionDate >= inicio && t.TransactionDate <= fin &&
                         (t.Property!.AgenteId == agenteId || (t.Contacto != null && t.Contacto.AgenteId == agenteId))),
-                    OfertasCount = a.Contactos.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin),
+                    OfertasCount = context.ContactoHistorialEmbudos.Where(h => h.EtapaNueva == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin && h.Contacto!.AgenteId == agenteId).Select(h => h.ContactoId).Distinct().Count(),
                     CaptacionesCount = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin),
 
                     // Detalles para Modales (Proyectados directamente a DTOs)
@@ -79,10 +79,14 @@ public static class ObtenerActividadEndpoint
                         .OrderByDescending(t => t.TransactionDate)
                         .Select(t => new KpiCierre(t.Id, t.Contacto != null ? t.Contacto.Nombre + " " + t.Contacto.Apellido : "Sin Contacto", t.Property!.Titulo, t.TransactionDate.ToString("yyyy-MM-dd")))
                         .ToList(),
-                    DetallesOfertas = a.Contactos
-                        .Where(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicio && l.FechaCreacion <= fin)
-                        .OrderByDescending(l => l.FechaCreacion)
-                        .Select(l => new KpiOferta(l.Id, l.Nombre + " " + l.Apellido, l.PropertyInterests.Where(i => i.Propiedad != null).Select(i => i.Propiedad!.Titulo).FirstOrDefault() ?? "Sin Propiedad", l.FechaCreacion.ToString("yyyy-MM-dd")))
+                    DetallesOfertas = context.Contactos
+                        .Where(c => c.AgenteId == agenteId && c.HistorialEmbudo.Any(h => h.EtapaNueva == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin))
+                        .Select(c => new KpiOferta(
+                            c.Id, 
+                            c.Nombre + " " + c.Apellido, 
+                            context.Properties.Where(p => p.CerradoConId == c.Id && p.EstadoComercial == "Reservada").Select(p => p.Titulo).FirstOrDefault() ?? "Sin Propiedad", 
+                            c.HistorialEmbudo.Where(h => h.EtapaNueva == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin).Max(h => h.FechaCambio).ToString("yyyy-MM-dd")
+                        ))
                         .ToList(),
                     DetallesCaptaciones = a.Properties
                         .Where(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin)

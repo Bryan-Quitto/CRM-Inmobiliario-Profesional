@@ -6,7 +6,8 @@ interface ContactoModalsOrchestratorProps {
   contacto: Contacto;
   isClosingModalOpen: boolean;
   setIsClosingModalOpen: (open: boolean) => void;
-  handleClosingConfirm: (precio: number, propId: string, estado: string) => Promise<void>;
+  intendedStage: string | null;
+  handleClosingConfirm: (precio: number | null, propId: string, estado: string) => Promise<void>;
   revertConfirmation: { etapa: string } | null;
   setRevertConfirmation: (revert: { etapa: string } | null) => void;
   handleRevertStatus: (etapa: string, liberar: boolean) => Promise<void>;
@@ -16,6 +17,7 @@ export const ContactoModalsOrchestrator = ({
   contacto,
   isClosingModalOpen,
   setIsClosingModalOpen,
+  intendedStage,
   handleClosingConfirm,
   revertConfirmation,
   setRevertConfirmation,
@@ -28,11 +30,12 @@ export const ContactoModalsOrchestrator = ({
         onClose={() => setIsClosingModalOpen(false)}
         onConfirm={handleClosingConfirm}
         mode="contacto"
+        intendedState={intendedStage || undefined}
         initialData={contacto ? {
           id: contacto.id,
           titulo: [contacto.nombre, contacto.apellido].filter(Boolean).join(' '),
           precio: 0,
-          operacion: 'Venta'
+          operacion: intendedStage === 'En Negociación' ? 'Reservada' : 'Venta'
         } : undefined}
       />
 
@@ -43,7 +46,7 @@ export const ContactoModalsOrchestrator = ({
               <div className="h-16 w-16 bg-amber-50 rounded-2xl flex items-center justify-center mb-6">
                 <RotateCcw className="h-8 w-8 text-amber-600" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Revertir Cierre/Perdida</h3>
+              <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Revertir Operación</h3>
               <p className="text-slate-500 font-medium mb-8 contactoing-relaxed">
                 Estás moviendo a <span className="text-slate-900 font-bold">{contacto.nombre}</span> a la etapa <span className="text-blue-600 font-bold uppercase tracking-wider">{revertConfirmation.etapa}</span>.
               </p>
