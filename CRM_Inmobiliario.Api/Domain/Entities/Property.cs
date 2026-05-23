@@ -101,6 +101,9 @@ public sealed class Property
     [Timestamp]
     public uint Version { get; set; }
 
+    [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "vector(1536)")]
+    public Pgvector.Vector? VectorEmbedding { get; set; }
+
     // Relaciones de navegación
     public ICollection<PropertyGallerySection> GallerySections { get; set; } = new List<PropertyGallerySection>();
     public ICollection<PropertyMedia> Media { get; set; } = new List<PropertyMedia>();

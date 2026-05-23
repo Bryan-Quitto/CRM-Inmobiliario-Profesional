@@ -15,7 +15,7 @@ public sealed class RegistrarNuevoContactoHandler : BaseWhatsAppToolHandler
 
     public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
     {
-        string nombre = args.RootElement.TryGetProperty("nombre", out var n) ? n.GetString() : "Cliente";
+        string nombre = args.RootElement.TryGetProperty("nombre", out var n) ? (n.GetString() ?? "Cliente") : "Cliente";
         if (string.IsNullOrWhiteSpace(nombre) || nombre.Equals("Usuario", StringComparison.OrdinalIgnoreCase) || nombre.Equals("Desconocido", StringComparison.OrdinalIgnoreCase))
         {
             nombre = "Cliente WA";

@@ -4,28 +4,32 @@ using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Pgvector.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
 public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 {
-    public BuscarPropiedadesHandler(CrmDbContext context, ILogger<BuscarPropiedadesHandler> logger) 
-        : base(context, logger) { }
+    private readonly CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService _embeddingService;
+
+    public BuscarPropiedadesHandler(CrmDbContext context, ILogger<BuscarPropiedadesHandler> logger, CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService embeddingService) 
+        : base(context, logger) 
+    { 
+        _embeddingService = embeddingService;
+    }
 
     public override string ToolName => "BuscarPropiedades";
 
     public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
     {
-        decimal? maxBudget = args.RootElement.TryGetProperty("presupuestoMaximo", out var b) ? b.GetDecimal() : null;
-        decimal? minBudget = args.RootElement.TryGetProperty("presupuestoMinimo", out var mb) ? mb.GetDecimal() : null;
-        string? type = args.RootElement.TryGetProperty("tipo", out var t) ? t.GetString() : null;
-        string? location = args.RootElement.TryGetProperty("ubicacion", out var u) ? u.GetString() : null;
-        string? keyword = args.RootElement.TryGetProperty("keyword", out var k) ? k.GetString() : null;
-        int? rooms = args.RootElement.TryGetProperty("habitaciones", out var r) ? r.GetInt32() : null;
-        string? operation = args.RootElement.TryGetProperty("operacion", out var o) ? o.GetString() : null;
+        string? queryStr = args.RootElement.TryGetProperty("query", out var q) ? q.GetString() : null;
 
-        _logger.LogInformation("Iniciando búsqueda jerárquica: Tipo={Type}, Rango={Min}-{Max}, Ubicación={Location}, Keyword={Keyword}", 
-            type ?? "Cualquiera", minBudget?.ToString() ?? "0", maxBudget?.ToString() ?? "Max", location ?? "Cualquiera", keyword ?? "Ninguna");
+        _logger.LogInformation("Iniciando búsqueda semántica: Query={Query}", queryStr ?? "Ninguno");
+
+        if (string.IsNullOrEmpty(queryStr))
+        {
+            return "No se especificó un criterio de búsqueda.";
+        }
 
         var descartadosIds = await _context.ContactoInteresPropiedades
             .Where(i => i.Contacto!.Telefono == phone && i.NivelInteres == "Descartada")
@@ -33,34 +37,19 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             .ToListAsync();
 
         var allowedStates = new[] { "Disponible", "Reservada", "Alquilada" };
-        var query = _context.Properties
-            .Where(p => allowedStates.Contains(p.EstadoComercial))
-            .Where(p => !descartadosIds.Contains(p.Id));
         
-        if (!string.IsNullOrEmpty(location))
+        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr);
+        if (queryEmbedding == null) 
         {
-            var locLower = location.ToLower();
-            if (locLower.Contains("ambato"))
-            {
-                query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent("%Ambato%")) || 
-                                         EF.Functions.Unaccent(p.Sector) == "Ficoa" || EF.Functions.Unaccent(p.Sector) == "Ingahurco" || EF.Functions.Unaccent(p.Sector) == "Pinllo" || EF.Functions.Unaccent(p.Sector) == "Izamba");
-            }
-            else if (locLower.Contains("baños") || locLower.Contains("banos"))
-            {
-                query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent("%Baños%")) || 
-                                         EF.Functions.Unaccent(p.Sector) == "Santa Ana" || EF.Functions.Unaccent(p.Sector) == "Illuchi" || EF.Functions.Unaccent(p.Sector) == "Agoyán");
-            }
-            else
-            {
-                query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Sector), EF.Functions.Unaccent($"%{location}%")) || EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent($"%{location}%")));
-            }
+            _logger.LogWarning("No se pudo generar el embedding para la búsqueda semántica.");
+            return "El servicio de búsqueda avanzada no está disponible temporalmente.";
         }
 
-        if (!string.IsNullOrEmpty(type)) query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.TipoPropiedad), EF.Functions.Unaccent($"%{type}%")));
-
-        var results = await query
-            .OrderByDescending(p => !string.IsNullOrEmpty(keyword) && (p.Titulo.Contains(keyword) || p.Descripcion.Contains(keyword)))
-            .ThenBy(p => p.Precio)
+        var results = await _context.Properties
+            .Where(p => allowedStates.Contains(p.EstadoComercial))
+            .Where(p => !descartadosIds.Contains(p.Id))
+            .Where(p => p.VectorEmbedding != null)
+            .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
             .Take(3)
             .Select(p => new PropiedadResultDto(
                 p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
@@ -75,56 +64,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             return FormatearCsv(results);
         }
 
-        // Nivel 2: Ignorar presupuesto
-        if (maxBudget.HasValue && (!string.IsNullOrEmpty(type) || !string.IsNullOrEmpty(location)))
-        {
-            _logger.LogInformation("Nivel 1 fallido. Nivel 2: Ignorando presupuesto.");
-            var query2 = _context.Properties.Where(p => allowedStates.Contains(p.EstadoComercial) && !descartadosIds.Contains(p.Id));
-            if (!string.IsNullOrEmpty(type)) query2 = query2.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.TipoPropiedad), EF.Functions.Unaccent($"%{type}%")));
-            if (!string.IsNullOrEmpty(location)) query2 = query2.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Sector), EF.Functions.Unaccent($"%{location}%")) || EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent($"%{location}%")));
-            
-            results = await query2.OrderBy(p => p.Precio).Take(3)
-                .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
-                .ToListAsync();
-                
-            if (results.Any()) 
-            {
-                await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
-                return FormatearCsv(results, "Aviso: No encontré opciones bajo ese presupuesto exacto, pero estas son las más económicas que cumplen con el tipo/ubicación:");
-            }
-        }
-
-        // Nivel 3: Solo Tipo
-        if (!string.IsNullOrEmpty(type))
-        {
-            _logger.LogInformation("Nivel 2 fallido. Nivel 3: Solo manteniendo Tipo={Type}", type);
-            results = await _context.Properties
-                .Where(p => allowedStates.Contains(p.EstadoComercial) && !descartadosIds.Contains(p.Id) && EF.Functions.ILike(EF.Functions.Unaccent(p.TipoPropiedad), EF.Functions.Unaccent($"%{type}%")))
-                .OrderBy(p => p.Precio).Take(3)
-                .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
-                .ToListAsync();
-            
-            if (results.Any()) 
-            {
-                await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
-                return FormatearCsv(results, $"Aviso: No encontré {type}s en esa zona/presupuesto, pero aquí tienes las {type}s más baratas del catálogo:");
-            }
-        }
-
-        // Nivel 4: Ofertas destacadas (cualquiera disponible)
-        results = await _context.Properties
-            .Where(p => allowedStates.Contains(p.EstadoComercial) && !descartadosIds.Contains(p.Id))
-            .OrderBy(p => p.Precio).Take(3)
-            .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
-            .ToListAsync();
-
-        if (results.Any()) 
-        {
-            await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
-            return FormatearCsv(results, "Aviso: No encontré nada similar a tu búsqueda, pero estas son las ofertas más destacadas del momento:");
-        }
-
-        return "Lo siento, actualmente no tenemos ninguna propiedad disponible.";
+        return "No encontré propiedades que coincidan con tu búsqueda semántica.";
     }
 
     private string FormatearCsv(IEnumerable<PropiedadResultDto> resultados, string aviso = "")

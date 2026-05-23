@@ -8,19 +8,14 @@ public static class AiToolDefinitions
     {
         options.Tools.Add(ChatTool.CreateFunctionTool(
             "BuscarPropiedades",
-            "Busca inmuebles disponibles. Es vital extraer el 'tipo' (Casa, Departamento, Terreno) si el cliente lo menciona.",
+            "Busca inmuebles disponibles utilizando búsqueda semántica avanzada. Pasa directamente la intención del cliente en 'query' (ej: 'casa de 3 cuartos con patio en cumbaya por 150000').",
             BinaryData.FromBytes("""
             {
                 "type": "object",
                 "properties": {
-                    "presupuestoMinimo": { "type": "number", "description": "Mínimo de precio." },
-                    "presupuestoMaximo": { "type": "number", "description": "Límite de precio." },
-                    "tipo": { "type": "string", "description": "Obligatorio si se menciona. Ej: 'Casa', 'Departamento', 'Terreno', 'Local', 'Oficina'." },
-                    "ubicacion": { "type": "string", "description": "Sector o ciudad de interés." },
-                    "keyword": { "type": "string", "description": "Palabra clave técnica extraída de la solicitud (ej: 'cisterna', 'piscina', 'jardín', 'ascensor')." },
-                    "habitaciones": { "type": "integer", "description": "Número mínimo de habitaciones requeridas." },
-                    "operacion": { "type": "string", "description": "Tipo de operación: 'Venta' o 'Alquiler'." }
-                }
+                    "query": { "type": "string", "description": "Intención de búsqueda en lenguaje natural." }
+                },
+                "required": ["query"]
             }
             """u8.ToArray())
         ));
