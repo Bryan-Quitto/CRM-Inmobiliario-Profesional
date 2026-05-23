@@ -31,20 +31,20 @@ Dado que el proyecto ya utiliza PostgreSQL (Supabase) y EF Core, la solución de
 ## 4. Requerimientos Técnicos (Checklist de Implementación)
 
 ### Fase 1: Configuración de Hangfire
-- [ ] Instalar paquetes NuGet: `Hangfire.Core`, `Hangfire.PostgreSql`, `Hangfire.AspNetCore`.
-- [ ] En `Program.cs`, configurar `builder.Services.AddHangfire(config => config.UsePostgreSqlStorage(dbString))`.
-- [ ] En `Program.cs`, habilitar el servidor: `builder.Services.AddHangfireServer()`.
-- [ ] (Opcional) Configurar el Dashboard: `app.UseHangfireDashboard("/hangfire")`.
+- [x] Instalar paquetes NuGet: `Hangfire.Core`, `Hangfire.PostgreSql`, `Hangfire.AspNetCore`.
+- [x] En `Program.cs`, configurar `builder.Services.AddHangfire(config => config.UsePostgreSqlStorage(dbString))`.
+- [x] En `Program.cs`, habilitar el servidor: `builder.Services.AddHangfireServer()`.
+- [x] (Opcional) Configurar el Dashboard: `app.UseHangfireDashboard("/hangfire")`.
 
 ### Fase 2: Refactor del Webhook
-- [ ] Crear la interfaz y clase `WhatsAppJobProcessor : IWhatsAppJobProcessor` en `Features/WhatsApp/Services/`.
-- [ ] Mover la lógica de inyección de alcance que estaba en `Webhooks.cs` al procesador o hacer que el procesador inyecte `WhatsAppAiService`.
-- [ ] Modificar `Webhooks.cs` para reemplazar el `Task.Run(...)` por `BackgroundJob.Enqueue<IWhatsAppJobProcessor>(...)`.
+- [x] Crear la interfaz y clase `WhatsAppJobProcessor : IWhatsAppJobProcessor` en `Features/WhatsApp/Services/`.
+- [x] Mover la lógica de inyección de alcance que estaba en `Webhooks.cs` al procesador o hacer que el procesador inyecte `WhatsAppAiService`.
+- [x] Modificar `Webhooks.cs` para reemplazar el `Task.Run(...)` por `BackgroundJob.Enqueue<IWhatsAppJobProcessor>(...)`.
 
 ### Fase 3: Resiliencia con Polly
-- [ ] Instalar paquete `Microsoft.Extensions.Http.Resilience`.
-- [ ] En `Program.cs`, actualizar `builder.Services.AddHttpClient()` agregando `.AddStandardResilienceHandler()` para blindar las llamadas salientes.
-- [ ] Revisar si el cliente de OpenAI (`ChatClient`) requiere una configuración manual de retries en su constructor.
+- [x] Instalar paquete `Microsoft.Extensions.Http.Resilience`.
+- [x] En `Program.cs`, actualizar `builder.Services.AddHttpClient()` agregando `.AddStandardResilienceHandler()` para blindar las llamadas salientes.
+- [x] Revisar si el cliente de OpenAI (`ChatClient`) requiere una configuración manual de retries en su constructor.
 
 ---
 

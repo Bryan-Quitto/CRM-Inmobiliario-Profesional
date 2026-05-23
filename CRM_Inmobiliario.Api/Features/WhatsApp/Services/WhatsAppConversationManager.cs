@@ -3,6 +3,8 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
+using OpenAI;
+using System.ClientModel.Primitives;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
@@ -12,17 +14,20 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
     private readonly ILogger<WhatsAppConversationManager> _logger;
     private readonly IWhatsAppPromptBuilder _promptBuilder;
     private readonly Microsoft.Extensions.Configuration.IConfiguration _config;
+    private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
 
     public WhatsAppConversationManager(
         CrmDbContext context, 
         ILogger<WhatsAppConversationManager> logger,
         IWhatsAppPromptBuilder promptBuilder,
-        Microsoft.Extensions.Configuration.IConfiguration config)
+        Microsoft.Extensions.Configuration.IConfiguration config,
+        System.Net.Http.IHttpClientFactory httpClientFactory)
     {
         _context = context;
         _logger = logger;
         _promptBuilder = promptBuilder;
         _config = config;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText)
@@ -90,7 +95,12 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             
             try 
             {
-                var chatClient = new ChatClient("gpt-4o-mini", _config["OPENAI_API_KEY"]);
+                var httpClient = _httpClientFactory.CreateClient("OpenAI");
+                var clientOptions = new OpenAIClientOptions
+                {
+                    Transport = new HttpClientPipelineTransport(httpClient)
+                };
+                var chatClient = new ChatClient("gpt-4o-mini", new System.ClientModel.ApiKeyCredential(_config["OPENAI_API_KEY"] ?? ""), clientOptions);
                 var promptStr = "Resume esta interacción para la memoria del sistema. Enfócate SOLO en DATOS DUROS del cliente: " +
                                 "Qué busca, Presupuesto, Ubicaciones, y qué propiedades le gustaron o rechazó. Omite saludos. Formato de viñetas muy denso.";
                 

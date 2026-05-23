@@ -1,6 +1,8 @@
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
+using OpenAI;
+using System.ClientModel.Primitives;
 using System.Text.RegularExpressions;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp;
@@ -12,6 +14,7 @@ public sealed class WhatsAppAiService
     private readonly IWhatsAppToolExecutor _toolExecutor;
     private readonly IWhatsAppMessageSender _messageSender;
     private readonly IWhatsAppConversationManager _conversationManager;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly string? _openAiApiKey;
 
     public WhatsAppAiService(
@@ -19,13 +22,15 @@ public sealed class WhatsAppAiService
         IWhatsAppPromptBuilder promptBuilder,
         IWhatsAppToolExecutor toolExecutor,
         IWhatsAppMessageSender messageSender,
-        IWhatsAppConversationManager conversationManager)
+        IWhatsAppConversationManager conversationManager,
+        IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
         _promptBuilder = promptBuilder;
         _toolExecutor = toolExecutor;
         _messageSender = messageSender;
         _conversationManager = conversationManager;
+        _httpClientFactory = httpClientFactory;
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
     }
 
@@ -51,7 +56,12 @@ public sealed class WhatsAppAiService
             }
 
             // 3. Orquestación con OpenAI GPT-4o-mini
-            var chatClient = new ChatClient("gpt-4o-mini", _openAiApiKey);
+            var httpClient = _httpClientFactory.CreateClient("OpenAI");
+            var clientOptions = new OpenAIClientOptions
+            {
+                Transport = new HttpClientPipelineTransport(httpClient)
+            };
+            var chatClient = new ChatClient("gpt-4o-mini", new System.ClientModel.ApiKeyCredential(_openAiApiKey ?? ""), clientOptions);
             var options = _promptBuilder.GetChatOptions();
             var history = context.History;
 
@@ -104,6 +114,7 @@ public sealed class WhatsAppAiService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error crítico en WhatsAppAiService para {Phone}", phone);
+            throw;
         }
     }
 }

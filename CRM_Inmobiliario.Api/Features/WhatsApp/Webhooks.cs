@@ -35,41 +35,36 @@ public static class WebhooksFeature
         // POST: Recepción de eventos
         group.MapPost("/", (
             [FromBody] JsonElement payload,
-            IServiceScopeFactory scopeFactory,
             ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("WhatsAppWebhook");
             
-            // Procesamiento en segundo plano para responder rápido a Meta (<3s)
-            _ = Task.Run(async () =>
+            try
             {
-                try
+                // Extraer datos básicos del mensaje
+                var entry = payload.GetProperty("entry")[0];
+                var changes = entry.GetProperty("changes")[0];
+                var value = changes.GetProperty("value");
+
+                if (value.TryGetProperty("messages", out var messages))
                 {
-                    using var scope = scopeFactory.CreateScope();
-                    var aiService = scope.ServiceProvider.GetRequiredService<WhatsAppAiService>();
-
-                    // Extraer datos básicos del mensaje
-                    var entry = payload.GetProperty("entry")[0];
-                    var changes = entry.GetProperty("changes")[0];
-                    var value = changes.GetProperty("value");
-
-                    if (value.TryGetProperty("messages", out var messages))
+                    var message = messages[0];
+                    string phone = message.GetProperty("from").GetString() ?? string.Empty;
+                    
+                    if (message.TryGetProperty("text", out var text))
                     {
-                        var message = messages[0];
-                        string phone = message.GetProperty("from").GetString() ?? string.Empty;
+                        string body = text.GetProperty("body").GetString() ?? string.Empty;
                         
-                        if (message.TryGetProperty("text", out var text))
-                        {
-                            string body = text.GetProperty("body").GetString() ?? string.Empty;
-                            await aiService.ProcessIncomingMessageAsync(phone, body);
-                        }
+                        // Encolamiento persistente y resiliente en Hangfire
+                        Hangfire.BackgroundJob.Enqueue<Services.IWhatsAppJobProcessor>(
+                            x => x.ProcessMessageAsync(phone, body));
                     }
                 }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error procesando webhook de WhatsApp");
-                }
-            });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error extrayendo datos del webhook o encolando en Hangfire");
+            }
 
             return Results.Ok();
         })

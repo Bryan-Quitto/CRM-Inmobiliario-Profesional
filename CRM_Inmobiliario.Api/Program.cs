@@ -4,6 +4,8 @@ using CRM_Inmobiliario.Api.Features.WhatsApp;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
+using Hangfire;
+using Hangfire.PostgreSql;
 
 // Cargar variables de entorno
 DotNetEnv.Env.TraversePath().Load();
@@ -24,12 +26,20 @@ builder.Services.AddOutputCache(options => {
 
 // Inyección de Dependencias (Slices & IA)
 builder.Services.AddHttpClient();
+builder.Services.ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler());
+
+// Configuración de Hangfire
+var dbString = Environment.GetEnvironmentVariable("DATABASE_URL");
+builder.Services.AddHangfire(config => config.UsePostgreSqlStorage(options => options.UseNpgsqlConnection(dbString)));
+builder.Services.AddHangfireServer();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService, CRM_Inmobiliario.Api.Features.Propiedades.Services.PropertyEmbeddingService>();
 builder.Services.AddScoped<IWhatsAppPromptBuilder, WhatsAppPromptBuilder>();
 builder.Services.AddScoped<IWhatsAppToolExecutor, WhatsAppToolExecutor>();
-builder.Services.AddScoped<IWhatsAppMessageSender, WhatsAppMessageSender>();
+builder.Services.AddHttpClient<IWhatsAppMessageSender, WhatsAppMessageSender>()
+    .AddStandardResilienceHandler();
 builder.Services.AddScoped<IWhatsAppConversationManager, WhatsAppConversationManager>();
 builder.Services.AddScoped<WhatsAppAiService>();
+builder.Services.AddScoped<IWhatsAppJobProcessor, WhatsAppJobProcessor>();
 
 // Handlers de herramientas IA
 builder.Services.AddScoped<IWhatsAppToolHandler, BuscarPropiedadesHandler>();
@@ -62,6 +72,9 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseOutputCache();
+
+// Configurar Hangfire Dashboard (opcional)
+app.UseHangfireDashboard("/hangfire");
 
 // ENDPOINT TEMPORAL PARA RE-VECTORIZAR PROPIEDADES (Spec 018)
 app.MapPost("/api/admin/re-vectorize", async (
