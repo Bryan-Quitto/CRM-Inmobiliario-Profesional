@@ -110,7 +110,14 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 
                 var newHistory = new List<ChatMessage> { systemMessage };
                 newHistory.Add(new SystemChatMessage($"[MEMORIA HISTÓRICA DEL CLIENTE]:\n{resumen}"));
-                newHistory.AddRange(history.Skip(7));
+                
+                var tail = history.Skip(7).ToList();
+                // Limpiar posibles mensajes de herramientas huérfanos al inicio del tail
+                while (tail.Count > 0 && tail[0] is ToolChatMessage)
+                {
+                    tail.RemoveAt(0);
+                }
+                newHistory.AddRange(tail);
                 
                 history = newHistory;
                 _logger.LogInformation("Historial comprimido semánticamente. Nuevo tamaño: {Count}", history.Count);
