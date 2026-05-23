@@ -108,23 +108,21 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
 
             <div className="grid grid-cols-2 gap-4">
                {/* Input Precio */}
-               {!isReserva && (
-                 <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-                  Precio de Cierre
-                </label>
-                <div className="relative group">
-                  <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-                  <input
-                    type="number"
-                    value={precioCierre}
-                    onChange={(e) => setPrecioCierre(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl text-base font-black text-slate-700 transition-all outline-none"
-                  />
-                </div>
-              </div>
-               )}
+               <div className="space-y-2">
+                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+                   {isReserva ? 'Monto de Reserva (Opcional)' : 'Precio de Cierre'}
+                 </label>
+                 <div className="relative group">
+                   <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                   <input
+                     type="number"
+                     value={precioCierre}
+                     onChange={(e) => setPrecioCierre(e.target.value)}
+                     placeholder="0.00"
+                     className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl text-base font-black text-slate-700 transition-all outline-none"
+                   />
+                 </div>
+               </div>
 
               {/* Selector Tipo de Cierre */}
               <div className="space-y-2 relative">

@@ -71,6 +71,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     if (propiedad.estadoComercial === nuevoEstado) return;
 
     const esEstadoCerrado = (estado: string) => estado === 'Vendida' || estado === 'Alquilada';
+    const esCerradoOReservado = (estado: string) => esEstadoCerrado(estado) || estado === 'Reservada';
     
     if (esEstadoCerrado(propiedad.estadoComercial) && esEstadoCerrado(nuevoEstado) && !confirmed) {
       toast.error("Transición inválida", {
@@ -84,17 +85,17 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
       return;
     }
 
-    if ((nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && esEstadoCerrado(propiedad.estadoComercial) && !confirmed) {
+    if ((nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && esCerradoOReservado(propiedad.estadoComercial) && !confirmed) {
       callbacks?.onOpenReversionModal(nuevoEstado);
       return;
     }
 
-    if (nuevoEstado === 'Inactiva' && !confirmed && !esEstadoCerrado(propiedad.estadoComercial)) {
+    if (nuevoEstado === 'Inactiva' && !confirmed && !esCerradoOReservado(propiedad.estadoComercial)) {
       callbacks?.onOpenConfirmationModal(nuevoEstado);
       return;
     }
 
-    const isReversion = (nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && esEstadoCerrado(propiedad.estadoComercial);
+    const isReversion = (nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && esCerradoOReservado(propiedad.estadoComercial);
     
     if (isReversion) {
       await executeWithUndo(propiedad, nuevoEstado, "Reversion", "Revirtiendo cierre... El contacto volverá a Negociación.");
@@ -109,7 +110,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
    */
   const handleClosingConfirm = async (
     propiedad: Propiedad,
-    precioCierre: number, 
+    precioCierre: number | null,
     cerradoConId: string, 
     finalStatus: string
   ) => {
@@ -122,7 +123,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
       try {
         if (isMounted.current) setIsProcessing(true);
         
-        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre, cerradoConId, propiedad.version);
+        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre ?? undefined, cerradoConId, propiedad.version);
 
         if (statusToApply === 'Vendida') {
           await limpiarImagenesPropiedad(propiedad.id);
@@ -170,13 +171,13 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
    * handleRelist
    * Standard relisting or transaction cancellation
    */
-  const handleRelist = async (propiedad: Propiedad, type: 'Relist' | 'Cancel', targetStatus = 'Disponible') => {
+  const handleRelist = async (propiedad: Propiedad, type: 'Relist' | 'Cancel', targetStatus = 'Disponible', marcarContactoPerdido = false) => {
     const title = type === 'Relist' ? "Relistando..." : "Anulando Operación";
     const description = type === 'Relist' 
       ? "Se iniciará un nuevo ciclo. 5s para deshacer." 
-      : "El trato se marcará como caído. 5s para deshacer.";
+      : (marcarContactoPerdido ? "El contacto se marcará como Perdido. 5s para deshacer." : "El contacto volverá a Negociación. 5s para deshacer.");
 
-    await executeWithUndo(propiedad, targetStatus, type, description, title);
+    await executeWithUndo(propiedad, targetStatus, type, description, title, marcarContactoPerdido);
   };
 
   // --- Private Helpers ---
@@ -219,7 +220,8 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     targetStatus: string, 
     type: 'Relist' | 'Cancel' | 'Reversion', 
     description: string,
-    title?: string
+    title?: string,
+    marcarContactoPerdido = false
   ) => {
     let isCancelled = false;
     const oldEstado = propiedad.estadoComercial;
@@ -235,7 +237,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
         if (type === 'Reversion') {
           await actualizarEstadoPropiedad(propiedad.id, targetStatus, undefined, undefined, propiedad.version);
         } else {
-          await relistPropiedad(propiedad.id, type === 'Relist' ? "Relistado natural" : "Trato caído", type as 'Relist' | 'Cancel');
+          await relistPropiedad(propiedad.id, type === 'Relist' ? "Relistado natural" : "Trato caído", type as 'Relist' | 'Cancel', marcarContactoPerdido);
         }
 
         await safeRevalidate();

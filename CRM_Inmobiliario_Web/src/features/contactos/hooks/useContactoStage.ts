@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
 import type { KeyedMutator, ScopedMutator } from 'swr';
-import { actualizarEtapaContacto } from '../api/actualizarEtapaContacto';
-import { revertirEstadoContacto } from '../api/revertirEstadoContacto';
+import { useContactoCommercialLogic } from './useContactoCommercialLogic';
 import type { Contacto } from '../types';
 
 interface Params {
@@ -12,37 +10,27 @@ interface Params {
   globalMutate: ScopedMutator;
 }
 
-export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params) => {
+export const useContactoStage = ({ contacto, id, mutate }: Params) => {
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
   const [intendedStage, setIntendedStage] = useState<string | null>(null);
   const [isUpdatingEtapa, setIsUpdatingEtapa] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<'cliente' | 'propietario' | null>(null);
   const [revertConfirmation, setRevertConfirmation] = useState<{ etapa: string } | null>(null);
 
+  const { cambiarEtapa, revertirEtapa } = useContactoCommercialLogic();
+
   const handleRevertStatus = async (nuevaEtapa: string, liberarPropiedades: boolean) => {
     if (!id || !contacto) return;
     setIsUpdatingEtapa(true);
     setRevertConfirmation(null);
 
-    // Optimistic Update
-    mutate({ ...contacto, etapaEmbudo: nuevaEtapa, fechaCierre: undefined }, false);
+    await revertirEtapa(id, nuevaEtapa, liberarPropiedades, {
+      onOptimisticUpdate: () => mutate({ ...contacto, etapaEmbudo: nuevaEtapa, fechaCierre: undefined }, false),
+      onSuccess: async () => { await mutate(); },
+      onError: () => mutate()
+    });
 
-    try {
-      await revertirEstadoContacto(id, nuevaEtapa, liberarPropiedades);
-      toast.success(`Estado revertido a ${nuevaEtapa}`);
-      await mutate();
-      
-      globalMutate('/dashboard/kpis');
-      globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-      globalMutate('/propiedades');
-      globalMutate('/contactos');
-    } catch (err) {
-      console.error('Error al revertir estado:', err);
-      toast.error('No se pudo revertir el estado');
-      mutate();
-    } finally {
-      setIsUpdatingEtapa(false);
-    }
+    setIsUpdatingEtapa(false);
   };
 
   const handleStageChange = async (nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo: 'cliente' | 'propietario' = 'cliente') => {
@@ -65,28 +53,17 @@ export const useContactoStage = ({ contacto, id, mutate, globalMutate }: Params)
     }
 
     setIsUpdatingEtapa(true);
-    mutate(tipo === 'propietario' 
-      ? { ...contacto, estadoPropietario: nuevaEtapa }
-      : { ...contacto, etapaEmbudo: nuevaEtapa }, 
-    false);
 
-    try {
-      await actualizarEtapaContacto(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad, tipo === 'propietario' ? 'propietario' : 'contacto');
-      toast.success(`${tipo === 'propietario' ? 'Propietario' : 'Cliente'} movido a ${nuevaEtapa}`);
-      await mutate();
+    await cambiarEtapa(id, nuevaEtapa, tipo, confirmedData, {
+      onOptimisticUpdate: () => mutate(tipo === 'propietario' 
+        ? { ...contacto, estadoPropietario: nuevaEtapa }
+        : { ...contacto, etapaEmbudo: nuevaEtapa }, 
+      false),
+      onSuccess: async () => { await mutate(); },
+      onError: () => mutate()
+    });
 
-      globalMutate('/dashboard/kpis');
-      globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-      globalMutate('/propiedades');
-      globalMutate('/contactos');
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      console.error('Error al actualizar etapa:', err);
-      const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || 'No se pudo actualizar la etapa';
-      toast.error(errorMessage);
-      mutate(); 
-    } finally {
-      setIsUpdatingEtapa(false);
-    }
+    setIsUpdatingEtapa(false);
   };
 
   const handleClosingConfirm = async (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => {

@@ -13,7 +13,7 @@ namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class VolverAListarPropiedadFeature
 {
-    public record Request(string? Notas, string Mode = "Relist"); // "Relist" (Natural) o "Cancel" (Trato Caído)
+    public record Request(string? Notas, string Mode = "Relist", bool MarcarContactoPerdido = false); // "Relist" (Natural) o "Cancel" (Trato Caído)
 
     public static RouteHandlerBuilder MapVolverAListarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -65,8 +65,16 @@ public static class VolverAListarPropiedadFeature
                     var contacto = await context.Contactos.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value);
                     if (contacto != null)
                     {
-                        logger.LogInformation("[RELIST] Revirtiendo contacto {ContactoId} a En Negociación", contacto.Id);
-                        contacto.EtapaEmbudo = "En Negociación"; // Reversión automática
+                        if (request?.MarcarContactoPerdido == true)
+                        {
+                            logger.LogInformation("[RELIST] Marcando contacto {ContactoId} como Perdido", contacto.Id);
+                            contacto.EtapaEmbudo = "Perdido";
+                        }
+                        else
+                        {
+                            logger.LogInformation("[RELIST] Revirtiendo contacto {ContactoId} a En Negociación", contacto.Id);
+                            contacto.EtapaEmbudo = "En Negociación"; // Reversión automática
+                        }
                         contacto.FechaCierre = null;
                     }
                 }

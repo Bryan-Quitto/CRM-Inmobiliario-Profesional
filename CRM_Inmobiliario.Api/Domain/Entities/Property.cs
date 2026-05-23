@@ -26,6 +26,8 @@ public sealed class Property
 
     public decimal Precio { get; set; }
 
+    public decimal? PrecioReserva { get; set; }
+
     public decimal? PrecioCierre { get; set; }
 
     [Required]

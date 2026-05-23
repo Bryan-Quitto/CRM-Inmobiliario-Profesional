@@ -8,7 +8,7 @@ interface UsePropiedadesActionsProps {
   mutate: KeyedMutator<Propiedad[]>;
   setOpenDropdownId: (id: string | null) => void;
   setClosingPropiedad: (val: { propiedad: Propiedad; nuevoEstado: string } | null) => void;
-  setShowReversionModal: (val: { type: 'status', id: string, targetStatus: string } | null) => void;
+  setShowReversionModal: (val: { type: 'status', id: string, targetStatus: string, currentStatus?: string } | null) => void;
   setStatusConfirmation: (val: { id: string; nuevoEstado: string } | null) => void;
 }
 
@@ -57,7 +57,7 @@ export const usePropiedadesActions = ({
         setUpdatingId(null);
       },
       onOpenReversionModal: (estado) => {
-        setShowReversionModal({ type: 'status', id, targetStatus: estado });
+        setShowReversionModal({ type: 'status', id, targetStatus: estado, currentStatus: propiedad.estadoComercial });
         setUpdatingId(null);
       },
       onOpenConfirmationModal: (estado) => {
@@ -67,7 +67,7 @@ export const usePropiedadesActions = ({
     });
   };
 
-  const handleClosingConfirm = async (precioCierre: number, cerradoConId: string, tipoCierre: string, closingPropiedad: { propiedad: Propiedad; nuevoEstado: string } | null) => {
+  const handleClosingConfirm = async (precioCierre: number | null, cerradoConId: string, tipoCierre: string, closingPropiedad: { propiedad: Propiedad; nuevoEstado: string } | null) => {
     if (!closingPropiedad) return;
     const { propiedad } = closingPropiedad;
     
@@ -81,7 +81,7 @@ export const usePropiedadesActions = ({
     await commercial.handleClosingConfirm(propiedad, precioCierre, cerradoConId, tipoCierre);
   };
 
-  const handleRelistPropiedad = async (id: string, _reason: string, type: 'Relist' | 'Cancel') => {
+  const handleRelistPropiedad = async (id: string, _reason: string, type: 'Relist' | 'Cancel', marcarContactoPerdido = false) => {
     const propiedad = propiedades.find(p => p.id === id);
     if (!propiedad) return;
 
@@ -91,7 +91,7 @@ export const usePropiedadesActions = ({
     const optimisticData = propiedades.map(p => p.id === id ? { ...p, estadoComercial: 'Disponible' } : p);
     mutate(optimisticData, false);
 
-    await commercial.handleRelist(propiedad, type);
+    await commercial.handleRelist(propiedad, type, 'Disponible', marcarContactoPerdido);
   };
 
   return {

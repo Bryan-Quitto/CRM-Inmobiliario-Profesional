@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import useSWR, { useSWRConfig } from 'swr';
-import { toast } from 'sonner';
+import useSWR from 'swr';
 import { getContactos } from '../api/getContactos';
-import { actualizarEtapaContacto } from '../api/actualizarEtapaContacto';
 import { swrDefaultConfig } from '@/lib/swr';
 import { useContactosFiltering } from './useContactosFiltering';
+import { useContactoCommercialLogic } from './useContactoCommercialLogic';
 import type { Contacto } from '../types';
 
 const VIEW_MODE_KEY = 'crm_contactos_view_mode';
@@ -13,7 +12,6 @@ const VIEW_MODE_KEY = 'crm_contactos_view_mode';
 export const useContactosList = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { mutate: globalMutate } = useSWRConfig();
 
   const activeSegment = useMemo(() => {
     if (pathname.includes('/propietarios')) return 'propietarios' as const;
@@ -31,6 +29,8 @@ export const useContactosList = () => {
     getContactos,
     swrDefaultConfig
   );
+
+  const { cambiarEtapa, revertirEtapa } = useContactoCommercialLogic();
 
   // Filtrar base según el segmento activo
   const contactos = useMemo(() => {
@@ -62,6 +62,8 @@ export const useContactosList = () => {
   const [closingContacto, setClosingContacto] = useState<Contacto | null>(null);
   const [closingIntendedStage, setClosingIntendedStage] = useState<string | null>(null);
 
+  const [revertConfirmation, setRevertConfirmation] = useState<{ id: string, etapa: string, nombre: string } | null>(null);
+
   useEffect(() => {
     if (activeSegment !== 'todos') {
       localStorage.setItem(VIEW_MODE_KEY, viewModeRaw);
@@ -89,31 +91,47 @@ export const useContactosList = () => {
       return;
     }
 
-    const optimisticData = allContactos.map(c => {
-      if (c.id === id) {
-        return tipo === 'propietario'
-          ? { ...c, estadoPropietario: nuevaEtapa }
-          : { ...c, etapaEmbudo: nuevaEtapa };
-      }
-      return c;
+    if (tipo === 'contacto' && (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'En Negociación') && nuevaEtapa !== 'Cerrado' && nuevaEtapa !== 'En Negociación') {
+      setRevertConfirmation({ id: contacto.id, etapa: nuevaEtapa, nombre: contacto.nombre });
+      return;
+    }
+
+    cambiarEtapa(id, nuevaEtapa, tipo, confirmedData, {
+      onOptimisticUpdate: () => {
+        const optimisticData = allContactos.map(c => {
+          if (c.id === id) {
+            return tipo === 'propietario'
+              ? { ...c, estadoPropietario: nuevaEtapa }
+              : { ...c, etapaEmbudo: nuevaEtapa };
+          }
+          return c;
+        });
+        mutate(optimisticData, false);
+      },
+      onSuccess: async () => { await mutate(); },
+      onError: () => mutate()
     });
+  };
 
-    mutate(optimisticData, false);
-    toast.success(`${tipo === 'propietario' ? 'Propietario' : 'Cliente'} movido a ${nuevaEtapa}`);
-
-    actualizarEtapaContacto(id, nuevaEtapa, confirmedData?.propiedadId, confirmedData?.precioCierre, confirmedData?.nuevoEstadoPropiedad, tipo)
-      .then(async () => {
-        await mutate();
-        globalMutate('/dashboard/kpis');
-        globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-        globalMutate('/propiedades');
-      })
-      .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-        console.error('Error al actualizar etapa:', err);
-        mutate();
-        const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || 'No se pudo sincronizar el cambio de estado.';
-        toast.error(errorMessage);
-      });
+  const handleRevertStatus = (id: string, nuevaEtapa: string, liberarPropiedades: boolean) => {
+    const contacto = allContactos.find(c => c.id === id);
+    if (!contacto) return;
+    
+    setRevertConfirmation(null);
+    
+    revertirEtapa(id, nuevaEtapa, liberarPropiedades, {
+      onOptimisticUpdate: () => {
+        const optimisticData = allContactos.map(c => {
+          if (c.id === id) {
+            return { ...c, etapaEmbudo: nuevaEtapa, fechaCierre: undefined };
+          }
+          return c;
+        });
+        mutate(optimisticData, false);
+      },
+      onSuccess: async () => { await mutate(); },
+      onError: () => mutate()
+    });
   };
 
   const handleClosingConfirm = async (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => {
@@ -141,6 +159,9 @@ export const useContactosList = () => {
     closingIntendedStage,
     handleStageChange,
     handleClosingConfirm,
+    revertConfirmation,
+    setRevertConfirmation,
+    handleRevertStatus,
     mutate,
     ...filteringProps
   };

@@ -8,7 +8,7 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class RevertirEstadoContactoFeature
 {
-    public record Request(string NuevaEtapa, string? Notas);
+    public record Request(string NuevaEtapa, bool LiberarPropiedades, string? Notas);
 
     public static RouteHandlerBuilder MapRevertirEstadoContactoEndpoint(this IEndpointRouteBuilder app)
     {
@@ -16,9 +16,9 @@ public static class RevertirEstadoContactoFeature
         {
             var agenteId = user.GetRequiredUserId();
 
-            // Buscamos el contacto asegurando pertenencia al agente
             var contacto = await context.Contactos
-                .FirstOrDefaultAsync(l => l.Id == id && l.AgenteId == agenteId);
+                .Include(c => c.CompartidoCon)
+                .FirstOrDefaultAsync(l => l.Id == id && (l.AgenteId == agenteId || l.CompartidoCon.Any(ac => ac.AgenteId == agenteId)));
 
             if (contacto is null)
             {
@@ -33,34 +33,44 @@ public static class RevertirEstadoContactoFeature
             using var tx = await context.Database.BeginTransactionAsync();
             try
             {
-                // Buscamos propiedades donde este contacto era el titular del cierre
-                var propertiesToRevert = await context.Properties
-                    .Where(p => p.Transactions.Any(pt => pt.ContactoId == id))
+                // Buscamos transacciones activas de este contacto
+                var activeTransactions = await context.PropertyTransactions
+                    .Where(pt => pt.ContactoId == id && pt.TransactionStatus == "Active")
                     .ToListAsync();
 
-                foreach (var prop in propertiesToRevert)
+                if (request.LiberarPropiedades)
                 {
-                    prop.EstadoComercial = "Disponible";
+                    // Obtener las propiedades vinculadas a estas transacciones activas
+                    var propertyIds = activeTransactions.Select(pt => pt.PropertyId).Distinct().ToList();
+                    var propertiesToRevert = await context.Properties
+                        .Where(p => propertyIds.Contains(p.Id))
+                        .ToListAsync();
 
-                    // Opcional: Registrar que se revirtió
-                    var transaction = new Interaction
+                    foreach (var prop in propertiesToRevert)
                     {
-                        AgenteId = agenteId,
-                        ContactoId = id,
-                        PropiedadId = prop.Id,
-                        TipoInteraccion = "Sistema",
-                        Notas = request.Notas ?? $"Cierre revertido por cambio de etapa del contacto. {prop.Titulo}",
-                        FechaInteraccion = DateTimeOffset.UtcNow
-                    };
-                    context.Interactions.Add(transaction);
+                        prop.EstadoComercial = "Disponible";
+                        prop.CerradoConId = null;
+
+                        var transaction = new Interaction
+                        {
+                            Id = Guid.NewGuid(),
+                            AgenteId = agenteId,
+                            ContactoId = id,
+                            PropiedadId = prop.Id,
+                            TipoInteraccion = "Sistema",
+                            Notas = request.Notas ?? $"Operación revertida por cambio de etapa del contacto. Propiedad '{prop.Titulo}' liberada.",
+                            FechaInteraccion = DateTimeOffset.UtcNow
+                        };
+                        context.Interactions.Add(transaction);
+                    }
                 }
 
-                // Eliminamos las transacciones de cierre asociadas a este contacto
-                var closingTransactions = await context.PropertyTransactions
-                    .Where(pt => pt.ContactoId == id)
-                    .ToListAsync();
-
-                context.PropertyTransactions.RemoveRange(closingTransactions);
+                // En lugar de borrar las transacciones (RemoveRange), las marcamos como Canceladas
+                foreach (var pt in activeTransactions)
+                {
+                    pt.TransactionStatus = "Cancelled";
+                    pt.Notes = (pt.Notes ?? "") + $" [Cancelada el {DateTimeOffset.UtcNow:dd/MM/yyyy} por reversión de etapa]";
+                }
 
                 await context.SaveChangesAsync();
                 await tx.CommitAsync();
