@@ -42,21 +42,21 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             var locLower = location.ToLower();
             if (locLower.Contains("ambato"))
             {
-                query = query.Where(p => EF.Functions.ILike(p.Ciudad, "%Ambato%") || 
-                                         p.Sector == "Ficoa" || p.Sector == "Ingahurco" || p.Sector == "Pinllo" || p.Sector == "Izamba");
+                query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent("%Ambato%")) || 
+                                         EF.Functions.Unaccent(p.Sector) == "Ficoa" || EF.Functions.Unaccent(p.Sector) == "Ingahurco" || EF.Functions.Unaccent(p.Sector) == "Pinllo" || EF.Functions.Unaccent(p.Sector) == "Izamba");
             }
             else if (locLower.Contains("baños") || locLower.Contains("banos"))
             {
-                query = query.Where(p => EF.Functions.ILike(p.Ciudad, "%Baños%") || 
-                                         p.Sector == "Santa Ana" || p.Sector == "Illuchi" || p.Sector == "Agoyán");
+                query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent("%Baños%")) || 
+                                         EF.Functions.Unaccent(p.Sector) == "Santa Ana" || EF.Functions.Unaccent(p.Sector) == "Illuchi" || EF.Functions.Unaccent(p.Sector) == "Agoyán");
             }
             else
             {
-                query = query.Where(p => EF.Functions.ILike(p.Sector, $"%{location}%") || EF.Functions.ILike(p.Ciudad, $"%{location}%"));
+                query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Sector), EF.Functions.Unaccent($"%{location}%")) || EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent($"%{location}%")));
             }
         }
 
-        if (!string.IsNullOrEmpty(type)) query = query.Where(p => EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"));
+        if (!string.IsNullOrEmpty(type)) query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.TipoPropiedad), EF.Functions.Unaccent($"%{type}%")));
 
         var results = await query
             .OrderByDescending(p => !string.IsNullOrEmpty(keyword) && (p.Titulo.Contains(keyword) || p.Descripcion.Contains(keyword)))
@@ -79,9 +79,9 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         if (maxBudget.HasValue && (!string.IsNullOrEmpty(type) || !string.IsNullOrEmpty(location)))
         {
             _logger.LogInformation("Nivel 1 fallido. Nivel 2: Ignorando presupuesto.");
-            var query2 = _context.Properties.Where(p => allowedStates.Contains(p.EstadoComercial));
-            if (!string.IsNullOrEmpty(type)) query2 = query2.Where(p => EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"));
-            if (!string.IsNullOrEmpty(location)) query2 = query2.Where(p => EF.Functions.ILike(p.Sector, $"%{location}%") || EF.Functions.ILike(p.Ciudad, $"%{location}%"));
+            var query2 = _context.Properties.Where(p => allowedStates.Contains(p.EstadoComercial) && !descartadosIds.Contains(p.Id));
+            if (!string.IsNullOrEmpty(type)) query2 = query2.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.TipoPropiedad), EF.Functions.Unaccent($"%{type}%")));
+            if (!string.IsNullOrEmpty(location)) query2 = query2.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Sector), EF.Functions.Unaccent($"%{location}%")) || EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent($"%{location}%")));
             
             results = await query2.OrderBy(p => p.Precio).Take(3)
                 .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
@@ -99,7 +99,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         {
             _logger.LogInformation("Nivel 2 fallido. Nivel 3: Solo manteniendo Tipo={Type}", type);
             results = await _context.Properties
-                .Where(p => allowedStates.Contains(p.EstadoComercial) && EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"))
+                .Where(p => allowedStates.Contains(p.EstadoComercial) && !descartadosIds.Contains(p.Id) && EF.Functions.ILike(EF.Functions.Unaccent(p.TipoPropiedad), EF.Functions.Unaccent($"%{type}%")))
                 .OrderBy(p => p.Precio).Take(3)
                 .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
                 .ToListAsync();
@@ -113,7 +113,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 
         // Nivel 4: Ofertas destacadas (cualquiera disponible)
         results = await _context.Properties
-            .Where(p => allowedStates.Contains(p.EstadoComercial))
+            .Where(p => allowedStates.Contains(p.EstadoComercial) && !descartadosIds.Contains(p.Id))
             .OrderBy(p => p.Precio).Take(3)
             .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
             .ToListAsync();

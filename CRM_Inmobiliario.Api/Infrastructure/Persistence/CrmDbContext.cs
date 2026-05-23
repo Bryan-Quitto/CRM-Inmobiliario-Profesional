@@ -30,6 +30,7 @@ public sealed class CrmDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("unaccent");
         base.OnModelCreating(modelBuilder);
 
         // Aplicar todas las configuraciones de IEntityTypeConfiguration encontradas en el ensamblado

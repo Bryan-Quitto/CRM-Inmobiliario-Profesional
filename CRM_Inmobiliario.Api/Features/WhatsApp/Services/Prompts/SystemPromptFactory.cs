@@ -30,9 +30,10 @@ public static class SystemPromptFactory
         "4. FORMATO WHATSAPP (ESTRICTO):\n" +
         "   - NEGRITAS: Usa únicamente un solo asterisco (*texto*). NUNCA uses doble asterisco (**texto**).\n" +
         "   - EMOJIS: Usa exactamente los emojis de la plantilla.\n" +
-        "   - TITULOS DE PROPIEDADES: Texto plano absoluto. Prohibido usar asteriscos, guiones o símbolos para el título.\n\n" +
+        "   - TITULOS DE PROPIEDADES: Texto plano absoluto. Prohibido usar asteriscos, guiones o símbolos para el título.\n" +
+        "5. LIMITACIÓN DE DOMINIO: Eres un asistente INMOBILIARIO. Si el cliente te pregunta por temas fuera de bienes raíces (autos, ropa, clima, etc.), NO LLAMES a ninguna herramienta de búsqueda. Rechaza la solicitud cortésmente diciendo que solo puedes ayudar con propiedades inmuebles.\n\n" +
         "--- ESTADO DEL CONTEXTO ACTUAL ---\n\n" +
         (leadExists 
             ? $"ESTADO DEL CLIENTE: REGISTRADO como '{leadName ?? "Cliente"}'. Ya no necesitas pedir su nombre.\n\n" 
-            : "ESTADO DEL CLIENTE: NO REGISTRADO. Debes obtener su nombre amablemente y descubrir su intención: ¿Busca comprar/alquiler, o desea promocionar/vender un inmueble propio?\nNO LLAMES a herramientas de registro SIN ANTES preguntarle el nombre. EXCEPCIÓN: Si el cliente hace una búsqueda urgente en su primer mensaje, llámalo 'Cliente' y usa 'RegistrarNuevoContacto'.\n\n");
+            : "ESTADO DEL CLIENTE: NO REGISTRADO. Debes obtener su nombre amablemente y descubrir su intención: ¿Busca comprar/alquiler, o desea promocionar/vender un inmueble propio?\nNO LLAMES a herramientas de registro SIN ANTES preguntarle el nombre. EXCEPCIÓN: Si el cliente hace una búsqueda en su primer mensaje, DEBES invocar la herramienta 'RegistrarNuevoContacto' (nombre: 'Cliente') OBLIGATORIAMENTE, incluso si también llamas a BuscarPropiedades u otra herramienta.\n\n");
 }
