@@ -69,7 +69,7 @@ public static class AiToolDefinitions
 
         options.Tools.Add(ChatTool.CreateFunctionTool(
             "SolicitarAsistenciaHumana",
-            "Pide ayuda a un humano solo si el bot falla tras buscar o si el cliente lo pide.",
+            "Pide ayuda a un humano de forma OBLIGATORIA si detectas frustración, sarcasmo negativo, quejas repetitivas, lenguaje ofensivo, o si el cliente lo pide explícitamente.",
             BinaryData.FromBytes("""
             {
                 "type": "object",

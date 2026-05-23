@@ -53,6 +53,10 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             {
                 autoMsg = "*Mensaje Automático:* ¡Hola de nuevo! Es un gusto saludarte. Veo que ya hemos finalizado un proceso exitoso anteriormente. Un asesor se comunicará contigo en breve para asistirte con tus nuevos requerimientos inmobiliarios. ¡Gracias por elegirnos nuevamente!";
             }
+            else if (contacto.EtapaEmbudo == "Escalado")
+            {
+                autoMsg = string.Empty; // Silence Mode
+            }
         }
 
         // 3. Obtener o crear conversación
