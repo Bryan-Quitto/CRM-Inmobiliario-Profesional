@@ -2,7 +2,7 @@ import { api } from '@/lib/axios';
 
 export interface PropertyTransactionResponse {
   id: string;
-  transactionType: 'Sale' | 'Rent' | 'Cancellation' | 'Relisting';
+  transactionType: 'Sale' | 'Rent' | 'Cancellation' | 'Relisting' | 'Reservation';
   transactionStatus: 'Active' | 'Completed' | 'Cancelled';
   amount?: number;
   transactionDate: string;

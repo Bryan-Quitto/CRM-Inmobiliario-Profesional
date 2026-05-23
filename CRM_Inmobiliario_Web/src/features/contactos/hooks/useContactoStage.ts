@@ -15,7 +15,7 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
   const [intendedStage, setIntendedStage] = useState<string | null>(null);
   const [isUpdatingEtapa, setIsUpdatingEtapa] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<'cliente' | 'propietario' | null>(null);
-  const [revertConfirmation, setRevertConfirmation] = useState<{ etapa: string } | null>(null);
+  const [revertConfirmation, setRevertConfirmation] = useState<{ etapa: string, etapaOrigen: string } | null>(null);
 
   const { cambiarEtapa, revertirEtapa } = useContactoCommercialLogic();
 
@@ -41,15 +41,50 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
     
     setActiveDropdown(null);
 
-    if (tipo === 'cliente' && (nuevaEtapa === 'Cerrado' || nuevaEtapa === 'En Negociación') && !confirmedData) {
-      setIntendedStage(nuevaEtapa);
-      setIsClosingModalOpen(true);
-      return;
-    }
+    if (tipo === 'cliente' && !confirmedData) {
+      if (nuevaEtapa === 'Cerrado' || nuevaEtapa === 'En Negociación') {
+        setIntendedStage(nuevaEtapa);
+        setIsClosingModalOpen(true);
+        return;
+      }
 
-    if (tipo === 'cliente' && (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Perdido' || contacto.etapaEmbudo === 'En Negociación') && nuevaEtapa !== 'Cerrado' && nuevaEtapa !== 'Perdido' && nuevaEtapa !== 'En Negociación') {
-      setRevertConfirmation({ etapa: nuevaEtapa });
-      return;
+      const esReversion = 
+        (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'En Negociación') && 
+        (nuevaEtapa === 'Nuevo' || nuevaEtapa === 'Contactado' || nuevaEtapa === 'Perdido' || nuevaEtapa === 'Cerrado Perdido');
+
+      if (esReversion) {
+        const reservas = contacto.numeroReservas || 0;
+        const cierres = contacto.numeroCierres || 0;
+
+        if (contacto.etapaEmbudo === 'En Negociación') {
+          if (reservas > 1) {
+            import('sonner').then(({ toast }) => {
+              toast.error('No se puede cambiar el estado porque el cliente tiene más de 1 propiedad reservada. Realice el ajuste (Trato Caído) desde el catálogo de inmuebles para cada propiedad.');
+            });
+            return;
+          }
+          if (reservas === 0) {
+            await handleRevertStatus(nuevaEtapa, false);
+            return;
+          }
+        }
+
+        if (contacto.etapaEmbudo === 'Cerrado') {
+          if (cierres > 1) {
+            import('sonner').then(({ toast }) => {
+              toast.error('No se puede revertir el estado automáticamente porque el contacto tiene más de 1 propiedad alquilada o vendida. Realice el ajuste desde el catálogo de inmuebles para cada propiedad.');
+            });
+            return;
+          }
+          if (cierres === 0) {
+            await handleRevertStatus(nuevaEtapa, false);
+            return;
+          }
+        }
+
+        setRevertConfirmation({ etapa: nuevaEtapa, etapaOrigen: contacto.etapaEmbudo });
+        return;
+      }
     }
 
     setIsUpdatingEtapa(true);

@@ -1,5 +1,5 @@
 import { toast } from 'sonner';
-import { RotateCcw, Check, ShieldCheck } from 'lucide-react';
+import { RotateCcw, Check, AlertTriangle } from 'lucide-react';
 import { CrearContactoForm } from '../CrearContactoForm';
 import { ClosingModal } from '../../../propiedades/components/ClosingModal';
 import type { Contacto } from '../../types';
@@ -14,8 +14,8 @@ interface ContactosListModalsProps {
   setClosingContacto: (contacto: Contacto | null) => void;
   closingIntendedStage?: string | null;
   onClosingConfirm: (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => Promise<void>;
-  revertConfirmation: { id: string; etapa: string; nombre: string } | null;
-  setRevertConfirmation: (revert: { id: string; etapa: string; nombre: string } | null) => void;
+  revertConfirmation: { id: string; etapa: string; nombre: string; etapaOrigen: string } | null;
+  setRevertConfirmation: (revert: { id: string; etapa: string; nombre: string; etapaOrigen: string } | null) => void;
   handleRevertStatus: (id: string, etapa: string, liberar: boolean) => void;
   mutate: () => void;
 }
@@ -111,12 +111,47 @@ export const ContactosListModals = ({
                   </label>
                 </div>
                 
-                <div className="flex items-start gap-3 p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50">
-                  <ShieldCheck className="h-4 w-4 text-amber-600 mt-0.5" />
-                  <p className="text-[10px] font-bold text-amber-700 leading-tight uppercase tracking-wider">
-                    Se registrarán transacciones de cancelación en el historial de las propiedades afectadas.
-                  </p>
-                </div>
+                {revertConfirmation.etapaOrigen === 'En Negociación' && (
+                  <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3 mb-6">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="text-amber-800 font-bold mb-1">
+                        Precaución con este cambio
+                      </p>
+                      <p className="text-amber-700/80">
+                        Si procede con el cambio, la propiedad reservada pasará a relistarse a Disponible.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {revertConfirmation.etapaOrigen === 'Cerrado' && (revertConfirmation.etapa === 'Nuevo' || revertConfirmation.etapa === 'Contactado') && (
+                  <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3 mb-6">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="text-amber-800 font-bold mb-1">
+                        Precaución con este cambio
+                      </p>
+                      <p className="text-amber-700/80">
+                        Si procede con este cambio, se asume que el contrato finalizó exitosamente, y desea relistar la propiedad Alquilada/Vendida a Disponible.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {revertConfirmation.etapaOrigen === 'Cerrado' && (revertConfirmation.etapa === 'Perdido' || revertConfirmation.etapa === 'Cerrado Perdido') && (
+                  <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex gap-3 mb-6">
+                    <AlertTriangle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="text-rose-800 font-bold mb-1">
+                        Precaución con este cambio
+                      </p>
+                      <p className="text-rose-700/80">
+                        Si procede con este cambio, se asume que el trato falló, cancelando la transacción y desea relistar la propiedad Alquilada/Vendida a Disponible.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3">

@@ -83,17 +83,46 @@ public static class CambiarEstadoProcessor
             var contactoToRevert = await context.Contactos.FirstOrDefaultAsync(l => l.Id == property.CerradoConId.Value, ct);
             if (contactoToRevert != null)
             {
-                if (property.EstadoComercial == "Reservada")
+                // Verificar si tiene otras propiedades con cierres firmes (Vendida o Alquilada)
+                bool tieneOtrasCerradas = await context.Properties.AnyAsync(p => 
+                    p.CerradoConId == contactoToRevert.Id && 
+                    p.Id != property.Id && 
+                    (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada" || p.EstadoComercial == "Vendido" || p.EstadoComercial == "Rentado"), ct);
+
+                if (tieneOtrasCerradas)
                 {
-                    // Si se cae una reserva, el contacto pasa a Perdido
-                    contactoToRevert.EtapaEmbudo = "Perdido";
+                    logger.LogInformation("🛡️ [PROCESSOR] Contacto {Nombre} retiene estado de Cierre porque tiene otras transacciones activas.", contactoToRevert.Nombre);
                 }
                 else
                 {
-                    // Si se cae un cierre, asume que vuelve a negociación
-                    contactoToRevert.EtapaEmbudo = "En Negociación";
+                    // Verificar si tiene otras reservas activas
+                    bool tieneOtrasReservadas = await context.Properties.AnyAsync(p => 
+                        p.CerradoConId == contactoToRevert.Id && 
+                        p.Id != property.Id && 
+                        p.EstadoComercial == "Reservada", ct);
+
+                    if (tieneOtrasReservadas)
+                    {
+                        logger.LogInformation("🤝 [PROCESSOR] Contacto {Nombre} retiene estado de Negociación por otras reservas activas.", contactoToRevert.Nombre);
+                        contactoToRevert.EtapaEmbudo = "En Negociación";
+                        contactoToRevert.FechaCierre = null;
+                    }
+                    else
+                    {
+                        // No tiene nada más, downgrade completo
+                        if (property.EstadoComercial == "Reservada")
+                        {
+                            // Si se cae una reserva, el contacto pasa a Perdido
+                            contactoToRevert.EtapaEmbudo = "Perdido";
+                        }
+                        else
+                        {
+                            // Si se cae un cierre y no tiene nada más, vuelve a negociación
+                            contactoToRevert.EtapaEmbudo = "En Negociación";
+                        }
+                        contactoToRevert.FechaCierre = null;
+                    }
                 }
-                contactoToRevert.FechaCierre = null;
             }
         }
 
@@ -103,6 +132,29 @@ public static class CambiarEstadoProcessor
         property.PrecioCierre = esCierre ? precioCierre : null;
         property.PrecioReserva = esReserva ? precioCierre : null;
         property.CerradoConId = esCierreOReserva ? cerradoConId : null;
+
+        // 4.1. Asegurar Interés
+        if (esCierreOReserva && contacto != null)
+        {
+            var interesExistente = await context.Set<ContactoInteresPropiedad>()
+                .FirstOrDefaultAsync(i => i.ContactoId == contacto.Id && i.PropiedadId == property.Id, ct);
+
+            if (interesExistente == null)
+            {
+                logger.LogInformation("🔗 [PROCESSOR] Creando relación de Interés para la propiedad {PropiedadId} y contacto {ContactoId}.", property.Id, contacto.Id);
+                context.Set<ContactoInteresPropiedad>().Add(new ContactoInteresPropiedad
+                {
+                    ContactoId = contacto.Id,
+                    PropiedadId = property.Id,
+                    NivelInteres = "Alto",
+                    FechaRegistro = ecuadorNow
+                });
+            }
+            else if (interesExistente.NivelInteres != "Alto")
+            {
+                interesExistente.NivelInteres = "Alto";
+            }
+        }
 
         // 4.5. Registrar Reserva
         if (esReserva && contacto != null)
@@ -121,6 +173,19 @@ public static class CambiarEstadoProcessor
                 PropiedadId = property.Id,
                 TipoInteraccion = "Reserva",
                 Notas = $"Propiedad '{property.Titulo}' marcada como Reservada {reservaTexto}."
+            });
+
+            context.PropertyTransactions.Add(new PropertyTransaction
+            {
+                Id = Guid.NewGuid(),
+                PropertyId = property.Id,
+                ContactoId = contacto.Id,
+                TransactionType = "Reservation",
+                TransactionStatus = "Completed",
+                Amount = precioCierre,
+                TransactionDate = ecuadorNow,
+                CreatedById = currentUserId,
+                Notes = $"Propiedad reservada {reservaTexto}."
             });
         }
 

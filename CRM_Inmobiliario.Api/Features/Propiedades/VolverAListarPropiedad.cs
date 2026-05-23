@@ -97,6 +97,20 @@ public static class VolverAListarPropiedadFeature
                     Notes = request?.Notas ?? "Trato caído. Operación anulada.",
                     CreatedById = agenteId
                 });
+
+                if (propiedad.CerradoConId.HasValue)
+                {
+                    context.Interactions.Add(new Interaction
+                    {
+                        Id = Guid.NewGuid(),
+                        AgenteId = agenteId,
+                        ContactoId = propiedad.CerradoConId.Value,
+                        PropiedadId = id,
+                        TipoInteraccion = "Cancelación",
+                        Notas = request?.Notas ?? $"Trato caído desde la propiedad. Operación anulada para '{propiedad.Titulo}'.",
+                        FechaInteraccion = ecuadorNow
+                    });
+                }
             }
             else
             {
@@ -119,6 +133,20 @@ public static class VolverAListarPropiedadFeature
                     Notes = request?.Notas ?? "Fin de ciclo comercial. Propiedad relistada.",
                     CreatedById = agenteId
                 });
+
+                if (propiedad.CerradoConId.HasValue)
+                {
+                    context.Interactions.Add(new Interaction
+                    {
+                        Id = Guid.NewGuid(),
+                        AgenteId = agenteId,
+                        ContactoId = propiedad.CerradoConId.Value,
+                        PropiedadId = id,
+                        TipoInteraccion = "Sistema",
+                        Notas = request?.Notas ?? $"Fin de ciclo comercial desde la propiedad. Contrato de '{propiedad.Titulo}' finalizado.",
+                        FechaInteraccion = ecuadorNow
+                    });
+                }
                 
                 // Nota: El Contacto permanece en su estado actual (Cerrado) según Spec
             }

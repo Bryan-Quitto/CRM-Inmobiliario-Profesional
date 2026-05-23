@@ -33,8 +33,10 @@ export const DetalleHistoryTimeline = ({
             <div key={item.id} className="relative pl-14 group">
               <div className={`absolute left-3 top-0 h-7 w-7 bg-white border-2 rounded-full z-10 flex items-center justify-center shadow-sm transition-colors
                 ${item.transactionType === 'Sale' || item.transactionType === 'Rent' ? 'border-emerald-500 text-emerald-600' :
+                  item.transactionType === 'Reservation' ? 'border-amber-500 text-amber-600' :
                   item.transactionType === 'Relisting' ? 'border-indigo-500 text-indigo-600' : 'border-rose-500 text-rose-600'}`}>
                 {item.transactionType === 'Sale' || item.transactionType === 'Rent' ? <TrendingUp size={14} /> :
+                  item.transactionType === 'Reservation' ? <Check size={14} /> :
                   item.transactionType === 'Relisting' ? <RotateCcw size={14} /> : <X size={14} />}
               </div>
 
@@ -43,9 +45,11 @@ export const DetalleHistoryTimeline = ({
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md
                       ${item.transactionType === 'Sale' || item.transactionType === 'Rent' ? 'bg-emerald-50 text-emerald-600' :
+                        item.transactionType === 'Reservation' ? 'bg-amber-50 text-amber-600' :
                         item.transactionType === 'Relisting' ? 'bg-indigo-50 text-indigo-600' : 'bg-rose-50 text-rose-600'}`}>
                       {item.transactionType === 'Sale' ? 'Venta' :
                         item.transactionType === 'Rent' ? 'Alquiler' :
+                        item.transactionType === 'Reservation' ? 'Reserva' :
                           item.transactionType === 'Relisting' ? 'Re-Listado' : 'Cancelación'}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">{formatDate(item.transactionDate)}</span>

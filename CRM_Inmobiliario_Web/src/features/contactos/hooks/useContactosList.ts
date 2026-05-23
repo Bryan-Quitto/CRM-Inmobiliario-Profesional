@@ -62,7 +62,7 @@ export const useContactosList = () => {
   const [closingContacto, setClosingContacto] = useState<Contacto | null>(null);
   const [closingIntendedStage, setClosingIntendedStage] = useState<string | null>(null);
 
-  const [revertConfirmation, setRevertConfirmation] = useState<{ id: string, etapa: string, nombre: string } | null>(null);
+  const [revertConfirmation, setRevertConfirmation] = useState<{ id: string, etapa: string, nombre: string, etapaOrigen: string } | null>(null);
 
   useEffect(() => {
     if (activeSegment !== 'todos') {
@@ -77,41 +77,6 @@ export const useContactosList = () => {
     nuevos: contactos.filter(c => c.etapaEmbudo === 'Nuevo' || c.etapaEmbudo === 'Contactado').length,
     negociacion: contactos.filter(c => c.etapaEmbudo === 'En Negociación').length
   }), [contactos]);
-
-  const handleStageChange = (id: string, nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo: 'contacto' | 'propietario' = 'contacto') => {
-    const contacto = allContactos.find(c => c.id === id);
-    if (!contacto) return;
-
-    const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
-    if (etapaActual === nuevaEtapa) return;
-
-    if (tipo === 'contacto' && (nuevaEtapa === 'Cerrado' || nuevaEtapa === 'En Negociación') && !confirmedData) {
-      setClosingIntendedStage(nuevaEtapa);
-      setClosingContacto(contacto);
-      return;
-    }
-
-    if (tipo === 'contacto' && (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'En Negociación') && nuevaEtapa !== 'Cerrado' && nuevaEtapa !== 'En Negociación') {
-      setRevertConfirmation({ id: contacto.id, etapa: nuevaEtapa, nombre: contacto.nombre });
-      return;
-    }
-
-    cambiarEtapa(id, nuevaEtapa, tipo, confirmedData, {
-      onOptimisticUpdate: () => {
-        const optimisticData = allContactos.map(c => {
-          if (c.id === id) {
-            return tipo === 'propietario'
-              ? { ...c, estadoPropietario: nuevaEtapa }
-              : { ...c, etapaEmbudo: nuevaEtapa };
-          }
-          return c;
-        });
-        mutate(optimisticData, false);
-      },
-      onSuccess: async () => { await mutate(); },
-      onError: () => mutate()
-    });
-  };
 
   const handleRevertStatus = (id: string, nuevaEtapa: string, liberarPropiedades: boolean) => {
     const contacto = allContactos.find(c => c.id === id);
@@ -133,6 +98,78 @@ export const useContactosList = () => {
       onError: () => mutate()
     });
   };
+
+  const handleStageChange = (id: string, nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo: 'contacto' | 'propietario' = 'contacto') => {
+    const contacto = allContactos.find(c => c.id === id);
+    if (!contacto) return;
+
+    const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
+    if (etapaActual === nuevaEtapa) return;
+
+    if (tipo === 'contacto' && !confirmedData) {
+      if (nuevaEtapa === 'Cerrado' || nuevaEtapa === 'En Negociación') {
+        setClosingIntendedStage(nuevaEtapa);
+        setClosingContacto(contacto);
+        return;
+      }
+
+      const esReversion = 
+        (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'En Negociación') && 
+        (nuevaEtapa === 'Nuevo' || nuevaEtapa === 'Contactado' || nuevaEtapa === 'Perdido' || nuevaEtapa === 'Cerrado Perdido');
+
+      if (esReversion) {
+        const reservas = contacto.numeroReservas || 0;
+        const cierres = contacto.numeroCierres || 0;
+
+        if (contacto.etapaEmbudo === 'En Negociación') {
+          if (reservas > 1) {
+            import('sonner').then(({ toast }) => {
+              toast.error('No se puede cambiar el estado porque el cliente tiene más de 1 propiedad reservada. Realice el ajuste (Trato Caído) desde el catálogo de inmuebles para cada propiedad.');
+            });
+            return;
+          }
+          if (reservas === 0) {
+            handleRevertStatus(id, nuevaEtapa, false);
+            return;
+          }
+        }
+
+        if (contacto.etapaEmbudo === 'Cerrado') {
+          if (cierres > 1) {
+            import('sonner').then(({ toast }) => {
+              toast.error('No se puede revertir el estado automáticamente porque el contacto tiene más de 1 propiedad alquilada o vendida. Realice el ajuste desde el catálogo de inmuebles para cada propiedad.');
+            });
+            return;
+          }
+          if (cierres === 0) {
+            handleRevertStatus(id, nuevaEtapa, false);
+            return;
+          }
+        }
+
+        setRevertConfirmation({ id: contacto.id, etapa: nuevaEtapa, nombre: contacto.nombre, etapaOrigen: contacto.etapaEmbudo });
+        return;
+      }
+    }
+
+    cambiarEtapa(id, nuevaEtapa, tipo, confirmedData, {
+      onOptimisticUpdate: () => {
+        const optimisticData = allContactos.map(c => {
+          if (c.id === id) {
+            return tipo === 'propietario'
+              ? { ...c, estadoPropietario: nuevaEtapa }
+              : { ...c, etapaEmbudo: nuevaEtapa };
+          }
+          return c;
+        });
+        mutate(optimisticData, false);
+      },
+      onSuccess: async () => { await mutate(); },
+      onError: () => mutate()
+    });
+  };
+
+
 
   const handleClosingConfirm = async (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => {
     if (!closingContacto) return;

@@ -20,7 +20,6 @@ interface ContactoInterestsManagerProps {
   setDropdownInteresOpenId: (id: string | null) => void;
   handleUpdateNivelInteres: (propId: string, nivel: string) => void;
   handleDesvincular: (propId: string) => void;
-  navigate: (path: string) => void;
 }
 
 export const ContactoInterestsManager = ({
@@ -39,8 +38,7 @@ export const ContactoInterestsManager = ({
   dropdownInteresOpenId,
   setDropdownInteresOpenId,
   handleUpdateNivelInteres,
-  handleDesvincular,
-  navigate
+  handleDesvincular
 }: ContactoInterestsManagerProps) => {
   return (
     <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
@@ -110,12 +108,12 @@ export const ContactoInterestsManager = ({
       </div>
 
       <div className="space-y-4">
-        {!contacto.intereses || contacto.intereses.length === 0 ? (
+        {(!contacto.intereses || contacto.intereses.filter((i: Interes) => !['Reservada', 'Vendida', 'Alquilada'].includes(i.estadoComercial)).length === 0) ? (
           <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
             <p className="text-xs font-bold text-slate-400 italic">No hay propiedades vinculadas</p>
           </div>
         ) : (
-          contacto.intereses.map((interes: Interes) => {
+          contacto.intereses.filter((i: Interes) => !['Reservada', 'Vendida', 'Alquilada'].includes(i.estadoComercial)).map((interes: Interes) => {
             const nivelActual = NIVELES_INTERES.find(n => n.value === interes.nivelInteres) || NIVELES_INTERES[1];
             const isUpdating = updatingInteresId === interes.propiedadId;
             const isThisBeingDeleted = idInteresABorrar === interes.propiedadId;
@@ -194,7 +192,7 @@ export const ContactoInterestsManager = ({
                     </div>
                   </div>
                   <button 
-                    onClick={() => navigate(`/propiedades?id=${interes.propiedadId}`)}
+                    onClick={() => window.open(`/propiedades?id=${interes.propiedadId}`, '_blank')}
                     className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />

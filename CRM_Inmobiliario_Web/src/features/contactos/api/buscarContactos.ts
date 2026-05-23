@@ -5,6 +5,7 @@ export interface ContactoBusqueda {
   nombreCompleto: string;
   telefono: string;
   esContacto: boolean;
+  etapaEmbudo?: string;
 }
 
 export const buscarContactos = async (query: string): Promise<ContactoBusqueda[]> => {
