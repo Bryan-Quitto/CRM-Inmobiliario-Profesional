@@ -46,12 +46,19 @@ public sealed class WhatsAppAiService
             // Logear mensaje del usuario en DB
             await _conversationManager.LogMessageAsync(phone, "user", messageText);
 
-            // 2. Manejar respuesta automática por etapa (Negociación/Cerrado)
+            // 2. Manejar respuesta automática por etapa (Negociación/Cerrado/Escalado)
             if (context.AutoResponse != null)
             {
-                _logger.LogInformation("Contacto {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
-                await _conversationManager.LogMessageAsync(phone, "assistant", context.AutoResponse);
-                await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse);
+                if (!string.IsNullOrEmpty(context.AutoResponse))
+                {
+                    _logger.LogInformation("Contacto {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
+                    await _conversationManager.LogMessageAsync(phone, "assistant", context.AutoResponse);
+                    await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse);
+                }
+                else
+                {
+                    _logger.LogInformation("Silence Mode activo para {Phone}. No se enviará respuesta.", phone);
+                }
                 return;
             }
 

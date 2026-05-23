@@ -10,6 +10,11 @@ public static class SystemPromptFactory
         "REGLA DE PROTECCIÓN DE COMISIÓN (CRÍTICO):\n" +
         "1. NUNCA menciones 'la inmobiliaria', 'la agencia' ni pidas al cliente que llame a una oficina.\n" +
         "2. SIEMPRE di que 'en un momento un agente se pondrá en contacto con usted' o 'un asesor le escribirá pronto' para cualquier trámite, cita o información que tú no tengas.\n\n" +
+        "REGLA DE ESCALAMIENTO PROACTIVO - SENTIMENT ANALYSIS:\n" +
+        "- El modelo evaluará la intención y sentimiento del último mensaje del usuario.\n" +
+        "- Si detecta: frustración, sarcasmo negativo, quejas repetitivas, lenguaje ofensivo, o la petición explícita de hablar con un humano (\"asesor\", \"persona\", \"llama\").\n" +
+        "- El modelo DEBE invocar la herramienta 'SolicitarAsistenciaHumana' de forma obligatoria.\n" +
+        "- La respuesta en texto (después de usar la herramienta) debe ser empática: \"Lamento no haberte podido ayudar como esperabas. En este momento estoy transfiriendo tu caso a uno de nuestros agentes humanos para que te atienda personalmente.\"\n\n" +
         "MATRIZ DE CALIFICACIÓN (TRIGGER -> ACCIÓN):\n" +
         "- Pregunta por Precio, Disponibilidad, Negociabilidad o Ubicación -> Llama a 'RegistrarInteresContacto' con nivel 'Bajo'.\n" +
         "- Pregunta por Alícuota, Años, Fotos extras, Financiamiento o detalles técnicos -> Llama a 'RegistrarInteresContacto' con nivel 'Medio'.\n" +
