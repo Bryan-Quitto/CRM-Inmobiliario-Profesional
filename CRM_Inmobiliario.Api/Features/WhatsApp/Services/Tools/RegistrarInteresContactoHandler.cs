@@ -6,12 +6,12 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
-public sealed class RegistrarInteresProspectoHandler : BaseWhatsAppToolHandler
+public sealed class RegistrarInteresContactoHandler : BaseWhatsAppToolHandler
 {
-    public RegistrarInteresProspectoHandler(CrmDbContext context, ILogger<RegistrarInteresProspectoHandler> logger) 
+    public RegistrarInteresContactoHandler(CrmDbContext context, ILogger<RegistrarInteresContactoHandler> logger) 
         : base(context, logger) { }
 
-    public override string ToolName => "RegistrarInteresProspecto";
+    public override string ToolName => "RegistrarInteresContacto";
 
     public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
     {

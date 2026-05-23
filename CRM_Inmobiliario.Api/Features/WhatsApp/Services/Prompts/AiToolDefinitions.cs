@@ -26,8 +26,8 @@ public static class AiToolDefinitions
         ));
 
         options.Tools.Add(ChatTool.CreateFunctionTool(
-            "RegistrarNuevoLead",
-            "Crea un nuevo prospecto en el CRM. Debes llamar a esta herramienta SIEMPRE ANTES de registrar un interés si el cliente no está en la base.",
+            "RegistrarNuevoContacto",
+            "Crea un nuevo contacto en el CRM. Debes llamar a esta herramienta SIEMPRE ANTES de registrar un interés si el cliente no está en la base.",
             BinaryData.FromBytes("""
             {
                 "type": "object",
@@ -40,7 +40,7 @@ public static class AiToolDefinitions
         ));
 
         options.Tools.Add(ChatTool.CreateFunctionTool(
-            "RegistrarInteresProspecto",
+            "RegistrarInteresContacto",
             "Registra el interés del cliente. REGLAS: 'Alto' (Quiere visitar o comprar), 'Medio' (Preguntas técnicas: alícuota, financiamiento, fotos detalladas), 'Bajo' (Preguntas básicas: precio, negociabilidad, ubicación general), 'Descartada' (Rechazo).",
             BinaryData.FromBytes("""
             {
@@ -54,6 +54,20 @@ public static class AiToolDefinitions
                     }
                 },
                 "required": ["propiedadId", "nivelInteres"]
+            }
+            """u8.ToArray())
+        ));
+
+        options.Tools.Add(ChatTool.CreateFunctionTool(
+            "DerivarCaptacionPropietario",
+            "ÚSALA ÚNICAMENTE si el cliente indica que es DUEÑO de una propiedad y quiere venderla, alquilarla o promocionarla con nosotros. Esto terminará la conversación y derivará a un agente captador.",
+            BinaryData.FromBytes("""
+            {
+                "type": "object",
+                "properties": {
+                    "nombre": { "type": "string", "description": "Nombre completo del propietario." }
+                },
+                "required": ["nombre"]
             }
             """u8.ToArray())
         ));

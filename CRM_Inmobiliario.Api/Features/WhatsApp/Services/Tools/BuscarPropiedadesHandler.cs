@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -61,34 +62,17 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             .OrderByDescending(p => !string.IsNullOrEmpty(keyword) && (p.Titulo.Contains(keyword) || p.Descripcion.Contains(keyword)))
             .ThenBy(p => p.Precio)
             .Take(3)
-            .Select(p => new { 
-                p.Id, 
-                p.Titulo, 
-                p.Precio, 
-                p.Sector, 
-                p.Ciudad, 
-                p.Direccion, 
-                p.Habitaciones, 
-                p.Banos, 
-                p.Estacionamientos,
-                p.AniosAntiguedad,
-                p.AreaTotal,
-                p.AreaConstruccion,
-                p.AreaTerreno,
-                p.MediosBanos,
-                p.UrlRemax, 
-                p.Operacion,
-                p.TipoPropiedad,
-                p.EstadoComercial,
-                NotaIA = p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
-                         p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null
-            })
-            .ToListAsync();
+            .Select(p => new PropiedadResultDto(
+                p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
+                p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
+                p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null
+            )).ToListAsync();
 
         if (results.Any()) 
         {
             await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
-            return JsonSerializer.Serialize(results);
+            return FormatearCsv(results);
         }
 
         // Nivel 2: Ignorar presupuesto
@@ -99,11 +83,14 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             if (!string.IsNullOrEmpty(type)) query2 = query2.Where(p => EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"));
             if (!string.IsNullOrEmpty(location)) query2 = query2.Where(p => EF.Functions.ILike(p.Sector, $"%{location}%") || EF.Functions.ILike(p.Ciudad, $"%{location}%"));
             
-            results = await query2.OrderBy(p => p.Precio).Take(3).Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, NotaIA = p.EstadoComercial == "Reservada" ? "RESERVADA: Avisar al cliente." : p.EstadoComercial == "Alquilada" ? "ALQUILADA: Avisar al cliente." : (string?)null }).ToListAsync();
+            results = await query2.OrderBy(p => p.Precio).Take(3)
+                .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
+                .ToListAsync();
+                
             if (results.Any()) 
             {
                 await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
-                return "{\"Aviso\": \"No encontré opciones bajo ese presupuesto exacto, pero estas son las más económicas que cumplen con el tipo/ubicación:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
+                return FormatearCsv(results, "Aviso: No encontré opciones bajo ese presupuesto exacto, pero estas son las más económicas que cumplen con el tipo/ubicación:");
             }
         }
 
@@ -114,13 +101,13 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             results = await _context.Properties
                 .Where(p => allowedStates.Contains(p.EstadoComercial) && EF.Functions.ILike(p.TipoPropiedad, $"%{type}%"))
                 .OrderBy(p => p.Precio).Take(3)
-                .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, NotaIA = p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : (string?)null })
+                .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
                 .ToListAsync();
             
             if (results.Any()) 
             {
                 await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
-                return "{\"Aviso\": \"No encontré " + type + "s en esa zona/presupuesto, pero aquí tienes las " + type + "s más baratas del catálogo:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
+                return FormatearCsv(results, $"Aviso: No encontré {type}s en esa zona/presupuesto, pero aquí tienes las {type}s más baratas del catálogo:");
             }
         }
 
@@ -128,15 +115,30 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         results = await _context.Properties
             .Where(p => allowedStates.Contains(p.EstadoComercial))
             .OrderBy(p => p.Precio).Take(3)
-            .Select(p => new { p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, NotaIA = p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : (string?)null })
-                .ToListAsync();
+            .Select(p => new PropiedadResultDto(p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial, p.EstadoComercial == "Reservada" ? "RESERVADA" : p.EstadoComercial == "Alquilada" ? "ALQUILADA" : null))
+            .ToListAsync();
 
         if (results.Any()) 
         {
             await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
-            return "{\"Aviso\": \"No encontré nada similar a tu búsqueda, pero estas son las ofertas más destacadas del momento:\", \"Resultados\": " + JsonSerializer.Serialize(results) + "}";
+            return FormatearCsv(results, "Aviso: No encontré nada similar a tu búsqueda, pero estas son las ofertas más destacadas del momento:");
         }
 
         return "Lo siento, actualmente no tenemos ninguna propiedad disponible.";
     }
+
+    private string FormatearCsv(IEnumerable<PropiedadResultDto> resultados, string aviso = "")
+    {
+        var sb = new StringBuilder();
+        if (!string.IsNullOrEmpty(aviso)) sb.AppendLine(aviso);
+        sb.AppendLine("Id|Titulo|Precio|Ubicacion|Operacion|Hab|Banos|Area|Url|NotaIA");
+        foreach(var p in resultados)
+        {
+            var area = p.AreaTotal ?? p.AreaConstruccion ?? p.AreaTerreno;
+            sb.AppendLine($"{p.Id}|{p.Titulo}|{p.Precio}|{p.Sector},{p.Ciudad}|{p.Operacion}|{p.Habitaciones}|{p.Banos}|{area}|{p.UrlRemax}|{p.NotaIA}");
+        }
+        return sb.ToString();
+    }
 }
+
+public record PropiedadResultDto(Guid Id, string Titulo, decimal Precio, string? Sector, string? Ciudad, string? Direccion, int? Habitaciones, decimal? Banos, int? Estacionamientos, int? AniosAntiguedad, decimal? AreaTotal, decimal? AreaConstruccion, decimal? AreaTerreno, int? MediosBanos, string? UrlRemax, string? Operacion, string? TipoPropiedad, string? EstadoComercial, string? NotaIA);

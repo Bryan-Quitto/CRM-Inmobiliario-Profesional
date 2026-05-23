@@ -15,7 +15,12 @@ public sealed class RegistrarNuevoContactoHandler : BaseWhatsAppToolHandler
 
     public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
     {
-        string nombre = args.RootElement.GetProperty("nombre").GetString() ?? "Desconocido";
+        string nombre = args.RootElement.TryGetProperty("nombre", out var n) ? n.GetString() : "Cliente";
+        if (string.IsNullOrWhiteSpace(nombre) || nombre.Equals("Usuario", StringComparison.OrdinalIgnoreCase) || nombre.Equals("Desconocido", StringComparison.OrdinalIgnoreCase))
+        {
+            nombre = "Cliente WA";
+        }
+        string apellido = phone;
         
         // Búsqueda inteligente para evitar duplicados en registro
         string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
@@ -33,6 +38,7 @@ public sealed class RegistrarNuevoContactoHandler : BaseWhatsAppToolHandler
         {
             Id = Guid.NewGuid(),
             Nombre = nombre,
+            Apellido = apellido,
             Telefono = phone,
             Origen = "IA WhatsApp",
             AgenteId = agent.Id,
