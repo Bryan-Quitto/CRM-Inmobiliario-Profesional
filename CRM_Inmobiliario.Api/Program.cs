@@ -32,8 +32,9 @@ builder.Services.AddScoped<WhatsAppAiService>();
 
 // Handlers de herramientas IA
 builder.Services.AddScoped<IWhatsAppToolHandler, BuscarPropiedadesHandler>();
-builder.Services.AddScoped<IWhatsAppToolHandler, RegistrarInteresProspectoHandler>();
+builder.Services.AddScoped<IWhatsAppToolHandler, RegistrarInteresContactoHandler>();
 builder.Services.AddScoped<IWhatsAppToolHandler, RegistrarNuevoContactoHandler>();
+builder.Services.AddScoped<IWhatsAppToolHandler, DerivarCaptacionPropietarioHandler>();
 builder.Services.AddScoped<IWhatsAppToolHandler, SolicitarAsistenciaHumanaHandler>();
 
 // Background Services

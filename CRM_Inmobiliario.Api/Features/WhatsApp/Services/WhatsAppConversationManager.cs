@@ -11,15 +11,18 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
     private readonly CrmDbContext _context;
     private readonly ILogger<WhatsAppConversationManager> _logger;
     private readonly IWhatsAppPromptBuilder _promptBuilder;
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _config;
 
     public WhatsAppConversationManager(
         CrmDbContext context, 
         ILogger<WhatsAppConversationManager> logger,
-        IWhatsAppPromptBuilder promptBuilder)
+        IWhatsAppPromptBuilder promptBuilder,
+        Microsoft.Extensions.Configuration.IConfiguration config)
     {
         _context = context;
         _logger = logger;
         _promptBuilder = promptBuilder;
+        _config = config;
     }
 
     public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText)
@@ -29,11 +32,15 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         var contacto = await _context.Contactos.AsNoTracking()
             .FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
         
-        // 2. Filtrado por Etapa
+        // 2. Filtrado por Etapa o Rol
         string? autoMsg = null;
         if (contacto != null)
         {
-            if (contacto.EtapaEmbudo == "En Negociación")
+            if (contacto.EsPropietario && !contacto.EsProspecto)
+            {
+                autoMsg = "*Mensaje Automático:* ¡Hola! Veo que eres uno de nuestros propietarios. Un agente humano se contactará contigo enseguida para tratar temas de tu inmueble. ¡Gracias por tu paciencia!";
+            }
+            else if (contacto.EtapaEmbudo == "En Negociación")
             {
                 autoMsg = "*Mensaje Automático:* Hola, hemos recibido tu mensaje. Como te encuentras en proceso de negociación, un asesor humano se contactará contigo en unos momentos para darte una atención personalizada. ¡Gracias por tu paciencia!";
             }
@@ -64,17 +71,56 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         else
         {
             history = _promptBuilder.DeserializeHistory(conversation.HistorialJson, contactExists, contacto?.Nombre);
+            
+            // Reemplazar siempre el prompt del sistema antiguo con la versión más reciente del código
+            if (history.Count > 0 && history[0] is SystemChatMessage)
+            {
+                history[0] = new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre));
+            }
         }
 
         // 4. Añadir mensaje del usuario a la historia
         history.Add(new UserChatMessage(messageText));
 
-        // 5. Control de Costos (Ventana deslizante)
+        // 5. Compresión Semántica de Memoria (Largo Plazo)
         if (history.Count > 12) 
         {
             var systemMessage = history[0];
-            history = history.Skip(history.Count - 10).ToList();
-            history.Insert(0, systemMessage);
+            var messagesToCompress = history.Skip(1).Take(6).ToList();
+            
+            try 
+            {
+                var chatClient = new ChatClient("gpt-4o-mini", _config["OPENAI_API_KEY"]);
+                var promptStr = "Resume esta interacción para la memoria del sistema. Enfócate SOLO en DATOS DUROS del cliente: " +
+                                "Qué busca, Presupuesto, Ubicaciones, y qué propiedades le gustaron o rechazó. Omite saludos. Formato de viñetas muy denso.";
+                
+                var plainTextHistory = string.Join("\n", messagesToCompress.Select(m => {
+                    var role = m is UserChatMessage ? "Cliente" : m is SystemChatMessage ? "Memoria" : "IA";
+                    var text = m.Content.Count > 0 ? m.Content[0].Text : "[Uso de Herramienta]";
+                    return $"{role}: {text}";
+                }));
+
+                var compressionMessages = new List<ChatMessage> { 
+                    new SystemChatMessage(promptStr),
+                    new UserChatMessage(plainTextHistory)
+                };
+                
+                var response = await chatClient.CompleteChatAsync(compressionMessages);
+                var resumen = response.Value.Content[0].Text;
+                
+                var newHistory = new List<ChatMessage> { systemMessage };
+                newHistory.Add(new SystemChatMessage($"[MEMORIA HISTÓRICA DEL CLIENTE]:\n{resumen}"));
+                newHistory.AddRange(history.Skip(7));
+                
+                history = newHistory;
+                _logger.LogInformation("Historial comprimido semánticamente. Nuevo tamaño: {Count}", history.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fallo en compresión semántica. Usando truncado clásico.");
+                history = history.Skip(history.Count - 10).ToList();
+                history.Insert(0, systemMessage);
+            }
         }
 
         return new WhatsAppContext(contacto, conversation, history, autoMsg);
