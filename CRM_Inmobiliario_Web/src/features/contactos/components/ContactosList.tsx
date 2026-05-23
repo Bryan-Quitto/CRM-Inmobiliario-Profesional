@@ -50,6 +50,9 @@ const ContactosContent = () => {
     closingIntendedStage,
     handleStageChange,
     handleClosingConfirm,
+    revertConfirmation,
+    setRevertConfirmation,
+    handleRevertStatus,
     mutate
   } = useContactosList();
 
@@ -127,6 +130,9 @@ const ContactosContent = () => {
         setClosingContacto={setClosingContacto}
         closingIntendedStage={closingIntendedStage}
         onClosingConfirm={handleClosingConfirm}
+        revertConfirmation={revertConfirmation}
+        setRevertConfirmation={setRevertConfirmation}
+        handleRevertStatus={handleRevertStatus}
         mutate={mutate}
       />
     </div>

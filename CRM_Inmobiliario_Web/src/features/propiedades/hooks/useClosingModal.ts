@@ -106,9 +106,18 @@ export const useClosingModal = ({
 
   const handleConfirm = async () => {
     const isReserva = tipoCierre === 'Reservada' || tipoCierre === 'En Negociación';
+    
     if (!isReserva && (!precioCierre || isNaN(Number(precioCierre)))) {
-      toast.error('Por favor, ingresa un precio válido.');
+      toast.error('Por favor, ingresa un precio de cierre válido.');
       return;
+    }
+
+    if (isReserva && precioCierre) {
+      const p = Number(precioCierre);
+      if (isNaN(p) || p <= 0) {
+        toast.error('El monto de reserva debe ser mayor a 0, o déjalo vacío para Reserva de palabra.');
+        return;
+      }
     }
     if (!partnerId) {
       toast.error(`Por favor, selecciona ${mode === 'property' ? 'al contacto' : 'la propiedad'}.`);
@@ -117,7 +126,7 @@ export const useClosingModal = ({
 
     setIsSubmitting(true);
     try {
-      await onConfirm(isReserva ? null : Number(precioCierre), partnerId, tipoCierre);
+      await onConfirm(precioCierre ? Number(precioCierre) : null, partnerId, tipoCierre);
       setIsSuccess(true);
       setTimeout(() => {
         onClose();

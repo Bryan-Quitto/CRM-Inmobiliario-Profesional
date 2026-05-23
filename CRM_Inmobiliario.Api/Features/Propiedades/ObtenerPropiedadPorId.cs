@@ -42,6 +42,7 @@ public static class ObtenerPropiedadPorIdFeature
         Guid? CerradoConId,
         string? CerradoConNombre,
         decimal? PrecioCierre,
+        decimal? PrecioReserva,
         IEnumerable<SectionResponse> Secciones,
         IEnumerable<MediaResponse> MediaSinSeccion,
         PropertyPermissions Permissions,
@@ -137,6 +138,7 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.CerradoConId,
                     x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null,
                     x.Property.PrecioCierre,
+                    x.Property.PrecioReserva,
                     x.Property.GallerySections
                         .OrderBy(s => s.Orden)
                         .Select(s => new SectionResponse(

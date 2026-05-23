@@ -45,7 +45,16 @@ export const DetalleHeroInfo = ({ propiedad, formatCurrency }: DetalleHeroInfoPr
       <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 flex flex-col items-end min-w-[200px]">
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Precio de Lista</p>
         <p className="text-4xl font-black text-indigo-600 tracking-tight">{formatCurrency(propiedad.precio)}</p>
-        {propiedad.precioCierre ? (
+        {propiedad.estadoComercial === 'Reservada' ? (
+          <div className="mt-4 pt-4 border-t border-slate-200 w-full flex flex-col items-end">
+            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">Señal / Reserva</p>
+            {propiedad.precioReserva && propiedad.precioReserva > 0 ? (
+              <p className="text-2xl font-black text-indigo-600 tracking-tight">{formatCurrency(propiedad.precioReserva)}</p>
+            ) : (
+              <p className="text-lg font-black text-indigo-600 tracking-tight italic">De Palabra</p>
+            )}
+          </div>
+        ) : propiedad.precioCierre ? (
           <div className="mt-4 pt-4 border-t border-slate-200 w-full flex flex-col items-end">
             <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Precio de Cierre</p>
             <p className="text-2xl font-black text-emerald-600 tracking-tight">{formatCurrency(propiedad.precioCierre)}</p>

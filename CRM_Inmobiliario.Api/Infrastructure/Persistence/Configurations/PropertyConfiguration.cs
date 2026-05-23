@@ -17,6 +17,7 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.Property(e => e.EstadoComercial).HasMaxLength(50);
 
         builder.Property(e => e.Precio).HasColumnType("decimal(12,2)");
+        builder.Property(e => e.PrecioReserva).HasColumnType("decimal(12,2)");
         builder.Property(e => e.PrecioCierre).HasColumnType("decimal(12,2)");
         builder.Property(e => e.Banos).HasColumnType("decimal(3,1)");
         builder.Property(e => e.AreaTotal).HasColumnType("decimal(10,2)");

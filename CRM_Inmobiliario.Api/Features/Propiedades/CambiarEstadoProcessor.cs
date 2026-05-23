@@ -101,6 +101,7 @@ public static class CambiarEstadoProcessor
         property.EstadoComercial = nuevoEstado;
         property.FechaCierre = esCierre ? ecuadorNow : null;
         property.PrecioCierre = esCierre ? precioCierre : null;
+        property.PrecioReserva = esReserva ? precioCierre : null;
         property.CerradoConId = esCierreOReserva ? cerradoConId : null;
 
         // 4.5. Registrar Reserva
@@ -108,6 +109,19 @@ public static class CambiarEstadoProcessor
         {
             contacto.EtapaEmbudo = "En Negociación";
             logger.LogInformation("🤝 [PROCESSOR] Propiedad {Titulo} Reservada. Contacto {Nombre} pasó a En Negociación.", property.Titulo, contacto.Nombre);
+
+            string reservaTexto = (precioCierre.HasValue && precioCierre.Value > 0)
+                ? $"por un monto de reserva de {precioCierre.Value:C}"
+                : "de palabra";
+
+            context.Interactions.Add(new Interaction
+            {
+                AgenteId = currentUserId,
+                ContactoId = contacto.Id,
+                PropiedadId = property.Id,
+                TipoInteraccion = "Reserva",
+                Notas = $"Propiedad '{property.Titulo}' marcada como Reservada {reservaTexto}."
+            });
         }
 
         // 5. Registrar Cierre (Contacto + Transacción + Interacción)
