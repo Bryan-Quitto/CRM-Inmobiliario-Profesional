@@ -24,6 +24,7 @@ builder.Services.AddOutputCache(options => {
 
 // Inyección de Dependencias (Slices & IA)
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService, CRM_Inmobiliario.Api.Features.Propiedades.Services.PropertyEmbeddingService>();
 builder.Services.AddScoped<IWhatsAppPromptBuilder, WhatsAppPromptBuilder>();
 builder.Services.AddScoped<IWhatsAppToolExecutor, WhatsAppToolExecutor>();
 builder.Services.AddScoped<IWhatsAppMessageSender, WhatsAppMessageSender>();
@@ -61,6 +62,22 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseOutputCache();
+
+// ENDPOINT TEMPORAL PARA RE-VECTORIZAR PROPIEDADES (Spec 018)
+app.MapPost("/api/admin/re-vectorize", async (
+    CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext db, 
+    CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService embeddingService) =>
+{
+    var properties = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(db.Properties.Where(p => p.VectorEmbedding == null));
+    int count = 0;
+    foreach(var p in properties)
+    {
+        p.VectorEmbedding = await embeddingService.GenerateEmbeddingForPropertyAsync(p);
+        count++;
+    }
+    await db.SaveChangesAsync();
+    return Microsoft.AspNetCore.Http.Results.Ok(new { Mensaje = $"Se generaron {count} vectores correctamente." });
+});
 
 // Mapeo de Endpoints (Modularizado)
 app.MapProjectEndpoints();

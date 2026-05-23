@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         {
             options.UseNpgsql(connectionString, npgsqlOptions => 
             {
+                npgsqlOptions.UseVector();
                 npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                 npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
             });
