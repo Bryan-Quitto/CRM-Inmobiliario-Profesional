@@ -30,7 +30,9 @@ const formatDate = (dateString: string) => {
   return new Intl.DateTimeFormat('es-EC', {
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   }).format(new Date(dateString));
 };
 

@@ -59,14 +59,45 @@ public static class CambiarEtapaContactoFeature
                 // 2.5 Contingencia de Reservas: Si cae la negociación
                 if (!esTipoPropietario && (command.NuevaEtapa == "Nuevo" || command.NuevaEtapa == "Contactado" || command.NuevaEtapa == "Perdido" || command.NuevaEtapa == "Cerrado Perdido"))
                 {
-                    if (contacto.EtapaEmbudo == "En Negociación")
+                    if (contacto.EtapaEmbudo == "En Negociación" || contacto.EtapaEmbudo == "Nuevo" || contacto.EtapaEmbudo == "Contactado")
                     {
-                        var propiedadReservada = await context.Properties.FirstOrDefaultAsync(p => p.CerradoConId == id && p.EstadoComercial == "Reservada", ct);
-                        if (propiedadReservada != null)
+                        var propiedadesReservadas = await context.Properties
+                            .Where(p => p.CerradoConId == id && p.EstadoComercial == "Reservada")
+                            .ToListAsync(ct);
+                        
+                        if (propiedadesReservadas.Count > 1)
                         {
-                            propiedadReservada.EstadoComercial = "Disponible";
-                            propiedadReservada.CerradoConId = null;
-                            logger.LogInformation("↩️ [CONTACTO] Negociación cancelada. Propiedad {PropiedadId} vuelve a Disponible.", propiedadReservada.Id);
+                            return Results.BadRequest(new { Message = "No se puede cambiar el estado porque el cliente tiene más de 1 propiedad reservada. Realice el ajuste (Trato Caído) desde el catálogo de inmuebles para cada propiedad." });
+                        }
+                            
+                        foreach (var prop in propiedadesReservadas)
+                        {
+                            prop.EstadoComercial = "Disponible";
+                            prop.CerradoConId = null;
+                            logger.LogInformation("↩️ [CONTACTO] Negociación cancelada (Trato Caído). Propiedad {PropiedadId} vuelve a Disponible.", prop.Id);
+
+                            context.PropertyTransactions.Add(new PropertyTransaction
+                            {
+                                Id = Guid.NewGuid(),
+                                PropertyId = prop.Id,
+                                ContactoId = id,
+                                TransactionType = "Cancellation",
+                                TransactionStatus = "Completed",
+                                TransactionDate = DateTimeOffset.UtcNow,
+                                Notes = "Reserva caída. Operación anulada desde el perfil del contacto.",
+                                CreatedById = agenteId
+                            });
+
+                            context.Interactions.Add(new Interaction
+                            {
+                                Id = Guid.NewGuid(),
+                                AgenteId = agenteId,
+                                ContactoId = id,
+                                PropiedadId = prop.Id,
+                                TipoInteraccion = "Cancelación",
+                                Notas = $"Trato Caído por cambio de etapa. Reserva de la propiedad '{prop.Titulo}' liberada.",
+                                FechaInteraccion = DateTimeOffset.UtcNow
+                            });
                         }
                     }
                 }
@@ -79,7 +110,57 @@ public static class CambiarEtapaContactoFeature
                     {
                         propiedadAReservar.EstadoComercial = "Reservada";
                         propiedadAReservar.CerradoConId = id;
+                        
+                        if (command.PrecioCierre.HasValue)
+                        {
+                            propiedadAReservar.PrecioReserva = command.PrecioCierre;
+                        }
+
                         logger.LogInformation("🤝 [CONTACTO] Contacto {ContactoId} pasó a En Negociación. Propiedad {PropiedadId} reservada.", id, propiedadAReservar.Id);
+
+                        var interesExistente = await context.Set<ContactoInteresPropiedad>()
+                            .FirstOrDefaultAsync(i => i.ContactoId == id && i.PropiedadId == propiedadAReservar.Id, ct);
+                        
+                        if (interesExistente == null)
+                        {
+                            context.Set<ContactoInteresPropiedad>().Add(new ContactoInteresPropiedad
+                            {
+                                ContactoId = id,
+                                PropiedadId = propiedadAReservar.Id,
+                                NivelInteres = "Alto",
+                                FechaRegistro = DateTimeOffset.UtcNow
+                            });
+                        }
+                        else if (interesExistente.NivelInteres != "Alto")
+                        {
+                            interesExistente.NivelInteres = "Alto";
+                        }
+
+                        var reservaTexto = command.PrecioCierre.HasValue ? $"por {command.PrecioCierre:C}" : "";
+
+                        context.Interactions.Add(new Interaction
+                        {
+                            Id = Guid.NewGuid(),
+                            AgenteId = agenteId,
+                            ContactoId = id,
+                            PropiedadId = propiedadAReservar.Id,
+                            TipoInteraccion = "Reserva",
+                            Notas = $"Propiedad '{propiedadAReservar.Titulo}' marcada como Reservada {reservaTexto}.",
+                            FechaInteraccion = DateTimeOffset.UtcNow
+                        });
+
+                        context.PropertyTransactions.Add(new PropertyTransaction
+                        {
+                            Id = Guid.NewGuid(),
+                            PropertyId = propiedadAReservar.Id,
+                            ContactoId = id,
+                            TransactionType = "Reservation",
+                            TransactionStatus = "Completed",
+                            Amount = command.PrecioCierre,
+                            TransactionDate = DateTimeOffset.UtcNow,
+                            CreatedById = agenteId,
+                            Notes = $"Propiedad reservada {reservaTexto} desde el perfil del contacto."
+                        });
                     }
                 }
 
@@ -113,20 +194,22 @@ public static class CambiarEtapaContactoFeature
                 {
                     contacto.FechaCierre = DateTimeOffset.UtcNow;
 
-                    // Si se marca como Cerrado / Cerrado Ganado, buscar propiedades vinculadas
+                    // Si se marca como Cerrado / Cerrado Ganado, registrar el cierre SOLO para la propiedad indicada
                     if (!esTipoPropietario && (command.NuevaEtapa == "Cerrado" || command.NuevaEtapa == "Cerrado Ganado"))
                     {
-                        var propiedadesVinculadas = await context.ContactoInteresPropiedades
-                            .Where(lpi => lpi.ContactoId == id)
-                            .Select(lpi => lpi.Propiedad)
-                            .ToListAsync(ct);
-
-                        foreach (var property in propiedadesVinculadas)
+                        if (command.PropiedadId.HasValue)
                         {
-                            if (property != null && property.EstadoComercial == "Disponible")
+                            var property = await context.Properties.FirstOrDefaultAsync(p => p.Id == command.PropiedadId.Value && p.EstadoComercial != "Vendida" && p.EstadoComercial != "Alquilada", ct);
+                            if (property != null)
                             {
                                 var estado = command.NuevaEtapa == "Rentado" ? "Alquilada" : "Vendida";
                                 property.EstadoComercial = estado;
+                                property.CerradoConId = id; // Asegurar vinculación firme
+
+                                if (command.PrecioCierre.HasValue)
+                                {
+                                    property.PrecioCierre = command.PrecioCierre;
+                                }
 
                                 // Registrar transacción de cierre
                                 var propTransaction = new PropertyTransaction
@@ -154,6 +237,10 @@ public static class CambiarEtapaContactoFeature
                                 };
                                 context.Interactions.Add(interaction);
                             }
+                        }
+                        else
+                        {
+                            logger.LogWarning("⚠️ [CONTACTO] Intento de cierre de cliente {Id} sin especificar PropiedadId. No se generará transacción.", id);
                         }
                     }
                 }

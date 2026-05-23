@@ -8,6 +8,7 @@ import { ContactoInterestsManager } from './contacto-detalle-sections/ContactoIn
 import { ContactoPropertiesOwned } from './contacto-detalle-sections/ContactoPropertiesOwned';
 import { ContactoTimelineManager } from './contacto-detalle-sections/ContactoTimelineManager';
 import { ContactoModalsOrchestrator } from './contacto-detalle-sections/ContactoModalsOrchestrator';
+import { ContactoTransactions } from './contacto-detalle-sections/ContactoTransactions';
 
 export const ContactoDetalle = () => {
   const {
@@ -105,7 +106,6 @@ export const ContactoDetalle = () => {
           {contacto.esPropietario && (
             <ContactoPropertiesOwned 
               contacto={contacto} 
-              onNavigate={navigate} 
             />
           )}
 
@@ -127,8 +127,11 @@ export const ContactoDetalle = () => {
               setDropdownInteresOpenId={setDropdownInteresOpenId}
               handleUpdateNivelInteres={handleUpdateNivelInteres}
               handleDesvincular={handleDesvincular}
-              navigate={navigate}
             />
+          )}
+
+          {contacto.esContacto && (
+            <ContactoTransactions contacto={contacto} />
           )}
         </div>
 

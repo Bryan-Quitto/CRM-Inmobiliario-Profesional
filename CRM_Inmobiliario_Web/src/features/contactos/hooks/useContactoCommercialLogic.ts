@@ -73,7 +73,8 @@ export const useContactoCommercialLogic = () => {
     } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       console.error('Error al revertir estado:', err);
       if (options?.onError) options.onError();
-      toast.error('No se pudo revertir el estado');
+      const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || 'No se pudo revertir el estado.';
+      toast.error(errorMessage);
     }
   };
 

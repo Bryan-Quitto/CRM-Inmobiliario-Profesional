@@ -21,7 +21,9 @@ public static class ObtenerContactoPorIdFeature
         DateTimeOffset FechaCreacion,
         List<InteraccionResponse> Interacciones,
         List<InteresPropiedadResponse> Intereses,
-        List<PropiedadCaptadaResponse> PropiedadesCaptadas);
+        List<PropiedadCaptadaResponse> PropiedadesCaptadas,
+        int NumeroReservas,
+        int NumeroCierres);
 
     public record InteraccionResponse(
         Guid Id,
@@ -90,7 +92,9 @@ public static class ObtenerContactoPorIdFeature
                             p.Precio,
                             p.EstadoComercial,
                             p.FechaIngreso))
-                        .ToList()
+                        .ToList(),
+                    context.Properties.Count(p => p.CerradoConId == c.Id && p.EstadoComercial == "Reservada"),
+                    context.Properties.Count(p => p.CerradoConId == c.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada" || p.EstadoComercial == "Vendido" || p.EstadoComercial == "Rentado"))
                 ))
                 .FirstOrDefaultAsync();
 

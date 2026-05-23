@@ -45,6 +45,10 @@ export interface Contacto {
   numeroInteracciones?: number;
   numeroIntereses?: number;
   numeroPropiedadesCaptadas?: number;
+  numeroReservas?: number;
+  numeroCierres?: number;
+  numeroVisitas?: number;
+  numeroOfertas?: number;
 }
 
 export interface AgenteCompartido {

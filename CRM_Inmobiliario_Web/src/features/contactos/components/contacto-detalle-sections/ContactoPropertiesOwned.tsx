@@ -3,10 +3,9 @@ import type { Contacto } from '../../types';
 
 interface ContactoPropertiesOwnedProps {
   contacto: Contacto;
-  onNavigate: (id: string) => void;
 }
 
-export const ContactoPropertiesOwned = ({ contacto, onNavigate }: ContactoPropertiesOwnedProps) => {
+export const ContactoPropertiesOwned = ({ contacto }: ContactoPropertiesOwnedProps) => {
   const propiedades = contacto.propiedadesCaptadas || [];
 
   const formatDate = (dateString: string) => {
@@ -86,7 +85,7 @@ export const ContactoPropertiesOwned = ({ contacto, onNavigate }: ContactoProper
                 </div>
               </div>
               <button 
-                onClick={() => onNavigate(`/propiedades?id=${prop.id}`)}
+                onClick={() => window.open(`/propiedades?id=${prop.id}`, '_blank')}
                 className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all shadow-sm cursor-pointer"
               >
                 <ExternalLink className="h-4 w-4" />

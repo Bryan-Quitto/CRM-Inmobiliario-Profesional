@@ -73,9 +73,9 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     const esEstadoCerrado = (estado: string) => estado === 'Vendida' || estado === 'Alquilada';
     const esCerradoOReservado = (estado: string) => esEstadoCerrado(estado) || estado === 'Reservada';
     
-    if (esEstadoCerrado(propiedad.estadoComercial) && esEstadoCerrado(nuevoEstado) && !confirmed) {
+    if (esEstadoCerrado(propiedad.estadoComercial) && (esEstadoCerrado(nuevoEstado) || nuevoEstado === 'Reservada') && !confirmed) {
       toast.error("Transición inválida", {
-        description: `La propiedad está ${propiedad.estadoComercial}. Debes pasarla a 'Disponible' (Relistar) antes de registrar una nueva operación.`
+        description: `La propiedad está ${propiedad.estadoComercial}. Debes pasarla a 'Disponible' antes de registrar una nueva reserva u operación.`
       });
       return;
     }
