@@ -34,7 +34,9 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EtapaEmbudo = "Escalado",
                 EsProspecto = true,
-                Notas = $"Escalamiento: {motivo}"
+                Notas = $"Escalamiento: {motivo}",
+                BotActivo = false,
+                TransferenciaNotificada = true
             };
             _context.Contactos.Add(contacto);
         }
@@ -44,6 +46,9 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
             contacto.Notas = string.IsNullOrWhiteSpace(contacto.Notas) 
                 ? $"Escalamiento: {motivo}" 
                 : $"{contacto.Notas}\nEscalamiento: {motivo}";
+            
+            contacto.BotActivo = false;
+            contacto.TransferenciaNotificada = true;
             
             _context.Contactos.Update(contacto);
         }

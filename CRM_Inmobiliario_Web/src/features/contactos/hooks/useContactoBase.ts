@@ -12,7 +12,8 @@ export const useContactoBase = () => {
   
   const { data: contacto, error, isLoading, mutate } = useSWR<Contacto>(
     id ? `/contactos/${id}` : null,
-    () => getContactoById(id!)
+    () => getContactoById(id!),
+    { refreshInterval: 5000 }
   );
 
   const { data: propiedadesDisponibles } = useSWR('/propiedades', getPropiedades);

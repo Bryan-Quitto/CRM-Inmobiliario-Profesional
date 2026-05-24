@@ -33,7 +33,7 @@ export const ConfiguracionView: React.FC = () => {
           ? `La re-vectorización de todas las propiedades (${count}) ha comenzado.` 
           : `La vectorización de ${count} propiedades faltantes ha comenzado.` 
       });
-    } catch (error) {
+    } catch {
       toast.error('Error al iniciar la vectorización');
     } finally {
       setIsVectorizing(false);

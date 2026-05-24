@@ -185,6 +185,11 @@ public static class CambiarEtapaContactoFeature
                 else
                 {
                     contacto.EtapaEmbudo = command.NuevaEtapa;
+                    
+                    if (command.NuevaEtapa == "En Negociación" || command.NuevaEtapa == "Cerrado" || command.NuevaEtapa == "Cerrado Ganado")
+                    {
+                        contacto.BotActivo = false;
+                    }
                 }
 
                 // Lógica especial para cierres (Cerrado Ganado / Vendido / Rentado / Cerrado)

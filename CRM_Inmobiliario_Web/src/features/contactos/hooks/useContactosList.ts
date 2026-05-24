@@ -24,10 +24,10 @@ export const useContactosList = () => {
     navigate(path);
   };
 
-  const { data: allContactos = [], isLoading, isValidating: syncing, mutate } = useSWR<Contacto[]>(
+  const { data: allContactos = [], isLoading, isLoading: syncing, mutate } = useSWR<Contacto[]>(
     '/contactos',
     getContactos,
-    swrDefaultConfig
+    { ...swrDefaultConfig, refreshInterval: 5000, keepPreviousData: true }
   );
 
   const { cambiarEtapa, revertirEtapa } = useContactoCommercialLogic();

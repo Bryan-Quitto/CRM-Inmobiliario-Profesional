@@ -256,7 +256,7 @@ export const ContactosListFilters = ({
                     Todos los estados
                     {filterEstadoCliente === 'Todos' && <Check className="h-4 w-4" />}
                   </button>
-                  {ETAPAS.map((option) => (
+                  {[...ETAPAS, { label: 'Escalado', value: 'Escalado' }].map((option) => (
                     <button
                       key={option.value}
                       onClick={() => { setFilterEstadoCliente(option.value); setOpenDropdownId(null); }}
