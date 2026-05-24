@@ -3,6 +3,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -18,9 +19,13 @@ public static class ServiceCollectionExtensions
 
         // Database
         var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+        dataSourceBuilder.UseVector();
+        var dataSource = dataSourceBuilder.Build();
+
         services.AddDbContext<CrmDbContext>(options => 
         {
-            options.UseNpgsql(connectionString, npgsqlOptions => 
+            options.UseNpgsql(dataSource, npgsqlOptions => 
             {
                 npgsqlOptions.UseVector();
                 npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
