@@ -124,7 +124,7 @@ export const CommissionSection = ({ initialData }: Props) => {
           )}
         />
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight px-1 italic">
-          * Si el contacto es un Contacto, se convertirá automáticamente en Propietario al guardar.
+          * Si el contacto es un Cliente, se convertirá automáticamente también en Propietario al guardar.
         </p>
       </div>
 

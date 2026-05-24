@@ -80,7 +80,15 @@ public static class ServiceCollectionExtensions
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", policy =>
+            {
+                policy.RequireAssertion(context =>
+                    context.User.HasClaim(c => c.Type == "sub" && c.Value == "d4a6efdd-b801-40fb-901e-64e36f6b1400") ||
+                    context.User.HasClaim(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier" && c.Value == "d4a6efdd-b801-40fb-901e-64e36f6b1400"));
+            });
+        });
         services.AddCors(options => options.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
         return services;
