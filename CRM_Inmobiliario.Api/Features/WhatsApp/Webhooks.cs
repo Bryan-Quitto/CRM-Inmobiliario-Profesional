@@ -51,13 +51,27 @@ public static class WebhooksFeature
                     var message = messages[0];
                     string phone = message.GetProperty("from").GetString() ?? string.Empty;
                     
-                    if (message.TryGetProperty("text", out var text))
+                    if (message.TryGetProperty("type", out var typeProp))
                     {
-                        string body = text.GetProperty("body").GetString() ?? string.Empty;
-                        
-                        // Encolamiento persistente y resiliente en Hangfire
-                        Hangfire.BackgroundJob.Enqueue<Services.IWhatsAppJobProcessor>(
-                            x => x.ProcessMessageAsync(phone, body));
+                        var type = typeProp.GetString();
+                        if (type == "text" && message.TryGetProperty("text", out var text))
+                        {
+                            string body = text.GetProperty("body").GetString() ?? string.Empty;
+                            
+                            // Encolamiento persistente y resiliente en Hangfire
+                            Hangfire.BackgroundJob.Enqueue<Services.IWhatsAppJobProcessor>(
+                                x => x.ProcessMessageAsync(phone, body));
+                        }
+                        else if (type == "audio" && message.TryGetProperty("audio", out var audio))
+                        {
+                            string mediaId = audio.GetProperty("id").GetString() ?? string.Empty;
+                            
+                            if (!string.IsNullOrEmpty(mediaId))
+                            {
+                                Hangfire.BackgroundJob.Enqueue<Services.IWhatsAppJobProcessor>(
+                                    x => x.ProcessAudioAsync(phone, mediaId));
+                            }
+                        }
                     }
                 }
             }

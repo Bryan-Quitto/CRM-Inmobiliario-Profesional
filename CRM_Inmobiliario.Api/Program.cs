@@ -37,6 +37,8 @@ builder.Services.AddScoped<IWhatsAppPromptBuilder, WhatsAppPromptBuilder>();
 builder.Services.AddScoped<IWhatsAppToolExecutor, WhatsAppToolExecutor>();
 builder.Services.AddHttpClient<IWhatsAppMessageSender, WhatsAppMessageSender>()
     .AddStandardResilienceHandler();
+builder.Services.AddHttpClient<IWhatsAppMediaService, WhatsAppMediaService>()
+    .AddStandardResilienceHandler();
 builder.Services.AddScoped<IWhatsAppConversationManager, WhatsAppConversationManager>();
 builder.Services.AddScoped<WhatsAppAiService>();
 builder.Services.AddScoped<IWhatsAppJobProcessor, WhatsAppJobProcessor>();
