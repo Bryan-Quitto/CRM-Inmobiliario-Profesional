@@ -24,8 +24,8 @@ export const ContactoHeader = ({
   const isFromOwners = pathname.includes('/propietarios');
   const backPath = isFromOwners ? '/propietarios' : '/contactos';
   
-  const etapaCliente = ETAPAS.find(e => e.value === contacto.etapaEmbudo) || ETAPAS[0];
-  const etapaPropietario = ETAPAS_PROPIETARIO.find(e => e.value === contacto.estadoPropietario) || ETAPAS_PROPIETARIO[0];
+  const etapaCliente = ETAPAS.find(e => e.value === contacto.etapaEmbudo) || { value: contacto.etapaEmbudo, label: contacto.etapaEmbudo, color: 'bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100' };
+  const etapaPropietario = ETAPAS_PROPIETARIO.find(e => e.value === contacto.estadoPropietario) || { value: contacto.estadoPropietario, label: contacto.estadoPropietario, color: 'bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100' };
 
   return (
     <div className="bg-white border-b border-slate-100 sticky top-0 z-[100] px-6 py-4 flex items-center justify-between backdrop-blur-md bg-white/80">

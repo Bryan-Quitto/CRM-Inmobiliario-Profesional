@@ -29,7 +29,7 @@ export const AVAILABLE_CONTACT_FILTERS: FilterDefinition[] = [
     key: 'etapaEmbudo', 
     label: 'Estado de Cliente', 
     type: 'select', 
-    options: ['Todos', 'Nuevo', 'Contactado', 'En Negociación', 'Cerrado', 'Perdido'] 
+    options: ['Todos', 'Nuevo', 'Contactado', 'En Negociación', 'Cerrado', 'Perdido', 'Escalado'] 
   },
   { 
     key: 'estadoPropietario', 

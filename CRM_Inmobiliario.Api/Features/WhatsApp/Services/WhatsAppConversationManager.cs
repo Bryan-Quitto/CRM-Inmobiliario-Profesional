@@ -37,25 +37,24 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         var contacto = await _context.Contactos.AsNoTracking()
             .FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
         
-        // 2. Filtrado por Etapa o Rol
+        // 2. Filtrado por BotActivo
         string? autoMsg = null;
         if (contacto != null)
         {
-            if (contacto.EsPropietario && !contacto.EsProspecto)
+            if (!contacto.BotActivo)
             {
-                autoMsg = "*Mensaje Automático:* ¡Hola! Veo que eres uno de nuestros propietarios. Un agente humano se contactará contigo enseguida para tratar temas de tu inmueble. ¡Gracias por tu paciencia!";
-            }
-            else if (contacto.EtapaEmbudo == "En Negociación")
-            {
-                autoMsg = "*Mensaje Automático:* Hola, hemos recibido tu mensaje. Como te encuentras en proceso de negociación, un asesor humano se contactará contigo en unos momentos para darte una atención personalizada. ¡Gracias por tu paciencia!";
-            }
-            else if (contacto.EtapaEmbudo == "Cerrado")
-            {
-                autoMsg = "*Mensaje Automático:* ¡Hola de nuevo! Es un gusto saludarte. Veo que ya hemos finalizado un proceso exitoso anteriormente. Un asesor se comunicará contigo en breve para asistirte con tus nuevos requerimientos inmobiliarios. ¡Gracias por elegirnos nuevamente!";
-            }
-            else if (contacto.EtapaEmbudo == "Escalado")
-            {
-                autoMsg = string.Empty; // Silence Mode
+                if (!contacto.TransferenciaNotificada)
+                {
+                    autoMsg = "En este momento se está transfiriendo a uno de nuestros agentes humanos para que le atienda personalmente.";
+                    
+                    await _context.Contactos
+                        .Where(c => c.Id == contacto.Id)
+                        .ExecuteUpdateAsync(s => s.SetProperty(c => c.TransferenciaNotificada, true));
+                }
+                else
+                {
+                    autoMsg = string.Empty; // Silence Mode
+                }
             }
         }
 

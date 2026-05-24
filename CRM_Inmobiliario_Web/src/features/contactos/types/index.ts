@@ -34,6 +34,7 @@ export interface Contacto {
   esContacto: boolean;
   estadoPropietario: string;
   esPropietario: boolean;
+  botActivo: boolean;
   notas?: string;
   fechaCreacion: string;
   fechaCierre?: string;

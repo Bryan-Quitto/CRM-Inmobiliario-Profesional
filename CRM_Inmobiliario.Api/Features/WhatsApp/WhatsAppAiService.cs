@@ -46,7 +46,7 @@ public sealed class WhatsAppAiService
             // Logear mensaje del usuario en DB
             await _conversationManager.LogMessageAsync(phone, "user", messageText);
 
-            // 2. Manejar respuesta automática por etapa (Negociación/Cerrado/Escalado)
+            // 2. Manejar respuesta automática de transferencia y Silence Mode
             if (context.AutoResponse != null)
             {
                 if (!string.IsNullOrEmpty(context.AutoResponse))

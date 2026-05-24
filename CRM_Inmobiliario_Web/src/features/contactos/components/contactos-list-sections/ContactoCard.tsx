@@ -1,7 +1,9 @@
-import { Mail, Phone, Clock, Pencil, ChevronDown, Check, ArrowUpRight, Share2, Lock } from 'lucide-react';
+import { Mail, Phone, Clock, Pencil, ChevronDown, Check, ArrowUpRight, Share2, Lock, Bot } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/contactos';
 import { CompartirContactoModal } from './CompartirContactoModal';
+import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
+import { toast } from 'sonner';
 import type { Contacto } from '../../types';
 
 interface ContactoCardProps {
@@ -25,6 +27,7 @@ export const ContactoCard = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isMultipolar = contacto.esContacto && contacto.esPropietario;
+  const { isBotActivo, handleToggle, isLoading } = useContactoBotToggle(contacto.id, contacto.botActivo ?? true);
   
   const getEtapaStyles = (etapa: string, isPropietario: boolean = false) => {
     const list = isPropietario ? ETAPAS_PROPIETARIO : ETAPAS;
@@ -225,6 +228,31 @@ export const ContactoCard = ({
         <div className="flex items-center gap-2">
           {!contacto.esCompartido && (
             <>
+              <div className="opacity-0 group-hover:opacity-100 transition-all inline-block">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                    if (isStageLocked) {
+                      toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                      return;
+                    }
+                    if (isLoading) return;
+                    handleToggle(!isBotActivo);
+                  }}
+                  className={`h-8 px-2 rounded-lg flex items-center gap-1.5 transition-all ${
+                    (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                      ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
+                      : isBotActivo 
+                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
+                        : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title={isBotActivo ? 'Desactivar IA' : 'Activar IA'}
+                >
+                  <Bot className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">{isBotActivo ? 'SI' : 'NO'}</span>
+                </button>
+              </div>
               <button 
                 onClick={(e) => {
                   e.stopPropagation();

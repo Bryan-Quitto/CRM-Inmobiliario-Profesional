@@ -42,6 +42,9 @@ public sealed class Contacto
 
     public string? Notas { get; set; }
 
+    public bool BotActivo { get; set; } = true;
+    public bool TransferenciaNotificada { get; set; } = false;
+
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? FechaCierre { get; set; }
 
