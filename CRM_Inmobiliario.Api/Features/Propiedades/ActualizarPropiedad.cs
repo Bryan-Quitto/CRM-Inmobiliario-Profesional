@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.OutputCaching;
+using Hangfire;
+using CRM_Inmobiliario.Api.Features.Propiedades.Jobs;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
@@ -43,7 +45,7 @@ public static class ActualizarPropiedadFeature
 
     public static void MapActualizarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/propiedades/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
+        app.MapPut("/propiedades/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IBackgroundJobClient backgroundJobs, CancellationToken ct) =>
         {
             var currentUserId = user.GetRequiredUserId();
 
@@ -144,6 +146,9 @@ public static class ActualizarPropiedadFeature
             try
             {
                 await context.SaveChangesAsync();
+                
+                // Enqueue background job to update vector embedding
+                backgroundJobs.Enqueue<PropertyEmbeddingJob>(j => j.ProcessPropertyAsync(propiedad.Id));
             }
             catch (DbUpdateConcurrencyException)
             {

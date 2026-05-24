@@ -9,6 +9,7 @@ using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Features.SeccionesGaleria;
 using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
+using CRM_Inmobiliario.Api.Features.Admin;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -100,5 +101,8 @@ public static class EndpointRouteBuilderExtensions
 
         // Webhooks (Sin Auth usualmente)
         endpoints.MapWhatsAppWebhooksEndpoints();
+
+        // Admin
+        apiGroup.MapReVectorizeEndpoint();
     }
 }

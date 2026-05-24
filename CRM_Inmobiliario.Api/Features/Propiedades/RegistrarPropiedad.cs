@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
+using Hangfire;
+using CRM_Inmobiliario.Api.Features.Propiedades.Jobs;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
@@ -44,7 +46,7 @@ public static class RegistrarPropiedadFeature
 
     public static void MapRegistrarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/propiedades", async (Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, CancellationToken ct) =>
+        app.MapPost("/propiedades", async (Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, IBackgroundJobClient backgroundJobs, CancellationToken ct) =>
         {
             var currentUserId = user.GetRequiredUserId();
             var currentAgent = await context.Agents
@@ -132,6 +134,9 @@ public static class RegistrarPropiedadFeature
 
             context.Properties.Add(propiedad);
             await context.SaveChangesAsync();
+
+            // Enqueue background job to generate vector embedding
+            backgroundJobs.Enqueue<PropertyEmbeddingJob>(j => j.ProcessPropertyAsync(propiedad.Id));
 
             // Notificar al servicio de Warming proactivamente para el agente que registra
             warmingService.NotifyChange(currentUserId);
