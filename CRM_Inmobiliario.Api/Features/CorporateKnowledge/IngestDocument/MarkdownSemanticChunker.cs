@@ -25,7 +25,7 @@ public class MarkdownSemanticChunker
         var currentChunkLines = new List<string>();
         int currentTokens = 0;
         
-        var currentHierarchy = new string[6];
+        var currentHierarchy = new string?[6];
         int lastHeaderLevel = 0;
 
         foreach (var line in lines)
@@ -70,7 +70,7 @@ public class MarkdownSemanticChunker
         return string.Join("\n", lines).Trim();
     }
 
-    private List<string> BuildOverlapAndContext(List<string> previousLines, string[] hierarchy, int lastHeaderLevel, out int newTokens)
+    private List<string> BuildOverlapAndContext(List<string> previousLines, string?[] hierarchy, int lastHeaderLevel, out int newTokens)
     {
         var newLines = new List<string>();
         newTokens = 0;
