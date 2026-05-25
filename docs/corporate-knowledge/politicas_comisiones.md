@@ -4,14 +4,11 @@
 
 ### 1.1 Porcentajes Estándar por Tipo de Propiedad
 Los honorarios por servicios de intermediación inmobiliaria se calculan sobre el precio final de cierre de la compraventa (no sobre el precio de lista inicial), bajo los siguientes porcentajes estándar:
-* **Propiedades Urbanas (Casas, Departamentos, Terrenos):** 5% sobre el valor de venta.
-* **Propiedades Rurales (Fincas, Haciendas, Terrenos Agrícolas):** 8% al 10% sobre el valor de venta, dependiendo de la distancia y dificultad de acceso.
-* **Propiedades Comerciales o Industriales (Galpones, Edificios):** 5% al 6% sobre el valor de venta.
-* **Arrendamientos:** Un canon de arrendamiento (un mes de renta) por contratos de un año.
-
-### 1.2 Honorarios Mínimos y Tarifas Planas
-Para propiedades de bajo costo donde el cálculo porcentual no cubra los gastos operativos y de marketing de la agencia, se establecerá una tarifa plana. 
-* Toda venta de propiedad cuyo valor de cierre sea inferior a $30,000 USD tendrá un honorario mínimo cerrado de $1,500 USD.
+* **Propiedades Urbanas (Casas, Departamentos, Terrenos):** 5% + IVA sobre el valor de venta.
+* **Propiedades Rurales (Fincas, Haciendas, Terrenos Agrícolas):** 5% + IVA sobre el valor de venta, dependiendo de la distancia y dificultad de acceso.
+* **Propiedades Comerciales o Industriales (Galpones, Edificios):** 5% + IVA sobre el valor de venta.
+* **Arrendamientos:** Un canon de arrendamiento (un mes de renta + IVA) por contratos de un año .
+* **Propiedades menores a $100.000:** Es un honorario fijo de $3000 + IVA.
 
 ## 2. Tipos de Contratos de Captación (Listajes)
 
@@ -44,5 +41,5 @@ Para maximizar las oportunidades de venta del cliente, se promueve el co-correta
 * En casos excepcionales de financiamiento hipotecario con desembolsos retrasados, se puede acordar mediante contrato que el pago de la comisión se realice contra el desembolso del banco, no superando los 30 días post-escritura.
 
 ### 4.2 Obligaciones Tributarias de la Comisión
-* Todos los porcentajes de comisión mencionados **no incluyen el IVA**.
+* Todos los porcentajes de comisión mencionados **incluyen el IVA**.
 * El vendedor deberá cancelar el valor de la comisión más el Impuesto al Valor Agregado (15% vigente), por lo cual la agencia emitirá la factura legal correspondiente por servicios prestados.

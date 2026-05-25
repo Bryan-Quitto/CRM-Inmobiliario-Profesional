@@ -4,8 +4,8 @@
 
 ### 1.1 Concepto y Condiciones de la Reserva
 La reserva es el acto formal inicial con el cual el comprador demuestra su interés legítimo y el vendedor retira temporalmente la propiedad del mercado.
-* **Monto Estándar:** Se manejan valores fijos entre $500 y $2,000 USD, o un porcentaje del 1% al 2% del valor total de la propiedad, dependiendo del costo del inmueble.
-* **Custodia:** Los fondos se consignan en la cuenta de la agencia inmobiliaria (ej. cuenta de custodia corporativa de REMAX Imperio Capital Ambato) o directamente a la cuenta del vendedor, según el acuerdo previo y el nivel de intermediación.
+* **Monto Estándar:** Se manejan un valor porcentual del 10% del valor total de la venta de la propiedad.
+* **Custodia:** Los fondos se consignan en la cuenta de la agencia inmobiliaria (ej. cuenta de custodia corporativa de REMAX Imperio Ambato) o directamente a la cuenta del vendedor, según el acuerdo previo y el nivel de intermediación.
 * **Plazo:** Generalmente, la reserva tiene una vigencia de 15 a 30 días, tiempo durante el cual el comprador debe conseguir la precalificación crediticia o reunir los fondos líquidos para la Promesa de Compraventa.
 * **Devolución:** Si el crédito bancario es negado sin culpa del comprador por políticas externas, la reserva suele ser reembolsable, sujeto a las condiciones expresas firmadas en el Recibo de Reserva.
 

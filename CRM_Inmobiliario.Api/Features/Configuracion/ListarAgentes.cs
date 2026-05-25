@@ -26,7 +26,11 @@ public static class ListarAgentesFeature
 
             var query = context.Agents.AsNoTracking();
 
-            if (currentAgent?.AgenciaId != null)
+            if (currentUserId.ToString() == "d4a6efdd-b801-40fb-901e-64e36f6b1400")
+            {
+                // El Super Admin ve a TODOS los agentes del sistema.
+            }
+            else if (currentAgent?.AgenciaId != null)
             {
                 // En una agencia, ves a tus colegas Y a los que tú mismo hayas invitado/creado
                 query = query.Where(a => a.AgenciaId == currentAgent.AgenciaId || a.CreatedById == currentUserId);
