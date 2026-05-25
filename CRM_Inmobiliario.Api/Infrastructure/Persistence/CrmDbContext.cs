@@ -27,6 +27,8 @@ public sealed class CrmDbContext : DbContext
     public DbSet<WhatsappMessage> WhatsappMessages => Set<WhatsappMessage>();
     public DbSet<PropertyTransaction> PropertyTransactions => Set<PropertyTransaction>();
     public DbSet<ContactoHistorialEmbudo> ContactoHistorialEmbudos => Set<ContactoHistorialEmbudo>();
+    public DbSet<Document> Documents => Set<Document>();
+    public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

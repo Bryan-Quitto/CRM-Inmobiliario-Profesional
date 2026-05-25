@@ -37,10 +37,19 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         var contacto = await _context.Contactos.AsNoTracking()
             .FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
         
-        // 2. Filtrado por BotActivo
+        // 2. Filtrado por BotActivo y Reglas de Handoff
         string? autoMsg = null;
         if (contacto != null)
         {
+            // Regla: Si es solo propietario (no prospecto), requiere asistencia humana inmediata
+            if (contacto.EsPropietario && !contacto.EsProspecto && contacto.BotActivo)
+            {
+                contacto.BotActivo = false;
+                await _context.Contactos
+                    .Where(c => c.Id == contacto.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.BotActivo, false));
+            }
+
             if (!contacto.BotActivo)
             {
                 if (!contacto.TransferenciaNotificada)
