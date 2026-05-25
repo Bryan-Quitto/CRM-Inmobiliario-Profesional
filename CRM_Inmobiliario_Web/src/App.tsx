@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { TareasProvider } from './features/tareas/context/TareasProvider';
 import { UploadProvider } from './features/propiedades/context/UploadProvider';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
@@ -14,6 +15,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { PageLoader, SidebarLoader } from './components/layout/Loaders';
+import { AdminRoute } from './components/layout/AdminRoute';
 
 // Lazy Loading de Features
 const DashboardPrincipal = lazy(() => import('./features/dashboard/components/DashboardPrincipal').then(m => ({ default: m.DashboardPrincipal })));
@@ -24,10 +26,18 @@ const PropiedadesList = lazy(() => import('./features/propiedades/components/Pro
 const AnaliticaView = lazy(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView })));
 const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
 const AuditoriaLogsView = lazy(() => import('./features/ia/components/AuditoriaLogsView').then(m => ({ default: m.AuditoriaLogsView })));
-const ConfiguracionView = lazy(() => import('./features/configuracion/components/ConfiguracionView'));
+const ConfiguracionLayout = lazy(() => import('./features/configuracion/components/ConfiguracionLayout'));
+const ConfiguracionPerfil = lazy(() => import('./features/auth/components/ConfiguracionPerfil'));
+const ConfiguracionIA = lazy(() => import('./features/configuracion/components/ConfiguracionIA').then(m => ({ default: m.ConfiguracionIA })));
+const ConfiguracionOrganizacion = lazy(() => import('./features/configuracion/components/ConfiguracionOrganizacion').then(m => ({ default: m.ConfiguracionOrganizacion })));
+const ConfiguracionAgentes = lazy(() => import('./features/configuracion/components/ConfiguracionAgentes').then(m => ({ default: m.ConfiguracionAgentes })));
+const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad })));
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
 
 function AppContent({ session }: { session: Session | null }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('crm_sidebar_state');
     return saved !== null ? JSON.parse(saved) : true;
@@ -44,6 +54,19 @@ function AppContent({ session }: { session: Session | null }) {
   useEffect(() => {
     localStorage.setItem('crm_agenda_state', JSON.stringify(isAgendaOpen));
   }, [isAgendaOpen]);
+
+  // Interceptor global de errores de enrutamiento
+  useEffect(() => {
+    const state = location.state as { authError?: string } | null;
+    if (state?.authError) {
+      toast.error('Acceso denegado', { 
+        id: 'global-auth-error',
+        description: state.authError 
+      });
+      // Limpiamos el state para que no vuelva a saltar si el usuario recarga la página
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
@@ -70,8 +93,17 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/propiedades" element={<PropiedadesList />} />
               <Route path="/ia-logs" element={<AuditoriaLogsView />} />
               <Route path="/kpis" element={<AnaliticaView />} />
-              <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionView /></Suspense>} />
+              <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionLayout /></Suspense>}>
+                <Route index element={<Navigate to="perfil" replace />} />
+                <Route path="perfil" element={<ConfiguracionPerfil />} />
+                <Route path="ia" element={<AdminRoute><ConfiguracionIA /></AdminRoute>} />
+                <Route path="organizacion" element={<AdminRoute><ConfiguracionOrganizacion /></AdminRoute>} />
+                <Route path="agentes" element={<AdminRoute><ConfiguracionAgentes /></AdminRoute>} />
+                <Route path="seguridad" element={<AdminRoute><ConfiguracionSeguridad /></AdminRoute>} />
+              </Route>
               <Route path="/confirmar-password" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
+              {/* Fallback global para usuarios logueados que intentan acceder a una ruta inexistente o vienen del login */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </main>

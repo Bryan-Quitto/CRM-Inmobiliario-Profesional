@@ -28,7 +28,7 @@ export const ReactivacionAgenteModal: React.FC<ReactivacionAgenteModalProps> = (
       toast.success('Agente reactivado exitosamente');
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch {
       // error handled in hook
     }
   };
