@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ConfiguracionPerfil from '../../auth/components/ConfiguracionPerfil';
 import { InvitarAgenteForm } from './InvitarAgenteForm';
+import { BaseConocimientoSection } from './BaseConocimientoSection';
 import { UserCog, UserPlus, Building2, Plus, Loader2, Check, Database, AlertTriangle, X } from 'lucide-react';
 import { usePerfil } from '../../auth/api/perfil';
 import { crearAgencia } from '../api/agencias';
@@ -199,6 +200,9 @@ export const ConfiguracionView: React.FC = () => {
                 </div>
               </div>
             </section>
+
+            {/* Ingestión de Conocimiento Corporativo (RAG) */}
+            <BaseConocimientoSection />
           </div>
         )}
       </div>
