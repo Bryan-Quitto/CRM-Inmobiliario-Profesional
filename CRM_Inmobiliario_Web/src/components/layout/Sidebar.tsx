@@ -32,7 +32,10 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     { id: 'kpis', path: '/kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   const handleLogout = async () => {
     try {
@@ -89,7 +92,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
 
       <div className="p-3 border-t border-slate-800/50 space-y-2">
         <button 
-          onClick={() => navigate('/configuracion')}
+          onClick={() => navigate('/configuracion/perfil')}
           aria-label="Abrir Configuración"
           className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative ${
             isActive('/configuracion')

@@ -5,13 +5,12 @@ import { Loader2, ShieldAlert, UserCheck } from 'lucide-react';
 import { ReasignacionAgenteModal } from './ReasignacionAgenteModal';
 import { ReactivacionAgenteModal } from './ReactivacionAgenteModal';
 
-import { useReactivarAgente } from '../hooks/useReactivarAgente';
-import { toast } from 'sonner';
+
 
 export const ListaAgentes: React.FC = () => {
   const { perfil } = usePerfil();
   const { agentes, isLoading, mutate } = useAgentes();
-  const { mutateAsync: reactivar, isLoading: isReactivando } = useReactivarAgente();
+
   
   const ADMIN_ID = 'd4a6efdd-b801-40fb-901e-64e36f6b1400';
   const isAdmin = perfil?.id === ADMIN_ID;
