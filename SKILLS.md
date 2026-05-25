@@ -26,6 +26,7 @@ This file defines the strict technical standards and architectural rules for the
 - **CRITICAL THRESHOLD:** Feature files MUST NOT exceed **200 lines**. If a feature exceeds this limit, its logic must be extracted to specialized helper classes (e.g., `Validator`, `Processor`, `Mapper`) within the same feature folder.
 
 ### Frontend (Feature-Sliced Design)
+- **Rule (Idioma Estricto):** ALL visual elements, UI copy, placeholders, alerts, tooltips, and user-facing text (Frontend UI/UX) MUST be exclusively in Spanish. This is an UNBREAKABLE rule.
 - **Rule:** Organize React code by features in `/src/features/`.
 - **Organization:** Avoid global centralization of components, hooks, or services.
 - **Rule (Universal Logic SSoT):** STRICT prohibition of duplicating business logic, complex validations, or lifecycle mutations across multiple components or hooks. Any action affecting the state of an entity (Property, Contact, Task, etc.) MUST reside in a centralized, view-agnostic logic hook (e.g., `usePropertyCommercialLogic.ts`). UI-specific hooks must delegate execution and revalidation strategies to these central providers to ensure consistency and prevent race conditions.

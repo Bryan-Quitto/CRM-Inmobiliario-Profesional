@@ -10,6 +10,7 @@ using CRM_Inmobiliario.Api.Features.SeccionesGaleria;
 using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
 using CRM_Inmobiliario.Api.Features.Admin;
+using CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -105,5 +106,6 @@ public static class EndpointRouteBuilderExtensions
 
         // Admin
         apiGroup.MapReVectorizeEndpoint();
+        apiGroup.MapIngestDocumentEndpoint();
     }
 }
