@@ -129,12 +129,14 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.EstadoComercial,
                     x.Property.EsCaptacionPropia,
                     x.Property.EsCaptadorActivo,
-                    x.Property.PorcentajeComision,
+                    x.Property.AgenteId == currentUserId ? x.Property.PorcentajeComision : 0m,
                     x.Property.FechaIngreso,
                     x.Property.AgenteId,
                     x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : string.Empty,
-                    x.Property.PropietarioId,
-                    x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null,
+                    x.Property.AgenteId == currentUserId ? x.Property.PropietarioId : null,
+                    x.Property.AgenteId == currentUserId 
+                        ? (x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null)
+                        : "Oculto (Exclusiva del Captador)",
                     x.Property.CerradoConId,
                     x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null,
                     x.Property.PrecioCierre,

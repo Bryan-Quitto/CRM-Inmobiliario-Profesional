@@ -19,6 +19,7 @@ public static class ObtenerContactoPorIdFeature
         bool EsContacto,
         bool EsPropietario,
         DateTimeOffset FechaCreacion,
+        bool EsCompartido,
         List<InteraccionResponse> Interacciones,
         List<InteresPropiedadResponse> Intereses,
         List<PropiedadCaptadaResponse> PropiedadesCaptadas,
@@ -62,14 +63,15 @@ public static class ObtenerContactoPorIdFeature
                     c.Id,
                     c.Nombre,
                     c.Apellido,
-                    c.Email,
-                    c.Telefono,
+                    c.AgenteId == agenteId ? c.Email : "oculto@privado.com",
+                    c.AgenteId == agenteId ? c.Telefono : "***-***-****",
                     c.Origen,
                     c.EtapaEmbudo,
                     c.EstadoPropietario,
                     c.EsProspecto,
                     c.EsPropietario,
                     c.FechaCreacion,
+                    c.AgenteId != agenteId,
                     c.Interactions
                         .OrderByDescending(i => i.FechaInteraccion)
                         .Select(i => new InteraccionResponse(i.Id, i.TipoInteraccion, i.Notas, i.FechaInteraccion))
