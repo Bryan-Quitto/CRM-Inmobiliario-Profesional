@@ -27,13 +27,4 @@ El bot de IA está configurado para precalificar, informar y resolver dudas oper
 
 ### 3.2 Guion de Transición del Bot
 Al activar el *handoff*, el bot utilizará un mensaje de transición profesional antes de pausar sus respuestas:
-* *"Perfecto. Para coordinar los detalles exactos y brindarle una atención personalizada, voy a transferir su caso a un agente especializado de REMAX Imperio Capital en este momento. Él revisará nuestro historial de chat y le responderá a la brevedad posible."*
-
-## 4. Directorio de Contactos Clave
-
-### 4.1 Extensiones y Departamentos Internos
-Para escalamiento de casos o resolución de dudas logísticas internas, los canales autorizados son:
-* **Recepción / Coordinación Operativa:** Ext. 101 | Gestión de llaves, control de rótulos publicitarios y agendamiento general.
-* **Gerencia Comercial:** Ext. 102 | Aprobación de descuentos en comisiones, alianzas de co-corretaje y resolución de conflictos.
-* **Asesoría Legal:** Ext. 103 | Revisión de minutas, contratos de exclusividad y estudios de títulos de propiedad.
-* **Soporte Técnico / CRM:** Ext. 104 | Reportes de errores en el sistema, caídas del bot de WhatsApp o problemas con accesos a la base de datos de propiedades.
+* *"Perfecto. Para coordinar los detalles exactos y brindarle una atención personalizada, voy a transferir su caso a un agente especializado de REMAX Imperio Ambato en este momento. Él revisará nuestro historial de chat y le responderá a la brevedad posible."*

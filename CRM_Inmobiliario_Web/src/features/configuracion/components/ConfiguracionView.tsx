@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ConfiguracionPerfil from '../../auth/components/ConfiguracionPerfil';
 import { InvitarAgenteForm } from './InvitarAgenteForm';
+import { ListaAgentes } from './ListaAgentes';
 import { BaseConocimientoSection } from './BaseConocimientoSection';
 import { UserCog, UserPlus, Building2, Plus, Loader2, Check, Database, AlertTriangle, X } from 'lucide-react';
 import { usePerfil } from '../../auth/api/perfil';
@@ -116,6 +117,8 @@ export const ConfiguracionView: React.FC = () => {
                   <InvitarAgenteForm />
                 </div>
               </div>
+              
+              <ListaAgentes />
             </section>
 
             {/* Gestión de Agencias */}

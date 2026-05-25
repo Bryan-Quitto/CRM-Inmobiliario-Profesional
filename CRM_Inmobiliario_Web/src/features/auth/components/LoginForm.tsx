@@ -25,6 +25,8 @@ export const LoginForm: React.FC = () => {
         let message = 'Error al iniciar sesión';
         if (authError.message === 'Invalid login credentials') {
           message = 'Email o contraseña incorrectos';
+        } else if (authError.message.toLowerCase().includes('banned')) {
+          message = 'Esta cuenta ha sido desactivada por el administrador.';
         } else {
           message = authError.message;
         }

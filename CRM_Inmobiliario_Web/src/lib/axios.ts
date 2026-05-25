@@ -43,6 +43,14 @@ api.interceptors.response.use(
       });
     }
 
+    // Errores de Autenticación / Baneo
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Forzar cierre de sesión si el token es inválido o el usuario fue bloqueado
+      supabase.auth.signOut().then(() => {
+        window.location.href = '/login';
+      });
+    }
+
     return Promise.reject(error);
   }
 );

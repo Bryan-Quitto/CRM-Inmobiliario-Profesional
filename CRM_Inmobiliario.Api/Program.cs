@@ -1,4 +1,5 @@
 using CRM_Inmobiliario.Api.Extensions;
+using Microsoft.EntityFrameworkCore;
 using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
@@ -73,6 +74,32 @@ if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Middleware de bloqueo inmediato para agentes inactivos
+app.Use(async (context, next) => {
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        var userIdString = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(userIdString, out Guid userId))
+        {
+            var db = context.RequestServices.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
+            // Verificar si el usuario existe en Agents y NO está activo
+            var isActivo = await db.Agents
+                .Where(a => a.Id == userId)
+                .Select(a => (bool?)a.Activo)
+                .FirstOrDefaultAsync();
+
+            if (isActivo.HasValue && !isActivo.Value)
+            {
+                context.Response.StatusCode = 403;
+                await context.Response.WriteAsJsonAsync(new { error = "Account is deactivated." });
+                return; // Cortocircuitar la petición
+            }
+        }
+    }
+    await next();
+});
+
 app.UseOutputCache();
 
 // Configurar Hangfire Dashboard (opcional)
