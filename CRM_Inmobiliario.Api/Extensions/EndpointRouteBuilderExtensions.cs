@@ -2,6 +2,7 @@ using CRM_Inmobiliario.Api.Features.Analitica;
 using CRM_Inmobiliario.Api.Features.Calendario;
 using CRM_Inmobiliario.Api.Features.Contactos;
 using CRM_Inmobiliario.Api.Features.Configuracion;
+using CRM_Inmobiliario.Api.Features.Configuracion.Seguridad;
 using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Features.Interacciones;
 using CRM_Inmobiliario.Api.Features.Intereses;
@@ -94,6 +95,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapListarAgentesEndpoint();
         apiGroup.MapDesactivarAgenteEndpoint();
         apiGroup.MapReactivarAgenteEndpoint();
+        apiGroup.MapListarLogsSeguridadEndpoint();
 
         // Calendario
         apiGroup.MapListarEventosEndpoint().CacheOutput();

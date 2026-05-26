@@ -29,6 +29,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<ContactoHistorialEmbudo> ContactoHistorialEmbudos => Set<ContactoHistorialEmbudo>();
     public DbSet<Document> Documents => Set<Document>();
     public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
+    public DbSet<SecurityAuditLog> SecurityAuditLogs => Set<SecurityAuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

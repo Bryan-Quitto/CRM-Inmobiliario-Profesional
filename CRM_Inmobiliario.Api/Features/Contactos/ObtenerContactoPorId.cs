@@ -108,6 +108,7 @@ public static class ObtenerContactoPorIdFeature
         })
         .RequireAuthorization()
         .WithTags("Contactos")
-        .WithName("ObtenerContactoPorId");
+        .WithName("ObtenerContactoPorId")
+        .AddEndpointFilter<CRM_Inmobiliario.Api.Infrastructure.Security.SecurityTelemetryFilter>();
     }
 }
