@@ -11,6 +11,9 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddProjectInfrastructure(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
+        // Caché en memoria (Telemetría de Seguridad)
+        services.AddMemoryCache();
+
         // JSON Options
         services.ConfigureHttpJsonOptions(options => {
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());

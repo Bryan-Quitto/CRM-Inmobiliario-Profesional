@@ -192,6 +192,7 @@ public static class ObtenerPropiedadPorIdFeature
                 : Results.NotFound();
         })
         .WithTags("Propiedades")
-        .WithName("ObtenerPropiedadPorId");
+        .WithName("ObtenerPropiedadPorId")
+        .AddEndpointFilter<CRM_Inmobiliario.Api.Infrastructure.Security.SecurityTelemetryFilter>();
     }
 }
