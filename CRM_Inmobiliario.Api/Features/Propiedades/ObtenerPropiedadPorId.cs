@@ -137,8 +137,10 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.AgenteId == currentUserId 
                         ? (x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null)
                         : "Oculto (Exclusiva del Captador)",
-                    x.Property.CerradoConId,
-                    x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null,
+                    x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) ? x.Property.CerradoConId : null,
+                    x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) 
+                        ? (x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null) 
+                        : "Oculto (Privacidad del Inversionista)",
                     x.Property.PrecioCierre,
                     x.Property.PrecioReserva,
                     x.Property.GallerySections

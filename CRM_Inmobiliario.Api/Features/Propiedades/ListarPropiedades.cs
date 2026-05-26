@@ -97,13 +97,15 @@ public static class ListarPropiedadesFeature
                     x.Property.Ciudad,
                     x.Property.EstadoComercial,
                     x.Property.EsCaptacionPropia,
-                    x.Property.PorcentajeComision,
+                    x.Property.AgenteId == currentUserId ? x.Property.PorcentajeComision : 0m,
                     x.Property.Agente != null ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : string.Empty,
                     (x.Property.EsCaptadorActivo && x.Property.AgenteId != null) ? x.Property.AgenteId.Value : x.Property.CreatedByAgenteId ?? Guid.Empty,
                     (x.Property.EsCaptadorActivo && x.Property.Agente != null) ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : (x.Property.CreatedByAgente != null ? x.Property.CreatedByAgente.Nombre + " " + x.Property.CreatedByAgente.Apellido : "Agente desconocido"),
-                    x.Property.PropietarioId,
-                    x.Property.CerradoConId,
-                    x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null,
+                    x.Property.AgenteId == currentUserId ? x.Property.PropietarioId : null,
+                    x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) ? x.Property.CerradoConId : null,
+                    x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) 
+                        ? (x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null) 
+                        : "Oculto (Privacidad del Inversionista)",
                     x.Property.Media
                         .Where(m => m.EsPrincipal)
                         .Select(m => m.UrlPublica)
