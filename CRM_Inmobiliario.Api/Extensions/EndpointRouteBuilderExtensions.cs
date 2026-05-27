@@ -34,6 +34,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapRevocarCompartidoEndpoint();
         apiGroup.MapObtenerAgentesCompartidosEndpoint();
         apiGroup.MapToggleBotActivoEndpoint();
+        apiGroup.MapBotOverrideContactoEndpoint();
 
         // Propiedades
         apiGroup.MapRegistrarPropiedadEndpoint();
@@ -97,6 +98,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapReactivarAgenteEndpoint();
         apiGroup.MapListarLogsSeguridadEndpoint();
         apiGroup.MapAdminApiKeysEndpoints();
+        apiGroup.MapConfiguracionIAEndpoints();
 
         // Calendario
         apiGroup.MapListarEventosEndpoint().CacheOutput();

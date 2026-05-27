@@ -31,7 +31,8 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
                 Origen = "IA WhatsApp",
                 AgenteId = agent?.Id ?? Guid.Empty,
                 FechaCreacion = DateTimeOffset.UtcNow,
-                EtapaEmbudo = "Escalado",
+                EtapaEmbudo = "Nuevo",
+                EstadoIA = "Escalado",
                 EsProspecto = true,
                 Notas = $"Escalamiento: {motivo}",
                 BotActivo = false,
@@ -41,7 +42,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
         }
         else
         {
-            contacto.EtapaEmbudo = "Escalado";
+            contacto.EstadoIA = "Escalado";
             contacto.Notas = string.IsNullOrWhiteSpace(contacto.Notas) 
                 ? $"Escalamiento: {motivo}" 
                 : $"{contacto.Notas}\nEscalamiento: {motivo}";

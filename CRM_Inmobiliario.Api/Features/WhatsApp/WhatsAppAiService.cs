@@ -89,6 +89,11 @@ Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
                 new UserChatMessage(messageText)
             });
             
+            if (context.Contacto != null)
+            {
+                await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, intentResponse.Value.Usage.TotalTokenCount);
+            }
+            
             var history = context.History;
             
             if (intentResponse.Value.Content[0].Text.Trim().ToUpper() == "CORPORATE")
@@ -139,6 +144,11 @@ Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
 
                 _logger.LogInformation("--- TOKENS: Input={Input}, Output={Output}, Total={Total} ---", 
                     completion.Usage.InputTokenCount, completion.Usage.OutputTokenCount, completion.Usage.TotalTokenCount);
+
+                if (context.Contacto != null)
+                {
+                    await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, completion.Usage.TotalTokenCount);
+                }
 
                 switch (completion.FinishReason)
                 {

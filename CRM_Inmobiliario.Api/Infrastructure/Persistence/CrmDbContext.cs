@@ -30,6 +30,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<Document> Documents => Set<Document>();
     public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
     public DbSet<SecurityAuditLog> SecurityAuditLogs => Set<SecurityAuditLog>();
+    public DbSet<ContactDailyTokenUsage> ContactDailyTokenUsages => Set<ContactDailyTokenUsage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

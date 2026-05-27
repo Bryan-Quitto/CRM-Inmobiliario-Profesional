@@ -33,6 +33,7 @@ const ConfiguracionIAApi = lazy(() => import('./features/configuracion/component
 const ConfiguracionOrganizacion = lazy(() => import('./features/configuracion/components/ConfiguracionOrganizacion').then(m => ({ default: m.ConfiguracionOrganizacion })));
 const ConfiguracionAgentes = lazy(() => import('./features/configuracion/components/ConfiguracionAgentes').then(m => ({ default: m.ConfiguracionAgentes })));
 const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad })));
+const ConfiguracionUsoIA = lazy(() => import('./features/configuracion/components/ConfiguracionUsoIA').then(m => ({ default: m.ConfiguracionUsoIA })));
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
 
 function AppContent({ session }: { session: Session | null }) {
@@ -102,6 +103,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="organizacion" element={<AdminRoute><ConfiguracionOrganizacion /></AdminRoute>} />
                 <Route path="agentes" element={<AdminRoute><ConfiguracionAgentes /></AdminRoute>} />
                 <Route path="seguridad" element={<AdminRoute><ConfiguracionSeguridad /></AdminRoute>} />
+                <Route path="uso-ia" element={<ConfiguracionUsoIA />} />
               </Route>
               <Route path="/confirmar-password" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
               {/* Fallback global para usuarios logueados que intentan acceder a una ruta inexistente o vienen del login */}

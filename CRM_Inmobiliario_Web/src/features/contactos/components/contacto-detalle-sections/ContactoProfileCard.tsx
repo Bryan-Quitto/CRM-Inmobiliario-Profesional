@@ -1,5 +1,6 @@
 import { Phone, Mail, Tag, Bot } from 'lucide-react';
 import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
+import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 import type { Contacto } from '../../types';
 
@@ -8,7 +9,7 @@ interface ContactoProfileCardProps {
 }
 
 export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
-  const { isBotActivo, handleToggle, isLoading } = useContactoBotToggle(contacto.id, contacto.botActivo ?? true);
+  const { isBotActivo, handleToggle, isLoading, showOverrideModal, confirmOverride, cancelOverride } = useContactoBotToggle(contacto);
 
   return (
     <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
@@ -36,9 +37,17 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors ${isBotActivo ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-slate-400'}`}>
               <Bot className="h-5 w-5" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Atención IA</p>
-              <p className="text-sm font-bold text-slate-900 truncate">{isBotActivo ? 'Asignado al Bot' : 'Asignado a Humano'}</p>
+            <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado IA</p>
+              {isBotActivo ? (
+                <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
+              ) : contacto.estadoIA === 'Escalado' ? (
+                <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
+              ) : contacto.estadoIA === 'LimiteAlcanzado' ? (
+                <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de Tokens</span>
+              ) : (
+                <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
+              )}
             </div>
           </div>
           <div className="inline-block">
@@ -88,6 +97,15 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showOverrideModal}
+        onClose={cancelOverride}
+        onConfirm={confirmOverride}
+        title="Reactivar IA (Límite Superado)"
+        description="Este contacto ha alcanzado su límite de tokens diarios. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
+        confirmText="Sí, reactivar bot"
+      />
     </div>
   );
 };
