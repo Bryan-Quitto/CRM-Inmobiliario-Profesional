@@ -11,7 +11,7 @@ public record WhatsAppContext(
 
 public interface IWhatsAppConversationManager
 {
-    Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText);
+    Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId);
     Task SaveStateAsync(string phone, List<ChatMessage> history);
     Task LogMessageAsync(string phone, string role, string content);
 }

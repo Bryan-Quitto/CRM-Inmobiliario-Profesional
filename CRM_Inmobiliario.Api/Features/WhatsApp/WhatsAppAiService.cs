@@ -6,6 +6,7 @@ using System.ClientModel.Primitives;
 using System.Text.RegularExpressions;
 using Pgvector.EntityFrameworkCore;
 using CRM_Inmobiliario.Api.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp;
 
@@ -39,14 +40,14 @@ public sealed class WhatsAppAiService
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
     }
 
-    public async Task ProcessIncomingMessageAsync(string phone, string messageText)
+    public async Task ProcessIncomingMessageAsync(string phone, string messageText, string phoneNumberId)
     {
         try
         {
             _logger.LogInformation("Procesando mensaje de {Phone}: {Message}", phone, messageText);
 
             // 1. Preparar contexto (Contacto, Conversación, Historial, Filtros de Etapa)
-            var context = await _conversationManager.PrepareContextAsync(phone, messageText);
+            var context = await _conversationManager.PrepareContextAsync(phone, messageText, phoneNumberId);
             
             // Logear mensaje del usuario en DB
             await _conversationManager.LogMessageAsync(phone, "user", messageText);
@@ -58,7 +59,7 @@ public sealed class WhatsAppAiService
                 {
                     _logger.LogInformation("Contacto {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
                     await _conversationManager.LogMessageAsync(phone, "assistant", context.AutoResponse);
-                    await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse);
+                    await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse, phoneNumberId);
                 }
                 else
                 {
@@ -73,7 +74,10 @@ public sealed class WhatsAppAiService
             {
                 Transport = new HttpClientPipelineTransport(httpClient)
             };
-            var chatClient = new ChatClient("gpt-4o-mini", new System.ClientModel.ApiKeyCredential(_openAiApiKey ?? ""), clientOptions);
+            
+            var tenantAgent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+            string apiKeyToUse = tenantAgent?.AiApiKey ?? _openAiApiKey ?? "";
+            var chatClient = new ChatClient("gpt-4o-mini", new System.ClientModel.ApiKeyCredential(apiKeyToUse), clientOptions);
             
             // 3.1 Clasificación de Intención
             var intentPrompt = @"Clasifica el siguiente mensaje del usuario en una de dos categorías:
@@ -91,7 +95,7 @@ Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
             {
                 _logger.LogInformation("Intención CORPORATE detectada para {Phone}.", phone);
                 
-                var embeddingClient = new OpenAI.Embeddings.EmbeddingClient("text-embedding-3-small", _openAiApiKey ?? "");
+                var embeddingClient = new OpenAI.Embeddings.EmbeddingClient("text-embedding-3-small", apiKeyToUse);
                 var embeddingResult = await embeddingClient.GenerateEmbeddingAsync(messageText);
                 var queryVector = new Pgvector.Vector(embeddingResult.Value.ToFloats().ToArray());
                 
@@ -151,7 +155,7 @@ Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
                         foreach (var toolCall in completion.ToolCalls)
                         {
                             _logger.LogInformation("--- TOOL CALL: {Tool} ---", toolCall.FunctionName);
-                            string toolResult = await _toolExecutor.HandleToolCallAsync(toolCall, phone, messageText, context.Contacto);
+                            string toolResult = await _toolExecutor.HandleToolCallAsync(toolCall, phone, messageText, context.Contacto, phoneNumberId);
                             history.Add(new ToolChatMessage(toolCall.Id, toolResult));
                         }
                         requiresAction = true;
@@ -166,7 +170,7 @@ Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
             if (!string.IsNullOrEmpty(finalResponse))
             {
                 finalResponse = Regex.Replace(finalResponse, @"\*+", "*");
-                await _messageSender.SendWhatsAppMessageAsync(phone, finalResponse);
+                await _messageSender.SendWhatsAppMessageAsync(phone, finalResponse, phoneNumberId);
             }
         }
         catch (Exception ex)

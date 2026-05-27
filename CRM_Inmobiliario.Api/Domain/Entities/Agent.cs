@@ -43,6 +43,12 @@ public sealed class Agent
 
     public bool Activo { get; set; } = true;
 
+    [MaxLength(255)]
+    public string? AiApiKey { get; set; }
+
+    [MaxLength(50)]
+    public string? WhatsAppPhoneNumberId { get; set; }
+
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 
     // Relaciones de navegación

@@ -5,8 +5,8 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
 public interface IWhatsAppJobProcessor
 {
-    Task ProcessMessageAsync(string phone, string body);
-    Task ProcessAudioAsync(string phone, string mediaId);
+    Task ProcessMessageAsync(string phone, string body, string phoneNumberId);
+    Task ProcessAudioAsync(string phone, string mediaId, string phoneNumberId);
 }
 
 public class WhatsAppJobProcessor : IWhatsAppJobProcessor
@@ -20,14 +20,14 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
         _logger = logger;
     }
 
-    public async Task ProcessMessageAsync(string phone, string body)
+    public async Task ProcessMessageAsync(string phone, string body, string phoneNumberId)
     {
         try
         {
             using var scope = _scopeFactory.CreateScope();
             var aiService = scope.ServiceProvider.GetRequiredService<WhatsAppAiService>();
 
-            await aiService.ProcessIncomingMessageAsync(phone, body);
+            await aiService.ProcessIncomingMessageAsync(phone, body, phoneNumberId);
         }
         catch (Exception ex)
         {
@@ -36,7 +36,7 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
         }
     }
 
-    public async Task ProcessAudioAsync(string phone, string mediaId)
+    public async Task ProcessAudioAsync(string phone, string mediaId, string phoneNumberId)
     {
         try
         {
@@ -64,7 +64,7 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
 
             // 4. Llamar a WhatsAppAiService.ProcessIncomingMessageAsync(phone, transcripcion)
             _logger.LogInformation("Transcripción obtenida para {Phone}: {Text}", phone, transcription);
-            await aiService.ProcessIncomingMessageAsync(phone, transcription);
+            await aiService.ProcessIncomingMessageAsync(phone, transcription, phoneNumberId);
         }
         catch (Exception ex)
         {

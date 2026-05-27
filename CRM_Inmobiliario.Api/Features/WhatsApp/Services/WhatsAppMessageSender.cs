@@ -20,15 +20,17 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
         _whatsappPhoneId = Environment.GetEnvironmentVariable("WHATSAPP_PHONE_NUMBER_ID")?.Trim().Trim('"');
     }
 
-    public async Task SendWhatsAppMessageAsync(string to, string text)
+    public async Task SendWhatsAppMessageAsync(string to, string text, string? phoneNumberId = null)
     {
-        if (string.IsNullOrEmpty(_whatsappToken) || string.IsNullOrEmpty(_whatsappPhoneId))
+        var phoneIdToUse = phoneNumberId ?? _whatsappPhoneId;
+        
+        if (string.IsNullOrEmpty(_whatsappToken) || string.IsNullOrEmpty(phoneIdToUse))
         {
             _logger.LogWarning("WhatsApp Message Sender: Credenciales no configuradas.");
             return;
         }
 
-        var url = $"https://graph.facebook.com/v19.0/{_whatsappPhoneId}/messages";
+        var url = $"https://graph.facebook.com/v19.0/{phoneIdToUse}/messages";
         var payload = new
         {
             messaging_product = "whatsapp",
