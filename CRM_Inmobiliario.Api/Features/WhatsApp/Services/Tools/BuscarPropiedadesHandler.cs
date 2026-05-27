@@ -20,7 +20,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "BuscarPropiedades";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
+    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
     {
         string? queryStr = args.RootElement.TryGetProperty("query", out var q) ? q.GetString() : null;
 
@@ -36,6 +36,19 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             .Select(i => i.PropiedadId)
             .ToListAsync();
 
+        Guid? currentAgentId = null;
+        Guid? currentAgencyId = null;
+
+        if (!string.IsNullOrEmpty(phoneNumberId))
+        {
+            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+            if (agent != null)
+            {
+                currentAgentId = agent.Id;
+                currentAgencyId = agent.AgenciaId;
+            }
+        }
+
         var allowedStates = new[] { "Disponible", "Reservada", "Alquilada" };
         
         var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr);
@@ -49,6 +62,10 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             .Where(p => allowedStates.Contains(p.EstadoComercial))
             .Where(p => !descartadosIds.Contains(p.Id))
             .Where(p => p.VectorEmbedding != null)
+            // Regla de Visibilidad (Data Tenancy): Agencia completa o solo suyas si es independiente
+            .Where(p => 
+                (currentAgencyId != null && p.AgenciaId == currentAgencyId) || 
+                (currentAgentId != null && (p.AgenteId == currentAgentId || p.CreatedByAgenteId == currentAgentId)))
             .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
             .Take(3)
             .Select(p => new PropiedadResultDto(

@@ -30,12 +30,36 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText)
+    public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId)
     {
         // 1. Búsqueda inteligente del Contacto
         string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
-        var contacto = await _context.Contactos.AsNoTracking()
+        var contacto = await _context.Contactos
+            .Include(c => c.Agente)
             .FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
+        
+        if (contacto == null)
+        {
+            var agente = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+            if (agente != null)
+            {
+                contacto = new Contacto
+                {
+                    Id = Guid.NewGuid(),
+                    Nombre = "Cliente WA",
+                    Apellido = phone,
+                    Telefono = phone,
+                    Origen = "IA WhatsApp",
+                    AgenteId = agente.Id,
+                    Agente = agente,
+                    FechaCreacion = DateTimeOffset.UtcNow,
+                    EtapaEmbudo = "Nuevo",
+                    EsProspecto = true
+                };
+                _context.Contactos.Add(contacto);
+                await _context.SaveChangesAsync();
+            }
+        }
         
         // 2. Filtrado por BotActivo y Reglas de Handoff
         string? autoMsg = null;

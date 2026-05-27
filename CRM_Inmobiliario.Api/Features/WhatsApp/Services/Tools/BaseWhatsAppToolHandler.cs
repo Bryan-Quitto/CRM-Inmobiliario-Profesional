@@ -18,7 +18,7 @@ public abstract class BaseWhatsAppToolHandler : IWhatsAppToolHandler
 
     public abstract string ToolName { get; }
 
-    public abstract Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto);
+    public abstract Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId);
 
     protected async Task LogAiActionAsync(string accion, string detalle, string phone, string triggerMessage, Guid? contactoId = null)
     {

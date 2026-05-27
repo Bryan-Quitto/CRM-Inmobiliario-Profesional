@@ -13,7 +13,7 @@ public sealed class RegistrarInteresContactoHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "RegistrarInteresContacto";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
+    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
     {
         if (!args.RootElement.TryGetProperty("propiedadId", out var pIdProp) || !Guid.TryParse(pIdProp.GetString(), out var propiedadId))
             return "Error: ID de propiedad inválido.";

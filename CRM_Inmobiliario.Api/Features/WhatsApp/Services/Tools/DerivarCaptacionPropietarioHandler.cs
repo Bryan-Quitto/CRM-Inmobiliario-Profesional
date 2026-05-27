@@ -13,7 +13,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "DerivarCaptacionPropietario";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
+    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
     {
         string nombre = args.RootElement.GetProperty("nombre").GetString() ?? "Desconocido";
         

@@ -96,6 +96,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapDesactivarAgenteEndpoint();
         apiGroup.MapReactivarAgenteEndpoint();
         apiGroup.MapListarLogsSeguridadEndpoint();
+        apiGroup.MapAdminApiKeysEndpoints();
 
         // Calendario
         apiGroup.MapListarEventosEndpoint().CacheOutput();

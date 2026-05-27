@@ -13,7 +13,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "SolicitarAsistenciaHumana";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto)
+    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
     {
         string motivo = args.RootElement.TryGetProperty("motivo", out var m) ? m.GetString() ?? "No especificado" : "No especificado";
         await LogAiActionAsync("Alerta", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);

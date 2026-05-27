@@ -29,6 +29,7 @@ const AuditoriaLogsView = lazy(() => import('./features/ia/components/AuditoriaL
 const ConfiguracionLayout = lazy(() => import('./features/configuracion/components/ConfiguracionLayout'));
 const ConfiguracionPerfil = lazy(() => import('./features/auth/components/ConfiguracionPerfil'));
 const ConfiguracionIA = lazy(() => import('./features/configuracion/components/ConfiguracionIA').then(m => ({ default: m.ConfiguracionIA })));
+const ConfiguracionIAApi = lazy(() => import('./features/configuracion/components/ConfiguracionIAApi').then(m => ({ default: m.ConfiguracionIAApi })));
 const ConfiguracionOrganizacion = lazy(() => import('./features/configuracion/components/ConfiguracionOrganizacion').then(m => ({ default: m.ConfiguracionOrganizacion })));
 const ConfiguracionAgentes = lazy(() => import('./features/configuracion/components/ConfiguracionAgentes').then(m => ({ default: m.ConfiguracionAgentes })));
 const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad })));
@@ -97,6 +98,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route index element={<Navigate to="perfil" replace />} />
                 <Route path="perfil" element={<ConfiguracionPerfil />} />
                 <Route path="ia" element={<AdminRoute><ConfiguracionIA /></AdminRoute>} />
+                <Route path="ia-api" element={<AdminRoute><ConfiguracionIAApi /></AdminRoute>} />
                 <Route path="organizacion" element={<AdminRoute><ConfiguracionOrganizacion /></AdminRoute>} />
                 <Route path="agentes" element={<AdminRoute><ConfiguracionAgentes /></AdminRoute>} />
                 <Route path="seguridad" element={<AdminRoute><ConfiguracionSeguridad /></AdminRoute>} />
