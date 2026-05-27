@@ -1,16 +1,14 @@
 import React from 'react';
 import { ShieldCheck, Activity, AlertTriangle, Clock, ShieldBan } from 'lucide-react';
 import useSWR from 'swr';
-import { usePerfil } from '@/features/auth/api/perfil';
+import { useAuth } from '../../auth/hooks/useAuth';
 import { getLogsSeguridad } from '../api/getLogsSeguridad';
 
-const ADMIN_UUID = 'd4a6efdd-b801-40fb-901e-64e36f6b1400';
-
 export const ConfiguracionSeguridad: React.FC = () => {
-  const { perfil, isLoading: isLoadingPerfil } = usePerfil();
+  const { isAdmin, isLoading: isLoadingPerfil } = useAuth();
 
   const { data: logs, isLoading: isLoadingLogs } = useSWR(
-    perfil?.id === ADMIN_UUID ? '/configuracion/seguridad/logs' : null,
+    isAdmin ? '/configuracion/seguridad/logs' : null,
     getLogsSeguridad,
     { keepPreviousData: true }
   );
@@ -24,7 +22,7 @@ export const ConfiguracionSeguridad: React.FC = () => {
     );
   }
 
-  if (perfil?.id !== ADMIN_UUID) {
+  if (!isAdmin) {
     return (
       <div className="space-y-6">
         <section className="bg-rose-50/50 p-12 rounded-[40px] border border-rose-200/60 flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">

@@ -27,6 +27,6 @@ public static class ReVectorizeFeature
         })
         .WithTags("Admin")
         .WithName("ReVectorize")
-        .RequireAuthorization("AdminOnly");
+        .RequireAuthorization("AdminPolicy");
     }
 }

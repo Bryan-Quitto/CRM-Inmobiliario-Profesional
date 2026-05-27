@@ -17,13 +17,7 @@ public static class DesactivarAgenteFeature
     {
         app.MapPost("/configuracion/agentes/{id:guid}/desactivar", async (Guid id, Request request, ClaimsPrincipal user, CrmDbContext context, Supabase.Client supabase) =>
         {
-            var currentUserId = user.GetRequiredUserId();
-            
-            // 1. Strict Access Control
-            if (currentUserId.ToString() != "d4a6efdd-b801-40fb-901e-64e36f6b1400")
-            {
-                return Results.Forbid();
-            }
+
 
             if (id == request.NuevoAgenteId)
             {
@@ -85,6 +79,7 @@ public static class DesactivarAgenteFeature
 
             return Results.Ok(new { message = "Agente desactivado y cartera reasignada exitosamente." });
         })
+        .RequireAuthorization("AdminPolicy")
         .WithTags("Configuracion")
         .WithName("DesactivarAgente");
     }

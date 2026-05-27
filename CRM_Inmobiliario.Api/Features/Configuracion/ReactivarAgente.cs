@@ -15,13 +15,7 @@ public static class ReactivarAgenteFeature
     {
         app.MapPost("/configuracion/agentes/{id:guid}/reactivar", async (Guid id, ClaimsPrincipal user, CrmDbContext context, Supabase.Client supabase) =>
         {
-            var currentUserId = user.GetRequiredUserId();
-            
-            // 1. Strict Access Control
-            if (currentUserId.ToString() != "d4a6efdd-b801-40fb-901e-64e36f6b1400")
-            {
-                return Results.Forbid();
-            }
+
 
             var agenteDestino = await context.Agents.AnyAsync(a => a.Id == id && !a.Activo);
             if (!agenteDestino)
@@ -52,6 +46,7 @@ public static class ReactivarAgenteFeature
 
             return Results.Ok(new { message = "Agente reactivado exitosamente. Su acceso a la plataforma ha sido restaurado." });
         })
+        .RequireAuthorization("AdminPolicy")
         .WithTags("Configuracion")
         .WithName("ReactivarAgente");
     }
