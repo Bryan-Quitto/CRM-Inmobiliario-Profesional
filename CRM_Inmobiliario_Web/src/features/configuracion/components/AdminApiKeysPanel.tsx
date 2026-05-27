@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
 import { KeyRound, Smartphone, Loader2, Save } from 'lucide-react';
-import { usePerfil } from '../../auth/api/perfil';
+import { useAuth } from '../../auth/hooks/useAuth';
 
 interface AgentKey {
   id: string;
@@ -13,9 +13,7 @@ interface AgentKey {
 }
 
 export const AdminApiKeysPanel: React.FC = () => {
-  const { perfil } = usePerfil();
-  const ADMIN_ID = 'd4a6efdd-b801-40fb-901e-64e36f6b1400';
-  const isAdmin = perfil?.id === ADMIN_ID;
+  const { isAdmin } = useAuth();
 
   const [agents, setAgents] = useState<AgentKey[]>([]);
   const [loading, setLoading] = useState(true);

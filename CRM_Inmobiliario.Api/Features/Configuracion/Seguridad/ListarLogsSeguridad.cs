@@ -22,11 +22,7 @@ public static class ListarLogsSeguridadFeature
                 return Results.Unauthorized();
             }
 
-            // Only the master admin can access this
-            if (requestAgenteId != Guid.Parse("d4a6efdd-b801-40fb-901e-64e36f6b1400"))
-            {
-                return Results.Forbid();
-            }
+
 
             var logs = await context.SecurityAuditLogs
                 .Include(x => x.Agente)
@@ -45,7 +41,7 @@ public static class ListarLogsSeguridadFeature
 
             return Results.Ok(logs);
         })
-        .RequireAuthorization()
+        .RequireAuthorization("AdminPolicy")
         .WithTags("Configuracion")
         .WithName("ListarLogsSeguridad");
     }

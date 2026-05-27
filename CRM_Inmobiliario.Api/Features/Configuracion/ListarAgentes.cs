@@ -26,7 +26,19 @@ public static class ListarAgentesFeature
 
             var query = context.Agents.AsNoTracking();
 
-            if (currentUserId.ToString() == "d4a6efdd-b801-40fb-901e-64e36f6b1400")
+            bool isAdmin = false;
+            var appMetadata = user.FindFirst("app_metadata")?.Value;
+            if (!string.IsNullOrEmpty(appMetadata))
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(appMetadata);
+                    isAdmin = doc.RootElement.TryGetProperty("role", out var roleElement) && roleElement.GetString() == "Admin";
+                }
+                catch { }
+            }
+
+            if (isAdmin)
             {
                 // El Super Admin ve a TODOS los agentes del sistema.
             }

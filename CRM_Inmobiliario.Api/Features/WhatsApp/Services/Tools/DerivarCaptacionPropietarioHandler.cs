@@ -22,8 +22,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseWhatsAppToolHandler
         
         if (existing == null)
         {
-            var adminId = Guid.Parse("d4a6efdd-b801-40fb-901e-64e36f6b1400");
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == adminId)
+            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin")
                         ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
 
             if (agent != null)

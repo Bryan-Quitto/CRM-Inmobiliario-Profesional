@@ -27,9 +27,8 @@ public sealed class RegistrarNuevoContactoHandler : BaseWhatsAppToolHandler
         var existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
         if (existing != null) return "El contacto ya está registrado.";
 
-        // Intentar asignar al Admin ID estándar del proyecto
-        var adminId = Guid.Parse("d4a6efdd-b801-40fb-901e-64e36f6b1400");
-        var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == adminId)
+        // Intentar asignar al primer Admin
+        var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin")
                     ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
 
         if (agent == null) return "No hay agentes disponibles para asignar.";

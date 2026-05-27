@@ -20,8 +20,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
         
         if (contacto == null)
         {
-            var adminId = Guid.Parse("d4a6efdd-b801-40fb-901e-64e36f6b1400");
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Id == adminId)
+            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin")
                         ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
 
             contacto = new Contacto
@@ -30,7 +29,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
                 Nombre = "Usuario Desconocido",
                 Telefono = phone,
                 Origen = "IA WhatsApp",
-                AgenteId = agent?.Id ?? adminId,
+                AgenteId = agent?.Id ?? Guid.Empty,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EtapaEmbudo = "Escalado",
                 EsProspecto = true,

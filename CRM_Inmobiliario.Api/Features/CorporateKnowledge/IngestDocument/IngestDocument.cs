@@ -93,7 +93,7 @@ public static class IngestDocumentEndpoint
                 chunksCreated = documentChunks.Count 
             });
         })
-        .RequireAuthorization("AdminOnly") // Require admin or just authenticated? Let's say AdminOnly or authenticated.
+        .RequireAuthorization("AdminPolicy") // Require admin or just authenticated? Let's say AdminPolicy or authenticated.
         .DisableAntiforgery(); // For IFormFile via API
     }
 }

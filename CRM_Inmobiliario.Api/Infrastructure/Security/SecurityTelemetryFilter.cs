@@ -8,7 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Domain.Entities;
-
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 namespace CRM_Inmobiliario.Api.Infrastructure.Security;
 
 public sealed class SecurityTelemetryFilter : IEndpointFilter
@@ -32,8 +33,20 @@ public sealed class SecurityTelemetryFilter : IEndpointFilter
             return await next(context);
         }
 
-        // Si es el admin principal, no lo rastreamos
-        if (agenteId == Guid.Parse("d4a6efdd-b801-40fb-901e-64e36f6b1400"))
+        bool isAdmin = false;
+        var appMetadata = user.FindFirst("app_metadata")?.Value;
+        if (!string.IsNullOrEmpty(appMetadata))
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(appMetadata);
+                isAdmin = doc.RootElement.TryGetProperty("role", out var roleElement) && roleElement.GetString() == "Admin";
+            }
+            catch { }
+        }
+
+        // Si es administrador, no lo rastreamos
+        if (isAdmin)
         {
             return await next(context);
         }
@@ -84,21 +97,25 @@ public sealed class SecurityTelemetryFilter : IEndpointFilter
 
                     dbContext.SecurityAuditLogs.Add(auditLog);
 
-                    // Insertar Tarea Urgente para el Admin (Campana)
-                    var task = new TaskItem
+                    var adminAgent = await dbContext.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin");
+                    if (adminAgent != null)
                     {
-                        Id = Guid.NewGuid(),
-                        AgenteId = Guid.Parse("d4a6efdd-b801-40fb-901e-64e36f6b1400"), // Admin
-                        Titulo = "ALERTA: Actividad Anómala (Posible Robo)",
-                        Descripcion = $"El agente con UUID {agenteId} visitó {viewedIds.Count} registros distintos rápidamente.",
-                        TipoTarea = "Alerta de Seguridad",
-                        Estado = "Pendiente",
-                        FechaInicio = DateTimeOffset.UtcNow,
-                        DuracionMinutos = 15,
-                        ColorHex = "#ef4444" // Rojo Tailwind
-                    };
+                        // Insertar Tarea Urgente para el Admin (Campana)
+                        var task = new TaskItem
+                        {
+                            Id = Guid.NewGuid(),
+                            AgenteId = adminAgent.Id,
+                            Titulo = "ALERTA: Actividad Anómala (Posible Robo)",
+                            Descripcion = $"El agente con UUID {agenteId} visitó {viewedIds.Count} registros distintos rápidamente.",
+                            TipoTarea = "Alerta de Seguridad",
+                            Estado = "Pendiente",
+                            FechaInicio = DateTimeOffset.UtcNow,
+                            DuracionMinutos = 15,
+                            ColorHex = "#ef4444" // Rojo Tailwind
+                        };
 
-                    dbContext.Tasks.Add(task);
+                        dbContext.Tasks.Add(task);
+                    }
                     await dbContext.SaveChangesAsync();
 
                     // Limpiar la caché para evitar flood continuo en la DB por este agente

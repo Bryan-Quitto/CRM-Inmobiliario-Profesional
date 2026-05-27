@@ -1,11 +1,9 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { usePerfil } from '../../auth/api/perfil';
+import { useAuth } from '../../auth/hooks/useAuth';
 
 export const ConfiguracionLayout: React.FC = () => {
-  const { perfil } = usePerfil();
-  const ADMIN_ID = 'd4a6efdd-b801-40fb-901e-64e36f6b1400';
-  const isAdmin = perfil?.id === ADMIN_ID;
+  const { isAdmin } = useAuth();
 
   return (
     <div className="max-w-7xl mx-auto">

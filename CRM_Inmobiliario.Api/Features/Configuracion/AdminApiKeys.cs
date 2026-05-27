@@ -15,17 +15,11 @@ public static class AdminApiKeysFeature
 
     public static void MapAdminApiKeysEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/admin/api-keys").RequireAuthorization().WithTags("Admin");
+        var group = app.MapGroup("/admin/api-keys").RequireAuthorization("AdminPolicy").WithTags("Admin");
 
         group.MapGet("/", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
-            var currentUserId = user.GetRequiredUserId();
-            
-            // Only allow Super Admin (UUID: d4a6efdd-b801-40fb-901e-64e36f6b1400)
-            if (currentUserId.ToString() != "d4a6efdd-b801-40fb-901e-64e36f6b1400")
-            {
-                return Results.Forbid();
-            }
+
 
             var agentes = await context.Agents
                 .AsNoTracking()
@@ -38,12 +32,6 @@ public static class AdminApiKeysFeature
 
         group.MapPut("/{id:guid}", async (Guid id, UpdateKeysRequest request, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            var currentUserId = user.GetRequiredUserId();
-            
-            if (currentUserId.ToString() != "d4a6efdd-b801-40fb-901e-64e36f6b1400")
-            {
-                return Results.Forbid();
-            }
 
             var agent = await context.Agents.FirstOrDefaultAsync(a => a.Id == id);
             if (agent == null) return Results.NotFound();

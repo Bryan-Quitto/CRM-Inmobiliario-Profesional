@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePerfil } from '../../auth/api/perfil';
+import { useAuth } from '../../auth/hooks/useAuth';
 import { useAgentes } from '../hooks/useAgentes';
 import { Loader2, ShieldAlert, UserCheck } from 'lucide-react';
 import { ReasignacionAgenteModal } from './ReasignacionAgenteModal';
@@ -8,12 +8,8 @@ import { ReactivacionAgenteModal } from './ReactivacionAgenteModal';
 
 
 export const ListaAgentes: React.FC = () => {
-  const { perfil } = usePerfil();
+  const { user, isAdmin } = useAuth();
   const { agentes, isLoading, mutate } = useAgentes();
-
-  
-  const ADMIN_ID = 'd4a6efdd-b801-40fb-901e-64e36f6b1400';
-  const isAdmin = perfil?.id === ADMIN_ID;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<{ id: string, nombre: string } | null>(null);
@@ -46,7 +42,7 @@ export const ListaAgentes: React.FC = () => {
               )}
             </div>
             
-            {isAdmin && agente.id !== ADMIN_ID && (
+            {isAdmin && agente.id !== user?.id && (
               <>
                 {agente.activo ? (
                   <button
