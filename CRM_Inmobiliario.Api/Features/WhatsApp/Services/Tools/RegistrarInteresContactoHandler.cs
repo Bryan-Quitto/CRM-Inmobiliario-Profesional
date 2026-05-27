@@ -18,6 +18,10 @@ public sealed class RegistrarInteresContactoHandler : BaseWhatsAppToolHandler
         if (!args.RootElement.TryGetProperty("propiedadId", out var pIdProp) || !Guid.TryParse(pIdProp.GetString(), out var propiedadId))
             return "Error: ID de propiedad inválido.";
 
+        bool propertyExists = await _context.Properties.AnyAsync(p => p.Id == propiedadId);
+        if (!propertyExists)
+            return "Error: La propiedad con ese ID no existe en la base de datos. Por favor verifica el ID o pide disculpas al usuario por la confusión.";
+
         string nivel = args.RootElement.GetProperty("nivelInteres").GetString() ?? "Medio";
         
         if (nivel == "Descartada")

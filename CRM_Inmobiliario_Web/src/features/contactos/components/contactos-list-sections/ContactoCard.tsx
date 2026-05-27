@@ -2,6 +2,7 @@ import { Mail, Phone, Clock, Pencil, ChevronDown, Check, ArrowUpRight, Share2, L
 import { useState, useRef, useEffect } from 'react';
 import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/contactos';
 import { CompartirContactoModal } from './CompartirContactoModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
 import { toast } from 'sonner';
 import type { Contacto } from '../../types';
@@ -27,7 +28,7 @@ export const ContactoCard = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isMultipolar = contacto.esContacto && contacto.esPropietario;
-  const { isBotActivo, handleToggle, isLoading } = useContactoBotToggle(contacto.id, contacto.botActivo ?? true);
+  const { isBotActivo, handleToggle, isLoading, showOverrideModal, confirmOverride, cancelOverride } = useContactoBotToggle(contacto);
   
   const getEtapaStyles = (etapa: string, isPropietario: boolean = false) => {
     const list = isPropietario ? ETAPAS_PROPIETARIO : ETAPAS;
@@ -275,15 +276,38 @@ export const ContactoCard = ({
               </button>
             </>
           )}
+
+          {/* AI Badge Read-Only */}
+          <div className="flex items-center">
+            {isBotActivo ? (
+              <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
+            ) : contacto.estadoIA === 'Escalado' ? (
+              <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
+            ) : contacto.estadoIA === 'LimiteAlcanzado' ? (
+              <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de Tokens</span>
+            ) : (
+              <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
+            )}
+          </div>
         </div>
       </div>
 
       {!contacto.esCompartido && (
-        <CompartirContactoModal 
-          isOpen={isShareModalOpen}
-          onClose={() => setIsShareModalOpen(false)}
-          contacto={contacto}
-        />
+        <>
+          <CompartirContactoModal 
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            contacto={contacto}
+          />
+          <ConfirmModal
+            isOpen={showOverrideModal}
+            onClose={cancelOverride}
+            onConfirm={confirmOverride}
+            title="Reactivar IA (Límite Superado)"
+            description="Este contacto ha alcanzado su límite de tokens diarios. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
+            confirmText="Sí, reactivar bot"
+          />
+        </>
       )}
     </div>
   );

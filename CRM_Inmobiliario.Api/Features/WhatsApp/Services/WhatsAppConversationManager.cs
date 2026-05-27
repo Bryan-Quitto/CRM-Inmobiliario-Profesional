@@ -65,13 +65,32 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         string? autoMsg = null;
         if (contacto != null)
         {
+            // CHECK RATE LIMIT IA
+            var targetDate = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
+            var usage = await _context.ContactDailyTokenUsages
+                .FirstOrDefaultAsync(u => u.ContactoId == contacto.Id && u.Date.Date == targetDate.Date);
+                
+            int limit = contacto.Agente?.DailyTokenLimitPerContact ?? 50000;
+            
+            if (usage != null && usage.TokensUsed >= limit && contacto.BotActivo)
+            {
+                contacto.BotActivo = false;
+                contacto.EstadoIA = "LimiteAlcanzado";
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation("Límite IA Alcanzado para contacto {Id}. Bot desactivado.", contacto.Id);
+            }
+
             // Regla: Si es solo propietario (no prospecto), requiere asistencia humana inmediata
             if (contacto.EsPropietario && !contacto.EsProspecto && contacto.BotActivo)
             {
                 contacto.BotActivo = false;
+                contacto.EstadoIA = "Escalado";
                 await _context.Contactos
                     .Where(c => c.Id == contacto.Id)
-                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.BotActivo, false));
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(c => c.BotActivo, false)
+                        .SetProperty(c => c.EstadoIA, "Escalado"));
             }
 
             if (!contacto.BotActivo)
@@ -202,6 +221,31 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             Contenido = content, 
             Fecha = DateTimeOffset.UtcNow 
         });
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RecordTokenUsageAsync(Guid contactoId, int tokens)
+    {
+        var targetDate = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
+        var usage = await _context.ContactDailyTokenUsages
+            .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date.Date == targetDate.Date);
+            
+        if (usage == null)
+        {
+            usage = new ContactDailyTokenUsage
+            {
+                Id = Guid.NewGuid(),
+                ContactoId = contactoId,
+                Date = targetDate,
+                TokensUsed = tokens
+            };
+            _context.ContactDailyTokenUsages.Add(usage);
+        }
+        else
+        {
+            usage.TokensUsed += tokens;
+        }
+        
         await _context.SaveChangesAsync();
     }
 }

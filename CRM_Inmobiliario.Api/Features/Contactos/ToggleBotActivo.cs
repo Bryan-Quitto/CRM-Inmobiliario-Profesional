@@ -48,6 +48,7 @@ public static class ToggleBotActivoFeature
                 .Where(c => c.Id == id && c.AgenteId == agenteId)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(c => c.BotActivo, command.BotActivo)
+                    .SetProperty(c => c.EstadoIA, c => command.BotActivo ? null : c.EstadoIA)
                     .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada), ct);
 
             if (updatedCount == 0)

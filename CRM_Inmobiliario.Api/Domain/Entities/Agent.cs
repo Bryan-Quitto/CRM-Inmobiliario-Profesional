@@ -46,6 +46,8 @@ public sealed class Agent
     [MaxLength(255)]
     public string? AiApiKey { get; set; }
 
+    public int DailyTokenLimitPerContact { get; set; } = 50000;
+
     [MaxLength(50)]
     public string? WhatsAppPhoneNumberId { get; set; }
 

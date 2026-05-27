@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using CRM_Inmobiliario.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
 using CRM_Inmobiliario.Api.Features.Dashboard;
@@ -82,14 +83,22 @@ app.Use(async (context, next) => {
         var userIdString = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (Guid.TryParse(userIdString, out Guid userId))
         {
-            var db = context.RequestServices.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
-            // Verificar si el usuario existe en Agents y NO está activo
-            var isActivo = await db.Agents
-                .Where(a => a.Id == userId)
-                .Select(a => (bool?)a.Activo)
-                .FirstOrDefaultAsync();
+            var cache = context.RequestServices.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+            var cacheKey = $"agent_activo_{userId}";
 
-            if (isActivo.HasValue && !isActivo.Value)
+            if (!cache.TryGetValue(cacheKey, out bool isActivoVal))
+            {
+                var db = context.RequestServices.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
+                var isActivo = await db.Agents
+                    .Where(a => a.Id == userId)
+                    .Select(a => (bool?)a.Activo)
+                    .FirstOrDefaultAsync();
+                
+                isActivoVal = isActivo.HasValue ? isActivo.Value : true;
+                cache.Set(cacheKey, isActivoVal, TimeSpan.FromMinutes(5));
+            }
+
+            if (!isActivoVal)
             {
                 context.Response.StatusCode = 403;
                 await context.Response.WriteAsJsonAsync(new { error = "Account is deactivated." });
