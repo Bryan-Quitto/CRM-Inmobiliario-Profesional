@@ -205,6 +205,22 @@ export const ContactoCard = ({
               )}
             </div>
           )}
+
+
+          {/* Badge Estado IA */}
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-purple-50 text-purple-600 border-purple-100/50">
+              Estado IA
+            </span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+              isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
+              : contacto.estadoIA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
+              : contacto.estadoIA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+              : 'bg-slate-50 text-slate-400 border-slate-100'
+            }`}>
+              {isBotActivo ? 'Operativo' : contacto.estadoIA === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -277,18 +293,6 @@ export const ContactoCard = ({
             </>
           )}
 
-          {/* AI Badge Read-Only */}
-          <div className="flex items-center">
-            {isBotActivo ? (
-              <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
-            ) : contacto.estadoIA === 'Escalado' ? (
-              <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
-            ) : contacto.estadoIA === 'LimiteAlcanzado' ? (
-              <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de Tokens</span>
-            ) : (
-              <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
-            )}
-          </div>
         </div>
       </div>
 
@@ -306,6 +310,8 @@ export const ContactoCard = ({
             title="Reactivar IA (Límite Superado)"
             description="Este contacto ha alcanzado su límite de tokens diarios. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
             confirmText="Sí, reactivar bot"
+            type="info"
+            icon={<Bot className="h-10 w-10 text-blue-500" />}
           />
         </>
       )}

@@ -1,8 +1,10 @@
-import { Phone, Mail, Tag, Bot } from 'lucide-react';
+import { Phone, Mail, Tag, Bot, ChevronDown, Check } from 'lucide-react';
 import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
+import { useState, useRef, useEffect } from 'react';
 import type { Contacto } from '../../types';
+import { useContactoTokenUsage } from '../../hooks/useContactoTokenUsage';
 
 interface ContactoProfileCardProps {
   contacto: Contacto;
@@ -10,6 +12,30 @@ interface ContactoProfileCardProps {
 
 export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
   const { isBotActivo, handleToggle, isLoading, showOverrideModal, confirmOverride, cancelOverride } = useContactoBotToggle(contacto);
+  const [rango, setRango] = useState<'hoy' | 'semana' | 'mes' | 'siempre'>('hoy');
+  const { usage, isLoading: isLoadingUsage } = useContactoTokenUsage(contacto.id, rango);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen]);
+
+  const RANGOS = [
+    { value: 'hoy', label: 'Hoy' },
+    { value: 'semana', label: 'Semana' },
+    { value: 'mes', label: 'Mes' },
+    { value: 'siempre', label: 'Siempre' }
+  ];
 
   return (
     <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
@@ -96,6 +122,63 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
             <p className="text-sm font-bold text-slate-900 truncate">{contacto.origen}</p>
           </div>
         </div>
+
+        {/* Token Usage Section */}
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Bot className="h-4 w-4 text-purple-500" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Consumo Tokens</p>
+            </div>
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-purple-300 transition-colors focus:outline-none cursor-pointer"
+              >
+                {RANGOS.find(r => r.value === rango)?.label}
+                <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
+                  {RANGOS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRango(opt.value as 'hoy' | 'semana' | 'mes' | 'siempre');
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`cursor-pointer w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
+                        rango === opt.value ? 'text-purple-600' : 'text-slate-600'
+                      }`}
+                    >
+                      {opt.label}
+                      {rango === opt.value && <Check className="h-3.5 w-3.5" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-3 border border-slate-100 flex items-center justify-between">
+            {isLoadingUsage ? (
+              <span className="text-xs text-slate-400 animate-pulse">Cargando...</span>
+            ) : (
+              <>
+                <span className="text-sm font-black text-slate-800">
+                  {usage?.totalTokens?.toLocaleString() || 0} <span className="text-[10px] font-bold text-slate-400 uppercase">Tokens</span>
+                </span>
+                <span className="text-sm font-black text-emerald-600">
+                  ${usage?.costoUSD?.toFixed(4) || '0.0000'} <span className="text-[10px] font-bold uppercase text-emerald-400">USD</span>
+                </span>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       <ConfirmModal
@@ -105,6 +188,8 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
         title="Reactivar IA (Límite Superado)"
         description="Este contacto ha alcanzado su límite de tokens diarios. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
         confirmText="Sí, reactivar bot"
+        type="info"
+        icon={<Bot className="h-10 w-10 text-blue-500" />}
       />
     </div>
   );
