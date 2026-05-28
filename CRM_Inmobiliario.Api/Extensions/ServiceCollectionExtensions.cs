@@ -79,7 +79,7 @@ public static class ServiceCollectionExtensions
                     ValidAudience = "authenticated",
                     ValidateIssuerSigningKey = true,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.FromMinutes(5)
                 };
             });
 

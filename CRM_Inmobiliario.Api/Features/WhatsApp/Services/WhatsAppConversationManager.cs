@@ -77,13 +77,27 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 
             int limit = contacto.Agente?.DailyTokenLimitPerContact ?? 50000;
             
-            if (usage != null && usage.TokensUsed >= limit && contacto.BotActivo)
+            if (usage != null && usage.TokensUsed >= limit)
             {
-                contacto.BotActivo = false;
-                contacto.EstadoIA = "LimiteAlcanzado";
-                await _context.SaveChangesAsync();
-                
-                _logger.LogInformation("Límite IA Alcanzado para contacto {Id}. Bot desactivado.", contacto.Id);
+                if (contacto.BotActivo)
+                {
+                    contacto.BotActivo = false;
+                    contacto.EstadoIA = "LimiteAlcanzado";
+                    await _context.SaveChangesAsync();
+                    
+                    _logger.LogInformation("Límite IA Alcanzado para contacto {Id}. Bot desactivado.", contacto.Id);
+                }
+            }
+            else
+            {
+                if (!contacto.BotActivo && contacto.EstadoIA == "LimiteAlcanzado")
+                {
+                    contacto.BotActivo = true;
+                    contacto.EstadoIA = null;
+                    await _context.SaveChangesAsync();
+                    
+                    _logger.LogInformation("Límite diario reseteado para contacto {Id}. Bot reactivado.", contacto.Id);
+                }
             }
 
             // Regla: Si es solo propietario (no prospecto), requiere asistencia humana inmediata

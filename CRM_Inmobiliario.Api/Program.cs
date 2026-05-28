@@ -59,6 +59,7 @@ builder.Services.AddSingleton<IKpiWarmingService, KpiWarmingService>();
 builder.Services.AddHostedService<PdfWorker>();
 builder.Services.AddHostedService<PdfCleanupWorker>();
 builder.Services.AddHostedService<KpiWarmingBackgroundService>();
+builder.Services.AddScoped<TokenLimitResetJob>();
 
 var app = builder.Build();
 
@@ -113,6 +114,16 @@ app.UseOutputCache();
 
 // Configurar Hangfire Dashboard (opcional)
 app.UseHangfireDashboard("/hangfire");
+
+// Registrar Job Recurrente de Hangfire (00:00 UTC-5 equivale a 05:00 UTC)
+app.Lifetime.ApplicationStarted.Register(() => 
+{
+    RecurringJob.AddOrUpdate<TokenLimitResetJob>(
+        "reset-daily-token-limits", 
+        job => job.ResetDailyLimitsAsync(), 
+        "0 5 * * *" 
+    );
+});
 
 
 
