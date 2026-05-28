@@ -27,7 +27,7 @@ export const ConfiguracionLayout: React.FC = () => {
             Identidad
           </NavLink>
           <NavLink
-            to="uso-ia"
+            to="integracion-ia"
             className={({ isActive }) =>
               `cursor-pointer px-4 py-2 rounded-full font-bold text-sm transition-all whitespace-nowrap ${
                 isActive
@@ -36,7 +36,7 @@ export const ConfiguracionLayout: React.FC = () => {
               }`
             }
           >
-            Límite de Uso IA
+            IA y Límites
           </NavLink>
           {isAdmin && (
             <>
@@ -51,18 +51,6 @@ export const ConfiguracionLayout: React.FC = () => {
                 }
               >
                 IA y Vectorización
-              </NavLink>
-              <NavLink
-                to="ia-api"
-                className={({ isActive }) =>
-                  `cursor-pointer px-4 py-2 rounded-full font-bold text-sm transition-all whitespace-nowrap ${
-                    isActive
-                      ? 'bg-white shadow-sm text-indigo-600'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
-                  }`
-                }
-              >
-                Agente-IA
               </NavLink>
               <NavLink
                 to="organizacion"
