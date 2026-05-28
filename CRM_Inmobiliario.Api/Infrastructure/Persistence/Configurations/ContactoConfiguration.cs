@@ -19,6 +19,9 @@ public class ContactoConfiguration : IEntityTypeConfiguration<Contacto>
         builder.HasIndex(e => new { e.AgenteId, e.EtapaEmbudo, e.FechaCierre, e.FechaCreacion })
               .HasDatabaseName("IX_Contactos_Performance_AgenteEtapaFecha");
 
+        // ÍNDICE ÚNICO: Un agente no puede tener dos contactos con el mismo teléfono
+        builder.HasIndex(e => new { e.Telefono, e.AgenteId }).IsUnique();
+
         builder.HasOne(d => d.Agente)
             .WithMany(p => p.Contactos)
             .HasForeignKey(d => d.AgenteId)

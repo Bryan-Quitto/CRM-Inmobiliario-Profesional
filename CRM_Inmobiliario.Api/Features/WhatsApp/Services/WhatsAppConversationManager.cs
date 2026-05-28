@@ -32,36 +32,40 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
 
     public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId)
     {
-        // 1. Búsqueda inteligente del Contacto
+        // 1. Búsqueda inteligente del Agente primero
+        var agente = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+        if (agente == null)
+        {
+            // Fallback a administrador si no hay match directo de número
+            agente = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin");
+        }
+
+        // 2. Búsqueda del Contacto acotada por el Agente
         string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
         var contacto = await _context.Contactos
             .Include(c => c.Agente)
-            .FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
+            .FirstOrDefaultAsync(l => (l.Telefono == phone || l.Telefono == searchPhone) && l.AgenteId == agente!.Id);
         
-        if (contacto == null)
+        if (contacto == null && agente != null)
         {
-            var agente = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
-            if (agente != null)
+            contacto = new Contacto
             {
-                contacto = new Contacto
-                {
-                    Id = Guid.NewGuid(),
-                    Nombre = "Cliente WA",
-                    Apellido = phone,
-                    Telefono = phone,
-                    Origen = "IA WhatsApp",
-                    AgenteId = agente.Id,
-                    Agente = agente,
-                    FechaCreacion = DateTimeOffset.UtcNow,
-                    EtapaEmbudo = "Nuevo",
-                    EsProspecto = true
-                };
-                _context.Contactos.Add(contacto);
-                await _context.SaveChangesAsync();
-            }
+                Id = Guid.NewGuid(),
+                Nombre = "Cliente WA",
+                Apellido = phone,
+                Telefono = phone,
+                Origen = "IA WhatsApp",
+                AgenteId = agente.Id,
+                Agente = agente,
+                FechaCreacion = DateTimeOffset.UtcNow,
+                EtapaEmbudo = "Nuevo",
+                EsProspecto = true
+            };
+            _context.Contactos.Add(contacto);
+            await _context.SaveChangesAsync();
         }
         
-        // 2. Filtrado por BotActivo y Reglas de Handoff
+        // 3. Filtrado por BotActivo y Reglas de Handoff
         string? autoMsg = null;
         if (contacto != null)
         {
@@ -111,9 +115,9 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             }
         }
 
-        // 3. Obtener o crear conversación
+        // 4. Obtener o crear conversación por ContactoId
         var conversation = await _context.WhatsappConversations
-            .FirstOrDefaultAsync(c => c.Telefono == phone);
+            .FirstOrDefaultAsync(c => c.ContactoId == contacto!.Id);
         
         List<ChatMessage> history;
         bool contactExists = contacto != null;
@@ -123,6 +127,8 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             history = new List<ChatMessage> { new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre)) };
             conversation = new WhatsappConversation
             {
+                Id = Guid.NewGuid(),
+                ContactoId = contacto!.Id,
                 Telefono = phone,
                 HistorialJson = _promptBuilder.SerializeHistory(history),
                 UltimaActualizacion = DateTimeOffset.UtcNow
@@ -140,8 +146,19 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             }
         }
 
-        // 4. Añadir mensaje del usuario a la historia
+        // 5. Añadir mensaje del usuario a la historia
         history.Add(new UserChatMessage(messageText));
+
+        // Registrar el mensaje en BD asociado al Contacto
+        _context.WhatsappMessages.Add(new WhatsappMessage 
+        { 
+            Id = Guid.NewGuid(),
+            ContactoId = contacto!.Id,
+            Telefono = phone, 
+            Rol = "user", 
+            Contenido = messageText, 
+            Fecha = DateTimeOffset.UtcNow 
+        });
 
         // 5. Compresión Semántica de Memoria (Largo Plazo)
         if (history.Count > 12) 
@@ -199,10 +216,10 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         return new WhatsAppContext(contacto, conversation, history, autoMsg);
     }
 
-    public async Task SaveStateAsync(string phone, List<ChatMessage> history)
+    public async Task SaveStateAsync(Guid contactoId, List<ChatMessage> history)
     {
         var conversation = await _context.WhatsappConversations
-            .FirstOrDefaultAsync(c => c.Telefono == phone);
+            .FirstOrDefaultAsync(c => c.ContactoId == contactoId);
 
         if (conversation != null)
         {
@@ -212,11 +229,12 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         }
     }
 
-    public async Task LogMessageAsync(string phone, string role, string content)
+    public async Task LogMessageAsync(Guid contactoId, string phone, string role, string content)
     {
         _context.WhatsappMessages.Add(new WhatsappMessage 
         { 
             Id = Guid.NewGuid(),
+            ContactoId = contactoId,
             Telefono = phone, 
             Rol = role, 
             Contenido = content, 

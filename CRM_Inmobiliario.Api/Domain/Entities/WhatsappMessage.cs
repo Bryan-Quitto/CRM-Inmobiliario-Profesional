@@ -6,6 +6,9 @@ public sealed class WhatsappMessage
 {
     public Guid Id { get; set; }
 
+    public Guid? ContactoId { get; set; }
+    public Contacto? Contacto { get; set; }
+
     [Required]
     [MaxLength(20)]
     public string Telefono { get; set; } = string.Empty;

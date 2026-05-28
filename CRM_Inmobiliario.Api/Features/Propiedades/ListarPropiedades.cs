@@ -34,7 +34,8 @@ public static class ListarPropiedadesFeature
         string Version,
         int Habitaciones,
         decimal AreaTotal,
-        int? AniosAntiguedad);
+        int? AniosAntiguedad,
+        bool AlreadyHasContact = false);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -46,9 +47,25 @@ public static class ListarPropiedadesFeature
 
     public static RouteHandlerBuilder MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/propiedades", async (ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/propiedades", async (Guid? checkContactoId, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var currentUserId = user.GetRequiredUserId();
+
+            string? contactPhoneToShare = null;
+            string? cleanPhoneToShare = null;
+            if (checkContactoId.HasValue)
+            {
+                contactPhoneToShare = await context.Contactos
+                    .AsNoTracking()
+                    .Where(c => c.Id == checkContactoId.Value)
+                    .Select(c => c.Telefono)
+                    .FirstOrDefaultAsync();
+
+                if (contactPhoneToShare != null)
+                {
+                    cleanPhoneToShare = new string(contactPhoneToShare.Where(char.IsDigit).ToArray());
+                }
+            }
 
             // Obtenemos la agencia del agente actual primero
             var agenciaId = await context.Agents
@@ -127,8 +144,34 @@ public static class ListarPropiedadesFeature
                     x.Property.Version.ToString(),
                     x.Property.Habitaciones,
                     x.Property.AreaTotal,
-                    x.Property.AniosAntiguedad))
+                    x.Property.AniosAntiguedad,
+                    false)) // Lo calcularemos a continuación
                 .ToListAsync();
+
+            if (cleanPhoneToShare != null)
+            {
+                var gestorIds = propiedades.Select(p => p.GestorId).Distinct().ToList();
+                var contactosGestores = await context.Contactos
+                    .AsNoTracking()
+                    .Where(c => gestorIds.Contains(c.AgenteId))
+                    .Select(c => new { c.AgenteId, c.Telefono })
+                    .ToListAsync();
+                    
+                foreach(var c in contactosGestores)
+                {
+                    var cleanContactPhone = new string(c.Telefono.Where(char.IsDigit).ToArray());
+                    if (cleanContactPhone == cleanPhoneToShare || c.Telefono == contactPhoneToShare)
+                    {
+                        for (int i = 0; i < propiedades.Count; i++)
+                        {
+                            if (propiedades[i].GestorId == c.AgenteId)
+                            {
+                                propiedades[i] = propiedades[i] with { AlreadyHasContact = true };
+                            }
+                        }
+                    }
+                }
+            }
 
             return Results.Ok(propiedades);
         })

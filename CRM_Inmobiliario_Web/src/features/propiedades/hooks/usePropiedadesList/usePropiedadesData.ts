@@ -4,9 +4,10 @@ import { getPropiedades } from '../../api/getPropiedades';
 import { swrDefaultConfig } from '@/lib/swr';
 import type { Propiedad } from '../../types';
 
-export const usePropiedadesData = () => {
+export const usePropiedadesData = (checkContactoId?: string) => {
+  const url = checkContactoId ? `/propiedades?checkContactoId=${checkContactoId}` : '/propiedades';
   const { data: propiedades = [], isLoading, isValidating: syncing, mutate } = useSWR<Propiedad[]>(
-    '/propiedades',
+    url,
     getPropiedades,
     swrDefaultConfig
   );

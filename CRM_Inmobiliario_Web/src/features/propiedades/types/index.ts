@@ -48,6 +48,7 @@ export interface Propiedad {
   estacionamientos?: number;
   mediosBanos?: number;
   aniosAntiguedad?: number;
+  alreadyHasContact?: boolean;
   estadoComercial: string;
   esCaptacionPropia: boolean;
   esCaptadorActivo: boolean;
