@@ -50,7 +50,10 @@ public sealed class WhatsAppAiService
             var context = await _conversationManager.PrepareContextAsync(phone, messageText, phoneNumberId);
             
             // Logear mensaje del usuario en DB
-            await _conversationManager.LogMessageAsync(phone, "user", messageText);
+            if (context.Contacto != null)
+            {
+                await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "user", messageText);
+            }
 
             // 2. Manejar respuesta automática de transferencia y Silence Mode
             if (context.AutoResponse != null)
@@ -58,7 +61,10 @@ public sealed class WhatsAppAiService
                 if (!string.IsNullOrEmpty(context.AutoResponse))
                 {
                     _logger.LogInformation("Contacto {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
-                    await _conversationManager.LogMessageAsync(phone, "assistant", context.AutoResponse);
+                    if (context.Contacto != null)
+                    {
+                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", context.AutoResponse);
+                    }
                     await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse, phoneNumberId);
                 }
                 else
@@ -156,7 +162,10 @@ Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
                         finalResponse = completion.Content[0].Text;
                         history.Add(new AssistantChatMessage(completion));
                         
-                        await _conversationManager.LogMessageAsync(phone, "assistant", finalResponse);
+                        if (context.Contacto != null)
+                        {
+                            await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse);
+                        }
                         _logger.LogInformation("--- RESPUESTA FINAL IA: {Response} ---", finalResponse);
                         break;
 
@@ -174,7 +183,10 @@ Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
             }
 
             // 4. Persistir estado del historial
-            await _conversationManager.SaveStateAsync(phone, history);
+            if (context.Contacto != null)
+            {
+                await _conversationManager.SaveStateAsync(context.Contacto.Id, history);
+            }
 
             // 5. Enviar a WhatsApp con limpieza de formato
             if (!string.IsNullOrEmpty(finalResponse))

@@ -17,8 +17,8 @@ interface CompartirContactoModalProps {
 
 export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirContactoModalProps) => {
   const { perfil } = usePerfil();
-  const { agentes } = useAgentes();
-  const { propiedades } = usePropiedadesData();
+  const { agentes } = useAgentes(contacto.id);
+  const { propiedades } = usePropiedadesData(contacto.id);
   const { agentesCompartidos, compartir, revocar } = useCompartirContacto(contacto.id);
 
   const [activeTab, setActiveTab] = useState<'compartir' | 'gestion'>('compartir');
@@ -66,7 +66,11 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
     setSelectedAgenteId(null);
   }, [activeTab, searchMode]);
 
-  const handleSelectAgente = (agenteId: string) => {
+  const handleSelectAgente = (agenteId: string, itemAlreadyHasContact?: boolean) => {
+    if (itemAlreadyHasContact) {
+      import('sonner').then(({ toast }) => toast.warning('Este agente ya tiene comunicación directa con este cliente.'));
+      return;
+    }
     // Verificar si ya tiene acceso
     const yaTieneAcceso = agentesCompartidos.some(a => a.id === agenteId);
     if (yaTieneAcceso) {
@@ -77,6 +81,10 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
   };
 
   const handleSelectPropiedad = (propiedad: Propiedad) => {
+    if (propiedad.alreadyHasContact) {
+      import('sonner').then(({ toast }) => toast.warning(`El gestor (${propiedad.gestorNombre}) ya tiene comunicación directa con este cliente.`));
+      return;
+    }
     if (propiedad.gestorId) {
       // Verificar si ya tiene acceso
       const yaTieneAcceso = agentesCompartidos.some(a => a.id === propiedad.gestorId);
@@ -194,11 +202,13 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
                     return (
                       <button
                         key={item.id}
-                        onClick={() => searchMode === 'agente' ? handleSelectAgente(item.id) : handleSelectPropiedad(item as Propiedad)}
+                        onClick={() => searchMode === 'agente' ? handleSelectAgente(item.id, (item as AgenteResponse).alreadyHasContact) : handleSelectPropiedad(item as Propiedad)}
                         className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group cursor-pointer ${
                           yaTieneAcceso 
                             ? 'bg-slate-50/50 border-slate-100 opacity-60' 
-                            : 'border-slate-100 hover:border-blue-200 hover:bg-blue-50/30'
+                            : (item as AgenteResponse | Propiedad).alreadyHasContact 
+                              ? 'opacity-50 grayscale border-slate-100 bg-slate-50' 
+                              : 'border-slate-100 hover:border-blue-200 hover:bg-blue-50/30'
                         }`}
                       >
                         {searchMode === 'agente' ? (
