@@ -16,7 +16,13 @@ public static class ConfiguracionIAEndpoints
         int DailyTokenLimitPerContact);
 
     public record UpdateIASettingsRequest(
-        int DailyTokenLimitPerContact);
+        int? DailyTokenLimitPerContact,
+        string? AiApiKey,
+        string? WhatsAppPhoneNumberId);
+
+    public record ValidateIASettingsRequest(
+        string? AiApiKey,
+        string? WhatsAppPhoneNumberId);
 
     public static IEndpointRouteBuilder MapConfiguracionIAEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -44,7 +50,7 @@ public static class ConfiguracionIAEndpoints
 
         endpoints.MapPut("/configuracion/ia-settings", async (UpdateIASettingsRequest request, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            if (request.DailyTokenLimitPerContact < 20000 || request.DailyTokenLimitPerContact > 1000000)
+            if (request.DailyTokenLimitPerContact.HasValue && (request.DailyTokenLimitPerContact < 20000 || request.DailyTokenLimitPerContact > 1000000))
             {
                 return Results.BadRequest(new { Message = "El límite de tokens debe estar entre 20,000 y 1,000,000." });
             }
@@ -57,13 +63,58 @@ public static class ConfiguracionIAEndpoints
                 return Results.NotFound(new { Message = "Agente no encontrado." });
             }
 
-            agente.DailyTokenLimitPerContact = request.DailyTokenLimitPerContact;
+            if (!string.IsNullOrWhiteSpace(request.AiApiKey) && await context.Agents.AnyAsync(a => a.Id != agenteId && a.AiApiKey == request.AiApiKey))
+            {
+                return Results.BadRequest(new { Message = "La API Key ingresada ya está en uso por otro agente. Si el error persiste contacte con administración." });
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.WhatsAppPhoneNumberId) && await context.Agents.AnyAsync(a => a.Id != agenteId && a.WhatsAppPhoneNumberId == request.WhatsAppPhoneNumberId))
+            {
+                return Results.BadRequest(new { Message = "El WhatsApp Phone ID ingresado ya está en uso por otro agente. Si el error persiste contacte con administración." });
+            }
+
+            if (request.DailyTokenLimitPerContact.HasValue)
+            {
+                agente.DailyTokenLimitPerContact = request.DailyTokenLimitPerContact.Value;
+            }
+
+            if (request.AiApiKey != null)
+            {
+                agente.AiApiKey = string.IsNullOrWhiteSpace(request.AiApiKey) ? null : request.AiApiKey;
+            }
+
+            if (request.WhatsAppPhoneNumberId != null)
+            {
+                agente.WhatsAppPhoneNumberId = string.IsNullOrWhiteSpace(request.WhatsAppPhoneNumberId) ? null : request.WhatsAppPhoneNumberId;
+            }
+
             await context.SaveChangesAsync();
 
             return Results.Ok(new { Message = "Configuración actualizada exitosamente." });
         })
         .WithTags("Configuracion")
         .WithName("ActualizarConfiguracionIA");
+
+        endpoints.MapPost("/configuracion/ia-settings/validate", async (ValidateIASettingsRequest request, ClaimsPrincipal user, CrmDbContext context) =>
+        {
+            var agenteId = user.GetRequiredUserId();
+            
+            bool aiKeyInUse = false;
+            if (!string.IsNullOrWhiteSpace(request.AiApiKey))
+            {
+                aiKeyInUse = await context.Agents.AnyAsync(a => a.Id != agenteId && a.AiApiKey == request.AiApiKey);
+            }
+
+            bool waIdInUse = false;
+            if (!string.IsNullOrWhiteSpace(request.WhatsAppPhoneNumberId))
+            {
+                waIdInUse = await context.Agents.AnyAsync(a => a.Id != agenteId && a.WhatsAppPhoneNumberId == request.WhatsAppPhoneNumberId);
+            }
+
+            return Results.Ok(new { AiKeyInUse = aiKeyInUse, WaIdInUse = waIdInUse });
+        })
+        .WithTags("Configuracion")
+        .WithName("ValidarConfiguracionIA");
 
         return endpoints;
     }
