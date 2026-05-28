@@ -53,7 +53,7 @@ export const ConfiguracionUsoIA: React.FC = () => {
   const hasMissingCredentials = !settings?.aiApiKey || !settings?.whatsAppPhoneNumberId;
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
@@ -94,25 +94,51 @@ export const ConfiguracionUsoIA: React.FC = () => {
               
               <div>
                 {isEditing ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-end gap-1">
                     <input
                       type="number"
                       min={20000}
                       max={1000000}
                       step={1000}
-                      className="border border-slate-300 rounded-md px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className={`border rounded-md px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-2 ${
+                        limitValue < 20000 || limitValue > 1000000 
+                          ? 'border-red-300 focus:ring-red-500 bg-red-50' 
+                          : 'border-slate-300 focus:ring-indigo-500'
+                      }`}
                       value={limitValue}
                       onChange={(e) => setLimitValue(Number(e.target.value))}
                       disabled={saving}
                     />
+                    <span className="text-xs text-slate-500">
+                      ≈ ${(limitValue * 0.15 / 1000000).toFixed(4)} USD
+                    </span>
                   </div>
                 ) : (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                    {settings?.dailyTokenLimitPerContact?.toLocaleString() || '50,000'} tokens
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                      {settings?.dailyTokenLimitPerContact?.toLocaleString() || '50,000'} tokens
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      ≈ ${(((settings?.dailyTokenLimitPerContact || 50000) * 0.15) / 1000000).toFixed(4)} USD
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
+
+            {isEditing && limitValue < 20000 && (
+              <div className="flex items-start gap-2 text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 animate-in fade-in">
+                <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                <p className="text-sm">El límite mínimo es 20,000. Límites menores son ineficientes ya que el bot se detendría tras solo ~5 mensajes.</p>
+              </div>
+            )}
+
+            {isEditing && limitValue > 1000000 && (
+              <div className="flex items-start gap-2 text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 animate-in fade-in">
+                <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                <p className="text-sm">El límite máximo es 1,000,000. Superar este límite expone la cuenta a abusos maliciosos y posibles pérdidas financieras inesperadas.</p>
+              </div>
+            )}
 
             <div className="flex justify-end pt-4">
               {isEditing ? (
@@ -122,15 +148,15 @@ export const ConfiguracionUsoIA: React.FC = () => {
                       setIsEditing(false);
                       setLimitValue(settings?.dailyTokenLimitPerContact || 50000);
                     }}
-                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
                     disabled={saving}
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleSave}
-                    disabled={saving}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                    disabled={saving || limitValue < 20000 || limitValue > 1000000}
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     Guardar Cambios
@@ -139,7 +165,7 @@ export const ConfiguracionUsoIA: React.FC = () => {
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors"
+                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer"
                 >
                   Modificar Límite
                 </button>

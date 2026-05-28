@@ -35,6 +35,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapObtenerAgentesCompartidosEndpoint();
         apiGroup.MapToggleBotActivoEndpoint();
         apiGroup.MapBotOverrideContactoEndpoint();
+        apiGroup.MapObtenerTokenUsageContactoEndpoint();
 
         // Propiedades
         apiGroup.MapRegistrarPropiedadEndpoint();

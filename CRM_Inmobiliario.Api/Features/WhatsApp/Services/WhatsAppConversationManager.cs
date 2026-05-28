@@ -66,9 +66,10 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         if (contacto != null)
         {
             // CHECK RATE LIMIT IA
-            var targetDate = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
+            var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
+            var targetDate = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.FromHours(-5));
             var usage = await _context.ContactDailyTokenUsages
-                .FirstOrDefaultAsync(u => u.ContactoId == contacto.Id && u.Date.Date == targetDate.Date);
+                .FirstOrDefaultAsync(u => u.ContactoId == contacto.Id && u.Date == targetDate);
                 
             int limit = contacto.Agente?.DailyTokenLimitPerContact ?? 50000;
             
@@ -226,9 +227,10 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
 
     public async Task RecordTokenUsageAsync(Guid contactoId, int tokens)
     {
-        var targetDate = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
+        var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
+        var targetDate = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.FromHours(-5));
         var usage = await _context.ContactDailyTokenUsages
-            .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date.Date == targetDate.Date);
+            .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date == targetDate);
             
         if (usage == null)
         {
