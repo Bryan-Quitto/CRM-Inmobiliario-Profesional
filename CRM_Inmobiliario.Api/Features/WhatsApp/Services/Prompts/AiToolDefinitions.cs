@@ -8,7 +8,7 @@ public static class AiToolDefinitions
     {
         options.Tools.Add(ChatTool.CreateFunctionTool(
             "BuscarPropiedades",
-            "Busca inmuebles disponibles utilizando búsqueda semántica avanzada. Pasa directamente la intención del cliente en 'query' (ej: 'casa de 3 cuartos con patio en cumbaya por 150000').",
+            "Busca inmuebles utilizando búsqueda semántica. Pasa la intención en 'query'. CRÍTICO: La base de datos siempre devuelve 3 propiedades. DEBES revisar TODOS los campos de cada propiedad (Habitaciones, Baños, Parqueaderos, DescripcionSanitizada, etc.). Si el cliente pidió una característica específica (ej. '4 parqueos', 'domótica') y la propiedad NO la cumple (ni en sus valores numéricos ni en su descripción), IGNÓRALA por completo y NO la menciones para no generar ruido. Interpreta los datos inteligentemente y muestra SOLO las que realmente hagan match.",
             BinaryData.FromBytes("""
             {
                 "type": "object",
@@ -16,6 +16,20 @@ public static class AiToolDefinitions
                     "query": { "type": "string", "description": "Intención de búsqueda en lenguaje natural." }
                 },
                 "required": ["query"]
+            }
+            """u8.ToArray())
+        ));
+
+        options.Tools.Add(ChatTool.CreateFunctionTool(
+            "ConsultarDetallesPropiedad",
+            "Consulta todos los detalles profundos (antigüedad, parqueos, dirección exacta, descripción larga) de una propiedad específica. Usa esta herramienta OBLIGATORIAMENTE cuando el cliente pregunte detalles sobre una propiedad de la que ya están hablando, ANTES de decirle que no tienes esa información.",
+            BinaryData.FromBytes("""
+            {
+                "type": "object",
+                "properties": {
+                    "propiedadId": { "type": "string", "description": "El ID (Guid) de la propiedad que deseas consultar." }
+                },
+                "required": ["propiedadId"]
             }
             """u8.ToArray())
         ));

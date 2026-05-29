@@ -72,7 +72,8 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
                 p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
                 p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
                 p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
-                p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null
+                p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
+                p.Descripcion
             )).ToListAsync();
 
         if (results.Any()) 
@@ -88,14 +89,20 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
     {
         var sb = new StringBuilder();
         if (!string.IsNullOrEmpty(aviso)) sb.AppendLine(aviso);
-        sb.AppendLine("Id|Titulo|Precio|Ubicacion|Operacion|Hab|Banos|Area|Url|NotaIA");
+        sb.AppendLine("Id|Titulo|Tipo|Precio|Ubicacion|Operacion|Habitaciones|Baños|MediosBaños|Parqueaderos|AñosAntigüedad|Area|Url|NotaIA|DescripcionSanitizada");
         foreach(var p in resultados)
         {
             var area = p.AreaTotal ?? p.AreaConstruccion ?? p.AreaTerreno;
-            sb.AppendLine($"{p.Id}|{p.Titulo}|{p.Precio}|{p.Sector},{p.Ciudad}|{p.Operacion}|{p.Habitaciones}|{p.Banos}|{area}|{p.UrlRemax}|{p.NotaIA}");
+            var desc = p.Descripcion?.Replace("\n", " ").Replace("\r", " ").Replace("|", "-") ?? "";
+            if (desc.Length > 800) desc = desc.Substring(0, 800) + "...";
+            var medBan = p.MediosBanos?.ToString() ?? "0";
+            var estac = p.Estacionamientos?.ToString() ?? "0";
+            var anios = p.AniosAntiguedad?.ToString() ?? "N/A";
+            var tipo = p.TipoPropiedad ?? "N/A";
+            sb.AppendLine($"{p.Id}|{p.Titulo}|{tipo}|{p.Precio}|{p.Sector},{p.Ciudad}|{p.Operacion}|{p.Habitaciones}|{p.Banos}|{medBan}|{estac}|{anios}|{area}|{p.UrlRemax}|{p.NotaIA}|{desc}");
         }
         return sb.ToString();
     }
 }
 
-public record PropiedadResultDto(Guid Id, string Titulo, decimal Precio, string? Sector, string? Ciudad, string? Direccion, int? Habitaciones, decimal? Banos, int? Estacionamientos, int? AniosAntiguedad, decimal? AreaTotal, decimal? AreaConstruccion, decimal? AreaTerreno, int? MediosBanos, string? UrlRemax, string? Operacion, string? TipoPropiedad, string? EstadoComercial, string? NotaIA);
+public record PropiedadResultDto(Guid Id, string Titulo, decimal Precio, string? Sector, string? Ciudad, string? Direccion, int? Habitaciones, decimal? Banos, int? Estacionamientos, int? AniosAntiguedad, decimal? AreaTotal, decimal? AreaConstruccion, decimal? AreaTerreno, int? MediosBanos, string? UrlRemax, string? Operacion, string? TipoPropiedad, string? EstadoComercial, string? NotaIA, string? Descripcion);
