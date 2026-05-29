@@ -83,6 +83,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 {
                     contacto.BotActivo = false;
                     contacto.EstadoIA = "LimiteAlcanzado";
+                    contacto.TransferenciaNotificada = false;
                     await _context.SaveChangesAsync();
                     
                     _logger.LogInformation("Límite IA Alcanzado para contacto {Id}. Bot desactivado.", contacto.Id);
@@ -94,6 +95,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 {
                     contacto.BotActivo = true;
                     contacto.EstadoIA = null;
+                    contacto.TransferenciaNotificada = false;
                     await _context.SaveChangesAsync();
                     
                     _logger.LogInformation("Límite diario reseteado para contacto {Id}. Bot reactivado.", contacto.Id);
@@ -109,14 +111,22 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                     .Where(c => c.Id == contacto.Id)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(c => c.BotActivo, false)
-                        .SetProperty(c => c.EstadoIA, "Escalado"));
+                        .SetProperty(c => c.EstadoIA, "Escalado")
+                        .SetProperty(c => c.TransferenciaNotificada, false));
             }
 
             if (!contacto.BotActivo)
             {
                 if (!contacto.TransferenciaNotificada)
                 {
-                    autoMsg = "En este momento se está transfiriendo a uno de nuestros agentes humanos para que le atienda personalmente.";
+                    if (contacto.EstadoIA == "LimiteAlcanzado")
+                    {
+                        autoMsg = "Lamentablemente has alcanzado el límite de consultas automáticas por el día de hoy. 🤖 ¡Pero no te preocupes! En unos instantes un agente humano continuará ayudándote con tus dudas.";
+                    }
+                    else
+                    {
+                        autoMsg = "En este momento se está transfiriendo a uno de nuestros agentes humanos para que le atienda personalmente.";
+                    }
                     
                     await _context.Contactos
                         .Where(c => c.Id == contacto.Id)
