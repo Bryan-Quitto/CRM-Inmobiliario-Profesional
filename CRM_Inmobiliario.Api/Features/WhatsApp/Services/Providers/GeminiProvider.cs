@@ -1,0 +1,268 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models;
+using Google.GenAI;
+using Google.GenAI.Types;
+
+namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers;
+
+public class GeminiProvider : ILLMProvider
+{
+    private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
+
+    public GeminiProvider(System.Net.Http.IHttpClientFactory httpClientFactory)
+    {
+        _httpClientFactory = httpClientFactory;
+    }
+
+    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey)
+    {
+        var client = new Client(apiKey: apiKey);
+        // We will not use ChatSession, we just use GenerateContentStreamAsync directly
+
+        var contents = new List<Content>();
+        foreach (var msg in history)
+        {
+            if (msg.Role == "system")
+            {
+                // Gemini usually has a separate system instruction, but we can prepend it
+                contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { Text = "SYSTEM: " + msg.Content } } });
+                contents.Add(new Content { Role = "model", Parts = new List<Part> { new Part { Text = "Understood." } } });
+            }
+            else if (msg.Role == "user")
+            {
+                var parts = new List<Part>();
+                if (msg.Parts != null && msg.Parts.Count > 0)
+                {
+                    foreach (var p in msg.Parts)
+                    {
+                        if (p.Type == "text")
+                        {
+                            parts.Add(new Part { Text = p.Text });
+                        }
+                        else if (p.Type == "audio" && p.InlineData != null)
+                        {
+                            parts.Add(new Part { InlineData = new Blob { MimeType = p.MimeType ?? "audio/ogg", Data = p.InlineData } });
+                        }
+                        else if (p.Type == "audio" && p.InlineData == null)
+                        {
+                            parts.Add(new Part { Text = p.Text ?? $"[Audio Note: {p.MediaUrl}]" });
+                        }
+                    }
+                }
+                else
+                {
+                    parts.Add(new Part { Text = msg.Content });
+                }
+                contents.Add(new Content { Role = "user", Parts = parts });
+            }
+            else if (msg.Role == "assistant")
+            {
+                if (msg.ToolCalls != null && msg.ToolCalls.Count > 0)
+                {
+                    var parts = new List<Part>();
+                    foreach (var tc in msg.ToolCalls)
+                    {
+                        using var doc = JsonDocument.Parse(tc.Arguments);
+                        var args = new Dictionary<string, object>();
+                        foreach (var prop in doc.RootElement.EnumerateObject())
+                        {
+                            if (prop.Value.ValueKind == JsonValueKind.String) args[prop.Name] = prop.Value.GetString();
+                            else if (prop.Value.ValueKind == JsonValueKind.Number) args[prop.Name] = prop.Value.GetDouble();
+                            else if (prop.Value.ValueKind == JsonValueKind.True) args[prop.Name] = true;
+                            else if (prop.Value.ValueKind == JsonValueKind.False) args[prop.Name] = false;
+                        }
+                        parts.Add(new Part { FunctionCall = new FunctionCall { Name = tc.Name, Args = args } });
+                    }
+                    contents.Add(new Content { Role = "model", Parts = parts });
+                }
+                else
+                {
+                    contents.Add(new Content { Role = "model", Parts = new List<Part> { new Part { Text = msg.Content } } });
+                }
+            }
+            else if (msg.Role == "tool")
+            {
+                using var doc = JsonDocument.Parse(msg.Content);
+                var dict = new Dictionary<string, object>();
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    if (prop.Value.ValueKind == JsonValueKind.String) dict[prop.Name] = prop.Value.GetString();
+                }
+                contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { FunctionResponse = new FunctionResponse { Name = msg.ToolCallId, Response = dict } } } });
+            }
+        }
+
+        var toolsList = new List<Tool>();
+        var functionDeclarations = new List<FunctionDeclaration>();
+
+        foreach (var t in tools)
+        {
+            var fd = new FunctionDeclaration
+            {
+                Name = t.Name,
+                Description = t.Description,
+                Parameters = ParseSchema(t.ParametersSchema)
+            };
+            functionDeclarations.Add(fd);
+        }
+
+        if (functionDeclarations.Count > 0)
+        {
+            toolsList.Add(new Tool { FunctionDeclarations = functionDeclarations });
+        }
+
+        bool hasAudio = history.LastOrDefault()?.Parts?.Any(p => p.Type == "audio" && p.InlineData != null) == true;
+
+        var config = new GenerateContentConfig();
+        
+        if (hasAudio)
+        {
+            config.ResponseMimeType = "application/json";
+            config.ResponseSchema = new Google.GenAI.Types.Schema 
+            { 
+                Type = Google.GenAI.Types.Type.Object,
+                Properties = new Dictionary<string, Google.GenAI.Types.Schema>
+                {
+                    { "user_transcription", new Google.GenAI.Types.Schema { Type = Google.GenAI.Types.Type.String } },
+                    { "ai_reply", new Google.GenAI.Types.Schema { Type = Google.GenAI.Types.Type.String } }
+                },
+                Required = new List<string> { "user_transcription", "ai_reply" }
+            };
+            
+            if (contents.Count > 0 && contents[0].Role == "user" && contents[0].Parts[0].Text != null && contents[0].Parts[0].Text.StartsWith("SYSTEM: "))
+            {
+                contents[0].Parts[0].Text += "\n\nCRITICAL: The last message contains an audio note. You MUST respond in valid JSON matching the schema, providing the literal transcription in 'user_transcription' and your reply to the user in 'ai_reply'. Do NOT use any tools this turn.";
+            }
+        }
+        else if (toolsList.Count > 0)
+        {
+            config.Tools = toolsList;
+        }
+
+        var responseStream = client.Models.GenerateContentStreamAsync("gemini-2.5-flash", contents, config);
+        
+        if (hasAudio)
+        {
+            var fullJson = new System.Text.StringBuilder();
+            await foreach (var response in responseStream.ConfigureAwait(false))
+            {
+                if (response.Text != null) fullJson.Append(response.Text);
+            }
+            
+            AiResponseUpdate? finalUpdate = null;
+            try
+            {
+                using var doc = JsonDocument.Parse(fullJson.ToString());
+                var aiReply = doc.RootElement.GetProperty("ai_reply").GetString();
+                var transcription = doc.RootElement.GetProperty("user_transcription").GetString();
+                
+                finalUpdate = new AiResponseUpdate 
+                { 
+                    TextUpdate = aiReply, 
+                    FinishReason = "stop",
+                    AudioTranscription = transcription
+                };
+            }
+            catch
+            {
+                finalUpdate = new AiResponseUpdate { TextUpdate = fullJson.ToString(), FinishReason = "stop" };
+            }
+            
+            if (finalUpdate != null) yield return finalUpdate;
+            yield break;
+        }
+        
+        await foreach (var response in responseStream.ConfigureAwait(false))
+        {
+            var update = new AiResponseUpdate();
+            
+            if (response.Text != null)
+            {
+                update.TextUpdate = response.Text;
+            }
+
+            if (response.FunctionCalls != null && response.FunctionCalls.Count > 0)
+            {
+                var fc = response.FunctionCalls[0];
+                update.ToolCallUpdate = new AiToolCall
+                {
+                    Id = fc.Name,
+                    Name = fc.Name,
+                    Arguments = JsonSerializer.Serialize(fc.Args)
+                };
+                update.FinishReason = "tool_calls";
+            }
+            else
+            {
+                update.FinishReason = "stop";
+            }
+            
+            yield return update;
+        }
+    }
+
+    private Google.GenAI.Types.Schema ParseSchema(string jsonSchema)
+    {
+        using var doc = JsonDocument.Parse(jsonSchema);
+        return ParseElement(doc.RootElement);
+    }
+
+    private Google.GenAI.Types.Schema ParseElement(JsonElement element)
+    {
+        var schema = new Google.GenAI.Types.Schema();
+        
+        if (element.TryGetProperty("type", out var typeProp))
+        {
+            var typeStr = typeProp.GetString();
+            schema.Type = typeStr switch
+            {
+                "string" => Google.GenAI.Types.Type.String,
+                "number" => Google.GenAI.Types.Type.Number,
+                "integer" => Google.GenAI.Types.Type.Integer,
+                "boolean" => Google.GenAI.Types.Type.Boolean,
+                "array" => Google.GenAI.Types.Type.Array,
+                "object" => Google.GenAI.Types.Type.Object,
+                _ => Google.GenAI.Types.Type.String
+            };
+        }
+
+        if (element.TryGetProperty("description", out var descProp))
+        {
+            schema.Description = descProp.GetString();
+        }
+
+        if (element.TryGetProperty("properties", out var propsElement) && schema.Type == Google.GenAI.Types.Type.Object)
+        {
+            schema.Properties = new Dictionary<string, Google.GenAI.Types.Schema>();
+            foreach (var prop in propsElement.EnumerateObject())
+            {
+                schema.Properties[prop.Name] = ParseElement(prop.Value);
+            }
+        }
+
+        if (element.TryGetProperty("required", out var requiredElement))
+        {
+            schema.Required = new List<string>();
+            foreach (var req in requiredElement.EnumerateArray())
+            {
+                schema.Required.Add(req.GetString());
+            }
+        }
+
+        if (element.TryGetProperty("enum", out var enumElement))
+        {
+            schema.Enum = new List<string>();
+            foreach (var e in enumElement.EnumerateArray())
+            {
+                schema.Enum.Add(e.GetString());
+            }
+        }
+
+        return schema;
+    }
+}

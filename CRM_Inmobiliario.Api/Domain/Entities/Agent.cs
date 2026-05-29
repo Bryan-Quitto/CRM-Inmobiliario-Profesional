@@ -46,10 +46,21 @@ public sealed class Agent
     [MaxLength(255)]
     public string? AiApiKey { get; set; }
 
+    [MaxLength(50)]
+    public string ActiveLLMProvider { get; set; } = "OpenAI";
+
     public int DailyTokenLimitPerContact { get; set; } = 50000;
 
     [MaxLength(50)]
     public string? WhatsAppPhoneNumberId { get; set; }
+
+    [MaxLength(255)]
+    public string? GeminiCacheId { get; set; }
+
+    public DateTimeOffset? GeminiCacheExpiresAt { get; set; }
+
+    [MaxLength(50)]
+    public string ByokKeyStatus { get; set; } = "Valid";
 
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 

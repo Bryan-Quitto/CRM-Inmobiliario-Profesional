@@ -15,7 +15,11 @@ public class DocumentChunkConfiguration : IEntityTypeConfiguration<DocumentChunk
 
         builder.Property(c => c.Embedding)
             .HasColumnType("vector(1536)")
-            .IsRequired();
+            .IsRequired(false);
+
+        builder.Property(c => c.GeminiEmbedding)
+            .HasColumnType("vector(768)")
+            .IsRequired(false);
 
         builder.Property(c => c.ChunkIndex)
             .IsRequired();
@@ -24,6 +28,10 @@ public class DocumentChunkConfiguration : IEntityTypeConfiguration<DocumentChunk
             .IsRequired();
 
         builder.HasIndex(c => c.Embedding)
+            .HasMethod("hnsw")
+            .HasOperators("vector_cosine_ops");
+
+        builder.HasIndex(c => c.GeminiEmbedding)
             .HasMethod("hnsw")
             .HasOperators("vector_cosine_ops");
     }

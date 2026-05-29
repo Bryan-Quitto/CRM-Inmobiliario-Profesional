@@ -1,80 +1,58 @@
-using OpenAI.Chat;
+using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts;
 
 public static class ChatSerializer
 {
-    public static string SerializeHistory(List<ChatMessage> history)
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
-        var dto = history.Select(m => {
-            var item = new ChatMessageDto 
-            { 
-                Role = m is SystemChatMessage ? "system" : 
-                       m is UserChatMessage ? "user" : 
-                       m is AssistantChatMessage ? "assistant" : 
-                       m is ToolChatMessage ? "tool" : "unknown",
-                Content = m.Content.Count > 0 ? m.Content[0].Text : ""
-            };
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
-            if (m is ToolChatMessage t)
-            {
-                item.ToolCallId = t.ToolCallId;
-            }
-            else if (m is AssistantChatMessage a && a.ToolCalls?.Count > 0)
-            {
-                item.ToolCalls = a.ToolCalls.Select(tc => new ToolCallDto 
-                { 
-                    Id = tc.Id, 
-                    Name = tc.FunctionName, 
-                    Arguments = tc.FunctionArguments.ToString() 
-                }).ToList();
-            }
-
-            return item;
-        }).ToList();
-        
-        return JsonSerializer.Serialize(dto);
+    public static string SerializeHistory(List<AiMessage> history)
+    {
+        return JsonSerializer.Serialize(history, _jsonOptions);
     }
 
-    public static List<ChatMessage> DeserializeHistory(string json, bool leadExists, string? leadName, bool isFirstMessage = false)
+    public static List<AiMessage> DeserializeHistory(string json, bool leadExists, string? leadName, bool isFirstMessage = false)
     {
-        var dtos = JsonSerializer.Deserialize<List<ChatMessageDto>>(json) ?? new List<ChatMessageDto>();
-        var history = new List<ChatMessage>();
-
-        foreach (var dto in dtos)
+        var history = JsonSerializer.Deserialize<List<AiMessage>>(json, _jsonOptions) ?? new List<AiMessage>();
+        var systemPrompt = SystemPromptFactory.GetSystemPrompt(leadExists, leadName, isFirstMessage);
+        
+        foreach (var msg in history)
         {
-            switch (dto.Role)
+            if ((msg.Parts == null || msg.Parts.Count == 0) && !string.IsNullOrEmpty(msg.Content))
             {
-                case "system": break;
-                case "user": history.Add(new UserChatMessage(dto.Content)); break;
-                case "assistant": 
-                    if (dto.ToolCalls?.Count > 0)
-                    {
-                        var toolCalls = dto.ToolCalls.Select(tc => ChatToolCall.CreateFunctionToolCall(tc.Id, tc.Name, BinaryData.FromString(tc.Arguments))).ToList();
-                        history.Add(new AssistantChatMessage(toolCalls));
-                    }
-                    else history.Add(new AssistantChatMessage(dto.Content));
-                    break;
-                case "tool": history.Add(new ToolChatMessage(dto.ToolCallId!, dto.Content)); break;
+                msg.Parts ??= new List<AiMessagePart>();
+                msg.Parts.Add(new AiMessagePart { Type = "text", Text = msg.Content });
             }
         }
-        history.Insert(0, new SystemChatMessage(SystemPromptFactory.GetSystemPrompt(leadExists, leadName, isFirstMessage)));
+
+        if (history.Count == 0 || history[0].Role != "system")
+        {
+            history.Insert(0, new AiMessage 
+            { 
+                Role = "system", 
+                Content = systemPrompt,
+                Parts = new List<AiMessagePart> { new AiMessagePart { Type = "text", Text = systemPrompt } }
+            });
+        }
+        else
+        {
+            history[0].Content = systemPrompt;
+            if (history[0].Parts.Count > 0)
+            {
+                history[0].Parts[0].Text = systemPrompt;
+            }
+            else
+            {
+                history[0].Parts.Add(new AiMessagePart { Type = "text", Text = systemPrompt });
+            }
+        }
+
         return history;
-    }
-
-    private class ChatMessageDto
-    {
-        public string Role { get; set; } = string.Empty;
-        public string Content { get; set; } = string.Empty;
-        public string? ToolCallId { get; set; }
-        public List<ToolCallDto>? ToolCalls { get; set; }
-    }
-
-    private class ToolCallDto
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Arguments { get; set; } = string.Empty;
     }
 }

@@ -104,6 +104,9 @@ public sealed class Property
     [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "vector(1536)")]
     public Pgvector.Vector? VectorEmbedding { get; set; }
 
+    [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "vector(768)")]
+    public Pgvector.Vector? GeminiEmbedding { get; set; }
+
     // Relaciones de navegación
     public ICollection<PropertyGallerySection> GallerySections { get; set; } = new List<PropertyGallerySection>();
     public ICollection<PropertyMedia> Media { get; set; } = new List<PropertyMedia>();

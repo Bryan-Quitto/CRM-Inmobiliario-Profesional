@@ -44,6 +44,9 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         Guid? currentAgentId = null;
         Guid? currentAgencyId = null;
 
+        string provider = "OpenAI";
+        string? apiKey = null;
+
         if (!string.IsNullOrEmpty(phoneNumberId))
         {
             var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
@@ -51,22 +54,23 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             {
                 currentAgentId = agent.Id;
                 currentAgencyId = agent.AgenciaId;
+                provider = agent.ActiveLLMProvider;
+                apiKey = agent.AiApiKey;
             }
         }
 
         var allowedStates = new[] { "Disponible", "Reservada", "Alquilada" };
         
-        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr);
+        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr, provider, apiKey);
         if (queryEmbedding == null) 
         {
             _logger.LogWarning("No se pudo generar el embedding para la búsqueda semántica.");
             return "El servicio de búsqueda avanzada no está disponible temporalmente.";
         }
 
-        var results = await _context.Properties
+        var baseQuery = _context.Properties
             .Where(p => allowedStates.Contains(p.EstadoComercial))
             .Where(p => !descartadosIds.Contains(p.Id))
-            .Where(p => p.VectorEmbedding != null)
             // Filtros duros (Hybrid Search)
             .Where(p => string.IsNullOrEmpty(tipoOperacion) || p.Operacion == tipoOperacion)
             .Where(p => !presupuestoMaximo.HasValue || p.Precio <= presupuestoMaximo.Value)
@@ -75,16 +79,38 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             // Regla de Visibilidad (Data Tenancy): Agencia completa o solo suyas si es independiente
             .Where(p => 
                 (currentAgencyId != null && p.AgenciaId == currentAgencyId) || 
-                (currentAgentId != null && (p.AgenteId == currentAgentId || p.CreatedByAgenteId == currentAgentId)))
-            .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
-            .Take(3)
-            .Select(p => new PropiedadResultDto(
-                p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
-                p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
-                p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
-                p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
-                p.Descripcion
-            )).ToListAsync();
+                (currentAgentId != null && (p.AgenteId == currentAgentId || p.CreatedByAgenteId == currentAgentId)));
+
+        List<PropiedadResultDto> results;
+
+        if (provider == "Gemini")
+        {
+            results = await baseQuery
+                .Where(p => p.GeminiEmbedding != null)
+                .OrderBy(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding))
+                .Take(3)
+                .Select(p => new PropiedadResultDto(
+                    p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                    p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
+                    p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
+                    p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
+                    p.Descripcion
+                )).ToListAsync();
+        }
+        else
+        {
+            results = await baseQuery
+                .Where(p => p.VectorEmbedding != null)
+                .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
+                .Take(3)
+                .Select(p => new PropiedadResultDto(
+                    p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                    p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
+                    p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
+                    p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
+                    p.Descripcion
+                )).ToListAsync();
+        }
 
         if (results.Any()) 
         {

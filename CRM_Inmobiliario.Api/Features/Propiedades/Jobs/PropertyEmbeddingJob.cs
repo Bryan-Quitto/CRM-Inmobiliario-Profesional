@@ -25,7 +25,9 @@ public class PropertyEmbeddingJob
 
     public async Task ProcessPropertyAsync(Guid propiedadId)
     {
-        var property = await _context.Properties.FindAsync(propiedadId);
+        var property = await _context.Properties
+            .Include(p => p.Agente)
+            .FirstOrDefaultAsync(p => p.Id == propiedadId);
         if (property == null)
         {
             _logger.LogWarning("Property {PropiedadId} not found, skipping embedding generation.", propiedadId);

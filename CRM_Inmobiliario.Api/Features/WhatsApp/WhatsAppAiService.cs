@@ -40,7 +40,17 @@ public sealed class WhatsAppAiService
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
     }
 
+    public async Task ProcessIncomingAudioAsync(string phone, byte[] audioBytes, string mediaUrl, string phoneNumberId)
+    {
+        await ProcessMessageInternalAsync(phone, $"[Audio Note: {mediaUrl}]", phoneNumberId, audioBytes, mediaUrl);
+    }
+
     public async Task ProcessIncomingMessageAsync(string phone, string messageText, string phoneNumberId)
+    {
+        await ProcessMessageInternalAsync(phone, messageText, phoneNumberId, null, null);
+    }
+
+    private async Task ProcessMessageInternalAsync(string phone, string messageText, string phoneNumberId, byte[]? audioBytes, string? mediaUrl)
     {
         try
         {
@@ -74,75 +84,139 @@ public sealed class WhatsAppAiService
                 return;
             }
 
-            // 3. Orquestación con OpenAI GPT-4o-mini
-            var httpClient = _httpClientFactory.CreateClient("OpenAI");
-            var clientOptions = new OpenAIClientOptions
-            {
-                Transport = new HttpClientPipelineTransport(httpClient)
-            };
+            // 3. Orquestación con LLMProviderFactory
+            var openAiProvider = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.OpenAiProvider(_httpClientFactory);
+            var geminiProvider = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.GeminiProvider(_httpClientFactory);
+            var llmFactory = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory(openAiProvider, geminiProvider);
             
             var tenantAgent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
             string apiKeyToUse = tenantAgent?.AiApiKey ?? _openAiApiKey ?? "";
-            var chatClient = new ChatClient("gpt-4o-mini", new System.ClientModel.ApiKeyCredential(apiKeyToUse), clientOptions);
             
+            var provider = llmFactory.GetProvider(apiKeyToUse);
             var history = context.History;
-
-            var options = _promptBuilder.GetChatOptions();
+            var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
 
             bool requiresAction = true;
             string? finalResponse = null;
 
             while (requiresAction)
             {
-                _logger.LogInformation("--- ENVIANDO A OPENAI ({Count} mensajes) ---", history.Count);
+                _logger.LogInformation("--- ENVIANDO A LLM ({Count} mensajes) ---", history.Count);
                 
-                ChatCompletion completion = await chatClient.CompleteChatAsync(history, options);
-                requiresAction = false;
-
-                _logger.LogInformation("--- TOKENS: Input={Input}, Output={Output}, Total={Total} ---", 
-                    completion.Usage.InputTokenCount, completion.Usage.OutputTokenCount, completion.Usage.TotalTokenCount);
-
-                if (context.Contacto != null)
+                var aiHistory = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>();
+                foreach(var m in history)
                 {
-                    await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, completion.Usage.TotalTokenCount);
-                }
-
-                switch (completion.FinishReason)
-                {
-                    case ChatFinishReason.Stop:
-                        finalResponse = completion.Content[0].Text;
-                        
-                        if (context.IsFirstMessage)
+                    if (m is SystemChatMessage scm) aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = scm.Content.Count > 0 ? scm.Content[0].Text : "" });
+                    else if (m is UserChatMessage ucm) 
+                    {
+                        var text = ucm.Content.Count > 0 ? ucm.Content[0].Text : "";
+                        var aiMsg = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = text };
+                        if (audioBytes != null && mediaUrl != null && text == $"[Audio Note: {mediaUrl}]")
                         {
-                            string agentName = tenantAgent != null ? $"{tenantAgent.Nombre} {tenantAgent.Apellido}".Trim() : "nuestro equipo";
-                            string header = $"¡Hola! Soy el asistente virtual de {agentName} 🤖.\n\n";
-                            string footer = $"\n\n💡 _Si prefieres atención personalizada, solo dímelo y {agentName} se conectará contigo._";
-                            
-                            finalResponse = header + finalResponse + footer;
-                            history.Add(new AssistantChatMessage(finalResponse));
+                            aiMsg.Parts.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessagePart 
+                            { 
+                                Type = "audio", 
+                                MimeType = "audio/ogg",
+                                InlineData = audioBytes,
+                                MediaUrl = mediaUrl
+                            });
                         }
                         else
                         {
-                            history.Add(new AssistantChatMessage(completion));
+                            aiMsg.Parts.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessagePart { Type = "text", Text = text });
                         }
-                        
-                        if (context.Contacto != null)
+                        aiHistory.Add(aiMsg);
+                    }
+                    else if (m is AssistantChatMessage acm) 
+                    {
+                        var am = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "assistant" };
+                        if (acm.ToolCalls != null && acm.ToolCalls.Count > 0)
                         {
-                            await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse);
+                            am.ToolCalls = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall>();
+                            foreach(var tc in acm.ToolCalls)
+                            {
+                                am.ToolCalls.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = tc.Id, Name = tc.FunctionName, Arguments = tc.FunctionArguments.ToString() });
+                            }
                         }
-                        _logger.LogInformation("--- RESPUESTA FINAL IA: {Response} ---", finalResponse);
-                        break;
+                        else
+                        {
+                            am.Content = acm.Content.Count > 0 ? acm.Content[0].Text : "";
+                        }
+                        aiHistory.Add(am);
+                    }
+                    else if (m is ToolChatMessage tcm)
+                    {
+                        aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "tool", Content = tcm.Content.Count > 0 ? tcm.Content[0].Text : "", ToolCallId = tcm.ToolCallId });
+                    }
+                }
 
-                    case ChatFinishReason.ToolCalls:
-                        history.Add(new AssistantChatMessage(completion.ToolCalls));
-                        foreach (var toolCall in completion.ToolCalls)
+                requiresAction = false;
+                
+                var textBuilder = new System.Text.StringBuilder();
+                CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall? currentToolCall = null;
+                string? finishReason = null;
+                
+                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, apiKeyToUse))
+                {
+                    if (!string.IsNullOrEmpty(update.TextUpdate))
+                    {
+                        textBuilder.Append(update.TextUpdate);
+                    }
+                    if (update.ToolCallUpdate != null)
+                    {
+                        if (currentToolCall == null)
                         {
-                            _logger.LogInformation("--- TOOL CALL: {Tool} ---", toolCall.FunctionName);
-                            string toolResult = await _toolExecutor.HandleToolCallAsync(toolCall, phone, messageText, context.Contacto, phoneNumberId);
-                            history.Add(new ToolChatMessage(toolCall.Id, toolResult));
+                            currentToolCall = update.ToolCallUpdate;
                         }
-                        requiresAction = true;
-                        break;
+                        else
+                        {
+                            currentToolCall.Arguments += update.ToolCallUpdate.Arguments;
+                        }
+                    }
+                    if (update.FinishReason != null)
+                    {
+                        finishReason = update.FinishReason;
+                    }
+                    if (update.AudioTranscription != null)
+                    {
+                        _logger.LogInformation("--- TRANSCRIPCIÓN IA ---: {Transcription}", update.AudioTranscription);
+                    }
+                }
+
+                if (finishReason == "stop" || currentToolCall == null)
+                {
+                    finalResponse = textBuilder.ToString();
+                    
+                    if (context.IsFirstMessage)
+                    {
+                        string agentName = tenantAgent != null ? $"{tenantAgent.Nombre} {tenantAgent.Apellido}".Trim() : "nuestro equipo";
+                        string header = $"¡Hola! Soy el asistente virtual de {agentName} 🤖.\n\n";
+                        string footer = $"\n\n💡 _Si prefieres atención personalizada, solo dímelo y {agentName} se conectará contigo._";
+                        
+                        finalResponse = header + finalResponse + footer;
+                        history.Add(new AssistantChatMessage(finalResponse));
+                    }
+                    else
+                    {
+                        history.Add(new AssistantChatMessage(finalResponse));
+                    }
+                    
+                    if (context.Contacto != null)
+                    {
+                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse);
+                    }
+                    _logger.LogInformation("--- RESPUESTA FINAL IA: {Response} ---", finalResponse);
+                }
+                else if ((finishReason == "tool_calls" || finishReason == "function_call") && currentToolCall != null)
+                {
+                    var chatToolCall = ChatToolCall.CreateFunctionToolCall(currentToolCall.Id, currentToolCall.Name, BinaryData.FromString(currentToolCall.Arguments));
+                    history.Add(new AssistantChatMessage(new[] { chatToolCall }));
+                    
+                    _logger.LogInformation("--- TOOL CALL: {Tool} ---", currentToolCall.Name);
+                    string toolResult = await _toolExecutor.HandleToolCallAsync(currentToolCall, phone, messageText, context.Contacto, phoneNumberId);
+                    history.Add(new ToolChatMessage(currentToolCall.Id, toolResult));
+                    
+                    requiresAction = true;
                 }
             }
 
