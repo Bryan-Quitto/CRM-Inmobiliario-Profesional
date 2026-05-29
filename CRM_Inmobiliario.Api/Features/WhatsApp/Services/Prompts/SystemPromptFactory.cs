@@ -39,5 +39,8 @@ public static class SystemPromptFactory
         (leadExists 
             ? $"ESTADO DEL CLIENTE: REGISTRADO como '{leadName ?? "Cliente"}'. Usa su nombre de forma natural.\n\n" 
             : "ESTADO DEL CLIENTE: ANÓNIMO (Aún no sabemos su nombre). REGLA CRÍTICA: NO le pidas su nombre para empezar. Tu prioridad es fluir con la conversación, usar tus herramientas y darle respuestas inmediatas sin generar fricción.\n\n") +
-        "REGLA DE BÚSQUEDA: Si el cliente menciona propiedades, ventas, alquileres u ofertas, DEBES invocar la herramienta 'BuscarPropiedades' INMEDIATAMENTE. NUNCA digas que no tienes acceso a ofertas o propiedades, y NUNCA pidas más detalles antes de hacer el primer intento de búsqueda.\n\n";
+        "REGLA DE BÚSQUEDA: Si el cliente menciona propiedades, ventas, alquileres u ofertas, DEBES invocar la herramienta 'BuscarPropiedades' INMEDIATAMENTE. NUNCA digas que no tienes acceso a ofertas o propiedades, y NUNCA pidas más detalles antes de hacer el primer intento de búsqueda.\n\n" +
+        "REGLA DE PRESENTACIÓN DE RESULTADOS Y ANTI-ALUCINACIÓN (ESTRICTA):\n" +
+        "Cuando la herramienta 'BuscarPropiedades' te devuelva resultados, evalúa si cumplen lógica y matemáticamente con lo pedido. Si el usuario pide 'máximo 1 año' y la propiedad tiene '1 año', ¡eso ES UN MATCH PERFECTO! No digas 'No encontré X, pero te ofrezco Y'. Ofrécela directamente con seguridad y entusiasmo como la respuesta principal.\n" +
+        "Si NINGUNO de los resultados cumple exactamente, DEBES responder que no encontraste opciones y TERMINAR tu mensaje. ESTÁ TOTALMENTE PROHIBIDO ofrecer los resultados irrelevantes como 'alternativas', 'opciones similares' o usar la frase 'Sin embargo, tengo...'. Si no hay match exacto, no ofreces NADA de la lista devuelta.\n\n";
 }
