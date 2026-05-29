@@ -21,6 +21,20 @@ public static class AiToolDefinitions
         ));
 
         options.Tools.Add(ChatTool.CreateFunctionTool(
+            "ConsultarBaseConocimiento",
+            "Consulta los documentos y políticas corporativas de la inmobiliaria (ej. reglas de reserva, devoluciones, requisitos de crédito, comisiones). Usa esta herramienta cuando el cliente pregunte sobre cómo funcionan los procesos.",
+            BinaryData.FromBytes("""
+            {
+                "type": "object",
+                "properties": {
+                    "query": { "type": "string", "description": "Pregunta corporativa o de proceso en lenguaje natural." }
+                },
+                "required": ["query"]
+            }
+            """u8.ToArray())
+        ));
+
+        options.Tools.Add(ChatTool.CreateFunctionTool(
             "RegistrarNuevoContacto",
             "Crea un nuevo contacto en el CRM. Debes llamar a esta herramienta SIEMPRE ANTES de registrar un interés si el cliente no está en la base.",
             BinaryData.FromBytes("""

@@ -85,56 +85,7 @@ public sealed class WhatsAppAiService
             string apiKeyToUse = tenantAgent?.AiApiKey ?? _openAiApiKey ?? "";
             var chatClient = new ChatClient("gpt-4o-mini", new System.ClientModel.ApiKeyCredential(apiKeyToUse), clientOptions);
             
-            // 3.1 Clasificación de Intención
-            var intentPrompt = @"Clasifica el siguiente mensaje del usuario en una de dos categorías:
-1. 'CORPORATE': Si el usuario pregunta sobre políticas internas, requisitos, comisiones, reglas de la inmobiliaria o temas administrativos.
-2. 'PROPERTY': Si el usuario busca propiedades, pide agendar visitas, o cualquier otra cosa.
-Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
-            var intentResponse = await chatClient.CompleteChatAsync(new List<ChatMessage> {
-                new SystemChatMessage(intentPrompt),
-                new UserChatMessage(messageText)
-            });
-            
-            if (context.Contacto != null)
-            {
-                await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, intentResponse.Value.Usage.TotalTokenCount);
-            }
-            
             var history = context.History;
-            
-            if (intentResponse.Value.Content[0].Text.Trim().ToUpper() == "CORPORATE")
-            {
-                _logger.LogInformation("Intención CORPORATE detectada para {Phone}.", phone);
-                
-                var embeddingClient = new OpenAI.Embeddings.EmbeddingClient("text-embedding-3-small", apiKeyToUse);
-                var embeddingResult = await embeddingClient.GenerateEmbeddingAsync(messageText);
-                var queryVector = new Pgvector.Vector(embeddingResult.Value.ToFloats().ToArray());
-                
-                var baseQuery = _dbContext.DocumentChunks
-                    .Where(c => c.Audience == DocumentAudience.Public);
-
-                var topChunks = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
-                    System.Linq.Queryable.Take(
-                        System.Linq.Queryable.OrderBy(
-                            baseQuery,
-                            c => c.Embedding!.CosineDistance(queryVector)
-                        ),
-                        3
-                    )
-                );
-                
-                if (topChunks.Any())
-                {
-                    string contextText = string.Join("\n\n", topChunks.Select(c => $"[Contexto]: {c.Content}"));
-                    string ragPrompt = $"Eres el asistente virtual de la inmobiliaria. Responde a la pregunta del usuario basándote ESTRICTAMENTE en la siguiente información proporcionada. Si la respuesta no se encuentra en esta información, indica amablemente que no tienes los datos y sugiere contactar a un asesor humano. NO inventes información.\n\n{contextText}";
-                    
-                    // Modify the system prompt to be the RAG prompt
-                    if (history.Count > 0 && history[0] is SystemChatMessage)
-                    {
-                        history[0] = new SystemChatMessage(ragPrompt);
-                    }
-                }
-            }
 
             var options = _promptBuilder.GetChatOptions();
 
