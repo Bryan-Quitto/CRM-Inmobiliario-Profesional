@@ -160,7 +160,20 @@ Responde ÚNICAMENTE con la palabra 'CORPORATE' o 'PROPERTY'.";
                 {
                     case ChatFinishReason.Stop:
                         finalResponse = completion.Content[0].Text;
-                        history.Add(new AssistantChatMessage(completion));
+                        
+                        if (context.IsFirstMessage)
+                        {
+                            string agentName = tenantAgent != null ? $"{tenantAgent.Nombre} {tenantAgent.Apellido}".Trim() : "nuestro equipo";
+                            string header = $"¡Hola! Soy el asistente virtual de {agentName} 🤖.\n\n";
+                            string footer = $"\n\n💡 _Si prefieres atención personalizada, solo dímelo y {agentName} se conectará contigo._";
+                            
+                            finalResponse = header + finalResponse + footer;
+                            history.Add(new AssistantChatMessage(finalResponse));
+                        }
+                        else
+                        {
+                            history.Add(new AssistantChatMessage(completion));
+                        }
                         
                         if (context.Contacto != null)
                         {

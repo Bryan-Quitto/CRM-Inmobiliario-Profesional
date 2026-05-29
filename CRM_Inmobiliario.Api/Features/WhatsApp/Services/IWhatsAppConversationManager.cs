@@ -7,7 +7,8 @@ public record WhatsAppContext(
     Contacto? Contacto, 
     WhatsappConversation Conversation, 
     List<ChatMessage> History, 
-    string? AutoResponse = null);
+    string? AutoResponse = null,
+    bool IsFirstMessage = false);
 
 public interface IWhatsAppConversationManager
 {
