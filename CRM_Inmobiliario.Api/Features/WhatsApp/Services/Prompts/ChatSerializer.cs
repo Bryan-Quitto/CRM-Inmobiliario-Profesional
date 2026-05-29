@@ -37,7 +37,7 @@ public static class ChatSerializer
         return JsonSerializer.Serialize(dto);
     }
 
-    public static List<ChatMessage> DeserializeHistory(string json, bool leadExists, string? leadName)
+    public static List<ChatMessage> DeserializeHistory(string json, bool leadExists, string? leadName, bool isFirstMessage = false)
     {
         var dtos = JsonSerializer.Deserialize<List<ChatMessageDto>>(json) ?? new List<ChatMessageDto>();
         var history = new List<ChatMessage>();
@@ -59,7 +59,7 @@ public static class ChatSerializer
                 case "tool": history.Add(new ToolChatMessage(dto.ToolCallId!, dto.Content)); break;
             }
         }
-        history.Insert(0, new SystemChatMessage(SystemPromptFactory.GetSystemPrompt(leadExists, leadName)));
+        history.Insert(0, new SystemChatMessage(SystemPromptFactory.GetSystemPrompt(leadExists, leadName, isFirstMessage)));
         return history;
     }
 

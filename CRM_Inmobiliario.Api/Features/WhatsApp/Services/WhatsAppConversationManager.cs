@@ -134,11 +134,12 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             .FirstOrDefaultAsync(c => c.ContactoId == contacto!.Id);
         
         List<ChatMessage> history;
-        bool contactExists = contacto != null;
+        bool isFirstMessage = conversation == null;
+        bool contactExists = contacto != null && contacto.Nombre != "Cliente WA";
 
-        if (conversation == null)
+        if (isFirstMessage)
         {
-            history = new List<ChatMessage> { new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre)) };
+            history = new List<ChatMessage> { new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage)) };
             conversation = new WhatsappConversation
             {
                 Id = Guid.NewGuid(),
@@ -151,12 +152,12 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         }
         else
         {
-            history = _promptBuilder.DeserializeHistory(conversation.HistorialJson, contactExists, contacto?.Nombre);
+            history = _promptBuilder.DeserializeHistory(conversation!.HistorialJson ?? "[]", contactExists, contacto?.Nombre, isFirstMessage);
             
             // Reemplazar siempre el prompt del sistema antiguo con la versión más reciente del código
             if (history.Count > 0 && history[0] is SystemChatMessage)
             {
-                history[0] = new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre));
+                history[0] = new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage));
             }
         }
 
@@ -227,7 +228,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             }
         }
 
-        return new WhatsAppContext(contacto, conversation, history, autoMsg);
+        return new WhatsAppContext(contacto, conversation, history, autoMsg, isFirstMessage);
     }
 
     public async Task SaveStateAsync(Guid contactoId, List<ChatMessage> history)
