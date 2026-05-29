@@ -13,7 +13,11 @@ public static class AiToolDefinitions
             {
                 "type": "object",
                 "properties": {
-                    "query": { "type": "string", "description": "Intención de búsqueda en lenguaje natural." }
+                    "query": { "type": "string", "description": "Intención de búsqueda en lenguaje natural. Ej: 'departamento minimalista', 'cerca de la playa'." },
+                    "tipoOperacion": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica la intención explícitamente (ej. 'Alquiler', 'Venta'). No adivinar." },
+                    "presupuestoMaximo": { "type": "number", "description": "Extraer SOLAMENTE si el cliente menciona explícitamente un presupuesto o precio máximo. No adivinar." },
+                    "habitacionesMinimas": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica un mínimo de habitaciones o cuartos. No adivinar." },
+                    "antiguedadMaxima": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica años máximos de antigüedad (ej. 'nuevo' = 1, 'max 5 años' = 5). No adivinar." }
                 },
                 "required": ["query"]
             }

@@ -23,8 +23,13 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
     public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
     {
         string? queryStr = args.RootElement.TryGetProperty("query", out var q) ? q.GetString() : null;
+        string? tipoOperacion = args.RootElement.TryGetProperty("tipoOperacion", out var to) ? to.GetString() : null;
+        decimal? presupuestoMaximo = args.RootElement.TryGetProperty("presupuestoMaximo", out var pm) && pm.ValueKind == JsonValueKind.Number ? pm.GetDecimal() : null;
+        int? habitacionesMinimas = args.RootElement.TryGetProperty("habitacionesMinimas", out var hm) && hm.ValueKind == JsonValueKind.Number ? hm.GetInt32() : null;
+        int? antiguedadMaxima = args.RootElement.TryGetProperty("antiguedadMaxima", out var am) && am.ValueKind == JsonValueKind.Number ? am.GetInt32() : null;
 
-        _logger.LogInformation("Iniciando búsqueda semántica: Query={Query}", queryStr ?? "Ninguno");
+        _logger.LogInformation("Iniciando búsqueda híbrida: Query={Query}, Tipo={Tipo}, Presupuesto={Presupuesto}, Habitaciones={Habitaciones}, Antiguedad={Antiguedad}", 
+            queryStr ?? "Ninguno", tipoOperacion ?? "Cualquiera", presupuestoMaximo, habitacionesMinimas, antiguedadMaxima);
 
         if (string.IsNullOrEmpty(queryStr))
         {
@@ -62,6 +67,11 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
             .Where(p => allowedStates.Contains(p.EstadoComercial))
             .Where(p => !descartadosIds.Contains(p.Id))
             .Where(p => p.VectorEmbedding != null)
+            // Filtros duros (Hybrid Search)
+            .Where(p => string.IsNullOrEmpty(tipoOperacion) || p.Operacion == tipoOperacion)
+            .Where(p => !presupuestoMaximo.HasValue || p.Precio <= presupuestoMaximo.Value)
+            .Where(p => !habitacionesMinimas.HasValue || p.Habitaciones >= habitacionesMinimas.Value)
+            .Where(p => !antiguedadMaxima.HasValue || p.AniosAntiguedad == null || p.AniosAntiguedad <= antiguedadMaxima.Value)
             // Regla de Visibilidad (Data Tenancy): Agencia completa o solo suyas si es independiente
             .Where(p => 
                 (currentAgencyId != null && p.AgenciaId == currentAgencyId) || 
