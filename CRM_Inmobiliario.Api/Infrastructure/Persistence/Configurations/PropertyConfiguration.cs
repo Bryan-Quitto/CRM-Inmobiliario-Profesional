@@ -26,6 +26,15 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.HasIndex(e => new { e.AgenteId, e.EstadoComercial, e.EsCaptacionPropia, e.FechaIngreso })
               .HasDatabaseName("IX_Properties_Performance_AgenteEstadoCaptacion");
 
+        // HNSW Indices for pgvector
+        builder.HasIndex(e => e.VectorEmbedding)
+            .HasMethod("hnsw")
+            .HasOperators("vector_cosine_ops");
+
+        builder.HasIndex(e => e.GeminiEmbedding)
+            .HasMethod("hnsw")
+            .HasOperators("vector_cosine_ops");
+
         builder.HasOne(d => d.Agente)
             .WithMany(p => p.Properties)
             .HasForeignKey(d => d.AgenteId)

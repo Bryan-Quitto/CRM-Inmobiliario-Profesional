@@ -10,6 +10,7 @@ using OpenAI.Embeddings;
 using Pgvector;
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Enums;
+using CRM_Inmobiliario.Api.Extensions;
 
 namespace CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
 
@@ -41,15 +42,16 @@ public static class IngestDocumentEndpoint
             var chunks = chunker.Chunk(content);
 
             var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
-            if (string.IsNullOrEmpty(openAiApiKey))
-                return Results.Problem("OPENAI_API_KEY no está configurada.");
-
-            var embeddingClient = new EmbeddingClient("text-embedding-3-small", openAiApiKey);
 
             if (!Enum.TryParse<DocumentAudience>(audience, true, out var parsedAudience))
             {
                 parsedAudience = DocumentAudience.Public;
             }
+
+            var agenteId = user.GetRequiredUserId();
+            var agente = await context.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Id == agenteId, ct);
+            var provider = agente?.ActiveLLMProvider ?? "OpenAI";
+            var apiKey = agente?.AiApiKey;
 
             var document = new Document
             {
@@ -62,23 +64,61 @@ public static class IngestDocumentEndpoint
 
             var documentChunks = new List<DocumentChunk>();
 
-            var embeddingsResult = await embeddingClient.GenerateEmbeddingsAsync(chunks, cancellationToken: ct);
-            var embeddings = embeddingsResult.Value;
-
-            for (int i = 0; i < chunks.Count; i++)
+            if (provider == "Gemini")
             {
-                var vector = new Vector(embeddings[i].ToFloats().ToArray());
-                documentChunks.Add(new DocumentChunk
+                var key = apiKey ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")?.Trim().Trim('"');
+                if (string.IsNullOrEmpty(key)) return Results.Problem("GEMINI_API_KEY no está configurada.");
+                
+                using var httpClient = new System.Net.Http.HttpClient();
+                for (int i = 0; i < chunks.Count; i++)
                 {
-                    Id = Guid.NewGuid(),
-                    DocumentId = document.Id,
-                    Content = chunks[i],
-                    Embedding = vector,
-                    ChunkIndex = i,
-                    Audience = parsedAudience,
-                    CreatedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
-                    Document = document
-                });
+                    var req = new { content = new { parts = new[] { new { text = chunks[i] } } } };
+                    var response = await httpClient.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={key}", req, ct);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var doc = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonDocument>(cancellationToken: ct);
+                        var values = doc?.RootElement.GetProperty("embedding").GetProperty("values").EnumerateArray().Select(x => x.GetSingle()).ToArray();
+                        if (values != null)
+                        {
+                            documentChunks.Add(new DocumentChunk
+                            {
+                                Id = Guid.NewGuid(),
+                                DocumentId = document.Id,
+                                Content = chunks[i],
+                                GeminiEmbedding = new Vector(values),
+                                ChunkIndex = i,
+                                Audience = parsedAudience,
+                                CreatedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
+                                Document = document
+                            });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var key = apiKey ?? openAiApiKey;
+                if (string.IsNullOrEmpty(key)) return Results.Problem("OPENAI_API_KEY no está configurada.");
+
+                var embeddingClient = new EmbeddingClient("text-embedding-3-small", key);
+                var embeddingsResult = await embeddingClient.GenerateEmbeddingsAsync(chunks, cancellationToken: ct);
+                var embeddings = embeddingsResult.Value;
+
+                for (int i = 0; i < chunks.Count; i++)
+                {
+                    var vector = new Vector(embeddings[i].ToFloats().ToArray());
+                    documentChunks.Add(new DocumentChunk
+                    {
+                        Id = Guid.NewGuid(),
+                        DocumentId = document.Id,
+                        Content = chunks[i],
+                        Embedding = vector,
+                        ChunkIndex = i,
+                        Audience = parsedAudience,
+                        CreatedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
+                        Document = document
+                    });
+                }
             }
 
             // The One Trip Pattern

@@ -33,7 +33,20 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
             return "No se especificó la pregunta para consultar en la base de datos corporativa.";
         }
 
-        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr);
+        string provider = "OpenAI";
+        string? apiKey = null;
+
+        if (!string.IsNullOrEmpty(phoneNumberId))
+        {
+            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+            if (agent != null)
+            {
+                provider = agent.ActiveLLMProvider;
+                apiKey = agent.AiApiKey;
+            }
+        }
+
+        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr, provider, apiKey);
         if (queryEmbedding == null) 
         {
             _logger.LogWarning("No se pudo generar el embedding para la búsqueda RAG.");
@@ -43,10 +56,24 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
         var baseQuery = _context.DocumentChunks
             .Where(c => c.Audience == DocumentAudience.Public);
 
-        var topChunks = await baseQuery
-            .OrderBy(c => c.Embedding!.CosineDistance(queryEmbedding))
-            .Take(3)
-            .ToListAsync();
+        List<DocumentChunk> topChunks;
+        
+        if (provider == "Gemini")
+        {
+            topChunks = await baseQuery
+                .Where(c => c.GeminiEmbedding != null)
+                .OrderBy(c => c.GeminiEmbedding!.CosineDistance(queryEmbedding))
+                .Take(3)
+                .ToListAsync();
+        }
+        else
+        {
+            topChunks = await baseQuery
+                .Where(c => c.Embedding != null)
+                .OrderBy(c => c.Embedding!.CosineDistance(queryEmbedding))
+                .Take(3)
+                .ToListAsync();
+        }
 
         if (topChunks.Any()) 
         {

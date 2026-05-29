@@ -8,7 +8,10 @@ using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Hangfire;
 using Hangfire.PostgreSql;
-
+using CRM_Inmobiliario.Api.Features.AI.Infrastructure.Handlers;
+using CRM_Inmobiliario.Api.Features.AI.Services;
+using CRM_Inmobiliario.Api.Features.AI.Workers;
+using CRM_Inmobiliario.Api.Features.Agents.Services;
 // Cargar variables de entorno
 DotNetEnv.Env.TraversePath().Load();
 
@@ -27,6 +30,18 @@ builder.Services.AddOutputCache(options => {
 });
 
 // Inyección de Dependencias (Slices & IA)
+builder.Services.AddScoped<IAgentStateService, AgentStateService>();
+builder.Services.AddScoped<ICacheRenewalProcessor, CacheRenewalProcessor>();
+builder.Services.AddTransient<ByokCircuitBreakerHandler>();
+
+builder.Services.AddHttpClient<IGeminiApiClient, GeminiApiClient>()
+    .AddHttpMessageHandler<ByokCircuitBreakerHandler>()
+    .AddStandardResilienceHandler(options =>
+    {
+        options.Retry.MaxRetryAttempts = 5;
+        options.Retry.Delay = TimeSpan.FromSeconds(2);
+    });
+
 builder.Services.AddHttpClient();
 builder.Services.ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler());
 
@@ -61,6 +76,7 @@ builder.Services.AddSingleton<IKpiWarmingService, KpiWarmingService>();
 builder.Services.AddHostedService<PdfWorker>();
 builder.Services.AddHostedService<PdfCleanupWorker>();
 builder.Services.AddHostedService<KpiWarmingBackgroundService>();
+builder.Services.AddHostedService<GeminiCacheRenewalWorker>();
 builder.Services.AddScoped<TokenLimitResetJob>();
 
 var app = builder.Build();

@@ -47,24 +47,26 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
             // 1. Descargar el Stream del audio.
             using var stream = await mediaService.DownloadMediaAsync(mediaId);
 
-            // 2. Inicializar AudioClient de OpenAI.
-            var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") 
-                         ?? throw new InvalidOperationException("OPENAI_API_KEY not found.");
-            var audioClient = new OpenAI.Audio.AudioClient("whisper-1", apiKey);
+            // Convertir a byte[]
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var audioBytes = memoryStream.ToArray();
 
-            // 3. Ejecutar transcripción.
-            var options = new OpenAI.Audio.AudioTranscriptionOptions
-            {
-                ResponseFormat = OpenAI.Audio.AudioTranscriptionFormat.Verbose
-            };
-            
-            // Assuming TranscribeAudioAsync takes stream and filename
-            var transcriptionResult = await audioClient.TranscribeAudioAsync(stream, "audio.ogg", options);
-            var transcription = transcriptionResult.Value.Text;
+            // 2. Subir a Supabase Storage ("whatsapp_audio")
+            var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
+            var bucket = supabase.Storage.From("whatsapp_audio");
+            var fileName = $"{Guid.NewGuid()}.ogg";
+            await bucket.Upload(audioBytes, fileName, new Supabase.Storage.FileOptions 
+            { 
+                ContentType = "audio/ogg",
+                Upsert = true
+            });
 
-            // 4. Llamar a WhatsAppAiService.ProcessIncomingMessageAsync(phone, transcripcion)
-            _logger.LogInformation("Transcripción obtenida para {Phone}: {Text}", phone, transcription);
-            await aiService.ProcessIncomingMessageAsync(phone, transcription, phoneNumberId);
+            var mediaUrl = bucket.GetPublicUrl(fileName);
+            _logger.LogInformation("Audio subido a Supabase para {Phone}: {MediaUrl}", phone, mediaUrl);
+
+            // 3. Llamar a WhatsAppAiService pasándole el audio
+            await aiService.ProcessIncomingAudioAsync(phone, audioBytes, mediaUrl, phoneNumberId);
         }
         catch (Exception ex)
         {
