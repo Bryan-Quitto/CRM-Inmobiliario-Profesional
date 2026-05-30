@@ -39,8 +39,8 @@ public static class ObtenerKpisEndpoint
                 return Results.Ok(cachedKpis);
             }
             
-            var baseDate = clientDate ?? DateTimeOffset.UtcNow;
-            var limiteHoyUtc = new DateTimeOffset(baseDate.Year, baseDate.Month, baseDate.Day, 23, 59, 59, baseDate.Offset).ToUniversalTime();
+            var baseDate = (clientDate ?? DateTimeOffset.UtcNow).ToOffset(TimeSpan.FromHours(-5));
+            var limiteHoyUtc = new DateTimeOffset(baseDate.Year, baseDate.Month, baseDate.Day, 23, 59, 59, TimeSpan.FromHours(-5)).ToUniversalTime();
 
             var etapasExcluidas = new[] { "En Negociación", "Cerrado", "Perdido" };
 

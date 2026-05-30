@@ -50,11 +50,13 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
             {
                 var error = await response.Content.ReadAsStringAsync();
                 _logger.LogError("Error enviando mensaje de WhatsApp a {Phone}: {Error}", to, error);
+                response.EnsureSuccessStatusCode();
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Excepción enviando mensaje de WhatsApp a {Phone}", to);
+            throw;
         }
     }
 }

@@ -15,19 +15,22 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
     private readonly IWhatsAppPromptBuilder _promptBuilder;
     private readonly Microsoft.Extensions.Configuration.IConfiguration _config;
     private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
+    private readonly LLMProviderFactory _providerFactory;
 
     public WhatsAppConversationManager(
         CrmDbContext context, 
         ILogger<WhatsAppConversationManager> logger,
         IWhatsAppPromptBuilder promptBuilder,
         Microsoft.Extensions.Configuration.IConfiguration config,
-        System.Net.Http.IHttpClientFactory httpClientFactory)
+        System.Net.Http.IHttpClientFactory httpClientFactory,
+        LLMProviderFactory providerFactory)
     {
         _context = context;
         _logger = logger;
         _promptBuilder = promptBuilder;
         _config = config;
         _httpClientFactory = httpClientFactory;
+        _providerFactory = providerFactory;
     }
 
     public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId)
@@ -193,12 +196,9 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             
             try 
             {
-                var httpClient = _httpClientFactory.CreateClient("OpenAI");
-                var clientOptions = new OpenAIClientOptions
-                {
-                    Transport = new HttpClientPipelineTransport(httpClient)
-                };
-                var chatClient = new ChatClient("gpt-4o-mini", new System.ClientModel.ApiKeyCredential(_config["OPENAI_API_KEY"] ?? ""), clientOptions);
+                var providerName = contacto?.Agente?.ActiveLLMProvider ?? "OpenAI";
+                var apiKey = contacto?.Agente?.AiApiKey ?? (providerName == "Gemini" ? _config["GEMINI_API_KEY"] : _config["OPENAI_API_KEY"]) ?? "";
+                var provider = _providerFactory.GetProvider(providerName, apiKey);
                 var promptStr = "Resume esta interacción para la memoria del sistema. Enfócate SOLO en DATOS DUROS del cliente: " +
                                 "Qué busca, Presupuesto, Ubicaciones, y qué propiedades le gustaron o rechazó. Omite saludos. Formato de viñetas muy denso.";
                 
@@ -208,13 +208,17 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                     return $"{role}: {text}";
                 }));
 
-                var compressionMessages = new List<ChatMessage> { 
-                    new SystemChatMessage(promptStr),
-                    new UserChatMessage(plainTextHistory)
+                var compressionMessages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage> { 
+                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = promptStr },
+                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = plainTextHistory }
                 };
                 
-                var response = await chatClient.CompleteChatAsync(compressionMessages);
-                var resumen = response.Value.Content[0].Text;
+                var updates = provider.StreamChatAsync(compressionMessages, new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolDefinition>(), apiKey);
+                var resumen = "";
+                await foreach (var chunk in updates)
+                {
+                    if (!string.IsNullOrEmpty(chunk.TextUpdate)) resumen += chunk.TextUpdate;
+                }
                 
                 var newHistory = new List<ChatMessage> { systemMessage };
                 newHistory.Add(new SystemChatMessage($"[MEMORIA HISTÓRICA DEL CLIENTE]:\n{resumen}"));

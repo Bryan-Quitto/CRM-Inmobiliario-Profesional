@@ -30,9 +30,9 @@ public static class ListarEventosFeature
         {
             var agenteId = user.GetRequiredUserId();
 
-            // Normalizar a UTC para evitar error de Npgsql con offsets distintos de cero
-            var inicioUtc = inicio.ToUniversalTime();
-            var finUtc = fin.ToUniversalTime();
+            // Normalizar a UTC forzando el calendario de Ecuador
+            var inicioUtc = new DateTimeOffset(inicio.Year, inicio.Month, inicio.Day, inicio.Hour, inicio.Minute, inicio.Second, TimeSpan.FromHours(-5)).ToUniversalTime();
+            var finUtc = new DateTimeOffset(fin.Year, fin.Month, fin.Day, fin.Hour, fin.Minute, fin.Second, TimeSpan.FromHours(-5)).ToUniversalTime();
 
             var eventos = await context.Tasks
                 .AsNoTracking()

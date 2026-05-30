@@ -14,6 +14,9 @@ public static class ServiceCollectionExtensions
         // Caché en memoria (Telemetría de Seguridad)
         services.AddMemoryCache();
 
+        services.Configure<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings>(
+            configuration.GetSection(CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings.SectionName));
+
         // JSON Options
         services.ConfigureHttpJsonOptions(options => {
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -63,7 +66,7 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddProjectAuthentication(this IServiceCollection services)
+    public static IServiceCollection AddProjectAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
 
@@ -103,7 +106,8 @@ public static class ServiceCollectionExtensions
                 });
             });
         });
-        services.AddCors(options => options.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+        var frontendUrl = configuration["FrontendUrl"] ?? Environment.GetEnvironmentVariable("FrontendUrl") ?? "http://localhost:5173";
+        services.AddCors(options => options.AddDefaultPolicy(p => p.WithOrigins(frontendUrl).AllowAnyMethod().AllowAnyHeader()));
 
         return services;
     }

@@ -47,7 +47,7 @@ public sealed class Agent
     public string? AiApiKey { get; set; }
 
     [MaxLength(50)]
-    public string ActiveLLMProvider { get; set; } = "OpenAI";
+    public string? ActiveLLMProvider { get; set; }
 
     public int DailyTokenLimitPerContact { get; set; } = 50000;
 

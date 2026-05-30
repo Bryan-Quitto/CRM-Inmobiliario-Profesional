@@ -9,15 +9,20 @@ using OpenAI.Chat;
 using OpenAI;
 using System.ClientModel.Primitives;
 
+using Microsoft.Extensions.Options;
+using CRM_Inmobiliario.Api.Features.Shared.Settings;
+
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers;
 
 public class OpenAiProvider : ILLMProvider
 {
     private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
+    private readonly LLMSettings _settings;
 
-    public OpenAiProvider(System.Net.Http.IHttpClientFactory httpClientFactory)
+    public OpenAiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, IOptions<LLMSettings> options)
     {
         _httpClientFactory = httpClientFactory;
+        _settings = options.Value;
     }
 
     public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey)
@@ -28,7 +33,7 @@ public class OpenAiProvider : ILLMProvider
             Transport = new HttpClientPipelineTransport(httpClient)
         };
         
-        var chatClient = new ChatClient("gpt-4o-mini", new System.ClientModel.ApiKeyCredential(apiKey), clientOptions);
+        var chatClient = new ChatClient(_settings.OpenAI.DefaultChatModel, new System.ClientModel.ApiKeyCredential(apiKey), clientOptions);
 
         var chatMessages = new List<ChatMessage>();
         foreach (var msg in history)
@@ -47,7 +52,7 @@ public class OpenAiProvider : ILLMProvider
                         }
                         else if (p.Type == "audio" && p.InlineData != null)
                         {
-                            var audioClient = new OpenAI.Audio.AudioClient("whisper-1", apiKey);
+                            var audioClient = new OpenAI.Audio.AudioClient(_settings.OpenAI.DefaultAudioModel, apiKey);
                             var optionsTranscription = new OpenAI.Audio.AudioTranscriptionOptions
                             {
                                 ResponseFormat = OpenAI.Audio.AudioTranscriptionFormat.Verbose

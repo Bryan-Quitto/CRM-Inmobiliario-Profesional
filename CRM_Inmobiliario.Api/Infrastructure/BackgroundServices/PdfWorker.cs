@@ -158,16 +158,13 @@ public class PdfWorker : BackgroundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ [WORKER] Error crítico durante el proceso del PDF para {PropiedadId}", propiedadId);
+            throw;
         }
     }
 
     private async Task<byte[]?> DownloadImageAsync(string url, CancellationToken ct)
     {
-        try 
-        { 
-            var client = _httpClientFactory.CreateClient();
-            return await client.GetByteArrayAsync(url, ct); 
-        }
-        catch { return null; }
+        var client = _httpClientFactory.CreateClient();
+        return await client.GetByteArrayAsync(url, ct); 
     }
 }

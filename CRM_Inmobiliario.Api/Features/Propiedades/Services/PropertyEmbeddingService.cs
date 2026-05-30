@@ -19,8 +19,11 @@ public sealed class PropertyEmbeddingService : IPropertyEmbeddingService
     private readonly string? _openAiApiKey;
     private readonly string? _geminiApiKey;
 
-    public PropertyEmbeddingService()
+    private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
+
+    public PropertyEmbeddingService(System.Net.Http.IHttpClientFactory httpClientFactory)
     {
+        _httpClientFactory = httpClientFactory;
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
         _geminiApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")?.Trim().Trim('"');
     }
@@ -59,7 +62,7 @@ public sealed class PropertyEmbeddingService : IPropertyEmbeddingService
             // We use the REST API via HttpClient
             var req = new { content = new { parts = new[] { new { text = text } } } };
             // Let's use a standard HttpClient for simplicity since Google.GenAI SDK might differ or be unavailable.
-            using var httpClient = new System.Net.Http.HttpClient();
+            using var httpClient = _httpClientFactory.CreateClient("Gemini");
             var response = await httpClient.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={key}", req);
             if (response.IsSuccessStatusCode)
             {

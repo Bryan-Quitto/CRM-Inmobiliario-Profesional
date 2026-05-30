@@ -37,7 +37,6 @@ public class PropertyEmbeddingJob
         var vector = await _embeddingService.GenerateEmbeddingForPropertyAsync(property);
         if (vector != null)
         {
-            property.VectorEmbedding = vector;
             await _context.SaveChangesAsync();
             _logger.LogInformation("Successfully updated embedding for property {PropiedadId}.", propiedadId);
         }
