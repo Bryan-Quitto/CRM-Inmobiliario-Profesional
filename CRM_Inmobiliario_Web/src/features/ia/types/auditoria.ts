@@ -28,6 +28,8 @@ export interface ClientGroup {
 
 export interface MensajeChat {
   rol: 'contacto' | 'ia';
+  tipo?: 'texto' | 'audio' | 'imagen';
   contenido: string;
+  audioUrl?: string;
   fecha: string;
 }

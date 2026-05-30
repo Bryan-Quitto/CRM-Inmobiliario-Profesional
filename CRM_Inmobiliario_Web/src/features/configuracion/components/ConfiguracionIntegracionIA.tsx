@@ -207,14 +207,14 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
               <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Credenciales (Bring Your Own Key)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative">
-                  <label className="text-sm font-bold text-slate-700 mb-2 block">Ai API Key (OpenAI)</label>
+                  <label className="text-sm font-bold text-slate-700 mb-2 block">API Key de IA</label>
                   <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input 
                       type="password" 
                       value={aiApiKey}
                       onChange={(e) => setAiApiKey(e.target.value)}
-                      placeholder="sk-..."
+                      placeholder="Tu API Key (ej. sk-... o AIza...)"
                       className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono ${aiKeyError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'}`}
                     />
                   </div>
