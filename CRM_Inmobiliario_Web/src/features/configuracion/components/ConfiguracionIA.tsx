@@ -82,7 +82,7 @@ export const ConfiguracionIA: React.FC = () => {
               <h3 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">¿Forzar Re-Vectorización?</h3>
               <p className="text-slate-600 mb-8 font-medium">
                 Esta acción sobrescribirá todos los vectores existentes. 
-                Se consumirán tokens de OpenAI por cada propiedad registrada en el sistema. 
+                Se consumirán tokens de tu proveedor de IA configurado por cada propiedad registrada en el sistema. 
                 ¿Estás seguro de que deseas continuar?
               </p>
               <div className="flex gap-3">

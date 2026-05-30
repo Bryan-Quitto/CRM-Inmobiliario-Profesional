@@ -1,4 +1,4 @@
-import { AIModel, AI_PRICING } from '../config';
+import { AI_PRICING, type AIModel } from '../config';
 
 export interface CostEstimate {
   tokens: number;

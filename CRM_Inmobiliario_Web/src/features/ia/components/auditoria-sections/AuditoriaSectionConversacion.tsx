@@ -73,7 +73,18 @@ export const AuditoriaSectionConversacion = ({ telefono, isActive }: SectionConv
                   <div className={`flex ${msg.rol === 'ia' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
                     <div className={`relative max-w-[85%] px-4 py-2.5 rounded-2xl shadow-sm ${msg.rol === 'ia' ? 'bg-[#dcf8c6] text-slate-800 rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none'}`}>
                       <div className={`absolute top-0 w-3 h-3 ${msg.rol === 'ia' ? '-right-2 bg-[#dcf8c6] [clip-path:polygon(0_0,0_100%,100%_0)]' : '-left-2 bg-white [clip-path:polygon(100%_0,100%_100%,0_0)]'}`}></div>
-                      <p className="text-[13px] contactoing-relaxed whitespace-pre-wrap">{formatWhatsAppText(msg.contenido)}</p>
+                      {msg.audioUrl || msg.tipo === 'audio' ? (
+                        <div className="flex flex-col gap-2">
+                          {msg.audioUrl && (
+                            <audio controls src={msg.audioUrl} className="max-w-[200px] md:max-w-xs h-10 rounded-full" />
+                          )}
+                          {msg.contenido && (
+                            <p className="text-[13px] opacity-80 italic">{formatWhatsAppText(msg.contenido)}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{formatWhatsAppText(msg.contenido)}</p>
+                      )}
                       <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200/50 border-dashed">
                         <div className="flex items-center gap-1.5 opacity-60">
                           <span className="text-[9px] font-black tracking-wider text-emerald-700 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">

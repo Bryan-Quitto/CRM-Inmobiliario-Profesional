@@ -2,14 +2,14 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { api } from '@/lib/axios';
 import { toast } from 'sonner';
 import type { MensajeChat } from '../types/auditoria';
-import { calculateMessageCost, AIModel } from '@/entities/ai-pricing';
+import { calculateMessageCost, type AIModel } from '@/entities/ai-pricing';
 
 export interface MensajeChatWithCost extends MensajeChat {
   tokens: number;
   estimatedCost: number;
 }
 
-export const useConversacionIA = (telefono: string | null, isActive: boolean, model: AIModel = 'openai-gpt4o') => {
+export const useConversacionIA = (telefono: string | null, isActive: boolean, model: AIModel = (import.meta.env.VITE_DEFAULT_AI_MODEL as AIModel) || 'gemini-1.5-flash') => {
   const [mensajesRaw, setMensajesRaw] = useState<MensajeChat[]>([]);
   const [totalMensajes, setTotalMensajes] = useState(0);
   const [loadingChat, setLoadingChat] = useState(false);
