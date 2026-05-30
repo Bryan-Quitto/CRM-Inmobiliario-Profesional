@@ -70,6 +70,7 @@ builder.Services.AddScoped<IWhatsAppToolHandler, DerivarCaptacionPropietarioHand
 builder.Services.AddScoped<IWhatsAppToolHandler, SolicitarAsistenciaHumanaHandler>();
 
 // Background Services
+builder.Services.AddSingleton<IDatasetProvider, DatasetProvider>();
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
 builder.Services.AddSingleton<IPdfCleanupQueue, PdfCleanupQueue>();
 builder.Services.AddSingleton<IKpiWarmingService, KpiWarmingService>();

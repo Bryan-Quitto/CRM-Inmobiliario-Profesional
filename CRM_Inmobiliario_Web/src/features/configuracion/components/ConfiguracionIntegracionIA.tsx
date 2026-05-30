@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Loader2, KeyRound, Smartphone, Save, MessageSquare, AlertTriangle, Bot } from 'lucide-react';
+import { Lock, Loader2, KeyRound, Smartphone, Save, MessageSquare, AlertTriangle, Bot, CreditCard } from 'lucide-react';
 import { usePerfil } from '../../auth/api/perfil';
 import { supabase } from '../../../lib/supabase';
 import { api } from '../../../lib/axios';
@@ -15,6 +15,7 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
   const [aiApiKey, setAiApiKey] = useState('');
   const [whatsAppId, setWhatsAppId] = useState('');
   const [limitValue, setLimitValue] = useState<number>(50000);
+  const [hasSubscription, setHasSubscription] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -75,6 +76,7 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
       setAiApiKey(response.data.aiApiKey || '');
       setWhatsAppId(response.data.whatsAppPhoneNumberId || '');
       setLimitValue(response.data.dailyTokenLimitPerContact || 50000);
+      setHasSubscription(response.data.hasActiveSubscription || false);
     } catch {
       toast.error('Error al cargar la configuración.');
     } finally {
@@ -127,7 +129,8 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
       await api.put('/configuracion/ia-settings', {
         aiApiKey: aiApiKey || null,
         whatsAppPhoneNumberId: whatsAppId || null,
-        dailyTokenLimitPerContact: limitValue
+        dailyTokenLimitPerContact: limitValue,
+        hasActiveSubscription: hasSubscription
       });
       toast.success('Configuración guardada correctamente.');
     } catch {
@@ -316,6 +319,33 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                   <p className="text-sm">El límite máximo es 1,000,000. Superar este límite expone la cuenta a costos excesivos.</p>
                 </div>
               )}
+              <div className="flex items-start justify-between p-4 bg-slate-50 rounded-lg border border-slate-100 mt-4">
+                <div className="flex items-start gap-3">
+                  <CreditCard className="w-5 h-5 text-slate-400 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-slate-900">Suscripción Activa (Context Caching)</p>
+                    <p className="text-sm text-slate-500 mt-1 max-w-lg">
+                      Al activar esta opción, el sistema intentará renovar el caché de IA en segundo plano. Úsalo si tu API Key permite solicitudes de caché continuas (para evitar quemar límites gratuitos).
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-end gap-1 pt-1">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      checked={hasSubscription}
+                      onChange={(e) => setHasSubscription(e.target.checked)}
+                      disabled={isSaving}
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                  </label>
+                  <span className="text-xs font-bold mt-1 text-slate-400">
+                    {hasSubscription ? 'HABILITADO' : 'DESHABILITADO'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end pt-4 border-t border-slate-100">

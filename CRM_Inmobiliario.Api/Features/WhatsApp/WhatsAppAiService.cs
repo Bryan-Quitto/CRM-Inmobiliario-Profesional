@@ -20,6 +20,8 @@ public sealed class WhatsAppAiService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext _dbContext;
     private readonly CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory _providerFactory;
+    private readonly CRM_Inmobiliario.Api.Features.AI.Services.IGeminiApiClient _geminiApiClient;
+    private readonly CRM_Inmobiliario.Api.Features.AI.Services.IDatasetProvider _datasetProvider;
     private readonly string? _openAiApiKey;
 
     public WhatsAppAiService(
@@ -30,7 +32,9 @@ public sealed class WhatsAppAiService
         IWhatsAppConversationManager conversationManager,
         IHttpClientFactory httpClientFactory,
         CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext dbContext,
-        CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory providerFactory)
+        CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory providerFactory,
+        CRM_Inmobiliario.Api.Features.AI.Services.IGeminiApiClient geminiApiClient,
+        CRM_Inmobiliario.Api.Features.AI.Services.IDatasetProvider datasetProvider)
     {
         _logger = logger;
         _promptBuilder = promptBuilder;
@@ -40,6 +44,8 @@ public sealed class WhatsAppAiService
         _httpClientFactory = httpClientFactory;
         _dbContext = dbContext;
         _providerFactory = providerFactory;
+        _geminiApiClient = geminiApiClient;
+        _datasetProvider = datasetProvider;
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
     }
 
@@ -94,6 +100,37 @@ public sealed class WhatsAppAiService
                 ? tenantAgent.AiApiKey 
                 : (providerName == "Gemini" ? Environment.GetEnvironmentVariable("GEMINI_API_KEY") : _openAiApiKey) ?? "";
             
+            string? cachedContentId = null;
+            if (providerName == "Gemini" && tenantAgent != null)
+            {
+                if (string.IsNullOrEmpty(tenantAgent.GeminiCacheId) || 
+                    !tenantAgent.GeminiCacheExpiresAt.HasValue || 
+                    tenantAgent.GeminiCacheExpiresAt.Value < DateTimeOffset.UtcNow)
+                {
+                    _logger.LogInformation("Creando/Renovando caché de Gemini para agente {AgentId}", tenantAgent.Id);
+                    var sysInstruction = _datasetProvider.GetSystemInstruction();
+                    var datasetContents = _datasetProvider.GetDatasetContents();
+                    
+                    if (sysInstruction != null && datasetContents != null && datasetContents.Count > 0)
+                    {
+                        var newCacheId = await _geminiApiClient.CreateCachedContentAsync(apiKeyToUse, sysInstruction, datasetContents);
+                        if (!string.IsNullOrEmpty(newCacheId))
+                        {
+                            tenantAgent.GeminiCacheId = newCacheId;
+                            tenantAgent.GeminiCacheExpiresAt = DateTimeOffset.UtcNow.AddHours(1);
+                            await _dbContext.SaveChangesAsync();
+                            cachedContentId = newCacheId;
+                            _logger.LogInformation("Gemini Cache creado exitosamente: {CacheId}", newCacheId);
+                        }
+                    }
+                }
+                else
+                {
+                    cachedContentId = tenantAgent.GeminiCacheId;
+                    _logger.LogInformation("Usando Gemini Cache existente: {CacheId}", cachedContentId);
+                }
+            }
+
             var provider = _providerFactory.GetProvider(providerName, apiKeyToUse);
             var history = context.History;
             var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
@@ -103,9 +140,26 @@ public sealed class WhatsAppAiService
 
             while (requiresAction)
             {
-                _logger.LogInformation("--- ENVIANDO A LLM ({Count} mensajes) ---", history.Count);
+                var chatMessagesForAi = new List<ChatMessage>();
                 
-                var aiHistory = WhatsAppHistoryMapper.MapToAiHistory(history, audioBytes, mediaUrl);
+                if (history.Count > 0 && history[0] is SystemChatMessage sys)
+                {
+                    chatMessagesForAi.Add(sys);
+                    
+                    // Inject Golden Examples right after the System Prompt to enforce behavior
+                    // and trigger OpenAI's Prefix Caching.
+                    chatMessagesForAi.AddRange(CRM_Inmobiliario.Api.Features.WhatsApp.Services.AiPromptConstants.GoldenExamples);
+                    
+                    chatMessagesForAi.AddRange(history.Skip(1));
+                }
+                else
+                {
+                    chatMessagesForAi.AddRange(history);
+                }
+
+                _logger.LogInformation("--- ENVIANDO A LLM ({Count} mensajes en BD, {AiCount} enviados) ---", history.Count, chatMessagesForAi.Count);
+                
+                var aiHistory = WhatsAppHistoryMapper.MapToAiHistory(chatMessagesForAi, audioBytes, mediaUrl);
 
                 requiresAction = false;
                 
@@ -118,7 +172,7 @@ public sealed class WhatsAppAiService
                 int? streamCachedTokens = null;
                 int? streamOutputTokens = null;
                 
-                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, apiKeyToUse))
+                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, apiKeyToUse, cachedContentId))
                 {
                     if (!string.IsNullOrEmpty(update.TextUpdate))
                     {

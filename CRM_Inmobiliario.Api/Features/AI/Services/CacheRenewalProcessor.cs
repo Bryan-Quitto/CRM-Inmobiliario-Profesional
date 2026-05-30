@@ -41,6 +41,7 @@ public class CacheRenewalProcessor : ICacheRenewalProcessor
                 SELECT ""Id"", ""gemini_cache_id"" AS ""GeminiCacheId"", ""gemini_cache_expires_at"" AS ""GeminiCacheExpiresAt"", ""AiApiKey""
                 FROM public.""Agents""
                 WHERE ""byok_key_status"" = 'Valid'
+                  AND ""HasActiveSubscription"" = true
                   AND ""gemini_cache_expires_at"" < NOW() + INTERVAL '10 minutes'
                 FOR UPDATE SKIP LOCKED
                 LIMIT 50;";

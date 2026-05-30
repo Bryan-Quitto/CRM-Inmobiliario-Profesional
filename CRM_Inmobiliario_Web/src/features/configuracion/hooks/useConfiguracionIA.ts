@@ -5,6 +5,7 @@ export interface IASettings {
   aiApiKey: string | null;
   whatsAppPhoneNumberId: string | null;
   dailyTokenLimitPerContact: number;
+  hasActiveSubscription: boolean;
 }
 
 const getIASettings = async () => {
