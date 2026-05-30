@@ -25,7 +25,7 @@ public class OpenAiProvider : ILLMProvider
         _settings = options.Value;
     }
 
-    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey)
+    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey, string? cachedContentId = null)
     {
         var httpClient = _httpClientFactory.CreateClient("OpenAI");
         var clientOptions = new OpenAIClientOptions

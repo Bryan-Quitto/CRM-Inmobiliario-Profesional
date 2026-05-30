@@ -13,12 +13,14 @@ public static class ConfiguracionIAEndpoints
     public record IASettingsResponse(
         string? AiApiKey,
         string? WhatsAppPhoneNumberId,
-        int DailyTokenLimitPerContact);
+        int DailyTokenLimitPerContact,
+        bool HasActiveSubscription);
 
     public record UpdateIASettingsRequest(
         int? DailyTokenLimitPerContact,
         string? AiApiKey,
-        string? WhatsAppPhoneNumberId);
+        string? WhatsAppPhoneNumberId,
+        bool? HasActiveSubscription);
 
     public record ValidateIASettingsRequest(
         string? AiApiKey,
@@ -35,7 +37,8 @@ public static class ConfiguracionIAEndpoints
                 .Select(a => new IASettingsResponse(
                     a.AiApiKey,
                     a.WhatsAppPhoneNumberId,
-                    a.DailyTokenLimitPerContact))
+                    a.DailyTokenLimitPerContact,
+                    a.HasActiveSubscription))
                 .FirstOrDefaultAsync();
 
             if (settings is null)
@@ -76,6 +79,11 @@ public static class ConfiguracionIAEndpoints
             if (request.DailyTokenLimitPerContact.HasValue)
             {
                 agente.DailyTokenLimitPerContact = request.DailyTokenLimitPerContact.Value;
+            }
+
+            if (request.HasActiveSubscription.HasValue)
+            {
+                agente.HasActiveSubscription = request.HasActiveSubscription.Value;
             }
 
             if (request.AiApiKey != null)

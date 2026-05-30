@@ -19,7 +19,7 @@ public class GeminiProvider : ILLMProvider
         _httpClientFactory = httpClientFactory;
     }
 
-    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey)
+    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey, string? cachedContentId = null)
     {
         var client = new Client(apiKey: apiKey);
         // We will not use ChatSession, we just use GenerateContentStreamAsync directly
@@ -29,9 +29,11 @@ public class GeminiProvider : ILLMProvider
         {
             if (msg.Role == "system")
             {
-                // Gemini usually has a separate system instruction, but we can prepend it
-                contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { Text = "SYSTEM: " + msg.Content } } });
-                contents.Add(new Content { Role = "model", Parts = new List<Part> { new Part { Text = "Understood." } } });
+                if (string.IsNullOrEmpty(cachedContentId))
+                {
+                    contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { Text = "SYSTEM: " + msg.Content } } });
+                    contents.Add(new Content { Role = "model", Parts = new List<Part> { new Part { Text = "Understood." } } });
+                }
             }
             else if (msg.Role == "user")
             {
@@ -119,6 +121,11 @@ public class GeminiProvider : ILLMProvider
         bool hasAudio = history.LastOrDefault()?.Parts?.Any(p => p.Type == "audio" && p.InlineData != null) == true;
 
         var config = new GenerateContentConfig();
+        
+        if (!string.IsNullOrEmpty(cachedContentId))
+        {
+            config.CachedContent = cachedContentId;
+        }
         
         if (hasAudio)
         {

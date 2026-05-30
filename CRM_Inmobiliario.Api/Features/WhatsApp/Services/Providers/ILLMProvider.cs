@@ -4,5 +4,5 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers;
 
 public interface ILLMProvider
 {
-    IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey);
+    IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey, string? cachedContentId = null);
 }
