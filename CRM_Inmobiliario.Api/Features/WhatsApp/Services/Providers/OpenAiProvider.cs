@@ -129,6 +129,18 @@ public class OpenAiProvider : ILLMProvider
                     _ => update.FinishReason.Value.ToString()
                 };
             }
+            
+            // Extract token usage metadata if available (typically on the last chunk)
+            if (update.Usage != null)
+            {
+                aiUpdate.InputTokens = update.Usage.InputTokenCount;
+                aiUpdate.OutputTokens = update.Usage.OutputTokenCount;
+                aiUpdate.TotalTokens = update.Usage.TotalTokenCount;
+                
+                // .NET SDK might have specific fields for cached tokens, but if not we can try to find them or set to 0.
+                // Assuming OpenAI hasn't exposed cached tokens cleanly in the v2 stable yet, we default to 0 for now.
+                aiUpdate.CachedTokens = 0; 
+            }
 
             yield return aiUpdate;
         }

@@ -274,9 +274,32 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                     onChange={(e) => setLimitValue(Number(e.target.value))}
                     disabled={isSaving}
                   />
-                  <span className="text-xs text-slate-500">
-                    ≈ ${(limitValue * 0.15 / 1000000).toFixed(4)} USD
-                  </span>
+                  <div className="group relative flex items-center justify-end">
+                    <span className="text-xs font-bold text-slate-500 cursor-help border-b border-dashed border-slate-400">
+                      ≈ ${(limitValue * 0.15 / 1000000).toFixed(4)} USD
+                    </span>
+                    {/* World-Class Tooltip */}
+                    <div className="absolute bottom-full right-0 mb-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50 w-64">
+                      <div className="bg-white/80 backdrop-blur-xl border border-indigo-100/50 p-4 rounded-2xl shadow-2xl overflow-hidden relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 -z-10" />
+                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-indigo-100/50">
+                          <div className="p-1.5 bg-indigo-100/80 rounded-lg text-indigo-600">
+                            <Bot className="w-4 h-4" />
+                          </div>
+                          <p className="text-[11px] font-black uppercase tracking-widest text-indigo-900">Estimación de Costo</p>
+                        </div>
+                        <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                          Este cálculo es una aproximación basada en un costo combinado promedio de <strong className="text-indigo-600 font-bold">$0.15 por 1M de tokens</strong> para el modelo actualmente seleccionado.
+                        </p>
+                        <div className="mt-3 bg-indigo-50/50 rounded-lg p-2 border border-indigo-100/50 flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">Costo Max. Diario</span>
+                          <span className="text-xs font-black text-indigo-600">${(limitValue * 0.15 / 1000000).toFixed(4)} USD</span>
+                        </div>
+                      </div>
+                      {/* Tooltip Arrow */}
+                      <div className="absolute -bottom-2 right-4 w-4 h-4 bg-white/80 backdrop-blur-xl border-b border-r border-indigo-100/50 rotate-45 transform" />
+                    </div>
+                  </div>
                 </div>
               </div>
 

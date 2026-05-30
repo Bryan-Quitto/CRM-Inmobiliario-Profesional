@@ -11,7 +11,7 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class ObtenerTokenUsageContactoFeature
 {
-    public record TokenUsageResponse(int TotalTokens, decimal CostoUSD);
+    public record TokenUsageResponse(int TotalTokens, int InputTokens, int CachedTokens, int OutputTokens, decimal CostoUSD);
 
     public static void MapObtenerTokenUsageContactoEndpoint(this IEndpointRouteBuilder app)
     {
@@ -56,12 +56,13 @@ public static class ObtenerTokenUsageContactoFeature
             // LOG DB RAW DATA (For debugging)
             var allTokens = await context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
                 .Where(u => u.ContactoId == id)
-                .Select(u => new { u.Date, u.TokensUsed })
+                .Select(u => new { u.Date, u.TokensUsed, u.InputTokens, u.CachedTokens, u.OutputTokens })
                 .ToListAsync(ct);
             logger.LogInformation("Tokens brutos en DB para contacto {Id}: {Count} registros", id, allTokens.Count);
             foreach(var t in allTokens) 
             {
-                logger.LogInformation(" - DB Registro: Date={Date} (UTC: {IsUtc}), Tokens={Tokens}", t.Date, t.Date.Offset, t.TokensUsed);
+                logger.LogInformation(" - DB Registro: Date={Date} (UTC: {IsUtc}), Total={Total}, Input={In}, Cached={Cached}, Output={Out}", 
+                    t.Date, t.Date.Offset, t.TokensUsed, t.InputTokens, t.CachedTokens, t.OutputTokens);
             }
 
             var queryResult = await context.Contactos
@@ -70,7 +71,16 @@ public static class ObtenerTokenUsageContactoFeature
                 {
                     TotalTokens = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
                         .Where(u => u.ContactoId == id && u.Date >= limitDate)
-                        .Sum(u => (int?)u.TokensUsed) ?? 0
+                        .Sum(u => (int?)u.TokensUsed) ?? 0,
+                    InputTokens = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Sum(u => (int?)u.InputTokens) ?? 0,
+                    CachedTokens = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Sum(u => (int?)u.CachedTokens) ?? 0,
+                    OutputTokens = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Sum(u => (int?)u.OutputTokens) ?? 0
                 })
                 .FirstOrDefaultAsync(ct);
 
@@ -81,11 +91,19 @@ public static class ObtenerTokenUsageContactoFeature
             }
 
             var totalTokens = queryResult.TotalTokens;
-            var costoUsd = (totalTokens / 1000000m) * 0.15m;
+            var inputTokens = queryResult.InputTokens;
+            var cachedTokens = queryResult.CachedTokens;
+            var outputTokens = queryResult.OutputTokens;
             
-            logger.LogInformation("Query exitosa. TotalTokens calculados={Tokens}, CostoUSD={Costo}", totalTokens, costoUsd);
+            // Assuming pricing based on standard $0.15/1M input, $0.075/1M cached, $0.60/1M output
+            var costoUsd = (inputTokens / 1000000m) * 0.15m + 
+                           (cachedTokens / 1000000m) * 0.075m + 
+                           (outputTokens / 1000000m) * 0.60m;
+            
+            logger.LogInformation("Query exitosa. TotalTokens={Tokens}, Input={Input}, Cached={Cached}, Output={Output}, CostoUSD={Costo}", 
+                totalTokens, inputTokens, cachedTokens, outputTokens, costoUsd);
 
-            return Results.Ok(new TokenUsageResponse(totalTokens, costoUsd));
+            return Results.Ok(new TokenUsageResponse(totalTokens, inputTokens, cachedTokens, outputTokens, costoUsd));
         })
         .RequireAuthorization()
         .WithTags("Contactos")
