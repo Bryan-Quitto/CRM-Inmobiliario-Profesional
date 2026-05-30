@@ -13,6 +13,7 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<WhatsAppJobProcessor> _logger;
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
 
     public WhatsAppJobProcessor(IServiceScopeFactory scopeFactory, ILogger<WhatsAppJobProcessor> logger)
     {
@@ -22,6 +23,8 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
 
     public async Task ProcessMessageAsync(string phone, string body, string phoneNumberId)
     {
+        var semaphore = _locks.GetOrAdd(phone, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
         try
         {
             using var scope = _scopeFactory.CreateScope();
@@ -34,10 +37,16 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
             _logger.LogError(ex, "Error procesando webhook en background job para {Phone}", phone);
             throw; // Hangfire automáticamente reintentará el job si hay una excepción
         }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     public async Task ProcessAudioAsync(string phone, string mediaId, string phoneNumberId)
     {
+        var semaphore = _locks.GetOrAdd(phone, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
         try
         {
             using var scope = _scopeFactory.CreateScope();
@@ -72,6 +81,10 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
         {
             _logger.LogError(ex, "Error procesando audio en background job para {Phone} y Media {MediaId}", phone, mediaId);
             throw;
+        }
+        finally
+        {
+            semaphore.Release();
         }
     }
 }

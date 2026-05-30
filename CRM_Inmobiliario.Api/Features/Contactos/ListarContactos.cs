@@ -31,14 +31,22 @@ public static class ListarContactosFeature
 
     public static RouteHandlerBuilder MapListarContactosEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/contactos", async (ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/contactos", async (int? pageNumber, int? pageSize, ClaimsPrincipal user, CrmDbContext context) =>
         {
+            var actualPageNumber = pageNumber ?? 1;
+            var actualPageSize = pageSize ?? 50;
             var agenteId = user.GetRequiredUserId();
 
-            var contactos = await context.Contactos
+            var baseQuery = context.Contactos
                 .AsNoTracking()
-                .Where(l => l.AgenteId == agenteId || l.CompartidoCon.Any(c => c.AgenteId == agenteId))
+                .Where(l => l.AgenteId == agenteId || l.CompartidoCon.Any(c => c.AgenteId == agenteId));
+
+            var totalCount = await baseQuery.CountAsync();
+
+            var contactos = await baseQuery
                 .OrderByDescending(l => l.FechaCreacion)
+                .Skip((actualPageNumber - 1) * actualPageSize)
+                .Take(actualPageSize)
                 .Select(l => new ContactoResponse(
                     l.Id,
                     l.Nombre,
@@ -62,7 +70,13 @@ public static class ListarContactosFeature
                     l.EstadoIA))
                 .ToListAsync();
 
-            return Results.Ok(contactos);
+            return Results.Ok(new 
+            {
+                Items = contactos,
+                TotalCount = totalCount,
+                PageNumber = actualPageNumber,
+                PageSize = actualPageSize
+            });
         })
         .RequireAuthorization()
         .WithTags("Contactos")

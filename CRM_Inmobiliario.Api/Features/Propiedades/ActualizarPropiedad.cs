@@ -39,7 +39,8 @@ public static class ActualizarPropiedadFeature
         NuevoCaptadorRequest? NuevoCaptador = null,
         Guid? PropietarioId = null,
         decimal PorcentajeComision = 5.0m,
-        DateTimeOffset? FechaIngreso = null);
+        DateTimeOffset? FechaIngreso = null,
+        uint? Version = null);
 
     public record NuevoCaptadorRequest(string Nombre, string Apellido, string? Telefono);
 
@@ -141,6 +142,11 @@ public static class ActualizarPropiedadFeature
             if (command.FechaIngreso.HasValue)
             {
                 propiedad.FechaIngreso = command.FechaIngreso.Value;
+            }
+
+            if (command.Version.HasValue)
+            {
+                context.Entry(propiedad).Property(p => p.Version).OriginalValue = command.Version.Value;
             }
 
             try

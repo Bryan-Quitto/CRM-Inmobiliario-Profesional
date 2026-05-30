@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
@@ -33,14 +34,41 @@ public static class WebhooksFeature
         .WithName("ValidarWebhookWhatsApp");
 
         // POST: Recepción de eventos
-        group.MapPost("/", (
-            [FromBody] JsonElement payload,
+        group.MapPost("/", async (
+            HttpRequest request,
+            Microsoft.Extensions.Caching.Memory.IMemoryCache cache,
             ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("WhatsAppWebhook");
             
             try
             {
+                var appSecret = Environment.GetEnvironmentVariable("WHATSAPP_APP_SECRET");
+                if (string.IsNullOrEmpty(appSecret)) return Results.StatusCode(500);
+
+                if (!request.Headers.TryGetValue("X-Hub-Signature-256", out var signatureHeader))
+                {
+                    logger.LogWarning("Petición sin firma X-Hub-Signature-256");
+                    return Results.StatusCode(401);
+                }
+
+                request.EnableBuffering();
+                using var reader = new System.IO.StreamReader(request.Body, System.Text.Encoding.UTF8, leaveOpen: true);
+                var bodyString = await reader.ReadToEndAsync();
+                request.Body.Position = 0;
+
+                using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(appSecret));
+                var hashBytes = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(bodyString));
+                var hashHex = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                
+                if (signatureHeader.ToString() != "sha256=" + hashHex)
+                {
+                    logger.LogWarning("Firma inválida. Ataque detectado.");
+                    return Results.StatusCode(401);
+                }
+
+                using var jsonDoc = JsonDocument.Parse(bodyString);
+                var payload = jsonDoc.RootElement;
                 // Extraer datos básicos del mensaje
                 var entry = payload.GetProperty("entry")[0];
                 var changes = entry.GetProperty("changes")[0];
@@ -50,6 +78,17 @@ public static class WebhooksFeature
                 {
                     var message = messages[0];
                     string phone = message.GetProperty("from").GetString() ?? string.Empty;
+                    string messageId = message.TryGetProperty("id", out var idProp) ? idProp.GetString() ?? string.Empty : string.Empty;
+                    
+                    if (!string.IsNullOrEmpty(messageId))
+                    {
+                        if (cache.TryGetValue($"wamid_{messageId}", out _))
+                        {
+                            logger.LogInformation("Mensaje duplicado ignorado por idempotencia: {MessageId}", messageId);
+                            return Results.Ok();
+                        }
+                        cache.Set($"wamid_{messageId}", true, TimeSpan.FromHours(1));
+                    }
                     
                     string phoneNumberId = string.Empty;
                     if (value.TryGetProperty("metadata", out var metadata) && 

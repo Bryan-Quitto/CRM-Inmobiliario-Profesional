@@ -45,6 +45,19 @@ public static class SubirImagenPropiedadFeature
             if (!extensionesPermitidas.Contains(extension))
                 return Results.BadRequest("Formato de imagen no soportado. Use JPG, PNG o WEBP.");
 
+            // 2.1 Validar Magic Numbers (Prevención de Content Spoofing y Malware)
+            using var headerStream = file.OpenReadStream();
+            var headerBytes = new byte[12];
+            await headerStream.ReadExactlyAsync(headerBytes, 0, 12);
+            
+            bool isJpg = headerBytes[0] == 0xFF && headerBytes[1] == 0xD8 && headerBytes[2] == 0xFF;
+            bool isPng = headerBytes[0] == 0x89 && headerBytes[1] == 0x50 && headerBytes[2] == 0x4E && headerBytes[3] == 0x47;
+            bool isWebp = headerBytes[0] == 0x52 && headerBytes[1] == 0x49 && headerBytes[2] == 0x46 && headerBytes[3] == 0x46 && 
+                          headerBytes[8] == 0x57 && headerBytes[9] == 0x45 && headerBytes[10] == 0x42 && headerBytes[11] == 0x50;
+
+            if (!isJpg && !isPng && !isWebp)
+                return Results.BadRequest("El contenido real del archivo no corresponde a una imagen válida (riesgo de malware detectado).");
+
             // 3. Generar nombre de archivo único
             var nombreArchivo = $"{Guid.NewGuid()}{extension}";
 

@@ -11,6 +11,7 @@ using Pgvector;
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Enums;
 using CRM_Inmobiliario.Api.Extensions;
+using Hangfire;
 
 namespace CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
 
@@ -23,6 +24,7 @@ public static class IngestDocumentEndpoint
             [Microsoft.AspNetCore.Mvc.FromForm] string audience,
             ClaimsPrincipal user, 
             CrmDbContext context, 
+            Hangfire.IBackgroundJobClient backgroundJobs,
             CancellationToken ct) =>
         {
             if (file == null || file.Length == 0)
@@ -37,10 +39,6 @@ public static class IngestDocumentEndpoint
                 content = await reader.ReadToEndAsync(ct);
             }
 
-            // Semantic Chunking: world-class Markdown semantic chunker
-            var chunker = new MarkdownSemanticChunker(maxTokens: 500, overlapTokens: 50);
-            var chunks = chunker.Chunk(content);
-
             var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
 
             if (!Enum.TryParse<DocumentAudience>(audience, true, out var parsedAudience))
@@ -50,8 +48,12 @@ public static class IngestDocumentEndpoint
 
             var agenteId = user.GetRequiredUserId();
             var agente = await context.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Id == agenteId, ct);
-            var provider = agente?.ActiveLLMProvider ?? "OpenAI";
+            var provider = agente?.ActiveLLMProvider;
             var apiKey = agente?.AiApiKey;
+
+            // Semantic Chunking: world-class Markdown semantic chunker
+            var chunker = new MarkdownSemanticChunker(maxTokens: 500, overlapTokens: 50, provider: provider ?? "OpenAI");
+            var chunks = chunker.Chunk(content);
 
             var document = new Document
             {
@@ -64,61 +66,18 @@ public static class IngestDocumentEndpoint
 
             var documentChunks = new List<DocumentChunk>();
 
-            if (provider == "Gemini")
+            for (int i = 0; i < chunks.Count; i++)
             {
-                var key = apiKey ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY")?.Trim().Trim('"');
-                if (string.IsNullOrEmpty(key)) return Results.Problem("GEMINI_API_KEY no está configurada.");
-                
-                using var httpClient = new System.Net.Http.HttpClient();
-                for (int i = 0; i < chunks.Count; i++)
+                documentChunks.Add(new DocumentChunk
                 {
-                    var req = new { content = new { parts = new[] { new { text = chunks[i] } } } };
-                    var response = await httpClient.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={key}", req, ct);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var doc = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonDocument>(cancellationToken: ct);
-                        var values = doc?.RootElement.GetProperty("embedding").GetProperty("values").EnumerateArray().Select(x => x.GetSingle()).ToArray();
-                        if (values != null)
-                        {
-                            documentChunks.Add(new DocumentChunk
-                            {
-                                Id = Guid.NewGuid(),
-                                DocumentId = document.Id,
-                                Content = chunks[i],
-                                GeminiEmbedding = new Vector(values),
-                                ChunkIndex = i,
-                                Audience = parsedAudience,
-                                CreatedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
-                                Document = document
-                            });
-                        }
-                    }
-                }
-            }
-            else
-            {
-                var key = apiKey ?? openAiApiKey;
-                if (string.IsNullOrEmpty(key)) return Results.Problem("OPENAI_API_KEY no está configurada.");
-
-                var embeddingClient = new EmbeddingClient("text-embedding-3-small", key);
-                var embeddingsResult = await embeddingClient.GenerateEmbeddingsAsync(chunks, cancellationToken: ct);
-                var embeddings = embeddingsResult.Value;
-
-                for (int i = 0; i < chunks.Count; i++)
-                {
-                    var vector = new Vector(embeddings[i].ToFloats().ToArray());
-                    documentChunks.Add(new DocumentChunk
-                    {
-                        Id = Guid.NewGuid(),
-                        DocumentId = document.Id,
-                        Content = chunks[i],
-                        Embedding = vector,
-                        ChunkIndex = i,
-                        Audience = parsedAudience,
-                        CreatedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
-                        Document = document
-                    });
-                }
+                    Id = Guid.NewGuid(),
+                    DocumentId = document.Id,
+                    Content = chunks[i],
+                    ChunkIndex = i,
+                    Audience = parsedAudience,
+                    CreatedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
+                    Document = document
+                });
             }
 
             // The One Trip Pattern
@@ -127,10 +86,13 @@ public static class IngestDocumentEndpoint
 
             await context.SaveChangesAsync(ct);
 
-            return Results.Ok(new 
+            backgroundJobs.Enqueue<DocumentIngestionJob>(j => j.GenerateEmbeddingsAsync(document.Id, provider, apiKey));
+
+            return Results.Accepted(value: new 
             { 
                 documentId = document.Id, 
-                chunksCreated = documentChunks.Count 
+                chunksCreated = documentChunks.Count,
+                status = "Processing embeddings in background"
             });
         })
         .RequireAuthorization("AdminPolicy") // Require admin or just authenticated? Let's say AdminPolicy or authenticated.

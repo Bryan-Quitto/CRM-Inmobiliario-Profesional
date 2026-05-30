@@ -5,16 +5,27 @@ namespace CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
 
 public class MarkdownSemanticChunker
 {
-    private readonly Tokenizer _tokenizer;
+    private readonly Tokenizer? _tokenizer;
     private readonly int _maxTokens;
     private readonly int _overlapTokens;
+    private readonly bool _useTikToken;
 
-    public MarkdownSemanticChunker(int maxTokens = 500, int overlapTokens = 50)
+    public MarkdownSemanticChunker(int maxTokens = 500, int overlapTokens = 50, string provider = "OpenAI")
     {
         _maxTokens = maxTokens;
         _overlapTokens = overlapTokens;
-        // Dependiendo de la versión de Microsoft.ML.Tokenizers
-        _tokenizer = TiktokenTokenizer.CreateForModel("text-embedding-3-small");
+        _useTikToken = provider != "Gemini";
+        
+        if (_useTikToken)
+        {
+            _tokenizer = TiktokenTokenizer.CreateForModel("text-embedding-3-small");
+        }
+    }
+
+    private int CountTokens(string text)
+    {
+        if (_useTikToken && _tokenizer != null) return _tokenizer.CountTokens(text);
+        return text.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
     }
 
     public List<string> Chunk(string content)
@@ -31,7 +42,7 @@ public class MarkdownSemanticChunker
         foreach (var line in lines)
         {
             var trimmedLine = line.TrimEnd('\r', '\n');
-            var tokens = _tokenizer.CountTokens(trimmedLine + "\n");
+            var tokens = CountTokens(trimmedLine + "\n");
             
             var match = Regex.Match(trimmedLine, @"^(#{1,6})\s+(.*)");
             if (match.Success)
@@ -83,7 +94,7 @@ public class MarkdownSemanticChunker
                 var contextHeader = $"[Contexto: {string.Join(" > ", contextParts)}]";
                 newLines.Add(contextHeader);
                 newLines.Add("");
-                newTokens += _tokenizer.CountTokens(contextHeader + "\n\n");
+                newTokens += CountTokens(contextHeader + "\n\n");
             }
         }
 
@@ -92,7 +103,7 @@ public class MarkdownSemanticChunker
         
         for (int i = previousLines.Count - 1; i >= 0; i--)
         {
-            var lineTokens = _tokenizer.CountTokens(previousLines[i] + "\n");
+            var lineTokens = CountTokens(previousLines[i] + "\n");
             if (overlapTokens + lineTokens <= _overlapTokens)
             {
                 overlapLines.Insert(0, previousLines[i]);

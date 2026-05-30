@@ -22,7 +22,7 @@ builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
 
 // Extensiones de Configuración (Modularizado)
 builder.Services.AddProjectInfrastructure(builder.Configuration, builder.Environment);
-builder.Services.AddProjectAuthentication();
+builder.Services.AddProjectAuthentication(builder.Configuration);
 
 // Cache de Salida
 builder.Services.AddOutputCache(options => {
@@ -79,9 +79,12 @@ builder.Services.AddHostedService<KpiWarmingBackgroundService>();
 builder.Services.AddHostedService<GeminiCacheRenewalWorker>();
 builder.Services.AddScoped<TokenLimitResetJob>();
 
+builder.Services.AddProblemDetails(); // RFC 7807 (ProblemDetails)
+
 var app = builder.Build();
 
 // Middlewares
+app.UseExceptionHandler();
 if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
 
 app.Use(async (context, next) => {
@@ -113,7 +116,7 @@ app.Use(async (context, next) => {
                     .Select(a => (bool?)a.Activo)
                     .FirstOrDefaultAsync();
                 
-                isActivoVal = isActivo.HasValue ? isActivo.Value : true;
+                isActivoVal = isActivo.HasValue ? isActivo.Value : false;
                 cache.Set(cacheKey, isActivoVal, TimeSpan.FromMinutes(5));
             }
 
@@ -130,8 +133,11 @@ app.Use(async (context, next) => {
 
 app.UseOutputCache();
 
-// Configurar Hangfire Dashboard (opcional)
-app.UseHangfireDashboard("/hangfire");
+// Configurar Hangfire Dashboard
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new AdminAuthorizationFilter() }
+});
 
 // Registrar Job Recurrente de Hangfire (00:00 UTC-5 equivale a 05:00 UTC)
 app.Lifetime.ApplicationStarted.Register(() => 
@@ -149,3 +155,17 @@ app.Lifetime.ApplicationStarted.Register(() =>
 app.MapProjectEndpoints();
 
 app.Run();
+
+public class AdminAuthorizationFilter : Hangfire.Dashboard.IDashboardAuthorizationFilter
+{
+    public bool Authorize(Hangfire.Dashboard.DashboardContext context)
+    {
+        var httpContext = ((Hangfire.Dashboard.AspNetCoreDashboardContext)context).HttpContext;
+        if (httpContext == null) return false;
+        
+        if (httpContext.User.Identity?.IsAuthenticated != true) return false;
+        
+        var roleClaim = httpContext.User.FindFirst(c => c.Type == "Rol" || c.Type == System.Security.Claims.ClaimTypes.Role);
+        return roleClaim?.Value == "Admin";
+    }
+}

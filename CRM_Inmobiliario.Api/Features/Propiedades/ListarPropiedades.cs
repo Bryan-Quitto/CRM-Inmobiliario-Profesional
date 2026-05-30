@@ -47,8 +47,11 @@ public static class ListarPropiedadesFeature
 
     public static RouteHandlerBuilder MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/propiedades", async (Guid? checkContactoId, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/propiedades", async (int? pageNumber, int? pageSize, Guid? checkContactoId, ClaimsPrincipal user, CrmDbContext context) =>
         {
+            var actualPageNumber = pageNumber ?? 1;
+            var actualPageSize = pageSize ?? 50;
+
             var currentUserId = user.GetRequiredUserId();
 
             string? contactPhoneToShare = null;
@@ -91,8 +94,12 @@ public static class ListarPropiedadesFeature
                                        p.Transactions.Any(t => t.CreatedById == currentUserId));
             }
 
+            var totalCount = await query.CountAsync();
+
             var propiedades = await query
                 .OrderByDescending(p => p.FechaIngreso)
+                .Skip((actualPageNumber - 1) * actualPageSize)
+                .Take(actualPageSize)
                 .Select(p => new
                 {
                     Property = p,
@@ -173,7 +180,13 @@ public static class ListarPropiedadesFeature
                 }
             }
 
-            return Results.Ok(propiedades);
+            return Results.Ok(new 
+            {
+                Items = propiedades,
+                TotalCount = totalCount,
+                PageNumber = actualPageNumber,
+                PageSize = actualPageSize
+            });
         })
         .WithTags("Propiedades")
         .WithName("ListarPropiedades");

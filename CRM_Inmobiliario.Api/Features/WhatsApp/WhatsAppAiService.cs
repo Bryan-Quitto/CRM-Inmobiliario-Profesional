@@ -19,6 +19,7 @@ public sealed class WhatsAppAiService
     private readonly IWhatsAppConversationManager _conversationManager;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext _dbContext;
+    private readonly CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory _providerFactory;
     private readonly string? _openAiApiKey;
 
     public WhatsAppAiService(
@@ -28,7 +29,8 @@ public sealed class WhatsAppAiService
         IWhatsAppMessageSender messageSender,
         IWhatsAppConversationManager conversationManager,
         IHttpClientFactory httpClientFactory,
-        CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext dbContext)
+        CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext dbContext,
+        CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory providerFactory)
     {
         _logger = logger;
         _promptBuilder = promptBuilder;
@@ -37,6 +39,7 @@ public sealed class WhatsAppAiService
         _conversationManager = conversationManager;
         _httpClientFactory = httpClientFactory;
         _dbContext = dbContext;
+        _providerFactory = providerFactory;
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
     }
 
@@ -85,14 +88,13 @@ public sealed class WhatsAppAiService
             }
 
             // 3. Orquestación con LLMProviderFactory
-            var openAiProvider = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.OpenAiProvider(_httpClientFactory);
-            var geminiProvider = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.GeminiProvider(_httpClientFactory);
-            var llmFactory = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory(openAiProvider, geminiProvider);
-            
             var tenantAgent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
-            string apiKeyToUse = tenantAgent?.AiApiKey ?? _openAiApiKey ?? "";
+            string providerName = tenantAgent?.ActiveLLMProvider ?? "OpenAI";
+            string apiKeyToUse = !string.IsNullOrEmpty(tenantAgent?.AiApiKey) 
+                ? tenantAgent.AiApiKey 
+                : (providerName == "Gemini" ? Environment.GetEnvironmentVariable("GEMINI_API_KEY") : _openAiApiKey) ?? "";
             
-            var provider = llmFactory.GetProvider(apiKeyToUse);
+            var provider = _providerFactory.GetProvider(providerName, apiKeyToUse);
             var history = context.History;
             var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
 
@@ -103,52 +105,7 @@ public sealed class WhatsAppAiService
             {
                 _logger.LogInformation("--- ENVIANDO A LLM ({Count} mensajes) ---", history.Count);
                 
-                var aiHistory = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>();
-                foreach(var m in history)
-                {
-                    if (m is SystemChatMessage scm) aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = scm.Content.Count > 0 ? scm.Content[0].Text : "" });
-                    else if (m is UserChatMessage ucm) 
-                    {
-                        var text = ucm.Content.Count > 0 ? ucm.Content[0].Text : "";
-                        var aiMsg = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = text };
-                        if (audioBytes != null && mediaUrl != null && text == $"[Audio Note: {mediaUrl}]")
-                        {
-                            aiMsg.Parts.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessagePart 
-                            { 
-                                Type = "audio", 
-                                MimeType = "audio/ogg",
-                                InlineData = audioBytes,
-                                MediaUrl = mediaUrl
-                            });
-                        }
-                        else
-                        {
-                            aiMsg.Parts.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessagePart { Type = "text", Text = text });
-                        }
-                        aiHistory.Add(aiMsg);
-                    }
-                    else if (m is AssistantChatMessage acm) 
-                    {
-                        var am = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "assistant" };
-                        if (acm.ToolCalls != null && acm.ToolCalls.Count > 0)
-                        {
-                            am.ToolCalls = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall>();
-                            foreach(var tc in acm.ToolCalls)
-                            {
-                                am.ToolCalls.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = tc.Id, Name = tc.FunctionName, Arguments = tc.FunctionArguments.ToString() });
-                            }
-                        }
-                        else
-                        {
-                            am.Content = acm.Content.Count > 0 ? acm.Content[0].Text : "";
-                        }
-                        aiHistory.Add(am);
-                    }
-                    else if (m is ToolChatMessage tcm)
-                    {
-                        aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "tool", Content = tcm.Content.Count > 0 ? tcm.Content[0].Text : "", ToolCallId = tcm.ToolCallId });
-                    }
-                }
+                var aiHistory = WhatsAppHistoryMapper.MapToAiHistory(history, audioBytes, mediaUrl);
 
                 requiresAction = false;
                 

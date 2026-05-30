@@ -33,7 +33,7 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
             return "No se especificó la pregunta para consultar en la base de datos corporativa.";
         }
 
-        string provider = "OpenAI";
+        string? provider = null;
         string? apiKey = null;
 
         if (!string.IsNullOrEmpty(phoneNumberId))
@@ -46,7 +46,7 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
             }
         }
 
-        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr, provider, apiKey);
+        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr, provider ?? "OpenAI", apiKey);
         if (queryEmbedding == null) 
         {
             _logger.LogWarning("No se pudo generar el embedding para la búsqueda RAG.");

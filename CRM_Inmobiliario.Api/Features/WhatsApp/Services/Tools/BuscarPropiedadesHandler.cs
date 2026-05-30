@@ -44,7 +44,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         Guid? currentAgentId = null;
         Guid? currentAgencyId = null;
 
-        string provider = "OpenAI";
+        string? provider = null;
         string? apiKey = null;
 
         if (!string.IsNullOrEmpty(phoneNumberId))
@@ -61,7 +61,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 
         var allowedStates = new[] { "Disponible", "Reservada", "Alquilada" };
         
-        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr, provider, apiKey);
+        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr, provider ?? "OpenAI", apiKey);
         if (queryEmbedding == null) 
         {
             _logger.LogWarning("No se pudo generar el embedding para la búsqueda semántica.");
@@ -87,6 +87,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         {
             results = await baseQuery
                 .Where(p => p.GeminiEmbedding != null)
+                .Where(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding) < 0.25)
                 .OrderBy(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding))
                 .Take(3)
                 .Select(p => new PropiedadResultDto(
@@ -101,6 +102,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         {
             results = await baseQuery
                 .Where(p => p.VectorEmbedding != null)
+                .Where(p => p.VectorEmbedding!.CosineDistance(queryEmbedding) < 0.25)
                 .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
                 .Take(3)
                 .Select(p => new PropiedadResultDto(

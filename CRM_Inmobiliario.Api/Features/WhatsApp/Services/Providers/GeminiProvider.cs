@@ -71,7 +71,7 @@ public class GeminiProvider : ILLMProvider
                         var args = new Dictionary<string, object>();
                         foreach (var prop in doc.RootElement.EnumerateObject())
                         {
-                            if (prop.Value.ValueKind == JsonValueKind.String) args[prop.Name] = prop.Value.GetString();
+                            if (prop.Value.ValueKind == JsonValueKind.String) args[prop.Name] = prop.Value.GetString() ?? "";
                             else if (prop.Value.ValueKind == JsonValueKind.Number) args[prop.Name] = prop.Value.GetDouble();
                             else if (prop.Value.ValueKind == JsonValueKind.True) args[prop.Name] = true;
                             else if (prop.Value.ValueKind == JsonValueKind.False) args[prop.Name] = false;
@@ -91,7 +91,7 @@ public class GeminiProvider : ILLMProvider
                 var dict = new Dictionary<string, object>();
                 foreach (var prop in doc.RootElement.EnumerateObject())
                 {
-                    if (prop.Value.ValueKind == JsonValueKind.String) dict[prop.Name] = prop.Value.GetString();
+                    if (prop.Value.ValueKind == JsonValueKind.String) dict[prop.Name] = prop.Value.GetString() ?? "";
                 }
                 contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { FunctionResponse = new FunctionResponse { Name = msg.ToolCallId, Response = dict } } } });
             }
@@ -106,7 +106,7 @@ public class GeminiProvider : ILLMProvider
             {
                 Name = t.Name,
                 Description = t.Description,
-                Parameters = ParseSchema(t.ParametersSchema)
+                Parameters = GeminiSchemaMapper.ParseSchema(t.ParametersSchema)
             };
             functionDeclarations.Add(fd);
         }
@@ -134,9 +134,21 @@ public class GeminiProvider : ILLMProvider
                 Required = new List<string> { "user_transcription", "ai_reply" }
             };
             
-            if (contents.Count > 0 && contents[0].Role == "user" && contents[0].Parts[0].Text != null && contents[0].Parts[0].Text.StartsWith("SYSTEM: "))
+            if (contents.Count > 0 && contents[0].Role == "user")
             {
-                contents[0].Parts[0].Text += "\n\nCRITICAL: The last message contains an audio note. You MUST respond in valid JSON matching the schema, providing the literal transcription in 'user_transcription' and your reply to the user in 'ai_reply'. Do NOT use any tools this turn.";
+                var firstUserParts = contents[0].Parts;
+                if (firstUserParts != null && firstUserParts.Count > 0)
+                {
+                    var firstPart = firstUserParts[0];
+                    if (firstPart != null)
+                    {
+                        var firstPartText = firstPart.Text ?? "";
+                        if (firstPartText.StartsWith("SYSTEM: "))
+                        {
+                            firstPart.Text = firstPartText + "\n\nCRITICAL: The last message contains an audio note. You MUST respond in valid JSON matching the schema, providing the literal transcription in 'user_transcription' and your reply to the user in 'ai_reply'. Do NOT use any tools this turn.";
+                        }
+                    }
+                }
             }
         }
         else if (toolsList.Count > 0)
@@ -149,17 +161,19 @@ public class GeminiProvider : ILLMProvider
         if (hasAudio)
         {
             var fullJson = new System.Text.StringBuilder();
+            Google.GenAI.Types.GenerateContentResponseUsageMetadata? finalUsage = null;
             await foreach (var response in responseStream.ConfigureAwait(false))
             {
                 if (response.Text != null) fullJson.Append(response.Text);
+                if (response.UsageMetadata != null) finalUsage = response.UsageMetadata;
             }
             
             AiResponseUpdate? finalUpdate = null;
             try
             {
                 using var doc = JsonDocument.Parse(fullJson.ToString());
-                var aiReply = doc.RootElement.GetProperty("ai_reply").GetString();
-                var transcription = doc.RootElement.GetProperty("user_transcription").GetString();
+                var aiReply = doc.RootElement.GetProperty("ai_reply").GetString() ?? "";
+                var transcription = doc.RootElement.GetProperty("user_transcription").GetString() ?? "";
                 
                 finalUpdate = new AiResponseUpdate 
                 { 
@@ -173,7 +187,17 @@ public class GeminiProvider : ILLMProvider
                 finalUpdate = new AiResponseUpdate { TextUpdate = fullJson.ToString(), FinishReason = "stop" };
             }
             
-            if (finalUpdate != null) yield return finalUpdate;
+            if (finalUpdate != null)
+            {
+                if (finalUsage != null)
+                {
+                    finalUpdate.TotalTokens = finalUsage.TotalTokenCount ?? 0;
+                    finalUpdate.InputTokens = finalUsage.PromptTokenCount ?? 0;
+                    finalUpdate.CachedTokens = finalUsage.CachedContentTokenCount ?? 0;
+                    finalUpdate.OutputTokens = finalUsage.CandidatesTokenCount ?? 0;
+                }
+                yield return finalUpdate;
+            }
             yield break;
         }
         
@@ -191,8 +215,8 @@ public class GeminiProvider : ILLMProvider
                 var fc = response.FunctionCalls[0];
                 update.ToolCallUpdate = new AiToolCall
                 {
-                    Id = fc.Name,
-                    Name = fc.Name,
+                    Id = fc.Name ?? "",
+                    Name = fc.Name ?? "",
                     Arguments = JsonSerializer.Serialize(fc.Args)
                 };
                 update.FinishReason = "tool_calls";
@@ -202,67 +226,17 @@ public class GeminiProvider : ILLMProvider
                 update.FinishReason = "stop";
             }
             
+            if (response.UsageMetadata != null)
+            {
+                update.TotalTokens = response.UsageMetadata.TotalTokenCount ?? 0;
+                update.InputTokens = response.UsageMetadata.PromptTokenCount ?? 0;
+                update.CachedTokens = response.UsageMetadata.CachedContentTokenCount ?? 0;
+                update.OutputTokens = response.UsageMetadata.CandidatesTokenCount ?? 0;
+            }
+            
             yield return update;
         }
     }
 
-    private Google.GenAI.Types.Schema ParseSchema(string jsonSchema)
-    {
-        using var doc = JsonDocument.Parse(jsonSchema);
-        return ParseElement(doc.RootElement);
-    }
 
-    private Google.GenAI.Types.Schema ParseElement(JsonElement element)
-    {
-        var schema = new Google.GenAI.Types.Schema();
-        
-        if (element.TryGetProperty("type", out var typeProp))
-        {
-            var typeStr = typeProp.GetString();
-            schema.Type = typeStr switch
-            {
-                "string" => Google.GenAI.Types.Type.String,
-                "number" => Google.GenAI.Types.Type.Number,
-                "integer" => Google.GenAI.Types.Type.Integer,
-                "boolean" => Google.GenAI.Types.Type.Boolean,
-                "array" => Google.GenAI.Types.Type.Array,
-                "object" => Google.GenAI.Types.Type.Object,
-                _ => Google.GenAI.Types.Type.String
-            };
-        }
-
-        if (element.TryGetProperty("description", out var descProp))
-        {
-            schema.Description = descProp.GetString();
-        }
-
-        if (element.TryGetProperty("properties", out var propsElement) && schema.Type == Google.GenAI.Types.Type.Object)
-        {
-            schema.Properties = new Dictionary<string, Google.GenAI.Types.Schema>();
-            foreach (var prop in propsElement.EnumerateObject())
-            {
-                schema.Properties[prop.Name] = ParseElement(prop.Value);
-            }
-        }
-
-        if (element.TryGetProperty("required", out var requiredElement))
-        {
-            schema.Required = new List<string>();
-            foreach (var req in requiredElement.EnumerateArray())
-            {
-                schema.Required.Add(req.GetString());
-            }
-        }
-
-        if (element.TryGetProperty("enum", out var enumElement))
-        {
-            schema.Enum = new List<string>();
-            foreach (var e in enumElement.EnumerateArray())
-            {
-                schema.Enum.Add(e.GetString());
-            }
-        }
-
-        return schema;
-    }
 }
