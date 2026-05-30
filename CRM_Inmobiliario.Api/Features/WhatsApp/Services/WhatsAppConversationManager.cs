@@ -268,7 +268,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         await _context.SaveChangesAsync();
     }
 
-    public async Task RecordTokenUsageAsync(Guid contactoId, int tokens)
+    public async Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens)
     {
         var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
         var targetDate = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.FromHours(-5));
@@ -282,13 +282,19 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 Id = Guid.NewGuid(),
                 ContactoId = contactoId,
                 Date = targetDate,
-                TokensUsed = tokens
+                TokensUsed = totalTokens,
+                InputTokens = inputTokens,
+                CachedTokens = cachedTokens,
+                OutputTokens = outputTokens
             };
             _context.ContactDailyTokenUsages.Add(usage);
         }
         else
         {
-            usage.TokensUsed += tokens;
+            usage.TokensUsed += totalTokens;
+            usage.InputTokens += inputTokens;
+            usage.CachedTokens += cachedTokens;
+            usage.OutputTokens += outputTokens;
         }
         
         await _context.SaveChangesAsync();

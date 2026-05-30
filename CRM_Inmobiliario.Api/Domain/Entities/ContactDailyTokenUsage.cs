@@ -17,4 +17,7 @@ public sealed class ContactDailyTokenUsage
     public DateTimeOffset Date { get; set; }
 
     public int TokensUsed { get; set; }
+    public int InputTokens { get; set; }
+    public int CachedTokens { get; set; }
+    public int OutputTokens { get; set; }
 }

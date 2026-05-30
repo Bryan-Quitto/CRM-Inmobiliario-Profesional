@@ -74,9 +74,19 @@ export const AuditoriaSectionConversacion = ({ telefono, isActive }: SectionConv
                     <div className={`relative max-w-[85%] px-4 py-2.5 rounded-2xl shadow-sm ${msg.rol === 'ia' ? 'bg-[#dcf8c6] text-slate-800 rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none'}`}>
                       <div className={`absolute top-0 w-3 h-3 ${msg.rol === 'ia' ? '-right-2 bg-[#dcf8c6] [clip-path:polygon(0_0,0_100%,100%_0)]' : '-left-2 bg-white [clip-path:polygon(100%_0,100%_100%,0_0)]'}`}></div>
                       <p className="text-[13px] contactoing-relaxed whitespace-pre-wrap">{formatWhatsAppText(msg.contenido)}</p>
-                      <div className="flex items-center justify-end gap-1.5 mt-1 opacity-50">
-                        <span className="text-[9px] font-bold uppercase">{timeFormatter.format(new Date(msg.fecha))}</span>
-                        {msg.rol === 'ia' && <CheckCheck size={12} className="text-blue-500" />}
+                      <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200/50 border-dashed">
+                        <div className="flex items-center gap-1.5 opacity-60">
+                          <span className="text-[9px] font-black tracking-wider text-emerald-700 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
+                            ~{msg.tokens} tkns
+                          </span>
+                          <span className="text-[9px] font-black tracking-wider text-amber-700 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
+                            ${msg.estimatedCost.toFixed(4)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 opacity-50">
+                          <span className="text-[9px] font-bold uppercase">{timeFormatter.format(new Date(msg.fecha))}</span>
+                          {msg.rol === 'ia' && <CheckCheck size={12} className="text-blue-500" />}
+                        </div>
                       </div>
                     </div>
                   </div>

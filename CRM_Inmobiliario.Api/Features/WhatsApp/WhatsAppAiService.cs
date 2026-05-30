@@ -156,6 +156,11 @@ public sealed class WhatsAppAiService
                 CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall? currentToolCall = null;
                 string? finishReason = null;
                 
+                int? streamTotalTokens = null;
+                int? streamInputTokens = null;
+                int? streamCachedTokens = null;
+                int? streamOutputTokens = null;
+                
                 await foreach(var update in provider.StreamChatAsync(aiHistory, tools, apiKeyToUse))
                 {
                     if (!string.IsNullOrEmpty(update.TextUpdate))
@@ -181,6 +186,22 @@ public sealed class WhatsAppAiService
                     {
                         _logger.LogInformation("--- TRANSCRIPCIÓN IA ---: {Transcription}", update.AudioTranscription);
                     }
+                    if (update.TotalTokens.HasValue)
+                    {
+                        streamTotalTokens = update.TotalTokens;
+                        streamInputTokens = update.InputTokens;
+                        streamCachedTokens = update.CachedTokens;
+                        streamOutputTokens = update.OutputTokens;
+                    }
+                }
+
+                if (streamTotalTokens.HasValue && context.Contacto != null)
+                {
+                    await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, 
+                        streamTotalTokens.Value, 
+                        streamInputTokens ?? 0, 
+                        streamCachedTokens ?? 0, 
+                        streamOutputTokens ?? 0);
                 }
 
                 if (finishReason == "stop" || currentToolCall == null)
