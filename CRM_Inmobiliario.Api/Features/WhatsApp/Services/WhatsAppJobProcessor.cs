@@ -32,6 +32,11 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
 
             await aiService.ProcessIncomingMessageAsync(phone, body, phoneNumberId);
         }
+        catch (Polly.Timeout.TimeoutRejectedException)
+        {
+            // El log corto ya se emitió en WhatsAppAiService, solo relanzamos para Hangfire
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error procesando webhook en background job para {Phone}", phone);
@@ -76,6 +81,11 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
 
             // 3. Llamar a WhatsAppAiService pasándole el audio
             await aiService.ProcessIncomingAudioAsync(phone, audioBytes, mediaUrl, phoneNumberId);
+        }
+        catch (Polly.Timeout.TimeoutRejectedException)
+        {
+            // El log corto ya se emitió en WhatsAppAiService, solo relanzamos para Hangfire
+            throw;
         }
         catch (Exception ex)
         {

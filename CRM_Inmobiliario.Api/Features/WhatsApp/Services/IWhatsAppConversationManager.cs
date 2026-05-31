@@ -1,5 +1,6 @@
 using CRM_Inmobiliario.Api.Domain.Entities;
-using OpenAI.Chat;
+using Microsoft.Extensions.AI;
+using System.Collections.Generic;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 

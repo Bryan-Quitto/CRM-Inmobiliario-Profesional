@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models;
-using OpenAI.Chat;
+using Microsoft.Extensions.AI;
+using System.Text.Json;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
@@ -11,11 +13,11 @@ public static class WhatsAppHistoryMapper
         var aiHistory = new List<AiMessage>();
         foreach(var m in history)
         {
-            if (m is SystemChatMessage scm) 
-                aiHistory.Add(new AiMessage { Role = "system", Content = scm.Content.Count > 0 ? scm.Content[0].Text : "" });
-            else if (m is UserChatMessage ucm) 
+            if (m.Role == ChatRole.System) 
+                aiHistory.Add(new AiMessage { Role = "system", Content = m.Text ?? "" });
+            else if (m.Role == ChatRole.User) 
             {
-                var text = ucm.Content.Count > 0 ? ucm.Content[0].Text : "";
+                var text = m.Text ?? "";
                 var aiMsg = new AiMessage { Role = "user", Content = text };
                 if (audioBytes != null && mediaUrl != null && text == $"[Audio Note: {mediaUrl}]")
                 {
@@ -33,26 +35,28 @@ public static class WhatsAppHistoryMapper
                 }
                 aiHistory.Add(aiMsg);
             }
-            else if (m is AssistantChatMessage acm) 
+            else if (m.Role == ChatRole.Assistant) 
             {
                 var am = new AiMessage { Role = "assistant" };
-                if (acm.ToolCalls != null && acm.ToolCalls.Count > 0)
+                var functionCalls = m.Contents.OfType<FunctionCallContent>().ToList();
+                if (functionCalls.Count > 0)
                 {
                     am.ToolCalls = new List<AiToolCall>();
-                    foreach(var tc in acm.ToolCalls)
+                    foreach(var tc in functionCalls)
                     {
-                        am.ToolCalls.Add(new AiToolCall { Id = tc.Id, Name = tc.FunctionName, Arguments = tc.FunctionArguments.ToString() });
+                        am.ToolCalls.Add(new AiToolCall { Id = tc.CallId, Name = tc.Name, Arguments = JsonSerializer.Serialize(tc.Arguments) });
                     }
                 }
                 else
                 {
-                    am.Content = acm.Content.Count > 0 ? acm.Content[0].Text : "";
+                    am.Content = m.Text ?? "";
                 }
                 aiHistory.Add(am);
             }
-            else if (m is ToolChatMessage tcm)
+            else if (m.Role == ChatRole.Tool)
             {
-                aiHistory.Add(new AiMessage { Role = "tool", Content = tcm.Content.Count > 0 ? tcm.Content[0].Text : "", ToolCallId = tcm.ToolCallId });
+                var fr = m.Contents.OfType<FunctionResultContent>().FirstOrDefault();
+                aiHistory.Add(new AiMessage { Role = "tool", Content = m.Text ?? "", ToolCallId = fr?.CallId ?? "" });
             }
         }
         return aiHistory;

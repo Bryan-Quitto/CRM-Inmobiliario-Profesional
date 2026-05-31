@@ -19,6 +19,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Logging
 builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+builder.Logging.AddFilter("System.Net.Http.HttpClient.IGeminiApiClient.LogicalHandler", LogLevel.Information); // Ver los requests a Gemini
+builder.Logging.AddFilter("Polly", LogLevel.Error); // Ocultar el spam de OnRetry de Polly
 
 // Extensiones de Configuración (Modularizado)
 builder.Services.AddProjectInfrastructure(builder.Configuration, builder.Environment);
@@ -38,8 +40,12 @@ builder.Services.AddHttpClient<IGeminiApiClient, GeminiApiClient>()
     .AddHttpMessageHandler<ByokCircuitBreakerHandler>()
     .AddStandardResilienceHandler(options =>
     {
-        options.Retry.MaxRetryAttempts = 5;
-        options.Retry.Delay = TimeSpan.FromSeconds(2);
+        options.Retry.MaxRetryAttempts = 8;
+        options.Retry.Delay = TimeSpan.FromSeconds(5);
+        options.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
+        options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(2);
+        options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(5); // Requerido: al menos doble del AttemptTimeout
+        options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(10); // Aumentado para soportar múltiples reintentos largos
     });
 
 builder.Services.AddHttpClient();
@@ -56,6 +62,9 @@ builder.Services.AddHttpClient<IWhatsAppMessageSender, WhatsAppMessageSender>()
     .AddStandardResilienceHandler();
 builder.Services.AddHttpClient<IWhatsAppMediaService, WhatsAppMediaService>()
     .AddStandardResilienceHandler();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.OpenAiProvider>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.GeminiProvider>();
+builder.Services.AddScoped<LLMProviderFactory>();
 builder.Services.AddScoped<IWhatsAppConversationManager, WhatsAppConversationManager>();
 builder.Services.AddScoped<WhatsAppAiService>();
 builder.Services.AddScoped<IWhatsAppJobProcessor, WhatsAppJobProcessor>();
@@ -155,6 +164,15 @@ app.Lifetime.ApplicationStarted.Register(() =>
 // Mapeo de Endpoints (Modularizado)
 app.MapProjectEndpoints();
 
+app.MapPost("/api/properties/fix-embeddings", async (CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext db, CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService es) => {
+    var props = await db.Properties.Include(p => p.Agente).Where(p => p.GeminiEmbedding == null).ToListAsync();
+    foreach(var p in props) {
+        await es.GenerateEmbeddingForPropertyAsync(p);
+    }
+    await db.SaveChangesAsync();
+    return Results.Ok($"Fixed {props.Count} properties.");
+});
+
 app.Run();
 
 public class AdminAuthorizationFilter : Hangfire.Dashboard.IDashboardAuthorizationFilter
@@ -167,6 +185,22 @@ public class AdminAuthorizationFilter : Hangfire.Dashboard.IDashboardAuthorizati
         if (httpContext.User.Identity?.IsAuthenticated != true) return false;
         
         var roleClaim = httpContext.User.FindFirst(c => c.Type == "Rol" || c.Type == System.Security.Claims.ClaimTypes.Role);
-        return roleClaim?.Value == "Admin";
+        if (roleClaim?.Value == "Admin") return true;
+
+        var appMetadataClaim = httpContext.User.FindFirst("app_metadata")?.Value;
+        if (!string.IsNullOrEmpty(appMetadataClaim))
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(appMetadataClaim);
+                if (doc.RootElement.TryGetProperty("role", out var roleElement) && roleElement.GetString() == "Admin")
+                {
+                    return true;
+                }
+            }
+            catch {}
+        }
+        
+        return false;
     }
 }

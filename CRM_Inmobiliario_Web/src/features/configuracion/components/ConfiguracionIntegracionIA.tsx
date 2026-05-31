@@ -133,8 +133,13 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
         hasActiveSubscription: hasSubscription
       });
       toast.success('Configuración guardada correctamente.');
-    } catch {
-      toast.error('Error al guardar la configuración.');
+    } catch (err: any) {
+      const backendMessage = err.response?.data?.message || err.response?.data?.Message;
+      if (backendMessage) {
+        toast.error(backendMessage);
+      } else {
+        toast.error('Error al guardar la configuración.');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -319,13 +324,14 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                   <p className="text-sm">El límite máximo es 1,000,000. Superar este límite expone la cuenta a costos excesivos.</p>
                 </div>
               )}
+              
               <div className="flex items-start justify-between p-4 bg-slate-50 rounded-lg border border-slate-100 mt-4">
                 <div className="flex items-start gap-3">
                   <CreditCard className="w-5 h-5 text-slate-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-slate-900">Suscripción Activa (Context Caching)</p>
+                    <p className="font-medium text-slate-900">Habilitar Context Caching (Solo Llaves de Pago)</p>
                     <p className="text-sm text-slate-500 mt-1 max-w-lg">
-                      Al activar esta opción, el sistema intentará renovar el caché de IA en segundo plano. Úsalo si tu API Key permite solicitudes de caché continuas (para evitar quemar límites gratuitos).
+                      Si está activo, el bot guardará la base de datos en caché para ahorrar tokens, pero requiere plan de pago (AI Studio/OpenAI). <strong>Si usas la capa gratuita de Gemini, déjalo apagado</strong> para evitar bloqueos por límite de cuota (15 RPM).
                     </p>
                   </div>
                 </div>
