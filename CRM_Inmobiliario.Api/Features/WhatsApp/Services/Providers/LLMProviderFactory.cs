@@ -15,8 +15,12 @@ public class LLMProviderFactory
 
     public ILLMProvider GetProvider(string providerName, string apiKey)
     {
+        if (!string.IsNullOrEmpty(apiKey) && (apiKey.StartsWith("AIza", StringComparison.OrdinalIgnoreCase) || apiKey.StartsWith("AQ.", StringComparison.OrdinalIgnoreCase)))
+            return _geminiProvider;
+            
         if (string.Equals(providerName, "Gemini", StringComparison.OrdinalIgnoreCase))
             return _geminiProvider;
+            
         return _openAiProvider;
     }
 }

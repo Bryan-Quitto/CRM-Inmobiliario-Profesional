@@ -35,8 +35,9 @@ public class BulkVectorizationJob
         {
             // Only backfill properties missing vectors based on their active provider
             query = query.Where(p => 
-                (p.Agente != null && p.Agente.ActiveLLMProvider == "Gemini" && p.GeminiEmbedding == null) ||
-                ((p.Agente == null || p.Agente.ActiveLLMProvider != "Gemini") && p.VectorEmbedding == null)
+                (p.Agente == null || string.IsNullOrEmpty(p.Agente.ActiveLLMProvider) || p.Agente.ActiveLLMProvider == "Gemini") 
+                    ? p.GeminiEmbedding == null 
+                    : p.VectorEmbedding == null
             );
         }
 

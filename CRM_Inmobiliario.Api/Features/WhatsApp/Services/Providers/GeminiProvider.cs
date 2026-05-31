@@ -13,10 +13,12 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers;
 public class GeminiProvider : ILLMProvider
 {
     private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
+    private readonly string _modelName;
 
-    public GeminiProvider(System.Net.Http.IHttpClientFactory httpClientFactory)
+    public GeminiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Options.IOptions<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings> settings)
     {
         _httpClientFactory = httpClientFactory;
+        _modelName = settings.Value.Gemini.DefaultChatModel ?? "gemini-3-pro-preview";
     }
 
     public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey, string? cachedContentId = null)
@@ -89,13 +91,28 @@ public class GeminiProvider : ILLMProvider
             }
             else if (msg.Role == "tool")
             {
-                using var doc = JsonDocument.Parse(msg.Content);
                 var dict = new Dictionary<string, object>();
-                foreach (var prop in doc.RootElement.EnumerateObject())
+                try
                 {
-                    if (prop.Value.ValueKind == JsonValueKind.String) dict[prop.Name] = prop.Value.GetString() ?? "";
+                    using var doc = JsonDocument.Parse(msg.Content);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var prop in doc.RootElement.EnumerateObject())
+                        {
+                            if (prop.Value.ValueKind == JsonValueKind.String) dict[prop.Name] = prop.Value.GetString() ?? "";
+                            else dict[prop.Name] = prop.Value.GetRawText();
+                        }
+                    }
+                    else
+                    {
+                        dict["result"] = msg.Content;
+                    }
                 }
-                contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { FunctionResponse = new FunctionResponse { Name = msg.ToolCallId, Response = dict } } } });
+                catch
+                {
+                    dict["result"] = msg.Content;
+                }
+                contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { FunctionResponse = new FunctionResponse { Name = msg.ToolCallId ?? "unknown", Response = dict } } } });
             }
         }
 
@@ -163,7 +180,7 @@ public class GeminiProvider : ILLMProvider
             config.Tools = toolsList;
         }
 
-        var responseStream = client.Models.GenerateContentStreamAsync("gemini-2.5-flash", contents, config);
+        var responseStream = client.Models.GenerateContentStreamAsync(_modelName, contents, config);
         
         if (hasAudio)
         {

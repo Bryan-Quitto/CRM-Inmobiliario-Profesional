@@ -1,7 +1,6 @@
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 using Microsoft.Extensions.Logging;
-using OpenAI.Chat;
-using OpenAI;
+using Microsoft.Extensions.AI;
 using System.ClientModel.Primitives;
 using System.Text.RegularExpressions;
 using Pgvector.EntityFrameworkCore;
@@ -95,13 +94,23 @@ public sealed class WhatsAppAiService
 
             // 3. Orquestación con LLMProviderFactory
             var tenantAgent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
-            string providerName = tenantAgent?.ActiveLLMProvider ?? "OpenAI";
+            string rawProviderName = tenantAgent?.ActiveLLMProvider ?? "OpenAI";
             string apiKeyToUse = !string.IsNullOrEmpty(tenantAgent?.AiApiKey) 
                 ? tenantAgent.AiApiKey 
-                : (providerName == "Gemini" ? Environment.GetEnvironmentVariable("GEMINI_API_KEY") : _openAiApiKey) ?? "";
+                : (rawProviderName == "Gemini" ? Environment.GetEnvironmentVariable("GEMINI_API_KEY") : _openAiApiKey) ?? "";
+            
+            // Dynamic BYOK detection to ensure robustness
+            string providerName = rawProviderName;
+            if (!string.IsNullOrEmpty(apiKeyToUse))
+            {
+                if (apiKeyToUse.StartsWith("AIza", StringComparison.OrdinalIgnoreCase) || apiKeyToUse.StartsWith("AQ.", StringComparison.OrdinalIgnoreCase))
+                    providerName = "Gemini";
+                else if (apiKeyToUse.StartsWith("sk-", StringComparison.OrdinalIgnoreCase))
+                    providerName = "OpenAI";
+            }
             
             string? cachedContentId = null;
-            if (providerName == "Gemini" && tenantAgent != null)
+            if (providerName == "Gemini" && tenantAgent != null && tenantAgent.HasActiveSubscription)
             {
                 if (string.IsNullOrEmpty(tenantAgent.GeminiCacheId) || 
                     !tenantAgent.GeminiCacheExpiresAt.HasValue || 
@@ -142,13 +151,15 @@ public sealed class WhatsAppAiService
             {
                 var chatMessagesForAi = new List<ChatMessage>();
                 
-                if (history.Count > 0 && history[0] is SystemChatMessage sys)
+                if (history.Count > 0 && history[0].Role == ChatRole.System)
                 {
-                    chatMessagesForAi.Add(sys);
+                    chatMessagesForAi.Add(history[0]);
                     
-                    // Inject Golden Examples right after the System Prompt to enforce behavior
-                    // and trigger OpenAI's Prefix Caching.
-                    chatMessagesForAi.AddRange(CRM_Inmobiliario.Api.Features.WhatsApp.Services.AiPromptConstants.GoldenExamples);
+                    // Comentado para no forzar la personalidad de los Golden Examples (evita el "Hola" repetitivo y confía más en el modelo moderno)
+                    // chatMessagesForAi.AddRange(CRM_Inmobiliario.Api.Features.WhatsApp.Services.AiPromptConstants.GoldenExamples);
+                    
+                    // El Context Caching se encargará de inyectar el dataset en Google.
+                    // Hemos desactivado el fallback de inyectar el dataset completo en línea para ahorrar 45k tokens por mensaje.
                     
                     chatMessagesForAi.AddRange(history.Skip(1));
                 }
@@ -208,6 +219,9 @@ public sealed class WhatsAppAiService
 
                 if (streamTotalTokens.HasValue && context.Contacto != null)
                 {
+                    _logger.LogInformation("--- CONSUMO DE TOKENS --- Total: {Total} | Input: {Input} | Cached: {Cached} | Output: {Output}", 
+                        streamTotalTokens.Value, streamInputTokens ?? 0, streamCachedTokens ?? 0, streamOutputTokens ?? 0);
+
                     await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, 
                         streamTotalTokens.Value, 
                         streamInputTokens ?? 0, 
@@ -226,11 +240,11 @@ public sealed class WhatsAppAiService
                         string footer = $"\n\n💡 _Si prefieres atención personalizada, solo dímelo y {agentName} se conectará contigo._";
                         
                         finalResponse = header + finalResponse + footer;
-                        history.Add(new AssistantChatMessage(finalResponse));
+                        history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
                     }
                     else
                     {
-                        history.Add(new AssistantChatMessage(finalResponse));
+                        history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
                     }
                     
                     if (context.Contacto != null)
@@ -241,12 +255,13 @@ public sealed class WhatsAppAiService
                 }
                 else if ((finishReason == "tool_calls" || finishReason == "function_call") && currentToolCall != null)
                 {
-                    var chatToolCall = ChatToolCall.CreateFunctionToolCall(currentToolCall.Id, currentToolCall.Name, BinaryData.FromString(currentToolCall.Arguments));
-                    history.Add(new AssistantChatMessage(new[] { chatToolCall }));
+                    var argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(currentToolCall.Arguments);
+                    var chatToolCall = new FunctionCallContent(currentToolCall.Id, currentToolCall.Name, argsDict);
+                    history.Add(new ChatMessage(ChatRole.Assistant, "") { Contents = { chatToolCall } });
                     
                     _logger.LogInformation("--- TOOL CALL: {Tool} ---", currentToolCall.Name);
                     string toolResult = await _toolExecutor.HandleToolCallAsync(currentToolCall, phone, messageText, context.Contacto, phoneNumberId);
-                    history.Add(new ToolChatMessage(currentToolCall.Id, toolResult));
+                    history.Add(new ChatMessage(ChatRole.Tool, toolResult) { Contents = { new FunctionResultContent(currentToolCall.Id, toolResult) } });
                     
                     requiresAction = true;
                 }
@@ -264,6 +279,11 @@ public sealed class WhatsAppAiService
                 finalResponse = Regex.Replace(finalResponse, @"\*+", "*");
                 await _messageSender.SendWhatsAppMessageAsync(phone, finalResponse, phoneNumberId);
             }
+        }
+        catch (Polly.Timeout.TimeoutRejectedException)
+        {
+            _logger.LogError("Timeout excedido para {Phone} (Posible límite de cuota RPM alcanzado). El mensaje será reintentado automáticamente en background.", phone);
+            throw;
         }
         catch (Exception ex)
         {

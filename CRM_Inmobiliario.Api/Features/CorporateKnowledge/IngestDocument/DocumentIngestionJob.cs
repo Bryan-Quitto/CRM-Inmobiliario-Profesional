@@ -5,8 +5,11 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using OpenAI.Embeddings;
+using Microsoft.Extensions.AI;
+using OpenAI;
 using Pgvector;
+using Microsoft.Extensions.Options;
+using CRM_Inmobiliario.Api.Features.Shared.Settings;
 
 namespace CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
 
@@ -14,13 +17,15 @@ public class DocumentIngestionJob
 {
     private readonly CrmDbContext _context;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly LLMSettings _settings;
     private readonly string? _openAiApiKey;
     private readonly string? _geminiApiKey;
 
-    public DocumentIngestionJob(CrmDbContext context, IHttpClientFactory httpClientFactory)
+    public DocumentIngestionJob(CrmDbContext context, IHttpClientFactory httpClientFactory, IOptions<LLMSettings> settings)
     {
         _context = context;
         _httpClientFactory = httpClientFactory;
+        _settings = settings.Value;
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
         _geminiApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")?.Trim().Trim('"');
     }
@@ -38,12 +43,13 @@ public class DocumentIngestionJob
         {
             var key = apiKey ?? _geminiApiKey;
             if (string.IsNullOrEmpty(key)) return;
+            var model = _settings.Gemini.DefaultEmbeddingModel ?? "text-embedding-004";
 
             using var httpClient = _httpClientFactory.CreateClient("Gemini");
             foreach (var chunk in chunks)
             {
                 var req = new { content = new { parts = new[] { new { text = chunk.Content } } } };
-                var response = await httpClient.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={key}", req);
+                var response = await httpClient.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent?key={key}", req);
                 if (response.IsSuccessStatusCode)
                 {
                     var doc = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonDocument>();
@@ -59,8 +65,9 @@ public class DocumentIngestionJob
         {
             var key = apiKey ?? _openAiApiKey;
             if (string.IsNullOrEmpty(key)) return;
+            var model = _settings.OpenAI.DefaultEmbeddingModel ?? "text-embedding-3-small";
 
-            var embeddingClient = new EmbeddingClient("text-embedding-3-small", key);
+            var embeddingClient = new OpenAI.Embeddings.EmbeddingClient(model, key);
             var stringChunks = chunks.Select(c => c.Content ?? "").ToList();
             var embeddingsResult = await embeddingClient.GenerateEmbeddingsAsync(stringChunks);
             var embeddings = embeddingsResult.Value;

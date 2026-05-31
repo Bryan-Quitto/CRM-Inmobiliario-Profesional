@@ -11,10 +11,12 @@ namespace CRM_Inmobiliario.Api.Features.AI.Services;
 public class GeminiApiClient : IGeminiApiClient
 {
     private readonly HttpClient _httpClient;
+    private readonly string _modelName;
 
-    public GeminiApiClient(HttpClient httpClient)
+    public GeminiApiClient(HttpClient httpClient, Microsoft.Extensions.Options.IOptions<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings> settings)
     {
         _httpClient = httpClient;
+        _modelName = $"models/{settings.Value.Gemini.DefaultChatModel ?? "gemini-3-pro-preview"}";
     }
 
     public async Task<bool> PatchTtlAsync(string geminiCacheId, string byokKey, CancellationToken cancellationToken = default)
@@ -32,11 +34,11 @@ public class GeminiApiClient : IGeminiApiClient
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<string?> CreateCachedContentAsync(string byokKey, Content? systemInstruction, List<Content> contents, string model = "models/gemini-2.5-flash", CancellationToken cancellationToken = default)
+    public async Task<string?> CreateCachedContentAsync(string byokKey, Content? systemInstruction, List<Content> contents, CancellationToken cancellationToken = default)
     {
         var payload = new 
         {
-            model = model,
+            model = _modelName,
             systemInstruction = systemInstruction,
             contents = contents,
             ttl = "3600s"

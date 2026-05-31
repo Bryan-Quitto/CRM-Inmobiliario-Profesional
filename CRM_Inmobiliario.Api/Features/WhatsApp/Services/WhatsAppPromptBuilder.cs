@@ -1,5 +1,8 @@
-using OpenAI.Chat;
+using Microsoft.Extensions.AI;
+using System.Collections.Generic;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts;
+using System.Text.Json;
+using System.Linq;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
@@ -12,11 +15,11 @@ public sealed class WhatsAppPromptBuilder : IWhatsAppPromptBuilder
     public string GetSystemPrompt(bool leadExists, string? leadName = null, bool isFirstMessage = false) 
         => SystemPromptFactory.GetSystemPrompt(leadExists, leadName, isFirstMessage);
 
-    public ChatCompletionOptions GetChatOptions()
+    public ChatOptions GetChatOptions()
     {
-        var options = new ChatCompletionOptions
+        var options = new ChatOptions
         {
-            MaxOutputTokenCount = 500,
+            MaxOutputTokens = 500,
             PresencePenalty = 0.6f,
             FrequencyPenalty = 0.5f
         };
@@ -28,28 +31,27 @@ public sealed class WhatsAppPromptBuilder : IWhatsAppPromptBuilder
         var aiHistory = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>();
         foreach(var m in history)
         {
-            if (m is SystemChatMessage scm) aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = scm.Content.Count > 0 ? scm.Content[0].Text : "" });
-            else if (m is UserChatMessage ucm) aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = ucm.Content.Count > 0 ? ucm.Content[0].Text : "" });
-            else if (m is AssistantChatMessage acm) 
+            if (m.Role == ChatRole.System) aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = m.Text ?? "" });
+            else if (m.Role == ChatRole.User) aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = m.Text ?? "" });
+            else if (m.Role == ChatRole.Assistant) 
             {
-                var am = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "assistant" };
-                if (acm.ToolCalls != null && acm.ToolCalls.Count > 0)
+                var am = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "assistant", Content = m.Text ?? "" };
+                
+                var functionCalls = m.Contents.OfType<FunctionCallContent>().ToList();
+                if (functionCalls.Count > 0)
                 {
                     am.ToolCalls = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall>();
-                    foreach(var tc in acm.ToolCalls)
+                    foreach(var fc in functionCalls)
                     {
-                        am.ToolCalls.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = tc.Id, Name = tc.FunctionName, Arguments = tc.FunctionArguments.ToString() });
+                        am.ToolCalls.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = fc.CallId, Name = fc.Name, Arguments = JsonSerializer.Serialize(fc.Arguments) });
                     }
-                }
-                else
-                {
-                    am.Content = acm.Content.Count > 0 ? acm.Content[0].Text : "";
                 }
                 aiHistory.Add(am);
             }
-            else if (m is ToolChatMessage tcm)
+            else if (m.Role == ChatRole.Tool)
             {
-                aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "tool", Content = tcm.Content.Count > 0 ? tcm.Content[0].Text : "", ToolCallId = tcm.ToolCallId });
+                var fr = m.Contents.OfType<FunctionResultContent>().FirstOrDefault();
+                aiHistory.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "tool", Content = m.Text ?? "", ToolCallId = fr?.CallId ?? "" });
             }
         }
         return ChatSerializer.SerializeHistory(aiHistory);
@@ -61,27 +63,24 @@ public sealed class WhatsAppPromptBuilder : IWhatsAppPromptBuilder
         var history = new List<ChatMessage>();
         foreach (var m in aiHistory)
         {
-            if (m.Role == "system") history.Add(new SystemChatMessage(m.Content));
-            else if (m.Role == "user") history.Add(new UserChatMessage(m.Content));
+            if (m.Role == "system") history.Add(new ChatMessage(ChatRole.System, m.Content));
+            else if (m.Role == "user") history.Add(new ChatMessage(ChatRole.User, m.Content));
             else if (m.Role == "assistant")
             {
+                var msg = new ChatMessage(ChatRole.Assistant, m.Content);
                 if (m.ToolCalls != null && m.ToolCalls.Count > 0)
                 {
-                    var toolCalls = new List<ChatToolCall>();
                     foreach (var tc in m.ToolCalls)
                     {
-                        toolCalls.Add(ChatToolCall.CreateFunctionToolCall(tc.Id, tc.Name, BinaryData.FromString(tc.Arguments)));
+                        var args = string.IsNullOrEmpty(tc.Arguments) ? null : JsonSerializer.Deserialize<IDictionary<string, object?>>(tc.Arguments);
+                        msg.Contents.Add(new FunctionCallContent(tc.Id, tc.Name, args));
                     }
-                    history.Add(new AssistantChatMessage(toolCalls));
                 }
-                else
-                {
-                    history.Add(new AssistantChatMessage(m.Content));
-                }
+                history.Add(msg);
             }
             else if (m.Role == "tool")
             {
-                history.Add(new ToolChatMessage(m.ToolCallId, m.Content));
+                history.Add(new ChatMessage(ChatRole.Tool, m.Content) { Contents = { new FunctionResultContent(m.ToolCallId ?? string.Empty, m.Content) } });
             }
         }
         return history;

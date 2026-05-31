@@ -3,6 +3,7 @@ using System;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260530232635_AddHasActiveSubscriptionToAgents")]
+    partial class AddHasActiveSubscriptionToAgents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,7 +44,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Agencies", (string)null);
+                    b.ToTable("Agencies");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Agent", b =>
@@ -138,7 +141,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Agents", (string)null);
+                    b.ToTable("Agents");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AiActionLog", b =>
@@ -174,7 +177,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("TelefonoContacto", "Fecha")
                         .HasDatabaseName("IX_AiActionLogs_TelefonoFecha");
 
-                    b.ToTable("AiActionLogs", (string)null);
+                    b.ToTable("AiActionLogs");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage", b =>
@@ -205,7 +208,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ContactoId");
 
-                    b.ToTable("ContactDailyTokenUsages", (string)null);
+                    b.ToTable("ContactDailyTokenUsages");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Contacto", b =>
@@ -282,7 +285,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("AgenteId", "EtapaEmbudo", "FechaCierre", "FechaCreacion")
                         .HasDatabaseName("IX_Contactos_Performance_AgenteEtapaFecha");
 
-                    b.ToTable("Contactos", (string)null);
+                    b.ToTable("Contactos");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.ContactoAgenteCompartido", b =>
@@ -329,7 +332,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ContactoId");
 
-                    b.ToTable("ContactoHistorialEmbudos", (string)null);
+                    b.ToTable("ContactoHistorialEmbudos");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.ContactoInteresPropiedad", b =>
@@ -352,7 +355,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("ContactoInteresPropiedades", (string)null);
+                    b.ToTable("ContactoInteresPropiedades");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Document", b =>
@@ -379,7 +382,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Documents", (string)null);
+                    b.ToTable("Documents");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.DocumentChunk", b =>
@@ -424,7 +427,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("GeminiEmbedding"), "hnsw");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("GeminiEmbedding"), new[] { "vector_cosine_ops" });
 
-                    b.ToTable("DocumentChunks", (string)null);
+                    b.ToTable("DocumentChunks");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>
@@ -462,7 +465,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("Interactions", (string)null);
+                    b.ToTable("Interactions");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Property", b =>
@@ -615,7 +618,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("AgenteId", "EstadoComercial", "EsCaptacionPropia", "FechaIngreso")
                         .HasDatabaseName("IX_Properties_Performance_AgenteEstadoCaptacion");
 
-                    b.ToTable("Properties", (string)null);
+                    b.ToTable("Properties");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
@@ -646,7 +649,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PropiedadId");
 
-                    b.ToTable("PropertyGallerySections", (string)null);
+                    b.ToTable("PropertyGallerySections");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyMedia", b =>
@@ -690,7 +693,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SectionId");
 
-                    b.ToTable("PropertyMedia", (string)null);
+                    b.ToTable("PropertyMedia");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyTransaction", b =>
@@ -736,7 +739,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("PropertyId", "TransactionDate")
                         .HasDatabaseName("IX_PropertyTransactions_PropertyDate");
 
-                    b.ToTable("PropertyTransactions", (string)null);
+                    b.ToTable("PropertyTransactions");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.SecurityAuditLog", b =>
@@ -826,7 +829,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("AgenteId", "Estado", "TipoTarea", "FechaInicio")
                         .HasDatabaseName("IX_Tasks_Performance_AgenteEstadoTipoFecha");
 
-                    b.ToTable("Tasks", (string)null);
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.WhatsappConversation", b =>
@@ -854,7 +857,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ContactoId");
 
-                    b.ToTable("WhatsappConversations", (string)null);
+                    b.ToTable("WhatsappConversations");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.WhatsappMessage", b =>
@@ -890,7 +893,7 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("Telefono", "Fecha")
                         .HasDatabaseName("IX_WhatsappMessages_TelefonoFecha");
 
-                    b.ToTable("WhatsappMessages", (string)null);
+                    b.ToTable("WhatsappMessages");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Agent", b =>

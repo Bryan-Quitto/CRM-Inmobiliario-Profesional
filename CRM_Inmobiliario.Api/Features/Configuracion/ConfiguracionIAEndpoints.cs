@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
+using Hangfire;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
@@ -51,7 +53,12 @@ public static class ConfiguracionIAEndpoints
         .WithTags("Configuracion")
         .WithName("ObtenerConfiguracionIA");
 
-        endpoints.MapPut("/configuracion/ia-settings", async (UpdateIASettingsRequest request, ClaimsPrincipal user, CrmDbContext context) =>
+        endpoints.MapPut("/configuracion/ia-settings", async (
+            UpdateIASettingsRequest request, 
+            ClaimsPrincipal user, 
+            CrmDbContext context, 
+            System.Net.Http.IHttpClientFactory httpClientFactory,
+            Hangfire.IBackgroundJobClient backgroundJobs) =>
         {
             if (request.DailyTokenLimitPerContact.HasValue && (request.DailyTokenLimitPerContact < 20000 || request.DailyTokenLimitPerContact > 1000000))
             {
@@ -60,6 +67,7 @@ public static class ConfiguracionIAEndpoints
 
             var agenteId = user.GetRequiredUserId();
             var agente = await context.Agents.FindAsync(agenteId);
+            string? oldProvider = agente?.ActiveLLMProvider;
 
             if (agente is null)
             {
@@ -88,7 +96,47 @@ public static class ConfiguracionIAEndpoints
 
             if (request.AiApiKey != null)
             {
-                agente.AiApiKey = string.IsNullOrWhiteSpace(request.AiApiKey) ? null : request.AiApiKey;
+                var newKey = string.IsNullOrWhiteSpace(request.AiApiKey) ? null : request.AiApiKey.Trim();
+                
+                if (!string.IsNullOrEmpty(newKey))
+                {
+                    bool isGemini = newKey.StartsWith("AIza", StringComparison.OrdinalIgnoreCase) || newKey.StartsWith("AQ.", StringComparison.OrdinalIgnoreCase);
+                    bool isOpenAI = newKey.StartsWith("sk-", StringComparison.OrdinalIgnoreCase);
+
+                    var client = httpClientFactory.CreateClient();
+                    System.Net.Http.HttpResponseMessage? testRes = null;
+
+                    if (isGemini)
+                    {
+                        var body = new { contents = new[] { new { parts = new[] { new { text = "hi" } } } } };
+                        testRes = await client.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key={newKey}", body);
+                    }
+                    else if (isOpenAI)
+                    {
+                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newKey);
+                        var body = new { model = "gpt-4o-mini", messages = new[] { new { role = "user", content = "hi" } }, max_tokens = 1 };
+                        testRes = await client.PostAsJsonAsync("https://api.openai.com/v1/chat/completions", body);
+                    }
+
+                    if (testRes != null)
+                    {
+                        // Permitimos código 429 porque indica que la llave existe y es válida,
+                        // aunque no tenga saldo o haya llegado a su límite gratuito (Free Tier).
+                        if (!testRes.IsSuccessStatusCode && (int)testRes.StatusCode != 429)
+                        {
+                            return Results.BadRequest(new { Message = "La API Key no es válida. Por favor revísela." });
+                        }
+                    }
+
+                    agente.AiApiKey = newKey;
+                    agente.HasActiveSubscription = request.HasActiveSubscription ?? false;
+                    agente.ActiveLLMProvider = isGemini ? "Gemini" : (isOpenAI ? "OpenAI" : null);
+                }
+                else
+                {
+                    agente.AiApiKey = null;
+                    agente.ActiveLLMProvider = null;
+                }
             }
 
             if (request.WhatsAppPhoneNumberId != null)
@@ -97,6 +145,11 @@ public static class ConfiguracionIAEndpoints
             }
 
             await context.SaveChangesAsync();
+
+            if (oldProvider != agente.ActiveLLMProvider)
+            {
+                backgroundJobs.Enqueue<CRM_Inmobiliario.Api.Features.Admin.Jobs.BulkVectorizationJob>(j => j.ProcessBulkAsync(false));
+            }
 
             return Results.Ok(new { Message = "Configuración actualizada exitosamente." });
         })

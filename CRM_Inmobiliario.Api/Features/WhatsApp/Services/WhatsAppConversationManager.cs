@@ -2,9 +2,12 @@ using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using OpenAI.Chat;
-using OpenAI;
+using Microsoft.Extensions.AI;
 using System.ClientModel.Primitives;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+using System.Threading.Tasks;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
@@ -152,7 +155,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
 
         if (isFirstMessage)
         {
-            history = new List<ChatMessage> { new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage)) };
+            history = new List<ChatMessage> { new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage)) };
             conversation = new WhatsappConversation
             {
                 Id = Guid.NewGuid(),
@@ -168,14 +171,14 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             history = _promptBuilder.DeserializeHistory(conversation!.HistorialJson ?? "[]", contactExists, contacto?.Nombre, isFirstMessage);
             
             // Reemplazar siempre el prompt del sistema antiguo con la versión más reciente del código
-            if (history.Count > 0 && history[0] is SystemChatMessage)
+            if (history.Count > 0 && history[0].Role == ChatRole.System)
             {
-                history[0] = new SystemChatMessage(_promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage));
+                history[0] = new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage));
             }
         }
 
         // 5. Añadir mensaje del usuario a la historia
-        history.Add(new UserChatMessage(messageText));
+        history.Add(new ChatMessage(ChatRole.User, messageText));
 
         // Registrar el mensaje en BD asociado al Contacto
         _context.WhatsappMessages.Add(new WhatsappMessage 
@@ -203,8 +206,8 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                                 "Qué busca, Presupuesto, Ubicaciones, y qué propiedades le gustaron o rechazó. Omite saludos. Formato de viñetas muy denso.";
                 
                 var plainTextHistory = string.Join("\n", messagesToCompress.Select(m => {
-                    var role = m is UserChatMessage ? "Cliente" : m is SystemChatMessage ? "Memoria" : "IA";
-                    var text = m.Content.Count > 0 ? m.Content[0].Text : "[Uso de Herramienta]";
+                    var role = m.Role == ChatRole.User ? "Cliente" : m.Role == ChatRole.System ? "Memoria" : "IA";
+                    var text = string.IsNullOrEmpty(m.Text) ? "[Uso de Herramienta]" : m.Text;
                     return $"{role}: {text}";
                 }));
 
@@ -221,11 +224,11 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 }
                 
                 var newHistory = new List<ChatMessage> { systemMessage };
-                newHistory.Add(new SystemChatMessage($"[MEMORIA HISTÓRICA DEL CLIENTE]:\n{resumen}"));
+                newHistory.Add(new ChatMessage(ChatRole.System, $"[MEMORIA HISTÓRICA DEL CLIENTE]:\n{resumen}"));
                 
                 var tail = history.Skip(7).ToList();
                 // Limpiar posibles mensajes de herramientas huérfanos al inicio del tail
-                while (tail.Count > 0 && tail[0] is ToolChatMessage)
+                while (tail.Count > 0 && tail[0].Role == ChatRole.Tool)
                 {
                     tail.RemoveAt(0);
                 }
