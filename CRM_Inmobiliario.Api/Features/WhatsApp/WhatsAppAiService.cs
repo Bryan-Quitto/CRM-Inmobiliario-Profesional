@@ -229,7 +229,19 @@ public sealed class WhatsAppAiService
                         streamOutputTokens ?? 0);
                 }
 
-                if (finishReason == "stop" || currentToolCall == null)
+                if (currentToolCall != null)
+                {
+                    var argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(currentToolCall.Arguments);
+                    var chatToolCall = new FunctionCallContent(currentToolCall.Id, currentToolCall.Name, argsDict);
+                    history.Add(new ChatMessage(ChatRole.Assistant, "") { Contents = { chatToolCall } });
+                    
+                    _logger.LogInformation("--- TOOL CALL: {Tool} ---", currentToolCall.Name);
+                    string toolResult = await _toolExecutor.HandleToolCallAsync(currentToolCall, phone, messageText, context.Contacto, phoneNumberId);
+                    history.Add(new ChatMessage(ChatRole.Tool, toolResult) { Contents = { new FunctionResultContent(currentToolCall.Id, toolResult) } });
+                    
+                    requiresAction = true;
+                }
+                else
                 {
                     finalResponse = textBuilder.ToString();
                     
@@ -252,18 +264,6 @@ public sealed class WhatsAppAiService
                         await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse);
                     }
                     _logger.LogInformation("--- RESPUESTA FINAL IA: {Response} ---", finalResponse);
-                }
-                else if ((finishReason == "tool_calls" || finishReason == "function_call") && currentToolCall != null)
-                {
-                    var argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(currentToolCall.Arguments);
-                    var chatToolCall = new FunctionCallContent(currentToolCall.Id, currentToolCall.Name, argsDict);
-                    history.Add(new ChatMessage(ChatRole.Assistant, "") { Contents = { chatToolCall } });
-                    
-                    _logger.LogInformation("--- TOOL CALL: {Tool} ---", currentToolCall.Name);
-                    string toolResult = await _toolExecutor.HandleToolCallAsync(currentToolCall, phone, messageText, context.Contacto, phoneNumberId);
-                    history.Add(new ChatMessage(ChatRole.Tool, toolResult) { Contents = { new FunctionResultContent(currentToolCall.Id, toolResult) } });
-                    
-                    requiresAction = true;
                 }
             }
 

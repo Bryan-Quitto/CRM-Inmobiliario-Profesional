@@ -109,7 +109,7 @@ public static class ConfiguracionIAEndpoints
                     if (isGemini)
                     {
                         var body = new { contents = new[] { new { parts = new[] { new { text = "hi" } } } } };
-                        testRes = await client.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent?key={newKey}", body);
+                        testRes = await client.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={newKey}", body);
                     }
                     else if (isOpenAI)
                     {

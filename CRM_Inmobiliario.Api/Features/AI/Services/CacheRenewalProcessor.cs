@@ -22,7 +22,8 @@ public class CacheRenewalProcessor : ICacheRenewalProcessor
         IGeminiApiClient geminiApiClient,
         ILogger<CacheRenewalProcessor> logger)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection") 
+        _connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+            ?? configuration.GetConnectionString("DefaultConnection") 
             ?? throw new ArgumentNullException("Connection string is missing");
         _geminiApiClient = geminiApiClient;
         _logger = logger;

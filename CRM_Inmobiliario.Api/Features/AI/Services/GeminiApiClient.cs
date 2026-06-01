@@ -16,7 +16,7 @@ public class GeminiApiClient : IGeminiApiClient
     public GeminiApiClient(HttpClient httpClient, Microsoft.Extensions.Options.IOptions<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings> settings)
     {
         _httpClient = httpClient;
-        _modelName = $"models/{settings.Value.Gemini.DefaultChatModel ?? "gemini-3-pro-preview"}";
+        _modelName = $"models/{settings.Value.Gemini.DefaultChatModel ?? "gemini-2.5-flash"}";
     }
 
     public async Task<bool> PatchTtlAsync(string geminiCacheId, string byokKey, CancellationToken cancellationToken = default)
