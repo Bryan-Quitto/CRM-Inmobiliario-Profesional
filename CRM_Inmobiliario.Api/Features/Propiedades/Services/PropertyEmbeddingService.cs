@@ -45,15 +45,34 @@ public sealed class PropertyEmbeddingService : IPropertyEmbeddingService
         string provider = string.IsNullOrEmpty(property.Agente?.ActiveLLMProvider) ? "Gemini" : property.Agente.ActiveLLMProvider;
         string? apiKey = property.Agente?.AiApiKey;
 
-        var vector = await GenerateEmbeddingAsync(textToEmbed, provider, apiKey);
-        
-        if (vector != null)
+        bool generatedAny = false;
+
+        // Intentar generar vector de OpenAI
+        string? openAiKey = provider == "OpenAI" ? apiKey : _openAiApiKey;
+        if (property.VectorEmbedding == null && !string.IsNullOrEmpty(openAiKey))
         {
-            if (provider == "Gemini") property.GeminiEmbedding = vector;
-            else property.VectorEmbedding = vector;
+            var openAiVector = await GenerateEmbeddingAsync(textToEmbed, "OpenAI", openAiKey);
+            if (openAiVector != null)
+            {
+                property.VectorEmbedding = openAiVector;
+                generatedAny = true;
+            }
         }
 
-        return vector;
+        // Intentar generar vector de Gemini
+        string? geminiKey = provider == "Gemini" ? apiKey : _geminiApiKey;
+        if (property.GeminiEmbedding == null && !string.IsNullOrEmpty(geminiKey))
+        {
+            var geminiVector = await GenerateEmbeddingAsync(textToEmbed, "Gemini", geminiKey);
+            if (geminiVector != null)
+            {
+                property.GeminiEmbedding = geminiVector;
+                generatedAny = true;
+            }
+        }
+
+        // Para retrocompatibilidad con posibles métodos que esperen un Vector (aunque en el job no se usa el valor de retorno real más que para saber si hubo éxito)
+        return generatedAny ? (provider == "Gemini" ? property.GeminiEmbedding : property.VectorEmbedding) : null;
     }
 
     public async Task<Vector?> GenerateEmbeddingAsync(string text, string provider = "OpenAI", string? apiKey = null)

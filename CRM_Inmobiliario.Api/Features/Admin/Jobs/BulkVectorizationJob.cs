@@ -31,13 +31,14 @@ public class BulkVectorizationJob
 
         var query = _context.Properties.AsQueryable();
 
+        bool hasGlobalOpenAI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
+        bool hasGlobalGemini = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GEMINI_API_KEY"));
+
         if (!force)
         {
-            // Only backfill properties missing vectors based on their active provider
             query = query.Where(p => 
-                (p.Agente == null || string.IsNullOrEmpty(p.Agente.ActiveLLMProvider) || p.Agente.ActiveLLMProvider == "Gemini") 
-                    ? p.GeminiEmbedding == null 
-                    : p.VectorEmbedding == null
+                (p.VectorEmbedding == null && (hasGlobalOpenAI || (p.Agente != null && p.Agente.ActiveLLMProvider == "OpenAI"))) ||
+                (p.GeminiEmbedding == null && (hasGlobalGemini || p.Agente == null || string.IsNullOrEmpty(p.Agente.ActiveLLMProvider) || p.Agente.ActiveLLMProvider == "Gemini"))
             );
         }
 

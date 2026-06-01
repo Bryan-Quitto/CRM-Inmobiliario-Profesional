@@ -149,6 +149,10 @@ public static class ActualizarPropiedadFeature
                 context.Entry(propiedad).Property(p => p.Version).OriginalValue = command.Version.Value;
             }
 
+            // Invalidar vectores anteriores para forzar su regeneración en el job
+            propiedad.VectorEmbedding = null;
+            propiedad.GeminiEmbedding = null;
+
             try
             {
                 await context.SaveChangesAsync();

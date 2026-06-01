@@ -18,7 +18,7 @@ public class GeminiProvider : ILLMProvider
     public GeminiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Options.IOptions<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings> settings)
     {
         _httpClientFactory = httpClientFactory;
-        _modelName = settings.Value.Gemini.DefaultChatModel ?? "gemini-3-pro-preview";
+        _modelName = settings.Value.Gemini.DefaultChatModel ?? "gemini-2.5-flash";
     }
 
     public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey, string? cachedContentId = null)
@@ -26,49 +26,43 @@ public class GeminiProvider : ILLMProvider
         var client = new Client(apiKey: apiKey);
         // We will not use ChatSession, we just use GenerateContentStreamAsync directly
 
+        var config = new GenerateContentConfig();
         var contents = new List<Content>();
+
         foreach (var msg in history)
         {
             if (msg.Role == "system")
             {
                 if (string.IsNullOrEmpty(cachedContentId))
                 {
-                    contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { Text = "SYSTEM: " + msg.Content } } });
-                    contents.Add(new Content { Role = "model", Parts = new List<Part> { new Part { Text = "Understood." } } });
+                    config.SystemInstruction = new Content { Role = "system", Parts = new List<Part> { new Part { Text = msg.Content } } };
                 }
+                continue;
             }
-            else if (msg.Role == "user")
+
+            string targetRole = msg.Role == "assistant" ? "model" : "user";
+            var parts = new List<Part>();
+
+            if (msg.Role == "user")
             {
-                var parts = new List<Part>();
                 if (msg.Parts != null && msg.Parts.Count > 0)
                 {
                     foreach (var p in msg.Parts)
                     {
-                        if (p.Type == "text")
-                        {
-                            parts.Add(new Part { Text = p.Text });
-                        }
-                        else if (p.Type == "audio" && p.InlineData != null)
-                        {
-                            parts.Add(new Part { InlineData = new Blob { MimeType = p.MimeType ?? "audio/ogg", Data = p.InlineData } });
-                        }
-                        else if (p.Type == "audio" && p.InlineData == null)
-                        {
-                            parts.Add(new Part { Text = p.Text ?? $"[Audio Note: {p.MediaUrl}]" });
-                        }
+                        if (p.Type == "text") parts.Add(new Part { Text = p.Text });
+                        else if (p.Type == "audio" && p.InlineData != null) parts.Add(new Part { InlineData = new Blob { MimeType = p.MimeType ?? "audio/ogg", Data = p.InlineData } });
+                        else if (p.Type == "audio" && p.InlineData == null) parts.Add(new Part { Text = p.Text ?? $"[Audio Note: {p.MediaUrl}]" });
                     }
                 }
                 else
                 {
                     parts.Add(new Part { Text = msg.Content });
                 }
-                contents.Add(new Content { Role = "user", Parts = parts });
             }
             else if (msg.Role == "assistant")
             {
                 if (msg.ToolCalls != null && msg.ToolCalls.Count > 0)
                 {
-                    var parts = new List<Part>();
                     foreach (var tc in msg.ToolCalls)
                     {
                         using var doc = JsonDocument.Parse(tc.Arguments);
@@ -82,11 +76,10 @@ public class GeminiProvider : ILLMProvider
                         }
                         parts.Add(new Part { FunctionCall = new FunctionCall { Name = tc.Name, Args = args } });
                     }
-                    contents.Add(new Content { Role = "model", Parts = parts });
                 }
                 else
                 {
-                    contents.Add(new Content { Role = "model", Parts = new List<Part> { new Part { Text = msg.Content } } });
+                    parts.Add(new Part { Text = msg.Content });
                 }
             }
             else if (msg.Role == "tool")
@@ -103,16 +96,19 @@ public class GeminiProvider : ILLMProvider
                             else dict[prop.Name] = prop.Value.GetRawText();
                         }
                     }
-                    else
-                    {
-                        dict["result"] = msg.Content;
-                    }
+                    else dict["result"] = msg.Content;
                 }
-                catch
-                {
-                    dict["result"] = msg.Content;
-                }
-                contents.Add(new Content { Role = "user", Parts = new List<Part> { new Part { FunctionResponse = new FunctionResponse { Name = msg.ToolCallId ?? "unknown", Response = dict } } } });
+                catch { dict["result"] = msg.Content; }
+                parts.Add(new Part { FunctionResponse = new FunctionResponse { Name = msg.ToolCallId ?? "unknown", Response = dict } });
+            }
+
+            if (contents.Count > 0 && contents[contents.Count - 1].Role == targetRole)
+            {
+                contents[contents.Count - 1].Parts.AddRange(parts);
+            }
+            else
+            {
+                contents.Add(new Content { Role = targetRole, Parts = parts });
             }
         }
 
@@ -137,8 +133,6 @@ public class GeminiProvider : ILLMProvider
 
         bool hasAudio = history.LastOrDefault()?.Parts?.Any(p => p.Type == "audio" && p.InlineData != null) == true;
 
-        var config = new GenerateContentConfig();
-        
         if (!string.IsNullOrEmpty(cachedContentId))
         {
             config.CachedContent = cachedContentId;
@@ -229,29 +223,43 @@ public class GeminiProvider : ILLMProvider
         {
             var update = new AiResponseUpdate();
             
+            Console.WriteLine($"[GEMINI_DEBUG] Raw chunk received. Text: '{response.Text}'");
+            if (response.Candidates != null && response.Candidates.Count > 0)
+            {
+                var candidate = response.Candidates[0];
+                Console.WriteLine($"[GEMINI_DEBUG] FinishReason: {candidate.FinishReason}");
+                if (candidate.Content?.Parts != null)
+                {
+                    foreach (var part in candidate.Content.Parts)
+                    {
+                        if (part.FunctionCall != null)
+                        {
+                            Console.WriteLine($"[GEMINI_DEBUG] Parsed FunctionCall from Part: {part.FunctionCall.Name}");
+                            update.ToolCallUpdate = new AiToolCall
+                            {
+                                Id = part.FunctionCall.Name ?? "",
+                                Name = part.FunctionCall.Name ?? "",
+                                Arguments = JsonSerializer.Serialize(part.FunctionCall.Args)
+                            };
+                            update.FinishReason = "tool_calls";
+                        }
+                    }
+                }
+            }
+
             if (response.Text != null)
             {
                 update.TextUpdate = response.Text;
             }
 
-            if (response.FunctionCalls != null && response.FunctionCalls.Count > 0)
-            {
-                var fc = response.FunctionCalls[0];
-                update.ToolCallUpdate = new AiToolCall
-                {
-                    Id = fc.Name ?? "",
-                    Name = fc.Name ?? "",
-                    Arguments = JsonSerializer.Serialize(fc.Args)
-                };
-                update.FinishReason = "tool_calls";
-            }
-            else
+            if (update.ToolCallUpdate == null)
             {
                 update.FinishReason = "stop";
             }
             
             if (response.UsageMetadata != null)
             {
+                Console.WriteLine($"[GEMINI_DEBUG] Usage: Output={response.UsageMetadata.CandidatesTokenCount}, Input={response.UsageMetadata.PromptTokenCount}");
                 update.TotalTokens = response.UsageMetadata.TotalTokenCount ?? 0;
                 update.InputTokens = response.UsageMetadata.PromptTokenCount ?? 0;
                 update.CachedTokens = response.UsageMetadata.CachedContentTokenCount ?? 0;

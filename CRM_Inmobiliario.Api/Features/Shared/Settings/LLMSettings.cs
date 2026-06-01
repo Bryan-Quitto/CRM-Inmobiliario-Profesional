@@ -17,6 +17,6 @@ public class OpenAiSettings
 
 public class GeminiSettings
 {
-    public string DefaultChatModel { get; set; } = "gemini-3-pro-preview";
+    public string DefaultChatModel { get; set; } = "gemini-2.5-flash";
     public string DefaultEmbeddingModel { get; set; } = "gemini-embedding-2";
 }
