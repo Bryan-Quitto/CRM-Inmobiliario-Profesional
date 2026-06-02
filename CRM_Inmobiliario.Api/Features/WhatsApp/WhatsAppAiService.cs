@@ -307,7 +307,8 @@ public sealed class WhatsAppAiService
                         streamTotalTokens.Value, 
                         streamInputTokens ?? 0, 
                         streamCachedTokens ?? 0, 
-                        streamOutputTokens ?? 0);
+                        streamOutputTokens ?? 0,
+                        providerName);
                 }
 
                 if (currentToolCall != null)
