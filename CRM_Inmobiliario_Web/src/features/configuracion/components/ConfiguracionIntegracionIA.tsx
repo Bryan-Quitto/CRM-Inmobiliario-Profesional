@@ -133,8 +133,9 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
         hasActiveSubscription: hasSubscription
       });
       toast.success('Configuración guardada correctamente.');
-    } catch (err: any) {
-      const backendMessage = err.response?.data?.message || err.response?.data?.Message;
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string, Message?: string } } };
+      const backendMessage = error.response?.data?.message || error.response?.data?.Message;
       if (backendMessage) {
         toast.error(backendMessage);
       } else {
