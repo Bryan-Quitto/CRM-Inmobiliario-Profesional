@@ -28,5 +28,22 @@ public static class ReVectorizeFeature
         .WithTags("Admin")
         .WithName("ReVectorize")
         .RequireAuthorization("AdminPolicy");
+
+        app.MapPost("/admin/re-vectorize-docs", async (
+            ReVectorizeCommand command, 
+            IBackgroundJobClient backgroundJobs,
+            CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext db) =>
+        {
+            int count = command.Force 
+                ? await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(db.DocumentChunks)
+                : await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(System.Linq.Queryable.Where(db.DocumentChunks, p => p.Embedding == null || p.GeminiEmbedding == null));
+
+            backgroundJobs.Enqueue<CRM_Inmobiliario.Api.Features.CorporateKnowledge.Jobs.BulkDocumentVectorizationJob>(j => j.ProcessBulkAsync(command.Force));
+            
+            return Results.Accepted(value: new { mensaje = "Proceso en segundo plano iniciado para documentos", count });
+        })
+        .WithTags("Admin")
+        .WithName("ReVectorizeDocs")
+        .RequireAuthorization("AdminPolicy");
     }
 }

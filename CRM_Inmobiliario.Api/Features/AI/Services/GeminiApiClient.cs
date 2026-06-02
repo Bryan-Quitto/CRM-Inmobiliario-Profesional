@@ -21,16 +21,21 @@ public class GeminiApiClient : IGeminiApiClient
 
     public async Task<bool> PatchTtlAsync(string geminiCacheId, string byokKey, CancellationToken cancellationToken = default)
     {
-        var patchPayload = new { ttl = "3600s" };
-        var jsonContent = JsonContent.Create(patchPayload);
+        var json = $"{{\"name\":\"{geminiCacheId}\",\"ttl\":\"3600s\"}}";
+        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
         var request = new HttpRequestMessage(HttpMethod.Patch, 
             $"https://generativelanguage.googleapis.com/v1beta/{geminiCacheId}?updateMask=ttl");
 
         request.Headers.Add("x-goog-api-key", byokKey);
-        request.Content = jsonContent;
+        request.Content = content;
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var err = await response.Content.ReadAsStringAsync(cancellationToken);
+            System.Console.WriteLine($"[GEMINI_PATCH_ERROR] {response.StatusCode}: {err}");
+        }
         return response.IsSuccessStatusCode;
     }
 
