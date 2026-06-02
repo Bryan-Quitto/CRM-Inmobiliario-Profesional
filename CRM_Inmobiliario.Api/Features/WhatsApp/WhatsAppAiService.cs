@@ -16,6 +16,11 @@ public enum ChatIntent
     CONTINUACION
 }
 
+public class SemanticRouterResponse
+{
+    public ChatIntent Intent { get; set; }
+}
+
 public sealed class WhatsAppAiService
 {
     private readonly ILogger<WhatsAppAiService> _logger;
@@ -119,6 +124,12 @@ public sealed class WhatsAppAiService
             string? cachedContentId = null;
             if (providerName == "Gemini" && tenantAgent != null && tenantAgent.HasActiveSubscription)
             {
+                // TODO: Remove this temporary cache invalidation after test
+                if (tenantAgent.GeminiCacheId == "cachedContents/bcga390rwlpc2kazb4egb48kxnxgex9gdxqitvm9")
+                {
+                    tenantAgent.GeminiCacheId = null;
+                }
+
                 if (string.IsNullOrEmpty(tenantAgent.GeminiCacheId) || 
                     !tenantAgent.GeminiCacheExpiresAt.HasValue || 
                     tenantAgent.GeminiCacheExpiresAt.Value < DateTimeOffset.UtcNow)
@@ -129,7 +140,24 @@ public sealed class WhatsAppAiService
                     
                     if (sysInstruction != null && datasetContents != null && datasetContents.Count > 0)
                     {
-                        var newCacheId = await _geminiApiClient.CreateCachedContentAsync(apiKeyToUse, sysInstruction, datasetContents);
+                        var aiTools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
+                        var toolsList = new List<Google.GenAI.Types.Tool>();
+                        var functionDeclarations = new List<Google.GenAI.Types.FunctionDeclaration>();
+                        foreach (var t in aiTools)
+                        {
+                            functionDeclarations.Add(new Google.GenAI.Types.FunctionDeclaration
+                            {
+                                Name = t.Name,
+                                Description = t.Description,
+                                Parameters = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.GeminiSchemaMapper.ParseSchema(t.ParametersSchema)
+                            });
+                        }
+                        if (functionDeclarations.Count > 0)
+                        {
+                            toolsList.Add(new Google.GenAI.Types.Tool { FunctionDeclarations = functionDeclarations });
+                        }
+
+                        var newCacheId = await _geminiApiClient.CreateCachedContentAsync(apiKeyToUse, sysInstruction, datasetContents, toolsList);
                         if (!string.IsNullOrEmpty(newCacheId))
                         {
                             tenantAgent.GeminiCacheId = newCacheId;
@@ -154,45 +182,39 @@ public sealed class WhatsAppAiService
             // Semantic Router Evaluation
             if (history.Count > 1)
             {
-                try 
+                var routerMessages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
                 {
-                    var routerMessages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
-                    {
-                        new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage 
-                        { 
-                            Role = "system", 
-                            Content = "Evalúa la intención de la última interacción del usuario. Responde ÚNICAMENTE con la palabra 'NUEVA_BUSQUEDA' si el usuario pide buscar propiedades diferentes, cambia de ciudad/sector, o quiere empezar de cero. Responde 'CAMBIO_TEMA' si cambia de tema por completo. Responde 'CONTINUACION' si es una respuesta a una pregunta, aporta más detalles a la búsqueda actual, o pregunta por una de las propiedades enviadas. No uses ningún otro formato ni expliques nada." 
-                        }
-                    };
-                    
-                    var lastMessages = history.Where(m => m.Role == ChatRole.User || m.Role == ChatRole.Assistant)
-                                              .Where(m => !m.Contents.Any(c => c is FunctionCallContent))
-                                              .TakeLast(3).ToList();
-                    
-                    foreach(var m in lastMessages)
-                    {
-                        var roleStr = m.Role == ChatRole.User ? "user" : "assistant";
-                        var content = m.Text ?? "";
-                        routerMessages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = roleStr, Content = content });
+                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage 
+                    { 
+                        Role = "system", 
+                        Content = "Evalúa la intención de la última interacción del usuario. Responde con la propiedad 'intent'. Valores posibles: 'NUEVA_BUSQUEDA' (si pide buscar propiedades diferentes, cambia de ciudad/sector, o quiere empezar de cero), 'CAMBIO_TEMA' (si cambia de tema por completo) o 'CONTINUACION' (si es una respuesta a una pregunta, aporta más detalles a la búsqueda actual, o pregunta por una de las propiedades enviadas). No uses ningún otro formato ni expliques nada." 
                     }
-                    
-                    var routerProvider = _providerFactory.GetProvider("Gemini", Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? apiKeyToUse); // Usamos Gemini Flash por su rapidez, o el actual
-                    
-                    var routerResult = await routerProvider.GetStructuredResponseAsync<ChatIntent>(routerMessages, cancellationToken);
-                    
-                    if (routerResult == ChatIntent.NUEVA_BUSQUEDA || routerResult == ChatIntent.CAMBIO_TEMA)
-                    {
-                        _logger.LogInformation("Semantic Router: {Intent} detectada. Limpiando parámetros.", routerResult.ToString());
-                        _conversationManager.ApplyNuevaBusqueda(history);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Semantic Router: CONTINUACION detectada. Resultado: {Result}", routerResult.ToString());
-                    }
+                };
+                
+                var lastMessages = history.Where(m => m.Role == ChatRole.User || m.Role == ChatRole.Assistant)
+                                            .Where(m => !m.Contents.Any(c => c is FunctionCallContent))
+                                            .TakeLast(3).ToList();
+                
+                foreach(var m in lastMessages)
+                {
+                    var roleStr = m.Role == ChatRole.User ? "user" : "assistant";
+                    var content = m.Text ?? "";
+                    routerMessages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = roleStr, Content = content });
                 }
-                catch(Exception ex)
+                
+                var routerProvider = _providerFactory.GetProvider("Gemini", Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? apiKeyToUse, "gemini-2.5-flash-lite");
+                
+                var routerResultWrapper = await routerProvider.GetStructuredResponseAsync<SemanticRouterResponse>(routerMessages, cancellationToken);
+                var routerResult = routerResultWrapper?.Intent ?? ChatIntent.CONTINUACION;
+                
+                if (routerResult == ChatIntent.NUEVA_BUSQUEDA || routerResult == ChatIntent.CAMBIO_TEMA)
                 {
-                    _logger.LogWarning(ex, "Semantic Router evaluation failed. Continuing normally.");
+                    _logger.LogInformation("Semantic Router: {Intent} detectada. Limpiando parámetros.", routerResult.ToString());
+                    _conversationManager.ApplyNuevaBusqueda(history);
+                }
+                else
+                {
+                    _logger.LogInformation("Semantic Router: CONTINUACION detectada. Resultado: {Result}", routerResult.ToString());
                 }
             }
 

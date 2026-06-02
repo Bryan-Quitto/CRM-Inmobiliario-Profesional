@@ -87,7 +87,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         {
             results = await baseQuery
                 .Where(p => p.GeminiEmbedding != null)
-                .Where(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding) < 0.25)
+                .Where(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding) < 0.45)
                 .OrderBy(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding))
                 .Take(3)
                 .Select(p => new PropiedadResultDto(
@@ -102,7 +102,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         {
             results = await baseQuery
                 .Where(p => p.VectorEmbedding != null)
-                .Where(p => p.VectorEmbedding!.CosineDistance(queryEmbedding) < 0.25)
+                .Where(p => p.VectorEmbedding!.CosineDistance(queryEmbedding) < 0.45)
                 .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
                 .Take(3)
                 .Select(p => new PropiedadResultDto(
@@ -112,6 +112,38 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
                     p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
                     p.Descripcion
                 )).ToListAsync();
+        }
+
+        // Fallback: Full Text Search if Semantic Search is too strict or fails
+        if (!results.Any())
+        {
+            var keywords = queryStr.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                   .Where(k => k.Length > 3)
+                                   .OrderByDescending(k => k.Length)
+                                   .Take(2)
+                                   .ToList();
+
+            if (keywords.Any())
+            {
+                var fallbackQuery = baseQuery;
+                foreach (var kw in keywords)
+                {
+                    string keywordLower = kw.ToLower();
+                    fallbackQuery = fallbackQuery.Where(p => 
+                        (p.Descripcion != null && p.Descripcion.ToLower().Contains(keywordLower)) || 
+                        (p.Titulo != null && p.Titulo.ToLower().Contains(keywordLower)));
+                }
+
+                results = await fallbackQuery
+                    .Take(3)
+                    .Select(p => new PropiedadResultDto(
+                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                        p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
+                        p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
+                        p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
+                        p.Descripcion
+                    )).ToListAsync();
+            }
         }
 
         if (results.Any()) 

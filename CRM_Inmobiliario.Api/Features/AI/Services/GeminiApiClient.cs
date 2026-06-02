@@ -34,13 +34,14 @@ public class GeminiApiClient : IGeminiApiClient
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<string?> CreateCachedContentAsync(string byokKey, Content? systemInstruction, List<Content> contents, CancellationToken cancellationToken = default)
+    public async Task<string?> CreateCachedContentAsync(string byokKey, Content? systemInstruction, List<Content> contents, List<Google.GenAI.Types.Tool>? tools = null, CancellationToken cancellationToken = default)
     {
         var payload = new 
         {
             model = _modelName,
             systemInstruction = systemInstruction,
             contents = contents,
+            tools = tools,
             ttl = "3600s"
         };
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };

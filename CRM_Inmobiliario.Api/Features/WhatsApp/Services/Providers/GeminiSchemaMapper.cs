@@ -18,7 +18,23 @@ public static class GeminiSchemaMapper
         
         if (element.TryGetProperty("type", out var typeProp))
         {
-            var typeStr = typeProp.GetString();
+            string? typeStr = null;
+            if (typeProp.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in typeProp.EnumerateArray())
+                {
+                    if (item.GetString() != "null")
+                    {
+                        typeStr = item.GetString();
+                        break;
+                    }
+                }
+            }
+            else if (typeProp.ValueKind == JsonValueKind.String)
+            {
+                typeStr = typeProp.GetString();
+            }
+
             schema.Type = typeStr switch
             {
                 "string" => Google.GenAI.Types.Type.String,
