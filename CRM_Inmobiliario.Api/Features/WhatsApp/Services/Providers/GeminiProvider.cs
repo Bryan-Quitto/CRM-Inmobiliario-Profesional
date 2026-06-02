@@ -16,16 +16,17 @@ public class GeminiProvider : ILLMProvider
     private readonly string _modelName;
     private readonly string _apiKey;
 
-    public GeminiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Options.IOptions<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings> settings, string apiKey)
+    public GeminiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Options.IOptions<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings> settings, string apiKey, string? modelId = null)
     {
         _httpClientFactory = httpClientFactory;
-        _modelName = settings.Value.Gemini.DefaultChatModel ?? "gemini-2.5-flash";
+        _modelName = modelId ?? settings.Value.Gemini.DefaultChatModel ?? "gemini-2.5-flash";
         _apiKey = apiKey;
     }
 
     public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string? cachedContentId = null, int? maxTokens = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var client = new Client(apiKey: _apiKey);
+        var httpClient = _httpClientFactory.CreateClient("LLMProviders");
+        var client = new Client(apiKey: _apiKey, clientOptions: new Google.GenAI.Types.ClientOptions { HttpClientFactory = () => httpClient });
         // We will not use ChatSession, we just use GenerateContentStreamAsync directly
 
         var config = new GenerateContentConfig();
@@ -141,6 +142,20 @@ public class GeminiProvider : ILLMProvider
             config.CachedContent = cachedContentId;
         }
         
+        if (contents.Count > 0 && contents[0].Role == "system")
+        {
+            if (string.IsNullOrEmpty(cachedContentId))
+            {
+                config.SystemInstruction = new Content { Role = "system", Parts = contents[0].Parts };
+            }
+            contents.RemoveAt(0);
+        }
+
+        if (string.IsNullOrEmpty(cachedContentId) && toolsList.Count > 0)
+        {
+            config.Tools = toolsList;
+        }
+
         if (hasAudio)
         {
             config.ResponseMimeType = "application/json";
@@ -155,26 +170,11 @@ public class GeminiProvider : ILLMProvider
                 Required = new List<string> { "user_transcription", "ai_reply" }
             };
             
-            if (contents.Count > 0 && contents[0].Role == "user")
+            var lastUserContent = contents.LastOrDefault(c => c.Role == "user");
+            if (lastUserContent != null && lastUserContent.Parts != null)
             {
-                var firstUserParts = contents[0].Parts;
-                if (firstUserParts != null && firstUserParts.Count > 0)
-                {
-                    var firstPart = firstUserParts[0];
-                    if (firstPart != null)
-                    {
-                        var firstPartText = firstPart.Text ?? "";
-                        if (firstPartText.StartsWith("SYSTEM: "))
-                        {
-                            firstPart.Text = firstPartText + "\n\nCRITICAL: The last message contains an audio note. You MUST respond in valid JSON matching the schema, providing the literal transcription in 'user_transcription' and your reply to the user in 'ai_reply'. Do NOT use any tools this turn.";
-                        }
-                    }
-                }
+                lastUserContent.Parts.Add(new Part { Text = "\n\nCRITICAL: The last message contains an audio note. You MUST respond in valid JSON matching the schema, providing the literal transcription in 'user_transcription' and your reply to the user in 'ai_reply'. Do NOT use any tools this turn." });
             }
-        }
-        else if (toolsList.Count > 0)
-        {
-            config.Tools = toolsList;
         }
 
         if (maxTokens.HasValue)
@@ -285,7 +285,8 @@ public class GeminiProvider : ILLMProvider
 
     public async Task<T?> GetStructuredResponseAsync<T>(List<AiMessage> history, CancellationToken cancellationToken)
     {
-        var client = new Client(apiKey: _apiKey);
+        var httpClient = _httpClientFactory.CreateClient("LLMProviders");
+        var client = new Client(apiKey: _apiKey, clientOptions: new Google.GenAI.Types.ClientOptions { HttpClientFactory = () => httpClient });
         var config = new GenerateContentConfig();
         var contents = new List<Content>();
 

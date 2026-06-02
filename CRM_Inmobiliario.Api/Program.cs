@@ -48,6 +48,14 @@ builder.Services.AddHttpClient<IGeminiApiClient, GeminiApiClient>()
         options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(10); // Aumentado para soportar múltiples reintentos largos
     });
 
+builder.Services.AddHttpClient("LLMProviders")
+    .AddStandardResilienceHandler(options =>
+    {
+        options.Retry.MaxRetryAttempts = 3;
+        options.Retry.Delay = TimeSpan.FromSeconds(2);
+        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+    });
+
 builder.Services.AddHttpClient();
 builder.Services.ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler());
 

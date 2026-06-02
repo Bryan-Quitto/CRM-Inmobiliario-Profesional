@@ -13,13 +13,13 @@ public class LLMProviderFactory
         _settings = settings;
     }
 
-    public virtual ILLMProvider GetProvider(string providerName, string apiKey)
+    public virtual ILLMProvider GetProvider(string providerName, string apiKey, string? modelId = null)
     {
         if (!string.IsNullOrEmpty(apiKey) && (apiKey.StartsWith("AIza", StringComparison.OrdinalIgnoreCase) || apiKey.StartsWith("AQ.", StringComparison.OrdinalIgnoreCase)))
-            return new GeminiProvider(_httpClientFactory, _settings, apiKey);
+            return new GeminiProvider(_httpClientFactory, _settings, apiKey, modelId);
             
         if (string.Equals(providerName, "Gemini", StringComparison.OrdinalIgnoreCase))
-            return new GeminiProvider(_httpClientFactory, _settings, apiKey);
+            return new GeminiProvider(_httpClientFactory, _settings, apiKey, modelId);
             
         return new OpenAiProvider(_httpClientFactory, _settings, apiKey);
     }
