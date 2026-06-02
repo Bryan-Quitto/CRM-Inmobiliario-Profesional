@@ -16,6 +16,6 @@ public interface IWhatsAppConversationManager
     Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId);
     Task SaveStateAsync(Guid contactoId, List<ChatMessage> history);
     Task LogMessageAsync(Guid contactoId, string phone, string role, string content);
-    Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens);
+    Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI");
     void ApplyNuevaBusqueda(List<ChatMessage> history);
 }

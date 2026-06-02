@@ -83,7 +83,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 
             int limit = contacto.Agente?.DailyTokenLimitPerContact ?? 50000;
             
-            if (usage != null && usage.TokensUsed >= limit)
+            if (usage != null && (usage.InputTokens + usage.OutputTokens) >= limit)
             {
                 if (contacto.BotActivo)
                 {
@@ -278,13 +278,32 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         await _context.SaveChangesAsync();
     }
 
-    public async Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens)
+    public async Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI")
     {
         var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
         var targetDate = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.FromHours(-5));
         var usage = await _context.ContactDailyTokenUsages
             .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date == targetDate);
             
+        decimal costoTransaccion = 0m;
+        decimal ahorroTransaccion = 0m;
+
+        if (provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+        {
+            costoTransaccion = (inputTokens / 1_000_000m * 0.075m) + 
+                               (cachedTokens / 1_000_000m * 0.01875m) + 
+                               (outputTokens / 1_000_000m * 0.30m);
+                               
+            decimal costoSinCache = cachedTokens / 1_000_000m * 0.075m;
+            decimal costoConCache = cachedTokens / 1_000_000m * 0.01875m;
+            ahorroTransaccion = costoSinCache - costoConCache;
+        }
+        else // default to OpenAI or others
+        {
+            costoTransaccion = (inputTokens / 1_000_000m * 0.150m) + 
+                               (outputTokens / 1_000_000m * 0.60m);
+        }
+
         if (usage == null)
         {
             usage = new ContactDailyTokenUsage
@@ -295,7 +314,9 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 TokensUsed = totalTokens,
                 InputTokens = inputTokens,
                 CachedTokens = cachedTokens,
-                OutputTokens = outputTokens
+                OutputTokens = outputTokens,
+                CostoUSD = costoTransaccion,
+                AhorroUSD = ahorroTransaccion
             };
             _context.ContactDailyTokenUsages.Add(usage);
         }
@@ -305,6 +326,8 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             usage.InputTokens += inputTokens;
             usage.CachedTokens += cachedTokens;
             usage.OutputTokens += outputTokens;
+            usage.CostoUSD += costoTransaccion;
+            usage.AhorroUSD += ahorroTransaccion;
         }
         
         

@@ -222,7 +222,7 @@ public class GeminiProvider : ILLMProvider
                 if (finalUsage != null)
                 {
                     finalUpdate.TotalTokens = finalUsage.TotalTokenCount ?? 0;
-                    finalUpdate.InputTokens = finalUsage.PromptTokenCount ?? 0;
+                    finalUpdate.InputTokens = (finalUsage.PromptTokenCount ?? 0) - (finalUsage.CachedContentTokenCount ?? 0);
                     finalUpdate.CachedTokens = finalUsage.CachedContentTokenCount ?? 0;
                     finalUpdate.OutputTokens = finalUsage.CandidatesTokenCount ?? 0;
                 }
@@ -273,7 +273,7 @@ public class GeminiProvider : ILLMProvider
             {
                 Console.WriteLine($"[GEMINI_DEBUG] Usage: Output={response.UsageMetadata.CandidatesTokenCount}, Input={response.UsageMetadata.PromptTokenCount}");
                 update.TotalTokens = response.UsageMetadata.TotalTokenCount ?? 0;
-                update.InputTokens = response.UsageMetadata.PromptTokenCount ?? 0;
+                update.InputTokens = (response.UsageMetadata.PromptTokenCount ?? 0) - (response.UsageMetadata.CachedContentTokenCount ?? 0);
                 update.CachedTokens = response.UsageMetadata.CachedContentTokenCount ?? 0;
                 update.OutputTokens = response.UsageMetadata.CandidatesTokenCount ?? 0;
             }

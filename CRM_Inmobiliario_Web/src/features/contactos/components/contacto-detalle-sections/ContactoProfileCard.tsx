@@ -164,44 +164,62 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
               )}
             </div>
           </div>
-          <div className="bg-white rounded-xl p-3 border border-slate-100 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              {isLoadingUsage ? (
-                <span className="text-xs text-slate-400 animate-pulse">Cargando...</span>
-              ) : (
-                <>
-                  <span className="text-sm font-black text-slate-800">
-                    {usage?.totalTokens?.toLocaleString() || 0} <span className="text-[10px] font-bold text-slate-400 uppercase">Tokens</span>
-                  </span>
-                  <span className="text-sm font-black text-slate-600">
-                    ${usage?.costoUSD?.toFixed(4) || '0.0000'} <span className="text-[10px] font-bold uppercase text-slate-400">USD</span>
-                  </span>
-                </>
-              )}
-            </div>
+          <div className="bg-white rounded-xl p-3 border border-slate-100 flex flex-col gap-2">
+            {isLoadingUsage ? (
+              <span className="text-xs text-slate-400 animate-pulse text-center py-4">Cargando métricas...</span>
+            ) : (
+              <>
+                {/* 1. Tokens Totales */}
+                <div className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tokens Totales</span>
+                    <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Input + Output + Caché</span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm font-black text-slate-800">
+                      {usage?.totalTokens?.toLocaleString() || 0} <span className="text-[10px] font-bold text-slate-400 uppercase">tkns</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      ≈ ${((usage?.costoUSD || 0) + (usage?.ahorroUSD || 0)).toFixed(4)} USD <span className="text-[8px] uppercase">(Valor)</span>
+                    </span>
+                  </div>
+                </div>
 
-            {/* Cache Savings Display */}
-            {!isLoadingUsage && (
-              <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100/50 p-3 flex items-center justify-between group transition-all hover:shadow-sm">
-                <div className="absolute inset-0 bg-white/20 opacity-50 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:8px_8px]"></div>
-                <div className="relative flex items-center gap-2">
-                  <div className="p-1.5 bg-emerald-500 text-white rounded-md shadow-sm group-hover:scale-110 transition-transform">
-                    <Check className="w-3.5 h-3.5" />
+                {/* 2. Tokens del Límite (Input + Output) */}
+                <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-indigo-50/50 border border-indigo-100/50 transition-colors">
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-wide">Consumo Límite</span>
+                    <span className="text-[10px] text-indigo-500/80 font-medium leading-none mt-0.5">Solo Input + Output</span>
                   </div>
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-emerald-800">Ahorro por Caché</p>
-                    <p className="text-[10px] font-bold text-emerald-600/80 leading-none mt-0.5">Prompt Caching de Gemini</p>
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm font-black text-indigo-700">
+                      {((usage?.inputTokens || 0) + (usage?.outputTokens || 0)).toLocaleString()} <span className="text-[10px] font-bold text-indigo-500/70 uppercase">tkns</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-indigo-600">
+                      ${usage?.costoUSD?.toFixed(4) || '0.0000'} USD <span className="text-[8px] uppercase">(Cobrado)</span>
+                    </span>
                   </div>
                 </div>
-                <div className="relative flex flex-col items-end">
-                  <span className="text-sm font-black text-emerald-600">
-                    ${((usage?.costoUSD || 0) * 0.4).toFixed(4)} <span className="text-[9px] font-bold text-emerald-500/70 uppercase">USD</span>
-                  </span>
-                  <span className="text-[9px] font-bold text-emerald-500/70 uppercase mt-0.5">
-                    ~{Math.floor((usage?.totalTokens || 0) * 0.4).toLocaleString()} tkns
-                  </span>
+
+                {/* 3. Ahorro Caché */}
+                <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100/50 p-2 flex items-center justify-between group transition-all">
+                  <div className="absolute inset-0 bg-white/20 opacity-50 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:8px_8px]"></div>
+                  <div className="relative flex items-center gap-2">
+                    <div className="p-1.5 bg-emerald-500 text-white rounded-md shadow-sm">
+                      <Check className="w-3 h-3" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-emerald-800">Ahorro Caché</span>
+                      <span className="text-[10px] font-medium text-emerald-600/80 leading-none mt-0.5">{usage?.cachedTokens?.toLocaleString() || 0} tkns cacheados</span>
+                    </div>
+                  </div>
+                  <div className="relative flex flex-col items-end">
+                    <span className="text-sm font-black text-emerald-600">
+                      ${(usage?.ahorroUSD || 0).toFixed(4)} <span className="text-[10px] font-bold text-emerald-500/70 uppercase">USD</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>

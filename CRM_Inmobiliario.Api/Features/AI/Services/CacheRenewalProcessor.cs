@@ -89,6 +89,6 @@ public class AgentRenewalDto
 {
     public Guid Id { get; set; }
     public string? GeminiCacheId { get; set; }
-    public DateTimeOffset? GeminiCacheExpiresAt { get; set; }
+    public DateTime? GeminiCacheExpiresAt { get; set; }
     public string? AiApiKey { get; set; }
 }

@@ -20,4 +20,10 @@ public sealed class ContactDailyTokenUsage
     public int InputTokens { get; set; }
     public int CachedTokens { get; set; }
     public int OutputTokens { get; set; }
+    
+    [Column(TypeName = "decimal(18, 6)")]
+    public decimal CostoUSD { get; set; }
+
+    [Column(TypeName = "decimal(18, 6)")]
+    public decimal AhorroUSD { get; set; }
 }
