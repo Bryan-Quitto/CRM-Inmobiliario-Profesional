@@ -9,6 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp;
 
+public enum ChatIntent
+{
+    NUEVA_BUSQUEDA,
+    CAMBIO_TEMA,
+    CONTINUACION
+}
+
 public sealed class WhatsAppAiService
 {
     private readonly ILogger<WhatsAppAiService> _logger;
@@ -48,17 +55,17 @@ public sealed class WhatsAppAiService
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
     }
 
-    public async Task ProcessIncomingAudioAsync(string phone, byte[] audioBytes, string mediaUrl, string phoneNumberId)
+    public async Task ProcessIncomingAudioAsync(string phone, byte[] audioBytes, string mediaUrl, string phoneNumberId, CancellationToken cancellationToken = default)
     {
-        await ProcessMessageInternalAsync(phone, $"[Audio Note: {mediaUrl}]", phoneNumberId, audioBytes, mediaUrl);
+        await ProcessMessageInternalAsync(phone, $"[Audio Note: {mediaUrl}]", phoneNumberId, audioBytes, mediaUrl, cancellationToken);
     }
 
-    public async Task ProcessIncomingMessageAsync(string phone, string messageText, string phoneNumberId)
+    public async Task ProcessIncomingMessageAsync(string phone, string messageText, string phoneNumberId, CancellationToken cancellationToken = default)
     {
-        await ProcessMessageInternalAsync(phone, messageText, phoneNumberId, null, null);
+        await ProcessMessageInternalAsync(phone, messageText, phoneNumberId, null, null, cancellationToken);
     }
 
-    private async Task ProcessMessageInternalAsync(string phone, string messageText, string phoneNumberId, byte[]? audioBytes, string? mediaUrl)
+    private async Task ProcessMessageInternalAsync(string phone, string messageText, string phoneNumberId, byte[]? audioBytes, string? mediaUrl, CancellationToken cancellationToken)
     {
         try
         {
@@ -144,6 +151,51 @@ public sealed class WhatsAppAiService
             var history = context.History;
             var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
 
+            // Semantic Router Evaluation
+            if (history.Count > 1)
+            {
+                try 
+                {
+                    var routerMessages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
+                    {
+                        new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage 
+                        { 
+                            Role = "system", 
+                            Content = "Evalúa la intención de la última interacción del usuario. Responde ÚNICAMENTE con la palabra 'NUEVA_BUSQUEDA' si el usuario pide buscar propiedades diferentes, cambia de ciudad/sector, o quiere empezar de cero. Responde 'CAMBIO_TEMA' si cambia de tema por completo. Responde 'CONTINUACION' si es una respuesta a una pregunta, aporta más detalles a la búsqueda actual, o pregunta por una de las propiedades enviadas. No uses ningún otro formato ni expliques nada." 
+                        }
+                    };
+                    
+                    var lastMessages = history.Where(m => m.Role == ChatRole.User || m.Role == ChatRole.Assistant)
+                                              .Where(m => !m.Contents.Any(c => c is FunctionCallContent))
+                                              .TakeLast(3).ToList();
+                    
+                    foreach(var m in lastMessages)
+                    {
+                        var roleStr = m.Role == ChatRole.User ? "user" : "assistant";
+                        var content = m.Text ?? "";
+                        routerMessages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = roleStr, Content = content });
+                    }
+                    
+                    var routerProvider = _providerFactory.GetProvider("Gemini", Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? apiKeyToUse); // Usamos Gemini Flash por su rapidez, o el actual
+                    
+                    var routerResult = await routerProvider.GetStructuredResponseAsync<ChatIntent>(routerMessages, cancellationToken);
+                    
+                    if (routerResult == ChatIntent.NUEVA_BUSQUEDA || routerResult == ChatIntent.CAMBIO_TEMA)
+                    {
+                        _logger.LogInformation("Semantic Router: {Intent} detectada. Limpiando parámetros.", routerResult.ToString());
+                        _conversationManager.ApplyNuevaBusqueda(history);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Semantic Router: CONTINUACION detectada. Resultado: {Result}", routerResult.ToString());
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogWarning(ex, "Semantic Router evaluation failed. Continuing normally.");
+                }
+            }
+
             bool requiresAction = true;
             string? finalResponse = null;
 
@@ -183,7 +235,14 @@ public sealed class WhatsAppAiService
                 int? streamCachedTokens = null;
                 int? streamOutputTokens = null;
                 
-                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, apiKeyToUse, cachedContentId))
+                int estimatedTokens = (System.Text.Json.JsonSerializer.Serialize(aiHistory).Length + System.Text.Json.JsonSerializer.Serialize(tools).Length) / 4;
+                if (estimatedTokens > 50000)
+                {
+                    _logger.LogWarning("Hard limit de seguridad excedido: El contexto estimado es de {Estimado} tokens.", estimatedTokens);
+                    throw new InvalidOperationException("Se ha excedido el límite de seguridad de 50,000 tokens por mensaje. Operación cancelada.");
+                }
+
+                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, cachedContentId, cancellationToken: cancellationToken))
                 {
                     if (!string.IsNullOrEmpty(update.TextUpdate))
                     {

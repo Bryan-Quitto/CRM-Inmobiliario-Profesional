@@ -13,16 +13,16 @@ public static class AiToolDefinitions
             new AiToolDefinition
             {
                 Name = "BuscarPropiedades",
-                Description = "Busca inmuebles utilizando búsqueda semántica. Pasa la intención en 'query'. CRÍTICO: La base de datos siempre devuelve 3 propiedades. DEBES revisar TODOS los campos de cada propiedad (Habitaciones, Baños, Parqueaderos, DescripcionSanitizada, etc.). Si el cliente pidió una característica específica (ej. '4 parqueos', 'domótica') y la propiedad NO la cumple (ni en sus valores numéricos ni en su descripción), IGNÓRALA por completo y NO la menciones para no generar ruido. Interpreta los datos inteligentemente y muestra SOLO las que realmente hagan match.",
+                Description = "Busca inmuebles utilizando búsqueda semántica. Pasa la intención en 'query'. EXTRAE LOS PARÁMETROS EXCLUSIVAMENTE DEL ÚLTIMO MENSAJE DEL USUARIO, ignora valores de búsquedas anteriores en el historial. CRÍTICO: La base de datos siempre devuelve 3 propiedades. DEBES revisar TODOS los campos de cada propiedad (Habitaciones, Baños, Parqueaderos, DescripcionSanitizada, etc.). Si el cliente pidió una característica específica (ej. '4 parqueos', 'domótica') y la propiedad NO la cumple (ni en sus valores numéricos ni en su descripción), IGNÓRALA por completo y NO la menciones para no generar ruido. Interpreta los datos inteligentemente y muestra SOLO las que realmente hagan match.",
                 ParametersSchema = """
                 {
                     "type": "object",
                     "properties": {
                         "query": { "type": "string", "description": "Intención de búsqueda en lenguaje natural. Ej: 'departamento minimalista', 'cerca de la playa'." },
-                        "tipoOperacion": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica la intención explícitamente (ej. 'Alquiler', 'Venta'). No adivinar." },
-                        "presupuestoMaximo": { "type": "number", "description": "Extraer SOLAMENTE si el cliente menciona explícitamente un presupuesto o precio máximo. No adivinar." },
-                        "habitacionesMinimas": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica un mínimo de habitaciones o cuartos. No adivinar." },
-                        "antiguedadMaxima": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica años máximos de antigüedad (ej. 'nuevo' = 1, 'max 5 años' = 5). No adivinar." }
+                        "tipoOperacion": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica la intención explícitamente en su ÚLTIMO mensaje (ej. 'Alquiler', 'Venta'). No adivinar ni reutilizar del historial." },
+                        "presupuestoMaximo": { "type": "number", "description": "Extraer SOLAMENTE si el cliente menciona explícitamente un presupuesto o precio máximo en su ÚLTIMO mensaje. No adivinar ni reutilizar del historial." },
+                        "habitacionesMinimas": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica un mínimo de habitaciones o cuartos en su ÚLTIMO mensaje. No adivinar ni reutilizar del historial." },
+                        "antiguedadMaxima": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica años máximos de antigüedad en su ÚLTIMO mensaje (ej. 'nuevo' = 1, 'max 5 años' = 5). No adivinar ni reutilizar del historial." }
                     },
                     "required": ["query"]
                 }

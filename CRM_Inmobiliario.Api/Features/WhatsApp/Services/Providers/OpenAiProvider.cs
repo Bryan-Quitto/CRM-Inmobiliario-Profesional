@@ -18,14 +18,16 @@ public class OpenAiProvider : ILLMProvider
 {
     private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
     private readonly LLMSettings _settings;
+    private readonly string _apiKey;
 
-    public OpenAiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, IOptions<LLMSettings> options)
+    public OpenAiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, IOptions<LLMSettings> options, string apiKey)
     {
         _httpClientFactory = httpClientFactory;
         _settings = options.Value;
+        _apiKey = apiKey;
     }
 
-    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey, string? cachedContentId = null)
+    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string? cachedContentId = null, int? maxTokens = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var httpClient = _httpClientFactory.CreateClient("OpenAI");
         var clientOptions = new OpenAIClientOptions
@@ -33,7 +35,7 @@ public class OpenAiProvider : ILLMProvider
             Transport = new HttpClientPipelineTransport(httpClient)
         };
         
-        var chatClient = new ChatClient(_settings.OpenAI.DefaultChatModel, new System.ClientModel.ApiKeyCredential(apiKey), clientOptions);
+        var chatClient = new ChatClient(_settings.OpenAI.DefaultChatModel, new System.ClientModel.ApiKeyCredential(_apiKey), clientOptions);
 
         var chatMessages = new List<ChatMessage>();
         foreach (var msg in history)
@@ -52,7 +54,7 @@ public class OpenAiProvider : ILLMProvider
                         }
                         else if (p.Type == "audio" && p.InlineData != null)
                         {
-                            var audioClient = new OpenAI.Audio.AudioClient(_settings.OpenAI.DefaultAudioModel, apiKey);
+                            var audioClient = new OpenAI.Audio.AudioClient(_settings.OpenAI.DefaultAudioModel, _apiKey);
                             var optionsTranscription = new OpenAI.Audio.AudioTranscriptionOptions
                             {
                                 ResponseFormat = OpenAI.Audio.AudioTranscriptionFormat.Verbose
@@ -103,7 +105,12 @@ public class OpenAiProvider : ILLMProvider
             ));
         }
 
-        var updates = chatClient.CompleteChatStreamingAsync(chatMessages, options);
+        if (maxTokens.HasValue)
+        {
+            options.MaxOutputTokenCount = maxTokens;
+        }
+
+        var updates = chatClient.CompleteChatStreamingAsync(chatMessages, options, cancellationToken);
         
         await foreach (var update in updates.ConfigureAwait(false))
         {
@@ -149,5 +156,42 @@ public class OpenAiProvider : ILLMProvider
 
             yield return aiUpdate;
         }
+    }
+    public async Task<T?> GetStructuredResponseAsync<T>(List<AiMessage> history, CancellationToken cancellationToken)
+    {
+        var httpClient = _httpClientFactory.CreateClient("OpenAI");
+        var clientOptions = new OpenAIClientOptions
+        {
+            Transport = new HttpClientPipelineTransport(httpClient)
+        };
+        
+        var chatClient = new ChatClient(_settings.OpenAI.DefaultChatModel, new System.ClientModel.ApiKeyCredential(_apiKey), clientOptions);
+
+        var chatMessages = new List<ChatMessage>();
+        foreach (var msg in history)
+        {
+            if (msg.Role == "system") chatMessages.Add(new SystemChatMessage(msg.Content));
+            else if (msg.Role == "user") chatMessages.Add(new UserChatMessage(msg.Content));
+            else if (msg.Role == "assistant") chatMessages.Add(new AssistantChatMessage(msg.Content));
+        }
+
+        var options = new JsonSerializerOptions
+        {
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver()
+        };
+
+        var schemaNode = System.Text.Json.Schema.JsonSchemaExporter.GetJsonSchemaAsNode(options, typeof(T));
+        var schemaString = schemaNode.ToJsonString();
+
+        var chatOptions = new ChatCompletionOptions
+        {
+            ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("response_schema", BinaryData.FromString(schemaString), jsonSchemaIsStrict: true)
+        };
+
+        var response = await chatClient.CompleteChatAsync(chatMessages, chatOptions, cancellationToken);
+        var content = response.Value.Content[0].Text;
+        return JsonSerializer.Deserialize<T>(content, options);
     }
 }

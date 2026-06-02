@@ -194,8 +194,11 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         // 5. Compresión Semántica de Memoria (Largo Plazo)
         if (history.Count > 12) 
         {
-            var systemMessage = history[0];
-            var messagesToCompress = history.Skip(1).Take(6).ToList();
+            var systemMessage = history.FirstOrDefault(m => m.Role == ChatRole.System) 
+                                ?? new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage));
+            
+            var transactionalMessages = history.Where(m => m.Role != ChatRole.System).ToList();
+            var messagesToCompress = transactionalMessages.Take(6).ToList();
             
             try 
             {
@@ -216,7 +219,8 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                     new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = plainTextHistory }
                 };
                 
-                var updates = provider.StreamChatAsync(compressionMessages, new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolDefinition>(), apiKey);
+                // For long term compression we do not pass cancellation token yet, as it's fire-and-forget or awaited quickly. We can pass default.
+                var updates = provider.StreamChatAsync(compressionMessages, new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolDefinition>(), apiKey, cancellationToken: default);
                 var resumen = "";
                 await foreach (var chunk in updates)
                 {
@@ -226,7 +230,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 var newHistory = new List<ChatMessage> { systemMessage };
                 newHistory.Add(new ChatMessage(ChatRole.System, $"[MEMORIA HISTÓRICA DEL CLIENTE]:\n{resumen}"));
                 
-                var tail = history.Skip(7).ToList();
+                var tail = transactionalMessages.Skip(6).ToList();
                 // Limpiar posibles mensajes de herramientas huérfanos al inicio del tail
                 while (tail.Count > 0 && tail[0].Role == ChatRole.Tool)
                 {
@@ -240,8 +244,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fallo en compresión semántica. Usando truncado clásico.");
-                history = history.Skip(history.Count - 10).ToList();
-                history.Insert(0, systemMessage);
+                history = new[] { systemMessage }.Concat(transactionalMessages.TakeLast(10)).ToList();
             }
         }
 
@@ -304,6 +307,29 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             usage.OutputTokens += outputTokens;
         }
         
+        
         await _context.SaveChangesAsync();
+    }
+
+    public void ApplyNuevaBusqueda(List<ChatMessage> history)
+    {
+        if (history.Count <= 1) return;
+
+        var systemMessage = history.FirstOrDefault(m => m.Role == ChatRole.System);
+        if (systemMessage == null) return;
+        
+        var transactionalMessages = history.Where(m => m.Role != ChatRole.System).ToList();
+        
+        // Retain the last 6 conversational messages to prevent amnesia
+        var slidingWindow = transactionalMessages.TakeLast(6).ToList();
+        
+        // Clear tool messages from the sliding window so it forgets parameters
+        slidingWindow.RemoveAll(m => 
+            m.Role == ChatRole.Tool || 
+            (m.Role == ChatRole.Assistant && m.Contents.Any(c => c is FunctionCallContent)));
+            
+        history.Clear();
+        history.Add(systemMessage);
+        history.AddRange(slidingWindow);
     }
 }
