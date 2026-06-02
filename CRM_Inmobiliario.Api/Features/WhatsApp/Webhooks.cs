@@ -106,7 +106,7 @@ public static class WebhooksFeature
                             
                             // Encolamiento persistente y resiliente en Hangfire
                             Hangfire.BackgroundJob.Enqueue<Services.IWhatsAppJobProcessor>(
-                                x => x.ProcessMessageAsync(phone, body, phoneNumberId));
+                                x => x.ProcessMessageAsync(phone, body, phoneNumberId, CancellationToken.None));
                         }
                         else if (type == "audio" && message.TryGetProperty("audio", out var audio))
                         {
@@ -115,7 +115,7 @@ public static class WebhooksFeature
                             if (!string.IsNullOrEmpty(mediaId))
                             {
                                 Hangfire.BackgroundJob.Enqueue<Services.IWhatsAppJobProcessor>(
-                                    x => x.ProcessAudioAsync(phone, mediaId, phoneNumberId));
+                                    x => x.ProcessAudioAsync(phone, mediaId, phoneNumberId, CancellationToken.None));
                             }
                         }
                     }

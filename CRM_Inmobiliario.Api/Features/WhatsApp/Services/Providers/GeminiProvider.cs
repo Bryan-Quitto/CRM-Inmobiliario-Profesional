@@ -14,16 +14,18 @@ public class GeminiProvider : ILLMProvider
 {
     private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
     private readonly string _modelName;
+    private readonly string _apiKey;
 
-    public GeminiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Options.IOptions<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings> settings)
+    public GeminiProvider(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Options.IOptions<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings> settings, string apiKey)
     {
         _httpClientFactory = httpClientFactory;
         _modelName = settings.Value.Gemini.DefaultChatModel ?? "gemini-2.5-flash";
+        _apiKey = apiKey;
     }
 
-    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string apiKey, string? cachedContentId = null)
+    public async IAsyncEnumerable<AiResponseUpdate> StreamChatAsync(List<AiMessage> history, List<AiToolDefinition> tools, string? cachedContentId = null, int? maxTokens = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var client = new Client(apiKey: apiKey);
+        var client = new Client(apiKey: _apiKey);
         // We will not use ChatSession, we just use GenerateContentStreamAsync directly
 
         var config = new GenerateContentConfig();
@@ -104,7 +106,8 @@ public class GeminiProvider : ILLMProvider
 
             if (contents.Count > 0 && contents[contents.Count - 1].Role == targetRole)
             {
-                contents[contents.Count - 1].Parts.AddRange(parts);
+                if (contents[contents.Count - 1].Parts == null) contents[contents.Count - 1].Parts = new List<Part>();
+                ((List<Part>)contents[contents.Count - 1].Parts!).AddRange(parts);
             }
             else
             {
@@ -174,7 +177,16 @@ public class GeminiProvider : ILLMProvider
             config.Tools = toolsList;
         }
 
-        var responseStream = client.Models.GenerateContentStreamAsync(_modelName, contents, config);
+        if (maxTokens.HasValue)
+        {
+            config.MaxOutputTokens = maxTokens;
+        }
+
+        Console.WriteLine("\n[GEMINI_DEBUG_PAYLOAD] --- START STREAM REQUEST ---");
+        try { Console.WriteLine(JsonSerializer.Serialize(contents, new JsonSerializerOptions { WriteIndented = true })); } catch { }
+        Console.WriteLine("[GEMINI_DEBUG_PAYLOAD] --- END STREAM REQUEST ---\n");
+
+        var responseStream = client.Models.GenerateContentStreamAsync(_modelName, contents, config, cancellationToken: cancellationToken);
         
         if (hasAudio)
         {
@@ -271,4 +283,43 @@ public class GeminiProvider : ILLMProvider
     }
 
 
+    public async Task<T?> GetStructuredResponseAsync<T>(List<AiMessage> history, CancellationToken cancellationToken)
+    {
+        var client = new Client(apiKey: _apiKey);
+        var config = new GenerateContentConfig();
+        var contents = new List<Content>();
+
+        foreach (var msg in history)
+        {
+            if (msg.Role == "system")
+            {
+                config.SystemInstruction = new Content { Role = "system", Parts = new List<Part> { new Part { Text = msg.Content } } };
+                continue;
+            }
+            string targetRole = msg.Role == "assistant" ? "model" : "user";
+            contents.Add(new Content { Role = targetRole, Parts = new List<Part> { new Part { Text = msg.Content } } });
+        }
+
+        var options = new JsonSerializerOptions
+        {
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver()
+        };
+
+        var schemaNode = System.Text.Json.Schema.JsonSchemaExporter.GetJsonSchemaAsNode(options, typeof(T));
+        var geminiSchema = GeminiSchemaMapper.ParseSchema(schemaNode.ToJsonString());
+
+        config.ResponseMimeType = "application/json";
+        config.ResponseSchema = geminiSchema;
+
+        Console.WriteLine("\n[GEMINI_DEBUG_PAYLOAD] --- START STRUCTURED REQUEST ---");
+        try { Console.WriteLine(JsonSerializer.Serialize(contents, new JsonSerializerOptions { WriteIndented = true })); } catch { }
+        Console.WriteLine("[GEMINI_DEBUG_PAYLOAD] --- END STRUCTURED REQUEST ---\n");
+
+        var response = await client.Models.GenerateContentAsync(_modelName, contents, config);
+        var content = response.Text;
+        if (string.IsNullOrEmpty(content)) return default;
+        return JsonSerializer.Deserialize<T>(content, options);
+    }
 }

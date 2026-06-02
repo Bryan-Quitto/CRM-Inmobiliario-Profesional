@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="CRM_Inmobiliario.Api/CRM_Inmobiliario.Api.csproj" />
+  <Project Path="CRM_Inmobiliario.Tests/CRM_Inmobiliario.Tests.csproj" />
 </Solution>

@@ -62,8 +62,6 @@ builder.Services.AddHttpClient<IWhatsAppMessageSender, WhatsAppMessageSender>()
     .AddStandardResilienceHandler();
 builder.Services.AddHttpClient<IWhatsAppMediaService, WhatsAppMediaService>()
     .AddStandardResilienceHandler();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.OpenAiProvider>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.GeminiProvider>();
 builder.Services.AddScoped<LLMProviderFactory>();
 builder.Services.AddScoped<IWhatsAppConversationManager, WhatsAppConversationManager>();
 builder.Services.AddScoped<WhatsAppAiService>();
