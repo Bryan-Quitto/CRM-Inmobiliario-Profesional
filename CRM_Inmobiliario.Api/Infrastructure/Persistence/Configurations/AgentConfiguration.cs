@@ -20,16 +20,6 @@ public class AgentConfiguration : IEntityTypeConfiguration<Agent>
             .HasForeignKey(d => d.AgenciaId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.Property(a => a.GeminiCacheId)
-               .HasColumnName("gemini_cache_id")
-               .HasMaxLength(255)
-               .IsRequired(false);
-
-        builder.Property(a => a.GeminiCacheExpiresAt)
-               .HasColumnName("gemini_cache_expires_at")
-               .HasColumnType("timestamp with time zone")
-               .IsRequired(false);
-
         builder.Property(a => a.ByokKeyStatus)
                .HasColumnName("byok_key_status")
                .HasMaxLength(50)

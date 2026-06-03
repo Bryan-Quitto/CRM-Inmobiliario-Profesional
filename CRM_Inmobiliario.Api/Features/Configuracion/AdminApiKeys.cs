@@ -10,8 +10,8 @@ namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
 public static class AdminApiKeysFeature
 {
-    public record AdminAgentKeyResponse(Guid Id, string Nombre, string Apellido, string? AiApiKey, string? WhatsAppPhoneNumberId, int DailyTokenLimitPerContact, bool HasActiveSubscription);
-    public record UpdateKeysRequest(string? AiApiKey, string? WhatsAppPhoneNumberId, int? DailyTokenLimitPerContact, bool? HasActiveSubscription);
+    public record AdminAgentKeyResponse(Guid Id, string Nombre, string Apellido, string? AiApiKey, string? WhatsAppPhoneNumberId, int DailyTokenLimitPerContact);
+    public record UpdateKeysRequest(string? AiApiKey, string? WhatsAppPhoneNumberId, int? DailyTokenLimitPerContact);
 
     public static void MapAdminApiKeysEndpoints(this IEndpointRouteBuilder app)
     {
@@ -24,7 +24,7 @@ public static class AdminApiKeysFeature
             var agentes = await context.Agents
                 .AsNoTracking()
                 .OrderBy(a => a.Nombre)
-                .Select(a => new AdminAgentKeyResponse(a.Id, a.Nombre, a.Apellido, a.AiApiKey, a.WhatsAppPhoneNumberId, a.DailyTokenLimitPerContact, a.HasActiveSubscription))
+                .Select(a => new AdminAgentKeyResponse(a.Id, a.Nombre, a.Apellido, a.AiApiKey, a.WhatsAppPhoneNumberId, a.DailyTokenLimitPerContact))
                 .ToListAsync();
 
             return Results.Ok(agentes);
@@ -42,14 +42,10 @@ public static class AdminApiKeysFeature
             {
                 agent.DailyTokenLimitPerContact = request.DailyTokenLimitPerContact.Value;
             }
-            if (request.HasActiveSubscription.HasValue)
-            {
-                agent.HasActiveSubscription = request.HasActiveSubscription.Value;
-            }
 
             await context.SaveChangesAsync();
 
-            return Results.Ok(new AdminAgentKeyResponse(agent.Id, agent.Nombre, agent.Apellido, agent.AiApiKey, agent.WhatsAppPhoneNumberId, agent.DailyTokenLimitPerContact, agent.HasActiveSubscription));
+            return Results.Ok(new AdminAgentKeyResponse(agent.Id, agent.Nombre, agent.Apellido, agent.AiApiKey, agent.WhatsAppPhoneNumberId, agent.DailyTokenLimitPerContact));
         });
     }
 }

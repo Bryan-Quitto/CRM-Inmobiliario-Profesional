@@ -15,14 +15,12 @@ public static class ConfiguracionIAEndpoints
     public record IASettingsResponse(
         string? AiApiKey,
         string? WhatsAppPhoneNumberId,
-        int DailyTokenLimitPerContact,
-        bool HasActiveSubscription);
+        int DailyTokenLimitPerContact);
 
     public record UpdateIASettingsRequest(
         int? DailyTokenLimitPerContact,
         string? AiApiKey,
-        string? WhatsAppPhoneNumberId,
-        bool? HasActiveSubscription);
+        string? WhatsAppPhoneNumberId);
 
     public record ValidateIASettingsRequest(
         string? AiApiKey,
@@ -39,8 +37,7 @@ public static class ConfiguracionIAEndpoints
                 .Select(a => new IASettingsResponse(
                     a.AiApiKey,
                     a.WhatsAppPhoneNumberId,
-                    a.DailyTokenLimitPerContact,
-                    a.HasActiveSubscription))
+                    a.DailyTokenLimitPerContact))
                 .FirstOrDefaultAsync();
 
             if (settings is null)
@@ -89,11 +86,6 @@ public static class ConfiguracionIAEndpoints
                 agente.DailyTokenLimitPerContact = request.DailyTokenLimitPerContact.Value;
             }
 
-            if (request.HasActiveSubscription.HasValue)
-            {
-                agente.HasActiveSubscription = request.HasActiveSubscription.Value;
-            }
-
             if (request.AiApiKey != null)
             {
                 var newKey = string.IsNullOrWhiteSpace(request.AiApiKey) ? null : request.AiApiKey.Trim();
@@ -129,7 +121,6 @@ public static class ConfiguracionIAEndpoints
                     }
 
                     agente.AiApiKey = newKey;
-                    agente.HasActiveSubscription = request.HasActiveSubscription ?? false;
                     agente.ActiveLLMProvider = isGemini ? "Gemini" : (isOpenAI ? "OpenAI" : null);
                 }
                 else
