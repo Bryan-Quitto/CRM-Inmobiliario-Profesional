@@ -50,11 +50,32 @@ public static class EliminarTransaccionFeature
                 
                 if (transaction.ContactoId.HasValue)
                 {
-                    var contacto = await context.Contactos.FirstOrDefaultAsync(l => l.Id == transaction.ContactoId.Value, ct);
-                    if (contacto != null)
+                    var contactoToRevert = await context.Contactos.FirstOrDefaultAsync(l => l.Id == transaction.ContactoId.Value, ct);
+                    if (contactoToRevert != null)
                     {
-                        contacto.EtapaEmbudo = "En Negociación"; 
-                        contacto.FechaCierre = null;
+                        bool tieneOtrasCerradas = await context.Properties.AnyAsync(p => 
+                            p.CerradoConId == contactoToRevert.Id && 
+                            p.Id != property.Id && 
+                            (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"), ct);
+
+                        if (!tieneOtrasCerradas)
+                        {
+                            bool tieneOtrasReservadas = await context.Properties.AnyAsync(p => 
+                                p.CerradoConId == contactoToRevert.Id && 
+                                p.Id != property.Id && 
+                                p.EstadoComercial == "Reservada", ct);
+
+                            if (tieneOtrasReservadas)
+                            {
+                                contactoToRevert.EtapaEmbudo = "En Negociación";
+                                contactoToRevert.FechaCierre = null;
+                            }
+                            else
+                            {
+                                contactoToRevert.EtapaEmbudo = "Contactado";
+                                contactoToRevert.FechaCierre = null;
+                            }
+                        }
                     }
                 }
                 

@@ -9,7 +9,7 @@ interface ContactosListContentProps {
   syncing: boolean;
   onNavigate: (id: string) => void;
   onEdit: (contacto: Contacto) => void;
-  onStageChange: (id: string, etapa: string, data?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo?: 'contacto' | 'propietario') => void;
+  onStageChange: (id: string, etapa: string, tipo?: 'contacto' | 'propietario') => void;
 }
 
 export const ContactosListContent = ({

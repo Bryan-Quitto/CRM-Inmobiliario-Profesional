@@ -11,12 +11,7 @@ interface AuditoriaClientItemProps {
   group: ClientGroup;
   isExpanded: boolean;
   onToggle: () => void;
-  // Acciones de registro
-  idABorrar: string | null;
-  setIdABorrar: (id: string | null) => void;
-  isDeleting: boolean;
   handleEditClick: (id: string) => void;
-  handleConfirmDelete: (id: string) => void;
   // Mutate para intereses
   mutate: () => Promise<ClientGroup[] | undefined>;
 }
@@ -25,11 +20,7 @@ export const AuditoriaClientItem = ({
   group,
   isExpanded,
   onToggle,
-  idABorrar,
-  setIdABorrar,
-  isDeleting,
   handleEditClick,
-  handleConfirmDelete,
   mutate
 }: AuditoriaClientItemProps) => {
   const navigate = useNavigate();
@@ -136,12 +127,8 @@ export const AuditoriaClientItem = ({
             {expandedSection === 'registrado' && (
               <AuditoriaSectionRegistrado 
                 registradoPorIA={group.registradoPorIA}
-                contactoId={group.contactoId}
-                idABorrar={idABorrar}
-                setIdABorrar={setIdABorrar}
-                isDeleting={isDeleting}
+                contactoId={group.contactoId ?? undefined}
                 handleEditClick={handleEditClick}
-                handleConfirmDelete={handleConfirmDelete}
               />
             )}
           </div>
@@ -194,7 +181,7 @@ export const AuditoriaClientItem = ({
 
             {expandedSection === 'intereses' && (
               <AuditoriaSectionIntereses 
-                contactoId={group.contactoId}
+                contactoId={group.contactoId ?? undefined}
                 intereses={group.intereses}
                 logs={group.logs}
                 mutate={mutate}

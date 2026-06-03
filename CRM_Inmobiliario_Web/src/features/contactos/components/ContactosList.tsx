@@ -45,14 +45,10 @@ const ContactosContent = () => {
     setIsModalOpen,
     selectedContactoForEdit,
     setSelectedContactoForEdit,
-    closingContacto,
-    setClosingContacto,
-    closingIntendedStage,
+    newCycleConfirmation,
+    setNewCycleConfirmation,
     handleStageChange,
-    handleClosingConfirm,
-    revertConfirmation,
-    setRevertConfirmation,
-    handleRevertStatus,
+    executeStageChange,
     mutate
   } = useContactosList();
 
@@ -126,13 +122,9 @@ const ContactosContent = () => {
         isOwnersView={isOwnersView}
         selectedContactoForEdit={selectedContactoForEdit}
         setSelectedContactoForEdit={setSelectedContactoForEdit}
-        closingContacto={closingContacto}
-        setClosingContacto={setClosingContacto}
-        closingIntendedStage={closingIntendedStage}
-        onClosingConfirm={handleClosingConfirm}
-        revertConfirmation={revertConfirmation}
-        setRevertConfirmation={setRevertConfirmation}
-        handleRevertStatus={handleRevertStatus}
+        newCycleConfirmation={newCycleConfirmation}
+        setNewCycleConfirmation={setNewCycleConfirmation}
+        executeStageChange={executeStageChange}
         mutate={mutate}
       />
     </div>

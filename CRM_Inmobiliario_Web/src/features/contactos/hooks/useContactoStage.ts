@@ -11,29 +11,13 @@ interface Params {
 }
 
 export const useContactoStage = ({ contacto, id, mutate }: Params) => {
-  const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
-  const [intendedStage, setIntendedStage] = useState<string | null>(null);
   const [isUpdatingEtapa, setIsUpdatingEtapa] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<'cliente' | 'propietario' | null>(null);
-  const [revertConfirmation, setRevertConfirmation] = useState<{ etapa: string, etapaOrigen: string } | null>(null);
+  const [newCycleConfirmation, setNewCycleConfirmation] = useState<{ etapa: string } | null>(null);
 
-  const { cambiarEtapa, revertirEtapa } = useContactoCommercialLogic();
+  const { cambiarEtapa } = useContactoCommercialLogic();
 
-  const handleRevertStatus = async (nuevaEtapa: string, liberarPropiedades: boolean) => {
-    if (!id || !contacto) return;
-    setIsUpdatingEtapa(true);
-    setRevertConfirmation(null);
-
-    await revertirEtapa(id, nuevaEtapa, liberarPropiedades, {
-      onOptimisticUpdate: () => mutate({ ...contacto, etapaEmbudo: nuevaEtapa, fechaCierre: undefined }, false),
-      onSuccess: async () => { await mutate(); },
-      onError: () => mutate()
-    });
-
-    setIsUpdatingEtapa(false);
-  };
-
-  const handleStageChange = async (nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo: 'cliente' | 'propietario' = 'cliente') => {
+  const handleStageChange = async (nuevaEtapa: string, tipo: 'cliente' | 'propietario' = 'cliente') => {
     if (!id || !contacto) return;
     
     const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
@@ -41,55 +25,38 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
     
     setActiveDropdown(null);
 
-    if (tipo === 'cliente' && !confirmedData) {
-      if (nuevaEtapa === 'Cerrado' || nuevaEtapa === 'En Negociación') {
-        setIntendedStage(nuevaEtapa);
-        setIsClosingModalOpen(true);
+    if (tipo === 'cliente') {
+      if (contacto.etapaEmbudo === 'En Negociación') {
+        import('sonner').then(({ toast }) => {
+          toast.error('El cliente está en medio de una negociación. Cualquier cambio debe realizarse desde el catálogo de propiedades.');
+        });
         return;
       }
 
-      const esReversion = 
-        (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'En Negociación') && 
-        (nuevaEtapa === 'Nuevo' || nuevaEtapa === 'Contactado' || nuevaEtapa === 'Perdido' || nuevaEtapa === 'Cerrado Perdido');
-
-      if (esReversion) {
-        const reservas = contacto.numeroReservas || 0;
-        const cierres = contacto.numeroCierres || 0;
-
-        if (contacto.etapaEmbudo === 'En Negociación') {
-          if (reservas > 1) {
-            import('sonner').then(({ toast }) => {
-              toast.error('No se puede cambiar el estado porque el cliente tiene más de 1 propiedad reservada. Realice el ajuste (Trato Caído) desde el catálogo de inmuebles para cada propiedad.');
-            });
-            return;
-          }
-          if (reservas === 0) {
-            await handleRevertStatus(nuevaEtapa, false);
-            return;
-          }
+      if (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') {
+        if (nuevaEtapa === 'Perdido') {
+          import('sonner').then(({ toast }) => {
+            toast.error('Para dar por terminado un contrato, debe hacerlo desde la propiedad asociada. No puede marcar al cliente como perdido desde aquí.');
+          });
+          return;
         }
 
-        if (contacto.etapaEmbudo === 'Cerrado') {
-          if (cierres > 1) {
-            import('sonner').then(({ toast }) => {
-              toast.error('No se puede revertir el estado automáticamente porque el contacto tiene más de 1 propiedad alquilada o vendida. Realice el ajuste desde el catálogo de inmuebles para cada propiedad.');
-            });
-            return;
-          }
-          if (cierres === 0) {
-            await handleRevertStatus(nuevaEtapa, false);
-            return;
-          }
+        if (nuevaEtapa === 'Nuevo' || nuevaEtapa === 'Contactado' || nuevaEtapa === 'Cita') {
+          setNewCycleConfirmation({ etapa: nuevaEtapa });
+          return;
         }
-
-        setRevertConfirmation({ etapa: nuevaEtapa, etapaOrigen: contacto.etapaEmbudo });
-        return;
       }
     }
 
+    await executeStageChange(nuevaEtapa, tipo);
+  };
+
+  const executeStageChange = async (nuevaEtapa: string, tipo: 'cliente' | 'propietario' = 'cliente') => {
+    if (!id || !contacto) return;
+    
     setIsUpdatingEtapa(true);
 
-    await cambiarEtapa(id, nuevaEtapa, tipo, confirmedData, {
+    await cambiarEtapa(id, nuevaEtapa, tipo, undefined, {
       onOptimisticUpdate: () => mutate(tipo === 'propietario' 
         ? { ...contacto, estadoPropietario: nuevaEtapa }
         : { ...contacto, etapaEmbudo: nuevaEtapa }, 
@@ -99,24 +66,16 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
     });
 
     setIsUpdatingEtapa(false);
-  };
-
-  const handleClosingConfirm = async (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => {
-    await handleStageChange(intendedStage || 'Cerrado', { propiedadId, precioCierre: precioCierre || 0, nuevoEstadoPropiedad });
-    setIsClosingModalOpen(false);
+    setNewCycleConfirmation(null);
   };
 
   return {
-    isClosingModalOpen,
-    setIsClosingModalOpen,
-    intendedStage,
     isUpdatingEtapa,
     activeDropdown,
     setActiveDropdown,
-    revertConfirmation,
-    setRevertConfirmation,
-    handleRevertStatus,
+    newCycleConfirmation,
+    setNewCycleConfirmation,
     handleStageChange,
-    handleClosingConfirm
+    executeStageChange
   };
 };

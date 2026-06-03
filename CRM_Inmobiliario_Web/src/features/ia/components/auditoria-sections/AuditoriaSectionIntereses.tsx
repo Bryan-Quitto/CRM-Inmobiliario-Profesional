@@ -4,7 +4,7 @@ import { NIVELES_INTERES, currencyFormatter, dateFormatter } from '../../constan
 import type { InteresResumen, LogResponse, ClientGroup } from '../../types/auditoria';
 
 interface SectionInteresesProps {
-  contactoId: string | null;
+  contactoId?: string;
   intereses: InteresResumen[];
   logs: LogResponse[];
   mutate: () => Promise<ClientGroup[] | undefined>;

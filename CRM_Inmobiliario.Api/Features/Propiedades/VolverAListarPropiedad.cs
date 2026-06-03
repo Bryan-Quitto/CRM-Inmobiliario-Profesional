@@ -13,7 +13,7 @@ namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class VolverAListarPropiedadFeature
 {
-    public record Request(string? Notas, string Mode = "Relist", bool MarcarContactoPerdido = false); // "Relist" (Natural) o "Cancel" (Trato Caído)
+    public record Request(string? Notas, string Mode = "Relist"); // "Relist" (Natural) o "Cancel" (Trato Caído)
 
     public static RouteHandlerBuilder MapVolverAListarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -52,9 +52,9 @@ public static class VolverAListarPropiedadFeature
 
             logger.LogInformation("[RELIST] Propiedad encontrada: {Titulo}, PropietarioId: {PropietarioId}, CerradoConId: {CerradoConId}", propiedad.Titulo, propiedad.PropietarioId, propiedad.CerradoConId);
 
-            // Identificamos la transacción de cierre activa (Sale o Rent)
+            // Identificamos la transacción de cierre o reserva activa (Sale, Rent o Reservation)
             var transaccionActiva = propiedad.Transactions
-                .FirstOrDefault(t => t.TransactionType == "Sale" || t.TransactionType == "Rent");
+                .FirstOrDefault(t => t.TransactionType == "Sale" || t.TransactionType == "Rent" || t.TransactionType == "Reservation");
 
             if (mode == "Cancel")
             {
@@ -62,20 +62,38 @@ public static class VolverAListarPropiedadFeature
                 // Acción B: Cancelación de Trato (Trato Caído)
                 if (propiedad.CerradoConId.HasValue)
                 {
-                    var contacto = await context.Contactos.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value);
-                    if (contacto != null)
+                    var contactoToRevert = await context.Contactos.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value, ct);
+                    if (contactoToRevert != null)
                     {
-                        if (request?.MarcarContactoPerdido == true)
+                        bool tieneOtrasCerradas = await context.Properties.AnyAsync(p => 
+                            p.CerradoConId == contactoToRevert.Id && 
+                            p.Id != id && 
+                            (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"), ct);
+
+                        if (tieneOtrasCerradas)
                         {
-                            logger.LogInformation("[RELIST] Marcando contacto {ContactoId} como Perdido", contacto.Id);
-                            contacto.EtapaEmbudo = "Perdido";
+                            logger.LogInformation("[RELIST] Contacto {ContactoId} retiene estado de Cerrado por otras propiedades cerradas.", contactoToRevert.Id);
                         }
                         else
                         {
-                            logger.LogInformation("[RELIST] Revirtiendo contacto {ContactoId} a En Negociación", contacto.Id);
-                            contacto.EtapaEmbudo = "En Negociación"; // Reversión automática
+                            bool tieneOtrasReservadas = await context.Properties.AnyAsync(p => 
+                                p.CerradoConId == contactoToRevert.Id && 
+                                p.Id != id && 
+                                p.EstadoComercial == "Reservada", ct);
+
+                            if (tieneOtrasReservadas)
+                            {
+                                logger.LogInformation("[RELIST] Contacto {ContactoId} baja a En Negociación por otras reservas activas.", contactoToRevert.Id);
+                                contactoToRevert.EtapaEmbudo = "En Negociación";
+                                contactoToRevert.FechaCierre = null;
+                            }
+                            else
+                            {
+                                logger.LogInformation("[RELIST] Revirtiendo contacto {ContactoId} a Contactado", contactoToRevert.Id);
+                                contactoToRevert.EtapaEmbudo = "Contactado"; // Reversión automática
+                                contactoToRevert.FechaCierre = null;
+                            }
                         }
-                        contacto.FechaCierre = null;
                     }
                 }
 

@@ -65,7 +65,7 @@ public static class ListarContactosFeature
                     l.PropertyInterests.Count,
                     l.PropertiesOwned.Count,
                     context.Properties.Count(p => p.CerradoConId == l.Id && p.EstadoComercial == "Reservada"),
-                    context.Properties.Count(p => p.CerradoConId == l.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada" || p.EstadoComercial == "Vendido" || p.EstadoComercial == "Rentado")),
+                    context.Properties.Count(p => p.CerradoConId == l.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada")),
                     l.BotActivo,
                     l.EstadoIA))
                 .ToListAsync();

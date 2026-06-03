@@ -115,8 +115,8 @@ export const DetalleModalsOrchestrator = ({
                       <AlertCircle size={24} />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Cancelar (Trato Caído)</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">El contacto volverá a negociación</p>
+                      <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Trato Caído</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">La propiedad volverá a estar disponible.</p>
                     </div>
                   </div>
                 </button>

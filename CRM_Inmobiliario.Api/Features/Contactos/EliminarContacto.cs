@@ -7,18 +7,9 @@ public static class EliminarContacto
 {
     public static void MapEliminarContactoEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/contactos/{id:guid}", async (Guid id, CrmDbContext context) =>
+        app.MapDelete("/contactos/{id:guid}", (Guid id) =>
         {
-            var affectedRows = await context.Contactos
-                .Where(l => l.Id == id)
-                .ExecuteDeleteAsync();
-
-            if (affectedRows == 0)
-            {
-                return Results.NotFound(new { Message = "Contacto no encontrado." });
-            }
-
-            return Results.NoContent();
+            return Results.BadRequest(new { Message = "La eliminación de contactos está deshabilitada en el sistema para preservar la integridad transaccional (SSoT)." });
         })
         .RequireAuthorization()
         .WithName("EliminarContacto")

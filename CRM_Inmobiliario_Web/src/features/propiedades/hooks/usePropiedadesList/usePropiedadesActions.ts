@@ -81,7 +81,7 @@ export const usePropiedadesActions = ({
     await commercial.handleClosingConfirm(propiedad, precioCierre, cerradoConId, tipoCierre);
   };
 
-  const handleRelistPropiedad = async (id: string, _reason: string, type: 'Relist' | 'Cancel', marcarContactoPerdido = false) => {
+  const handleRelistPropiedad = async (id: string, _reason: string, type: 'Relist' | 'Cancel') => {
     const propiedad = propiedades.find(p => p.id === id);
     if (!propiedad) return;
 
@@ -91,7 +91,7 @@ export const usePropiedadesActions = ({
     const optimisticData = propiedades.map(p => p.id === id ? { ...p, estadoComercial: 'Disponible' } : p);
     mutate(optimisticData, false);
 
-    await commercial.handleRelist(propiedad, type, 'Disponible', marcarContactoPerdido);
+    await commercial.handleRelist(propiedad, type, 'Disponible');
   };
 
   return {

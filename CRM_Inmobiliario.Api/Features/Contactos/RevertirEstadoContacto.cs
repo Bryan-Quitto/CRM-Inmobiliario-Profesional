@@ -18,7 +18,7 @@ public static class RevertirEstadoContactoFeature
 
             var contacto = await context.Contactos
                 .Include(c => c.CompartidoCon)
-                .FirstOrDefaultAsync(l => l.Id == id && (l.AgenteId == agenteId || l.CompartidoCon.Any(ac => ac.AgenteId == agenteId)));
+                .FirstOrDefaultAsync(l => l.Id == id && l.AgenteId == agenteId);
 
             if (contacto is null)
             {
@@ -49,7 +49,7 @@ public static class RevertirEstadoContactoFeature
                     else if (etapaAnterior == "Cerrado")
                     {
                         propiedadesALiberar = await context.Properties
-                            .Where(p => p.CerradoConId == id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada" || p.EstadoComercial == "Vendido" || p.EstadoComercial == "Rentado"))
+                            .Where(p => p.CerradoConId == id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"))
                             .ToListAsync();
                     }
 

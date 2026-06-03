@@ -22,18 +22,12 @@ public static class CambiarEstadoProcessor
         CancellationToken ct)
     {
         var ecuadorNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
-        var esCierre = nuevoEstado is "Vendida" or "Alquilada" or "Vendido" or "Rentado";
+        var esCierre = nuevoEstado is "Vendida" or "Alquilada";
         var esReserva = nuevoEstado == "Reservada";
         var esCierreOReserva = esCierre || esReserva;
-        
-        // 1. Soporte para Alquileres Sucesivos Automáticos (Fase 5 item 3)
-        bool esAlquilerSucesivo = property.EstadoComercial == "Alquilada" 
-                                  && nuevoEstado == "Alquilada" 
-                                  && cerradoConId.HasValue 
-                                  && cerradoConId != property.CerradoConId;
 
         // 2. Spec 011 Fase 5 item 3: Relistado automático por transición entre estados de cierre
-        bool requiereRelistadoAutomatico = property.CerradoConId.HasValue && esCierre && !esAlquilerSucesivo;
+        bool requiereRelistadoAutomatico = property.CerradoConId.HasValue && esCierre;
 
         Contacto? contacto = null;
         if (esCierreOReserva && cerradoConId.HasValue)
@@ -71,7 +65,7 @@ public static class CambiarEstadoProcessor
         else if (property.Transactions.Any(t => t.TransactionStatus == "Active"))
         {
             // Si es un cambio de estado comercial (de cierre a disponible/otro), marcamos como Completed
-            if (!esCierre || esAlquilerSucesivo)
+            if (!esCierre)
             {
                 FinalizarTransaccionesActivas(property);
             }
@@ -87,7 +81,7 @@ public static class CambiarEstadoProcessor
                 bool tieneOtrasCerradas = await context.Properties.AnyAsync(p => 
                     p.CerradoConId == contactoToRevert.Id && 
                     p.Id != property.Id && 
-                    (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada" || p.EstadoComercial == "Vendido" || p.EstadoComercial == "Rentado"), ct);
+                    (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"), ct);
 
                 if (tieneOtrasCerradas)
                 {
@@ -112,13 +106,11 @@ public static class CambiarEstadoProcessor
                         // No tiene nada más, downgrade completo
                         if (property.EstadoComercial == "Reservada")
                         {
-                            // Si se cae una reserva, el contacto pasa a Perdido
-                            contactoToRevert.EtapaEmbudo = "Perdido";
+                            contactoToRevert.EtapaEmbudo = "Contactado";
                         }
                         else
                         {
-                            // Si se cae un cierre y no tiene nada más, vuelve a negociación
-                            contactoToRevert.EtapaEmbudo = "En Negociación";
+                            contactoToRevert.EtapaEmbudo = "Contactado";
                         }
                         contactoToRevert.FechaCierre = null;
                     }
@@ -181,7 +173,7 @@ public static class CambiarEstadoProcessor
                 PropertyId = property.Id,
                 ContactoId = contacto.Id,
                 TransactionType = "Reservation",
-                TransactionStatus = "Completed",
+                TransactionStatus = "Active",
                 Amount = precioCierre,
                 TransactionDate = ecuadorNow,
                 CreatedById = currentUserId,
@@ -208,9 +200,7 @@ public static class CambiarEstadoProcessor
                 Amount = precioCierre ?? property.Precio,
                 TransactionDate = ecuadorNow,
                 CreatedById = currentUserId,
-                Notes = esAlquilerSucesivo 
-                    ? $"Alquiler sucesivo registrado. El inquilino anterior finalizó su ciclo."
-                    : $"Cierre realizado desde el detalle de la propiedad. Marcada como {nuevoEstado}."
+                Notes = $"Cierre realizado desde el detalle de la propiedad. Marcada como {nuevoEstado}."
             });
 
             context.Interactions.Add(new Interaction

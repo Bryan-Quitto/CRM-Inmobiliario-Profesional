@@ -13,7 +13,7 @@ interface ContactoCardProps {
   syncing: boolean;
   onNavigate: (id: string) => void;
   onEdit: (contacto: Contacto) => void;
-  onStageChange: (id: string, etapa: string, data?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo?: 'contacto' | 'propietario') => void;
+  onStageChange: (id: string, etapa: string, tipo?: 'contacto' | 'propietario') => void;
 }
 
 export const ContactoCard = ({
@@ -50,7 +50,7 @@ export const ContactoCard = ({
 
   const handleStageUpdate = (etapa: string, tipo: 'contacto' | 'propietario') => {
     if (contacto.esCompartido) return;
-    onStageChange(contacto.id, etapa, undefined, tipo);
+    onStageChange(contacto.id, etapa, tipo);
     setOpenDropdown(null);
   };
 
@@ -105,7 +105,7 @@ export const ContactoCard = ({
         
         <div className="flex flex-col gap-2 mt-3">
           {/* Badge Dropdown Cliente */}
-          {contacto.esContacto && (
+          {contacto.esContacto && !contacto.esCompartido && (
             <div className="relative" ref={openDropdown === 'cliente' ? dropdownRef : null}>
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
@@ -135,7 +135,7 @@ export const ContactoCard = ({
 
               {openDropdown === 'cliente' && !contacto.esCompartido && (
                 <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-left backdrop-blur-xl bg-white/95">
-                  {ETAPAS.map((etapa) => (
+                  {ETAPAS.filter(e => e.value !== 'En Negociación' && e.value !== 'Cerrado' && e.value !== 'Cerrado Ganado' && e.value !== 'Cerrado Perdido').map((etapa) => (
                     <button
                       key={etapa.value}
                       onClick={(e) => {
@@ -156,7 +156,7 @@ export const ContactoCard = ({
           )}
 
           {/* Badge Dropdown Propietario */}
-          {contacto.esPropietario && (
+          {contacto.esPropietario && !contacto.esCompartido && (
             <div className="relative" ref={openDropdown === 'propietario' ? dropdownRef : null}>
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
@@ -208,19 +208,21 @@ export const ContactoCard = ({
 
 
           {/* Badge Estado IA */}
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-purple-50 text-purple-600 border-purple-100/50">
-              Estado IA
-            </span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-              isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
-              : contacto.estadoIA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
-              : contacto.estadoIA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
-              : 'bg-slate-50 text-slate-400 border-slate-100'
-            }`}>
-              {isBotActivo ? 'Operativo' : contacto.estadoIA === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
-            </span>
-          </div>
+          {!contacto.esCompartido && (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-purple-50 text-purple-600 border-purple-100/50">
+                Estado IA
+              </span>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
+                : contacto.estadoIA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
+                : contacto.estadoIA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+                : 'bg-slate-50 text-slate-400 border-slate-100'
+              }`}>
+                {isBotActivo ? 'Operativo' : contacto.estadoIA === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

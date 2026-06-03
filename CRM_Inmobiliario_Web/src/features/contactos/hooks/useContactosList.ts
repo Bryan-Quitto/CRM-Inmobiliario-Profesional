@@ -30,7 +30,7 @@ export const useContactosList = () => {
     { ...swrDefaultConfig, refreshInterval: 5000, keepPreviousData: true }
   );
 
-  const { cambiarEtapa, revertirEtapa } = useContactoCommercialLogic();
+  const { cambiarEtapa } = useContactoCommercialLogic();
 
   // Filtrar base según el segmento activo
   const contactos = useMemo(() => {
@@ -59,10 +59,7 @@ export const useContactosList = () => {
     setViewModeRaw(mode);
   };
 
-  const [closingContacto, setClosingContacto] = useState<Contacto | null>(null);
-  const [closingIntendedStage, setClosingIntendedStage] = useState<string | null>(null);
-
-  const [revertConfirmation, setRevertConfirmation] = useState<{ id: string, etapa: string, nombre: string, etapaOrigen: string } | null>(null);
+  const [newCycleConfirmation, setNewCycleConfirmation] = useState<{ id: string, etapa: string, nombre: string } | null>(null);
 
   useEffect(() => {
     if (activeSegment !== 'todos') {
@@ -78,81 +75,41 @@ export const useContactosList = () => {
     negociacion: contactos.filter(c => c.etapaEmbudo === 'En Negociación').length
   }), [contactos]);
 
-  const handleRevertStatus = (id: string, nuevaEtapa: string, liberarPropiedades: boolean) => {
-    const contacto = allContactos.find(c => c.id === id);
-    if (!contacto) return;
-    
-    setRevertConfirmation(null);
-    
-    revertirEtapa(id, nuevaEtapa, liberarPropiedades, {
-      onOptimisticUpdate: () => {
-        const optimisticData = allContactos.map(c => {
-          if (c.id === id) {
-            return { ...c, etapaEmbudo: nuevaEtapa, fechaCierre: undefined };
-          }
-          return c;
-        });
-        mutate(optimisticData, false);
-      },
-      onSuccess: async () => { await mutate(); },
-      onError: () => mutate()
-    });
-  };
-
-  const handleStageChange = (id: string, nuevaEtapa: string, confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo: 'contacto' | 'propietario' = 'contacto') => {
+  const handleStageChange = (id: string, nuevaEtapa: string, tipo: 'contacto' | 'propietario' = 'contacto') => {
     const contacto = allContactos.find(c => c.id === id);
     if (!contacto) return;
 
     const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
     if (etapaActual === nuevaEtapa) return;
 
-    if (tipo === 'contacto' && !confirmedData) {
-      if (nuevaEtapa === 'Cerrado' || nuevaEtapa === 'En Negociación') {
-        setClosingIntendedStage(nuevaEtapa);
-        setClosingContacto(contacto);
+    if (tipo === 'contacto') {
+      if (contacto.etapaEmbudo === 'En Negociación') {
+        import('sonner').then(({ toast }) => {
+          toast.error('El cliente está en medio de una negociación. Cualquier cambio debe realizarse desde el catálogo de propiedades.');
+        });
         return;
       }
 
-      const esReversion = 
-        (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'En Negociación') && 
-        (nuevaEtapa === 'Nuevo' || nuevaEtapa === 'Contactado' || nuevaEtapa === 'Perdido' || nuevaEtapa === 'Cerrado Perdido');
-
-      if (esReversion) {
-        const reservas = contacto.numeroReservas || 0;
-        const cierres = contacto.numeroCierres || 0;
-
-        if (contacto.etapaEmbudo === 'En Negociación') {
-          if (reservas > 1) {
-            import('sonner').then(({ toast }) => {
-              toast.error('No se puede cambiar el estado porque el cliente tiene más de 1 propiedad reservada. Realice el ajuste (Trato Caído) desde el catálogo de inmuebles para cada propiedad.');
-            });
-            return;
-          }
-          if (reservas === 0) {
-            handleRevertStatus(id, nuevaEtapa, false);
-            return;
-          }
+      if (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') {
+        if (nuevaEtapa === 'Perdido') {
+          import('sonner').then(({ toast }) => {
+            toast.error('Para dar por terminado un contrato, debe hacerlo desde la propiedad asociada. No puede marcar al cliente como perdido desde aquí.');
+          });
+          return;
         }
 
-        if (contacto.etapaEmbudo === 'Cerrado') {
-          if (cierres > 1) {
-            import('sonner').then(({ toast }) => {
-              toast.error('No se puede revertir el estado automáticamente porque el contacto tiene más de 1 propiedad alquilada o vendida. Realice el ajuste desde el catálogo de inmuebles para cada propiedad.');
-            });
-            return;
-          }
-          if (cierres === 0) {
-            handleRevertStatus(id, nuevaEtapa, false);
-            return;
-          }
+        if (nuevaEtapa === 'Nuevo' || nuevaEtapa === 'Contactado' || nuevaEtapa === 'Cita') {
+          setNewCycleConfirmation({ id: contacto.id, etapa: nuevaEtapa, nombre: contacto.nombre });
+          return;
         }
-
-        setRevertConfirmation({ id: contacto.id, etapa: nuevaEtapa, nombre: contacto.nombre, etapaOrigen: contacto.etapaEmbudo });
-        return;
       }
     }
 
-    cambiarEtapa(id, nuevaEtapa, tipo, confirmedData, {
+    executeStageChange(id, nuevaEtapa, tipo);
+  };
+
+  const executeStageChange = (id: string, nuevaEtapa: string, tipo: 'contacto' | 'propietario' = 'contacto') => {
+    cambiarEtapa(id, nuevaEtapa, tipo, undefined, {
       onOptimisticUpdate: () => {
         const optimisticData = allContactos.map(c => {
           if (c.id === id) {
@@ -167,14 +124,7 @@ export const useContactosList = () => {
       onSuccess: async () => { await mutate(); },
       onError: () => mutate()
     });
-  };
-
-
-
-  const handleClosingConfirm = async (precioCierre: number | null, propiedadId: string, nuevoEstadoPropiedad: string) => {
-    if (!closingContacto) return;
-    handleStageChange(closingContacto.id, closingIntendedStage || 'Cerrado', { propiedadId, precioCierre: precioCierre || 0, nuevoEstadoPropiedad });
-    setClosingContacto(null);
+    setNewCycleConfirmation(null);
   };
 
   return {
@@ -191,14 +141,10 @@ export const useContactosList = () => {
     setIsModalOpen,
     selectedContactoForEdit,
     setSelectedContactoForEdit,
-    closingContacto,
-    setClosingContacto,
-    closingIntendedStage,
+    newCycleConfirmation,
+    setNewCycleConfirmation,
     handleStageChange,
-    handleClosingConfirm,
-    revertConfirmation,
-    setRevertConfirmation,
-    handleRevertStatus,
+    executeStageChange,
     mutate,
     ...filteringProps
   };

@@ -18,11 +18,7 @@ export const AuditoriaLogsView = () => {
     // Modales
     contactoEnEdicion,
     setContactoEnEdicion,
-    idABorrar,
-    setIdABorrar,
-    isDeleting,
     handleEditClick,
-    handleConfirmDelete,
     mutate,
     globalMutate
   } = useAuditoriaLogs();
@@ -69,11 +65,7 @@ export const AuditoriaLogsView = () => {
               group={group}
               isExpanded={expandedClientId === group.telefono}
               onToggle={() => toggleClientExpansion(group.telefono)}
-              idABorrar={idABorrar}
-              setIdABorrar={setIdABorrar}
-              isDeleting={isDeleting}
               handleEditClick={handleEditClick}
-              handleConfirmDelete={handleConfirmDelete}
               mutate={mutate}
             />
           ))
