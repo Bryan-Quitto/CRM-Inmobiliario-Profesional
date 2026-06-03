@@ -32,7 +32,6 @@ public sealed class WhatsAppAiService
     private readonly CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext _dbContext;
     private readonly CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory _providerFactory;
     private readonly CRM_Inmobiliario.Api.Features.AI.Services.IGeminiApiClient _geminiApiClient;
-    private readonly CRM_Inmobiliario.Api.Features.AI.Services.IDatasetProvider _datasetProvider;
     private readonly string? _openAiApiKey;
 
     public WhatsAppAiService(
@@ -44,8 +43,7 @@ public sealed class WhatsAppAiService
         IHttpClientFactory httpClientFactory,
         CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext dbContext,
         CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory providerFactory,
-        CRM_Inmobiliario.Api.Features.AI.Services.IGeminiApiClient geminiApiClient,
-        CRM_Inmobiliario.Api.Features.AI.Services.IDatasetProvider datasetProvider)
+        CRM_Inmobiliario.Api.Features.AI.Services.IGeminiApiClient geminiApiClient)
     {
         _logger = logger;
         _promptBuilder = promptBuilder;
@@ -56,7 +54,6 @@ public sealed class WhatsAppAiService
         _dbContext = dbContext;
         _providerFactory = providerFactory;
         _geminiApiClient = geminiApiClient;
-        _datasetProvider = datasetProvider;
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
     }
 
@@ -121,60 +118,6 @@ public sealed class WhatsAppAiService
                     providerName = "OpenAI";
             }
             
-            string? cachedContentId = null;
-            if (providerName == "Gemini" && tenantAgent != null && tenantAgent.HasActiveSubscription)
-            {
-                // TODO: Remove this temporary cache invalidation after test
-                if (tenantAgent.GeminiCacheId == "cachedContents/bcga390rwlpc2kazb4egb48kxnxgex9gdxqitvm9")
-                {
-                    tenantAgent.GeminiCacheId = null;
-                }
-
-                if (string.IsNullOrEmpty(tenantAgent.GeminiCacheId) || 
-                    !tenantAgent.GeminiCacheExpiresAt.HasValue || 
-                    tenantAgent.GeminiCacheExpiresAt.Value < DateTimeOffset.UtcNow)
-                {
-                    _logger.LogInformation("Creando/Renovando caché de Gemini para agente {AgentId}", tenantAgent.Id);
-                    var sysInstruction = _datasetProvider.GetSystemInstruction();
-                    var datasetContents = _datasetProvider.GetDatasetContents();
-                    
-                    if (sysInstruction != null && datasetContents != null && datasetContents.Count > 0)
-                    {
-                        var aiTools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
-                        var toolsList = new List<Google.GenAI.Types.Tool>();
-                        var functionDeclarations = new List<Google.GenAI.Types.FunctionDeclaration>();
-                        foreach (var t in aiTools)
-                        {
-                            functionDeclarations.Add(new Google.GenAI.Types.FunctionDeclaration
-                            {
-                                Name = t.Name,
-                                Description = t.Description,
-                                Parameters = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Providers.GeminiSchemaMapper.ParseSchema(t.ParametersSchema)
-                            });
-                        }
-                        if (functionDeclarations.Count > 0)
-                        {
-                            toolsList.Add(new Google.GenAI.Types.Tool { FunctionDeclarations = functionDeclarations });
-                        }
-
-                        var newCacheId = await _geminiApiClient.CreateCachedContentAsync(apiKeyToUse, sysInstruction, datasetContents, toolsList);
-                        if (!string.IsNullOrEmpty(newCacheId))
-                        {
-                            tenantAgent.GeminiCacheId = newCacheId;
-                            tenantAgent.GeminiCacheExpiresAt = DateTimeOffset.UtcNow.AddHours(1);
-                            await _dbContext.SaveChangesAsync();
-                            cachedContentId = newCacheId;
-                            _logger.LogInformation("Gemini Cache creado exitosamente: {CacheId}", newCacheId);
-                        }
-                    }
-                }
-                else
-                {
-                    cachedContentId = tenantAgent.GeminiCacheId;
-                    _logger.LogInformation("Usando Gemini Cache existente: {CacheId}", cachedContentId);
-                }
-            }
-
             var provider = _providerFactory.GetProvider(providerName, apiKeyToUse);
             var history = context.History;
             var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
@@ -228,13 +171,6 @@ public sealed class WhatsAppAiService
                 if (history.Count > 0 && history[0].Role == ChatRole.System)
                 {
                     chatMessagesForAi.Add(history[0]);
-                    
-                    // Comentado para no forzar la personalidad de los Golden Examples (evita el "Hola" repetitivo y confía más en el modelo moderno)
-                    // chatMessagesForAi.AddRange(CRM_Inmobiliario.Api.Features.WhatsApp.Services.AiPromptConstants.GoldenExamples);
-                    
-                    // El Context Caching se encargará de inyectar el dataset en Google.
-                    // Hemos desactivado el fallback de inyectar el dataset completo en línea para ahorrar 45k tokens por mensaje.
-                    
                     chatMessagesForAi.AddRange(history.Skip(1));
                 }
                 else
@@ -264,7 +200,7 @@ public sealed class WhatsAppAiService
                     throw new InvalidOperationException("Se ha excedido el límite de seguridad de 50,000 tokens por mensaje. Operación cancelada.");
                 }
 
-                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, cachedContentId, cancellationToken: cancellationToken))
+                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, null, cancellationToken: cancellationToken))
                 {
                     if (!string.IsNullOrEmpty(update.TextUpdate))
                     {

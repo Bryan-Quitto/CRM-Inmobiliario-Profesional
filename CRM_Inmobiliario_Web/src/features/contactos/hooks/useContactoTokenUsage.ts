@@ -4,10 +4,8 @@ import { api } from '@/lib/axios';
 interface TokenUsageResponse {
   totalTokens: number;
   inputTokens: number;
-  cachedTokens: number;
   outputTokens: number;
   costoUSD: number;
-  ahorroUSD: number;
 }
 
 export const useContactoTokenUsage = (contactoId: string, rango: 'hoy' | 'semana' | 'mes' | 'siempre') => {

@@ -43,8 +43,6 @@ public sealed class Agent
 
     public bool Activo { get; set; } = true;
 
-    public bool HasActiveSubscription { get; set; } = false;
-
     [MaxLength(255)]
     public string? AiApiKey { get; set; }
 
@@ -55,11 +53,6 @@ public sealed class Agent
 
     [MaxLength(50)]
     public string? WhatsAppPhoneNumberId { get; set; }
-
-    [MaxLength(255)]
-    public string? GeminiCacheId { get; set; }
-
-    public DateTimeOffset? GeminiCacheExpiresAt { get; set; }
 
     [MaxLength(50)]
     public string ByokKeyStatus { get; set; } = "Valid";
