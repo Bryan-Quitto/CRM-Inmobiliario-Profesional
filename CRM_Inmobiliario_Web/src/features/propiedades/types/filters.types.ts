@@ -37,7 +37,7 @@ export const AVAILABLE_PROPERTY_FILTERS: FilterDefinition[] = [
     key: 'estadoComercial', 
     label: 'Estado Comercial', 
     type: 'select', 
-    options: ['Todos', 'Disponible', 'Reservado', 'Vendido', 'Alquilado', 'Inactivo'] 
+    options: ['Todos', 'Disponible', 'Reservado', 'Vendida', 'Alquilada', 'Inactivo'] 
   },
 
   // Range

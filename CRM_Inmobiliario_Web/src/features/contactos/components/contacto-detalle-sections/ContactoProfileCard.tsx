@@ -58,48 +58,50 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all">
-          <div className="flex items-center gap-4">
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors ${isBotActivo ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-slate-400'}`}>
-              <Bot className="h-5 w-5" />
+        {!contacto.esCompartido && (
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all">
+            <div className="flex items-center gap-4">
+              <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors ${isBotActivo ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-slate-400'}`}>
+                <Bot className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado IA</p>
+                {isBotActivo ? (
+                  <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
+                ) : contacto.estadoIA === 'Escalado' ? (
+                  <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
+                ) : contacto.estadoIA === 'LimiteAlcanzado' ? (
+                  <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de Tokens</span>
+                ) : (
+                  <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
+                )}
+              </div>
             </div>
-            <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado IA</p>
-              {isBotActivo ? (
-                <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
-              ) : contacto.estadoIA === 'Escalado' ? (
-                <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
-              ) : contacto.estadoIA === 'LimiteAlcanzado' ? (
-                <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de Tokens</span>
-              ) : (
-                <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
-              )}
+            <div className="inline-block">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                  if (isStageLocked) {
+                    toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                    return;
+                  }
+                  if (isLoading || contacto.esCompartido) return;
+                  handleToggle(!isBotActivo);
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                    ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                    : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
+                } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isBotActivo ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
             </div>
           </div>
-          <div className="inline-block">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
-                if (isStageLocked) {
-                  toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
-                  return;
-                }
-                if (isLoading || contacto.esCompartido) return;
-                handleToggle(!isBotActivo);
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
-                  ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                  : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
-              } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isBotActivo ? 'translate-x-6' : 'translate-x-1'
-              }`} />
-            </button>
-          </div>
-        </div>
+        )}
 
         {contacto.email && (
           <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
@@ -124,105 +126,107 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
         </div>
 
         {/* Token Usage Section */}
-        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Bot className="h-4 w-4 text-purple-500" />
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Consumo Tokens</p>
+        {!contacto.esCompartido && (
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Bot className="h-4 w-4 text-purple-500" />
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Consumo Tokens</p>
+              </div>
+              <div className="relative" ref={dropdownRef}>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDropdownOpen(!isDropdownOpen);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-purple-300 transition-colors focus:outline-none cursor-pointer"
+                >
+                  {RANGOS.find(r => r.value === rango)?.label}
+                  <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-32 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
+                    {RANGOS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRango(opt.value as 'hoy' | 'semana' | 'mes' | 'siempre');
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`cursor-pointer w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
+                          rango === opt.value ? 'text-purple-600' : 'text-slate-600'
+                        }`}
+                      >
+                        {opt.label}
+                        {rango === opt.value && <Check className="h-3.5 w-3.5" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsDropdownOpen(!isDropdownOpen);
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-purple-300 transition-colors focus:outline-none cursor-pointer"
-              >
-                {RANGOS.find(r => r.value === rango)?.label}
-                <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
-                  {RANGOS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setRango(opt.value as 'hoy' | 'semana' | 'mes' | 'siempre');
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`cursor-pointer w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
-                        rango === opt.value ? 'text-purple-600' : 'text-slate-600'
-                      }`}
-                    >
-                      {opt.label}
-                      {rango === opt.value && <Check className="h-3.5 w-3.5" />}
-                    </button>
-                  ))}
-                </div>
+            <div className="bg-white rounded-xl p-3 border border-slate-100 flex flex-col gap-2">
+              {isLoadingUsage ? (
+                <span className="text-xs text-slate-400 animate-pulse text-center py-4">Cargando métricas...</span>
+              ) : (
+                <>
+                  {/* 1. Tokens Totales */}
+                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tokens Totales</span>
+                      <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Input + Output + Caché</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-black text-slate-800">
+                        {usage?.totalTokens?.toLocaleString() || 0} <span className="text-[10px] font-bold text-slate-400 uppercase">tkns</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500">
+                        ≈ ${((usage?.costoUSD || 0) + (usage?.ahorroUSD || 0)).toFixed(4)} USD <span className="text-[8px] uppercase">(Valor)</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 2. Tokens del Límite (Input + Output) */}
+                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-indigo-50/50 border border-indigo-100/50 transition-colors">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-wide">Consumo Límite</span>
+                      <span className="text-[10px] text-indigo-500/80 font-medium leading-none mt-0.5">Solo Input + Output</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-black text-indigo-700">
+                        {((usage?.inputTokens || 0) + (usage?.outputTokens || 0)).toLocaleString()} <span className="text-[10px] font-bold text-indigo-500/70 uppercase">tkns</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-indigo-600">
+                        ${usage?.costoUSD?.toFixed(4) || '0.0000'} USD <span className="text-[8px] uppercase">(Cobrado)</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 3. Ahorro Caché */}
+                  <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100/50 p-2 flex items-center justify-between group transition-all">
+                    <div className="absolute inset-0 bg-white/20 opacity-50 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:8px_8px]"></div>
+                    <div className="relative flex items-center gap-2">
+                      <div className="p-1.5 bg-emerald-500 text-white rounded-md shadow-sm">
+                        <Check className="w-3 h-3" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-bold uppercase tracking-wide text-emerald-800">Ahorro Caché</span>
+                        <span className="text-[10px] font-medium text-emerald-600/80 leading-none mt-0.5">{usage?.cachedTokens?.toLocaleString() || 0} tkns cacheados</span>
+                      </div>
+                    </div>
+                    <div className="relative flex flex-col items-end">
+                      <span className="text-sm font-black text-emerald-600">
+                        ${(usage?.ahorroUSD || 0).toFixed(4)} <span className="text-[10px] font-bold text-emerald-500/70 uppercase">USD</span>
+                      </span>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
-          <div className="bg-white rounded-xl p-3 border border-slate-100 flex flex-col gap-2">
-            {isLoadingUsage ? (
-              <span className="text-xs text-slate-400 animate-pulse text-center py-4">Cargando métricas...</span>
-            ) : (
-              <>
-                {/* 1. Tokens Totales */}
-                <div className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tokens Totales</span>
-                    <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Input + Output + Caché</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-sm font-black text-slate-800">
-                      {usage?.totalTokens?.toLocaleString() || 0} <span className="text-[10px] font-bold text-slate-400 uppercase">tkns</span>
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-500">
-                      ≈ ${((usage?.costoUSD || 0) + (usage?.ahorroUSD || 0)).toFixed(4)} USD <span className="text-[8px] uppercase">(Valor)</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* 2. Tokens del Límite (Input + Output) */}
-                <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-indigo-50/50 border border-indigo-100/50 transition-colors">
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-wide">Consumo Límite</span>
-                    <span className="text-[10px] text-indigo-500/80 font-medium leading-none mt-0.5">Solo Input + Output</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-sm font-black text-indigo-700">
-                      {((usage?.inputTokens || 0) + (usage?.outputTokens || 0)).toLocaleString()} <span className="text-[10px] font-bold text-indigo-500/70 uppercase">tkns</span>
-                    </span>
-                    <span className="text-[10px] font-bold text-indigo-600">
-                      ${usage?.costoUSD?.toFixed(4) || '0.0000'} USD <span className="text-[8px] uppercase">(Cobrado)</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3. Ahorro Caché */}
-                <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100/50 p-2 flex items-center justify-between group transition-all">
-                  <div className="absolute inset-0 bg-white/20 opacity-50 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:8px_8px]"></div>
-                  <div className="relative flex items-center gap-2">
-                    <div className="p-1.5 bg-emerald-500 text-white rounded-md shadow-sm">
-                      <Check className="w-3 h-3" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-emerald-800">Ahorro Caché</span>
-                      <span className="text-[10px] font-medium text-emerald-600/80 leading-none mt-0.5">{usage?.cachedTokens?.toLocaleString() || 0} tkns cacheados</span>
-                    </div>
-                  </div>
-                  <div className="relative flex flex-col items-end">
-                    <span className="text-sm font-black text-emerald-600">
-                      ${(usage?.ahorroUSD || 0).toFixed(4)} <span className="text-[10px] font-bold text-emerald-500/70 uppercase">USD</span>
-                    </span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       <ConfirmModal

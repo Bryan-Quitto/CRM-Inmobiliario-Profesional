@@ -1,23 +1,15 @@
-import { Bot, User, Loader2, Check, X, Pencil, Trash2, Calendar } from 'lucide-react';
+import { Bot, User, Pencil, Calendar } from 'lucide-react';
 
 interface SectionRegistradoProps {
   registradoPorIA: boolean;
-  contactoId: string | null;
-  idABorrar: string | null;
-  setIdABorrar: (id: string | null) => void;
-  isDeleting: boolean;
+  contactoId?: string;
   handleEditClick: (id: string) => void;
-  handleConfirmDelete: (id: string) => void;
 }
 
 export const AuditoriaSectionRegistrado = ({
   registradoPorIA,
   contactoId,
-  idABorrar,
-  setIdABorrar,
-  isDeleting,
-  handleEditClick,
-  handleConfirmDelete
+  handleEditClick
 }: SectionRegistradoProps) => {
   return (
     <div className="px-6 py-8 bg-blue-50/30 rounded-[2rem] border border-blue-100/50 animate-in zoom-in-95 duration-300">
@@ -57,40 +49,12 @@ export const AuditoriaSectionRegistrado = ({
         </div>
 
         <div className="flex items-center gap-3">
-          {idABorrar === contactoId && contactoId ? (
-            <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-xl border border-rose-100 animate-in zoom-in duration-200">
-              <p className="text-[10px] font-black text-rose-500 uppercase px-3">¿Borrar?</p>
-              <button 
-                onClick={() => handleConfirmDelete(contactoId)}
-                disabled={isDeleting}
-                className="h-10 w-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center hover:bg-emerald-600 transition-all cursor-pointer shadow-lg shadow-emerald-500/20"
-              >
-                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-5 w-5" />}
-              </button>
-              <button 
-                onClick={() => setIdABorrar(null)}
-                disabled={isDeleting}
-                className="h-10 w-10 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          ) : (
-            <>
-              <button 
-                onClick={() => contactoId && handleEditClick(contactoId)}
-                className="h-14 w-14 bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl flex items-center justify-center transition-all shadow-sm border border-slate-100 hover:border-blue-200 cursor-pointer group/btn"
-              >
-                <Pencil className="h-6 w-6 group-hover/btn:scale-110 transition-transform" />
-              </button>
-              <button 
-                onClick={() => setIdABorrar(contactoId)}
-                className="h-14 w-14 bg-white text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-2xl flex items-center justify-center transition-all shadow-sm border border-slate-100 hover:border-rose-200 cursor-pointer group/btn"
-              >
-                <Trash2 className="h-6 w-6 group-hover/btn:scale-110 transition-transform" />
-              </button>
-            </>
-          )}
+          <button 
+            onClick={() => contactoId && handleEditClick(contactoId)}
+            className="h-14 w-14 bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl flex items-center justify-center transition-all shadow-sm border border-slate-100 hover:border-blue-200 cursor-pointer group/btn"
+          >
+            <Pencil className="h-6 w-6 group-hover/btn:scale-110 transition-transform" />
+          </button>
         </div>
       </div>
     </div>

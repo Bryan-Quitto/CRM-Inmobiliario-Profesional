@@ -98,7 +98,7 @@ public static class ObtenerContactoPorIdFeature
                             p.FechaIngreso))
                         .ToList(),
                     context.Properties.Count(p => p.CerradoConId == c.Id && p.EstadoComercial == "Reservada"),
-                    context.Properties.Count(p => p.CerradoConId == c.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada" || p.EstadoComercial == "Vendido" || p.EstadoComercial == "Rentado")),
+                    context.Properties.Count(p => p.CerradoConId == c.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada")),
                     c.BotActivo,
                     c.EstadoIA
                 ))

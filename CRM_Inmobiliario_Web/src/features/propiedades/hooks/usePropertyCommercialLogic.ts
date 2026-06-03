@@ -98,7 +98,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     const isReversion = (nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && esCerradoOReservado(propiedad.estadoComercial);
     
     if (isReversion) {
-      await executeWithUndo(propiedad, nuevoEstado, "Reversion", "Revirtiendo cierre... El contacto volverá a Negociación.");
+      await executeWithUndo(propiedad, nuevoEstado, "Reversion", "Revirtiendo cierre... El contacto volverá a Contactado.");
     } else {
       await executeDirectUpdate(propiedad, nuevoEstado);
     }
@@ -171,13 +171,13 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
    * handleRelist
    * Standard relisting or transaction cancellation
    */
-  const handleRelist = async (propiedad: Propiedad, type: 'Relist' | 'Cancel', targetStatus = 'Disponible', marcarContactoPerdido = false) => {
+  const handleRelist = async (propiedad: Propiedad, type: 'Relist' | 'Cancel', targetStatus = 'Disponible') => {
     const title = type === 'Relist' ? "Relistando..." : "Anulando Operación";
     const description = type === 'Relist' 
       ? "Se iniciará un nuevo ciclo. 5s para deshacer." 
-      : (marcarContactoPerdido ? "El contacto se marcará como Perdido. 5s para deshacer." : "El contacto volverá a Negociación. 5s para deshacer.");
+      : "La propiedad volverá a estar disponible. 5s para deshacer.";
 
-    await executeWithUndo(propiedad, targetStatus, type, description, title, marcarContactoPerdido);
+    await executeWithUndo(propiedad, targetStatus, type, description, title);
   };
 
   // --- Private Helpers ---
@@ -220,8 +220,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     targetStatus: string, 
     type: 'Relist' | 'Cancel' | 'Reversion', 
     description: string,
-    title?: string,
-    marcarContactoPerdido = false
+    title?: string
   ) => {
     let isCancelled = false;
     const oldEstado = propiedad.estadoComercial;
@@ -237,7 +236,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
         if (type === 'Reversion') {
           await actualizarEstadoPropiedad(propiedad.id, targetStatus, undefined, undefined, propiedad.version);
         } else {
-          await relistPropiedad(propiedad.id, type === 'Relist' ? "Relistado natural" : "Trato caído", type as 'Relist' | 'Cancel', marcarContactoPerdido);
+          await relistPropiedad(propiedad.id, type === 'Relist' ? "Relistado natural" : "Trato caído", type as 'Relist' | 'Cancel');
         }
 
         await safeRevalidate();

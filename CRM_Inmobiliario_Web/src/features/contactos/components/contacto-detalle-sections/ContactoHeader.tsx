@@ -8,7 +8,7 @@ interface ContactoHeaderProps {
   isUpdatingEtapa: boolean;
   activeDropdown: 'cliente' | 'propietario' | null;
   setActiveDropdown: (show: 'cliente' | 'propietario' | null) => void;
-  handleStageChange: (etapa: string, data?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo?: 'cliente' | 'propietario') => void;
+  handleStageChange: (etapa: string, tipo?: 'cliente' | 'propietario') => void;
   navigate: (path: string) => void;
 }
 
@@ -61,10 +61,10 @@ export const ContactoHeader = ({
 
                     {activeDropdown === 'cliente' && (
                       <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in-95 duration-200">
-                        {ETAPAS.map((etapa) => (
+                        {ETAPAS.filter(e => e.value !== 'En Negociación' && e.value !== 'Cerrado' && e.value !== 'Cerrado Ganado' && e.value !== 'Cerrado Perdido').map((etapa) => (
                           <button
                             key={etapa.value}
-                            onClick={() => handleStageChange(etapa.value, undefined, 'cliente')}
+                            onClick={() => handleStageChange(etapa.value, 'cliente')}
                             className={`cursor-pointer w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
                               contacto.etapaEmbudo === etapa.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
                             }`}
@@ -102,7 +102,7 @@ export const ContactoHeader = ({
                         {ETAPAS_PROPIETARIO.map((etapa) => (
                           <button
                             key={etapa.value}
-                            onClick={() => handleStageChange(etapa.value, undefined, 'propietario')}
+                            onClick={() => handleStageChange(etapa.value, 'propietario')}
                             className={`cursor-pointer w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
                               contacto.estadoPropietario === etapa.value ? 'text-emerald-600 bg-emerald-50/30' : 'text-slate-600'
                             }`}

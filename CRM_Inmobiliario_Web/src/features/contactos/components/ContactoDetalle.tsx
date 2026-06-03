@@ -37,20 +37,16 @@ export const ContactoDetalle = () => {
     dropdownInteresOpenId,
     setDropdownInteresOpenId,
     vincularStatus,
-    isClosingModalOpen,
-    setIsClosingModalOpen,
-    intendedStage,
+    newCycleConfirmation,
+    setNewCycleConfirmation,
     isUpdatingEtapa,
     activeDropdown,
     setActiveDropdown,
-    revertConfirmation,
-    setRevertConfirmation,
     idInteresABorrar,
     setIdInteresABorrar,
     isDeletingInteres,
-    handleRevertStatus,
     handleStageChange,
-    handleClosingConfirm,
+    executeStageChange,
     handleSaveNota,
     handleEditarNota,
     handleEliminarNota,
@@ -158,13 +154,9 @@ export const ContactoDetalle = () => {
 
       <ContactoModalsOrchestrator 
         contacto={contacto}
-        isClosingModalOpen={isClosingModalOpen}
-        setIsClosingModalOpen={setIsClosingModalOpen}
-        intendedStage={intendedStage}
-        handleClosingConfirm={handleClosingConfirm}
-        revertConfirmation={revertConfirmation}
-        setRevertConfirmation={setRevertConfirmation}
-        handleRevertStatus={handleRevertStatus}
+        newCycleConfirmation={newCycleConfirmation}
+        setNewCycleConfirmation={setNewCycleConfirmation}
+        executeStageChange={executeStageChange}
       />
     </div>
   );

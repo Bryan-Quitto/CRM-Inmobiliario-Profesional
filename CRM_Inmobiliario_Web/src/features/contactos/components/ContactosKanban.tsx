@@ -8,7 +8,7 @@ import type { Contacto } from '../types';
 interface ContactosKanbanProps {
   contactos: Contacto[];
   activeSegment: 'clientes' | 'propietarios' | 'todos';
-  onStageChange: (id: string, nuevaEtapa: string, data?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string }, tipo?: 'contacto' | 'propietario') => void;
+  onStageChange: (id: string, nuevaEtapa: string, tipo?: 'contacto' | 'propietario') => void;
   onNavigate: (id: string) => void;
 }
 
@@ -44,7 +44,7 @@ export const ContactosKanban: React.FC<ContactosKanbanProps> = ({ contactos, act
     const { destination, source, draggableId } = result;
     if (!destination) return;
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
-    onStageChange(draggableId, destination.droppableId, undefined, isOwnerMode ? 'propietario' : 'contacto');
+    onStageChange(draggableId, destination.droppableId, isOwnerMode ? 'propietario' : 'contacto');
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -121,7 +121,10 @@ export const ContactosKanban: React.FC<ContactosKanbanProps> = ({ contactos, act
 
               {/* Area Droppable */}
               {!isCollapsed && (
-                <Droppable droppableId={etapa.value}>
+                <Droppable 
+                  droppableId={etapa.value}
+                  isDropDisabled={etapa.value === 'En Negociación' || etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado' || etapa.value === 'Cerrado Perdido'}
+                >
                   {(provided, snapshot) => (
                     <div
                       {...provided.droppableProps}
@@ -131,7 +134,12 @@ export const ContactosKanban: React.FC<ContactosKanbanProps> = ({ contactos, act
                       }`}
                     >
                       {columns[etapa.value]?.map((contacto, index) => (
-                        <Draggable key={contacto.id} draggableId={contacto.id} index={index}>
+                        <Draggable 
+                          key={contacto.id} 
+                          draggableId={contacto.id} 
+                          index={index}
+                          isDragDisabled={contacto.etapaEmbudo === 'En Negociación'}
+                        >
                           {(provided, snapshot) => (
                             <div
                               ref={provided.innerRef}

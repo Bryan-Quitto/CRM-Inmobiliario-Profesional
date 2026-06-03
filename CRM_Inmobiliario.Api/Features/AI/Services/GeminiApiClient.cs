@@ -21,7 +21,7 @@ public class GeminiApiClient : IGeminiApiClient
 
     public async Task<bool> PatchTtlAsync(string geminiCacheId, string byokKey, CancellationToken cancellationToken = default)
     {
-        var json = $"{{\"name\":\"{geminiCacheId}\",\"ttl\":\"3600s\"}}";
+        var json = $"{{\"ttl\":\"3600s\"}}";
         var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
         var request = new HttpRequestMessage(HttpMethod.Patch, 

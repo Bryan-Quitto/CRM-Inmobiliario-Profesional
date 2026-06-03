@@ -121,6 +121,8 @@ public static class ActualizarPropiedadFeature
             propiedad.PorcentajeComision = command.PorcentajeComision;
             propiedad.AgenteId = finalAgenteId; // Actualizamos el captador real
 
+            var oldPropietarioId = propiedad.PropietarioId;
+
             // Manejo de Propietario (Spec 015 - Auto Promotion)
             if (command.PropietarioId.HasValue)
             {
@@ -159,6 +161,21 @@ public static class ActualizarPropiedadFeature
                 
                 // Enqueue background job to update vector embedding
                 backgroundJobs.Enqueue<PropertyEmbeddingJob>(j => j.ProcessPropertyAsync(propiedad.Id));
+
+                // Demote old owner if they no longer have properties
+                if (oldPropietarioId.HasValue && oldPropietarioId != command.PropietarioId)
+                {
+                    var tienePropiedades = await context.Properties.AnyAsync(p => p.PropietarioId == oldPropietarioId);
+                    if (!tienePropiedades)
+                    {
+                        var oldPropietario = await context.Contactos.FindAsync(oldPropietarioId.Value);
+                        if (oldPropietario != null)
+                        {
+                            oldPropietario.EsPropietario = false;
+                            await context.SaveChangesAsync();
+                        }
+                    }
+                }
             }
             catch (DbUpdateConcurrencyException)
             {

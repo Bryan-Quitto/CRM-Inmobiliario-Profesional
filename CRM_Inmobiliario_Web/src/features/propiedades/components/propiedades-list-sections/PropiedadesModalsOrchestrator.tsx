@@ -24,7 +24,7 @@ interface PropiedadesModalsOrchestratorProps {
   handleClosingConfirm: (precio: number | null, id: string, tipo: string) => Promise<void>;
   showReversionModal: { type: 'status', id: string, targetStatus: string, currentStatus?: string } | null;
   setShowReversionModal: (reversion: { type: 'status', id: string, targetStatus: string, currentStatus?: string } | null) => void;
-  handleRelistPropiedad: (id: string, reason: string, type: 'Relist' | 'Cancel', marcarContactoPerdido?: boolean) => void;
+  handleRelistPropiedad: (id: string, reason: string, type: 'Relist' | 'Cancel') => void;
 }
 
 export const PropiedadesModalsOrchestrator = ({
