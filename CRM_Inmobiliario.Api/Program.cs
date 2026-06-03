@@ -78,7 +78,7 @@ builder.Services.AddScoped<IWhatsAppToolHandler, BuscarPropiedadesHandler>();
 builder.Services.AddScoped<IWhatsAppToolHandler, ConsultarBaseConocimientoHandler>();
 builder.Services.AddScoped<IWhatsAppToolHandler, ConsultarDetallesPropiedadHandler>();
 builder.Services.AddScoped<IWhatsAppToolHandler, RegistrarInteresContactoHandler>();
-builder.Services.AddScoped<IWhatsAppToolHandler, RegistrarNuevoContactoHandler>();
+
 builder.Services.AddScoped<IWhatsAppToolHandler, DerivarCaptacionPropietarioHandler>();
 builder.Services.AddScoped<IWhatsAppToolHandler, SolicitarAsistenciaHumanaHandler>();
 

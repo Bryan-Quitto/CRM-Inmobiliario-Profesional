@@ -69,6 +69,16 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             };
             _context.Contactos.Add(contacto);
             await _context.SaveChangesAsync();
+
+            var comparticionObsoleta = await _context.ContactoAgenteCompartidos
+                .Include(cac => cac.Contacto)
+                .FirstOrDefaultAsync(cac => cac.AgenteId == agente.Id && cac.Contacto != null && cac.Contacto.Telefono == phone);
+                
+            if (comparticionObsoleta != null)
+            {
+                _context.ContactoAgenteCompartidos.Remove(comparticionObsoleta);
+                await _context.SaveChangesAsync();
+            }
         }
         
         // 3. Filtrado por BotActivo y Reglas de Handoff
@@ -282,8 +292,6 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
     {
         var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
         var targetDate = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.FromHours(-5));
-        var usage = await _context.ContactDailyTokenUsages
-            .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date == targetDate);
             
         decimal costoTransaccion = 0m;
         decimal ahorroTransaccion = 0m;
@@ -304,34 +312,48 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                                (outputTokens / 1_000_000m * 0.60m);
         }
 
-        if (usage == null)
+        bool saved = false;
+        while (!saved)
         {
-            usage = new ContactDailyTokenUsage
+            var usage = await _context.ContactDailyTokenUsages
+                .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date == targetDate);
+
+            if (usage == null)
             {
-                Id = Guid.NewGuid(),
-                ContactoId = contactoId,
-                Date = targetDate,
-                TokensUsed = totalTokens,
-                InputTokens = inputTokens,
-                CachedTokens = cachedTokens,
-                OutputTokens = outputTokens,
-                CostoUSD = costoTransaccion,
-                AhorroUSD = ahorroTransaccion
-            };
-            _context.ContactDailyTokenUsages.Add(usage);
+                usage = new ContactDailyTokenUsage
+                {
+                    Id = Guid.NewGuid(),
+                    ContactoId = contactoId,
+                    Date = targetDate,
+                    TokensUsed = totalTokens,
+                    InputTokens = inputTokens,
+                    CachedTokens = cachedTokens,
+                    OutputTokens = outputTokens,
+                    CostoUSD = costoTransaccion,
+                    AhorroUSD = ahorroTransaccion
+                };
+                _context.ContactDailyTokenUsages.Add(usage);
+            }
+            else
+            {
+                usage.TokensUsed += totalTokens;
+                usage.InputTokens += inputTokens;
+                usage.CachedTokens += cachedTokens;
+                usage.OutputTokens += outputTokens;
+                usage.CostoUSD += costoTransaccion;
+                usage.AhorroUSD += ahorroTransaccion;
+            }
+            
+            try
+            {
+                await _context.SaveChangesAsync();
+                saved = true;
+            }
+            catch (DbUpdateException)
+            {
+                _context.Entry(usage).State = EntityState.Detached;
+            }
         }
-        else
-        {
-            usage.TokensUsed += totalTokens;
-            usage.InputTokens += inputTokens;
-            usage.CachedTokens += cachedTokens;
-            usage.OutputTokens += outputTokens;
-            usage.CostoUSD += costoTransaccion;
-            usage.AhorroUSD += ahorroTransaccion;
-        }
-        
-        
-        await _context.SaveChangesAsync();
     }
 
     public void ApplyNuevaBusqueda(List<ChatMessage> history)
