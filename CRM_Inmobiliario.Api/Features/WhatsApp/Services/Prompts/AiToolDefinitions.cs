@@ -56,20 +56,7 @@ public static class AiToolDefinitions
                 }
                 """
             },
-            new AiToolDefinition
-            {
-                Name = "RegistrarNuevoContacto",
-                Description = "Crea un nuevo contacto en el CRM. Debes llamar a esta herramienta SIEMPRE ANTES de registrar un interés si el cliente no está en la base.",
-                ParametersSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "nombre": { "type": "string", "description": "Nombre completo del cliente." }
-                    },
-                    "required": ["nombre"]
-                }
-                """
-            },
+
             new AiToolDefinition
             {
                 Name = "RegistrarInteresContacto",
