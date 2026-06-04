@@ -63,7 +63,7 @@ builder.Services.AddHangfire(config => config.UsePostgreSqlStorage(options => op
 builder.Services.AddHangfireServer();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService, CRM_Inmobiliario.Api.Features.Propiedades.Services.PropertyEmbeddingService>();
 builder.Services.AddScoped<IWhatsAppPromptBuilder, WhatsAppPromptBuilder>();
-builder.Services.AddScoped<IWhatsAppToolExecutor, WhatsAppToolExecutor>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.ICoreAiToolExecutor, CRM_Inmobiliario.Api.Features.CoreAi.Services.CoreAiToolExecutor>();
 builder.Services.AddHttpClient<IWhatsAppMessageSender, WhatsAppMessageSender>()
     .AddStandardResilienceHandler();
 builder.Services.AddHttpClient<IWhatsAppMediaService, WhatsAppMediaService>()
@@ -71,16 +71,25 @@ builder.Services.AddHttpClient<IWhatsAppMediaService, WhatsAppMediaService>()
 builder.Services.AddScoped<LLMProviderFactory>();
 builder.Services.AddScoped<IWhatsAppConversationManager, WhatsAppConversationManager>();
 builder.Services.AddScoped<WhatsAppAiService>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.ISemanticRouterService, CRM_Inmobiliario.Api.Features.CoreAi.Services.SemanticRouterService>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentSystemPromptFactory>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentAiService>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentTitleGeneratorService>();
 builder.Services.AddScoped<IWhatsAppJobProcessor, WhatsAppJobProcessor>();
 
 // Handlers de herramientas IA
-builder.Services.AddScoped<IWhatsAppToolHandler, BuscarPropiedadesHandler>();
-builder.Services.AddScoped<IWhatsAppToolHandler, ConsultarBaseConocimientoHandler>();
-builder.Services.AddScoped<IWhatsAppToolHandler, ConsultarDetallesPropiedadHandler>();
-builder.Services.AddScoped<IWhatsAppToolHandler, RegistrarInteresContactoHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, BuscarPropiedadesHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, ConsultarBaseConocimientoHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, ConsultarDetallesPropiedadHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, RegistrarInteresContactoHandler>();
 
-builder.Services.AddScoped<IWhatsAppToolHandler, DerivarCaptacionPropietarioHandler>();
-builder.Services.AddScoped<IWhatsAppToolHandler, SolicitarAsistenciaHumanaHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, DerivarCaptacionPropietarioHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, SolicitarAsistenciaHumanaHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.WhatsApp.Tools.ResumirHistorialContacto.ResumirHistorialContactoHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.WhatsApp.Tools.CrearTareaCRM.CrearTareaCRMHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.IFinancialRateRepository, CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.FinancialRateRepository>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.GenerarCotizacionRapidaHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.NavegacionDirectaHandler>();
 
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
 builder.Services.AddSingleton<IPdfCleanupQueue, PdfCleanupQueue>();
@@ -205,3 +214,4 @@ public class AdminAuthorizationFilter : Hangfire.Dashboard.IDashboardAuthorizati
         return false;
     }
 }
+

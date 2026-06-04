@@ -1,3 +1,5 @@
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -6,28 +8,28 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
-public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
+public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
 {
     public SolicitarAsistenciaHumanaHandler(CrmDbContext context, ILogger<SolicitarAsistenciaHumanaHandler> logger) 
         : base(context, logger) { }
 
     public override string ToolName => "SolicitarAsistenciaHumana";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
     {
         string motivo = args.RootElement.TryGetProperty("motivo", out var m) ? m.GetString() ?? "No especificado" : "No especificado";
-        await LogAiActionAsync("Alerta", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
+        await LogAiActionAsync("Alerta", args.RootElement.GetRawText(), context);
         
-        if (contacto == null)
+        if (context.Contacto == null)
         {
             var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin")
                         ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
 
-            contacto = new Contacto
+            context.Contacto = new Contacto
             {
                 Id = Guid.NewGuid(),
                 Nombre = "Usuario Desconocido",
-                Telefono = phone,
+                Telefono = context.CustomerPhone ?? string.Empty,
                 Origen = "IA WhatsApp",
                 AgenteId = agent?.Id ?? Guid.Empty,
                 FechaCreacion = DateTimeOffset.UtcNow,
@@ -38,19 +40,19 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
                 BotActivo = false,
                 TransferenciaNotificada = true
             };
-            _context.Contactos.Add(contacto);
+            _context.Contactos.Add(context.Contacto);
         }
         else
         {
-            contacto.EstadoIA = "Escalado";
-            contacto.Notas = string.IsNullOrWhiteSpace(contacto.Notas) 
+            context.Contacto.EstadoIA = "Escalado";
+            context.Contacto.Notas = string.IsNullOrWhiteSpace(context.Contacto.Notas) 
                 ? $"Escalamiento: {motivo}" 
-                : $"{contacto.Notas}\nEscalamiento: {motivo}";
+                : $"{context.Contacto.Notas}\nEscalamiento: {motivo}";
             
-            contacto.BotActivo = false;
-            contacto.TransferenciaNotificada = true;
+            context.Contacto.BotActivo = false;
+            context.Contacto.TransferenciaNotificada = true;
             
-            _context.Contactos.Update(contacto);
+            _context.Contactos.Update(context.Contacto);
         }
         
         await _context.SaveChangesAsync();
@@ -58,3 +60,9 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseWhatsAppToolHandler
         return "Solicitud de asistencia enviada al equipo humano.";
     }
 }
+
+
+
+
+
+

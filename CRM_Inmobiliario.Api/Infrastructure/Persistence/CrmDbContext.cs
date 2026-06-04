@@ -31,6 +31,10 @@ public sealed class CrmDbContext : DbContext
     public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
     public DbSet<SecurityAuditLog> SecurityAuditLogs => Set<SecurityAuditLog>();
     public DbSet<ContactDailyTokenUsage> ContactDailyTokenUsages => Set<ContactDailyTokenUsage>();
+    public DbSet<AgentDailyTokenUsage> AgentDailyTokenUsages => Set<AgentDailyTokenUsage>();
+    public DbSet<AgentConversation> AgentConversations => Set<AgentConversation>();
+    public DbSet<AgentMessage> AgentMessages => Set<AgentMessage>();
+    public DbSet<FinancialRate> FinancialRates => Set<FinancialRate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +44,12 @@ public sealed class CrmDbContext : DbContext
             modelBuilder.HasPostgresExtension("vector");
         }
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<AgentConversation>()
+            .HasMany(c => c.Messages)
+            .WithOne(m => m.AgentConversation)
+            .HasForeignKey(m => m.AgentConversationId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Aplicar todas las configuraciones de IEntityTypeConfiguration encontradas en el ensamblado
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CrmDbContext).Assembly);

@@ -1,3 +1,5 @@
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using System.Text;
 using CRM_Inmobiliario.Api.Domain.Entities;
@@ -10,7 +12,7 @@ using OpenAI.Embeddings;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
-public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
+public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
 {
     private readonly CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService _embeddingService;
 
@@ -22,7 +24,7 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "ConsultarBaseConocimiento";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
     {
         string? queryStr = args.RootElement.TryGetProperty("query", out var q) ? q.GetString() : null;
 
@@ -36,9 +38,9 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
         string? provider = null;
         string? apiKey = null;
 
-        if (!string.IsNullOrEmpty(phoneNumberId))
+        if (!string.IsNullOrEmpty(context.PhoneNumberId))
         {
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == context.PhoneNumberId);
             if (agent != null)
             {
                 provider = agent.ActiveLLMProvider;
@@ -53,8 +55,15 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
             return "El servicio de conocimiento corporativo no está disponible temporalmente.";
         }
 
-        var baseQuery = _context.DocumentChunks
-            .Where(c => c.Audience == DocumentAudience.Public);
+        var baseQuery = _context.DocumentChunks.AsQueryable();
+        if (context.Channel != "Copilot") 
+        {
+            baseQuery = baseQuery.Where(c => c.Audience == DocumentAudience.Public);
+        }
+        else
+        {
+            baseQuery = baseQuery.Where(c => c.Audience == DocumentAudience.Public || c.Audience == DocumentAudience.Internal);
+        }
 
         List<DocumentChunk> topChunks;
         
@@ -77,8 +86,14 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
 
         if (topChunks.Any()) 
         {
-            await LogAiActionAsync("ConsultaRAG", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
+            await LogAiActionAsync("ConsultaRAG", args.RootElement.GetRawText(), context);
             
+            if (context.Channel == "Copilot")
+            {
+                var minifiedChunks = topChunks.Select(c => c.Content);
+                return JsonSerializer.Serialize(minifiedChunks);
+            }
+
             string contextText = string.Join("\n\n", topChunks.Select(c => $"[Contexto Corporativo]: {c.Content}"));
             return $"Utiliza OBLIGATORIAMENTE la siguiente información para responder a la duda del usuario. Si la respuesta no está aquí, dile que un humano le puede ayudar. NUNCA inventes políticas:\n\n{contextText}";
         }
@@ -86,3 +101,7 @@ public sealed class ConsultarBaseConocimientoHandler : BaseWhatsAppToolHandler
         return "No encontré información sobre este tema en los documentos corporativos. Indica amablemente al usuario que no tienes ese dato e invítalo a hablar con un asesor.";
     }
 }
+
+
+
+

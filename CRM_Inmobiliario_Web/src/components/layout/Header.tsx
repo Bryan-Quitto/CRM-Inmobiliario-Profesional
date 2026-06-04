@@ -1,7 +1,8 @@
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, Sparkles } from 'lucide-react';
 import { useTareas } from '@/features/tareas/context/useTareas';
 import { usePerfil } from '@/features/auth/api/perfil';
 import type { Session } from '@supabase/supabase-js';
+import { useCopilotStore } from '@/features/copilot/store/useCopilotStore';
 
 interface HeaderProps {
   isAgendaOpen: boolean;
@@ -12,6 +13,7 @@ interface HeaderProps {
 export const Header = ({ isAgendaOpen, setIsAgendaOpen, session }: HeaderProps) => {
   const { urgentesCount } = useTareas();
   const { perfil } = usePerfil();
+  const { toggleOpen, isOpen } = useCopilotStore();
 
   return (
     <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
@@ -29,6 +31,16 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session }: HeaderProps) 
       </div>
 
       <div className="flex items-center gap-6">
+        <button
+          onClick={toggleOpen}
+          aria-label={isOpen ? "Cerrar Asistente de IA" : "Abrir Asistente de IA"}
+          className={`cursor-pointer p-2.5 rounded-xl transition-all relative flex items-center justify-center ${
+            isOpen ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+          }`}
+        >
+          <Sparkles className="h-5 w-5" aria-hidden="true" />
+          <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-indigo-500 rounded-full border-2 border-white animate-pulse"></span>
+        </button>
         <button 
           onClick={() => setIsAgendaOpen(!isAgendaOpen)}
           aria-label={isAgendaOpen ? "Cerrar agenda y notificaciones" : "Abrir agenda y notificaciones"}

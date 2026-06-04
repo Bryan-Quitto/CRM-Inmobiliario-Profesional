@@ -12,6 +12,8 @@ using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
 using CRM_Inmobiliario.Api.Features.Admin;
 using CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
+using CRM_Inmobiliario.Api.Features.AgentAi.Endpoints;
+using CRM_Inmobiliario.Api.Features.FinOps.GetAgentTokenUsage;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -99,6 +101,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapListarLogsSeguridadEndpoint();
         apiGroup.MapAdminApiKeysEndpoints();
         apiGroup.MapConfiguracionIAEndpoints();
+        apiGroup.MapGetAgentTokenUsageEndpoint();
 
         // Calendario
         apiGroup.MapListarEventosEndpoint().CacheOutput();
@@ -114,5 +117,11 @@ public static class EndpointRouteBuilderExtensions
         // Admin
         apiGroup.MapReVectorizeEndpoint();
         apiGroup.MapIngestDocumentEndpoint();
+
+        // Agent AI
+        apiGroup.MapStreamChatEndpoint();
+        apiGroup.MapGetConversationsEndpoint();
+        apiGroup.MapGetConversationMessagesEndpoint();
+        apiGroup.MapUpdateConversationTitleEndpoint();
     }
 }

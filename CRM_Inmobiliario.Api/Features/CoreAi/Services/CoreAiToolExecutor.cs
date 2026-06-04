@@ -1,31 +1,35 @@
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
-using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+using System.Threading.Tasks;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools; // Moveremos/cambiaremos los handlers?
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
+namespace CRM_Inmobiliario.Api.Features.CoreAi.Services;
 
-public sealed class WhatsAppToolExecutor : IWhatsAppToolExecutor
+public sealed class CoreAiToolExecutor : ICoreAiToolExecutor
 {
     private readonly CrmDbContext _context;
-    private readonly ILogger<WhatsAppToolExecutor> _logger;
-    private readonly IEnumerable<IWhatsAppToolHandler> _handlers;
+    private readonly ILogger<CoreAiToolExecutor> _logger;
+    private readonly IEnumerable<ICoreAiToolHandler> _handlers;
 
-    public WhatsAppToolExecutor(
+    public CoreAiToolExecutor(
         CrmDbContext context, 
-        ILogger<WhatsAppToolExecutor> logger,
-        IEnumerable<IWhatsAppToolHandler> handlers)
+        ILogger<CoreAiToolExecutor> logger,
+        IEnumerable<ICoreAiToolHandler> handlers)
     {
         _context = context;
         _logger = logger;
         _handlers = handlers;
     }
 
-    public async Task<string> HandleToolCallAsync(AiToolCall toolCall, string customerPhone, string triggerMessage, Contacto? currentContacto, string phoneNumberId)
+    public async Task<string> HandleToolCallAsync(AiToolCall toolCall, ToolExecutionContext context)
     {
-        _logger.LogInformation("Ejecutando herramienta: {ToolName} para {Phone}", toolCall.Name, customerPhone);
+        _logger.LogInformation("Ejecutando herramienta: {ToolName} para Usuario {UserId} en {Channel}", toolCall.Name, context.UserId, context.Channel);
         
         using JsonDocument args = JsonDocument.Parse(toolCall.Arguments);
 
@@ -39,9 +43,8 @@ public sealed class WhatsAppToolExecutor : IWhatsAppToolExecutor
                 return "Error: Herramienta no encontrada.";
             }
 
-            var result = await handler.ExecuteAsync(args, customerPhone, triggerMessage, currentContacto, phoneNumberId);
+            var result = await handler.ExecuteAsync(args, context);
             
-            // Centralizamos el guardado de cambios para asegurar que las acciones de los handlers (logs, updates) persistan
             await _context.SaveChangesAsync();
             
             return result;

@@ -1,0 +1,56 @@
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
+using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+using System.Text.Json;
+using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace CRM_Inmobiliario.Api.Features.WhatsApp.Tools.ResumirHistorialContacto;
+
+public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
+{
+    public ResumirHistorialContactoHandler(CrmDbContext context, ILogger<ResumirHistorialContactoHandler> logger) 
+        : base(context, logger) { }
+
+    public override string ToolName => "ResumirHistorialContacto";
+
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
+    {
+        string searchTerm = args.RootElement.GetProperty("searchTerm").GetString() ?? string.Empty;
+
+        var result = await (from c in _context.Contactos
+                            where c.Nombre.Contains(searchTerm) || c.Telefono.Contains(searchTerm)
+                            let whatsapp = _context.WhatsappConversations
+                                .OrderByDescending(w => w.UltimaActualizacion)
+                                .FirstOrDefault(w => w.ContactoId == c.Id)
+                            select new 
+                            {
+                                ContactId = c.Id,
+                                Nombre = c.Nombre,
+                                Telefono = c.Telefono,
+                                EtapaEmbudo = c.EtapaEmbudo,
+                                EsProspecto = c.EsProspecto,
+                                EsPropietario = c.EsPropietario,
+                                UltimasTareas = c.Tasks
+                                    .OrderByDescending(t => t.FechaInicio)
+                                    .Take(3)
+                                    .Select(t => new { t.Titulo, t.Estado, t.FechaInicio }),
+                                UltimasNotas = c.Interactions
+                                    .OrderByDescending(i => i.FechaInteraccion)
+                                    .Take(3)
+                                    .Select(i => new { i.TipoInteraccion, i.Notas, i.FechaInteraccion }),
+                                ConversacionWhatsApp = whatsapp != null ? whatsapp.HistorialJson : null
+                            })
+                            .FirstOrDefaultAsync();
+
+        if (result == null)
+        {
+            return "{\"error\": \"Contacto no encontrado\"}";
+        }
+
+        await LogAiActionAsync("ResumirHistorialContacto", args.RootElement.GetRawText(), context);
+
+        return JsonSerializer.Serialize(result);
+    }
+}

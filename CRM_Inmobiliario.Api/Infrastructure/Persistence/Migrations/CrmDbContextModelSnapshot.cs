@@ -129,6 +129,108 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.ToTable("Agents");
                 });
 
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentConversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentId");
+
+                    b.ToTable("AgentConversations");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentDailyTokenUsage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AhorroUSD")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 6)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("CachedTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<decimal>("CostoUSD")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 6)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("InputTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("OutputTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("TokensUsed")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("AgentDailyTokenUsages", (string)null);
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgentConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentConversationId");
+
+                    b.ToTable("AgentMessages");
+                });
+
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AiActionLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -420,6 +522,27 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("GeminiEmbedding"), new[] { "vector_cosine_ops" });
 
                     b.ToTable("DocumentChunks");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.FinancialRate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<int[]>("PlazosDisponibles")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<decimal>("TasaInteresAnual")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FinancialRates");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Interaction", b =>
@@ -904,6 +1027,39 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("CreatedBy");
                 });
 
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentConversation", b =>
+                {
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agent")
+                        .WithMany()
+                        .HasForeignKey("AgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Agent");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentDailyTokenUsage", b =>
+                {
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agent")
+                        .WithMany()
+                        .HasForeignKey("AgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Agent");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentMessage", b =>
+                {
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.AgentConversation", "AgentConversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("AgentConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AgentConversation");
+                });
+
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage", b =>
                 {
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "Contacto")
@@ -1174,6 +1330,11 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Properties");
 
                     b.Navigation("Tasks");
+                });
+
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentConversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Contacto", b =>
