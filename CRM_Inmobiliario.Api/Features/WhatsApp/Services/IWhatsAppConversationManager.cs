@@ -13,9 +13,9 @@ public record WhatsAppContext(
 
 public interface IWhatsAppConversationManager
 {
-    Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId);
-    Task SaveStateAsync(Guid contactoId, List<ChatMessage> history);
-    Task LogMessageAsync(Guid contactoId, string phone, string role, string content);
-    Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI");
+    Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId, CancellationToken cancellationToken = default);
+    Task SaveStateAsync(Guid contactoId, List<ChatMessage> history, CancellationToken cancellationToken = default);
+    Task LogMessageAsync(Guid contactoId, string phone, string role, string content, CancellationToken cancellationToken = default);
+    Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default);
     void ApplyNuevaBusqueda(List<ChatMessage> history);
 }

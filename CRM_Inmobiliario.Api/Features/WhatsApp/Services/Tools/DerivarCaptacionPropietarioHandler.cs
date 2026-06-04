@@ -10,14 +10,15 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
 public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
 {
-    public DerivarCaptacionPropietarioHandler(CrmDbContext context, ILogger<DerivarCaptacionPropietarioHandler> logger) 
-        : base(context, logger) { }
+    public DerivarCaptacionPropietarioHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<DerivarCaptacionPropietarioHandler> logger) 
+        : base(dbContextFactory, logger) { }
 
     public override string ToolName => "DerivarCaptacionPropietario";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
-        string nombre = args.RootElement.GetProperty("nombre").GetString() ?? "Desconocido";
+        await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        string nombre = ExtractSafeString(args.RootElement, "nombre", 100, "Desconocido");
         
         string searchPhone = context.CustomerPhone?.StartsWith("+") == true ? context.CustomerPhone : "+" + (context.CustomerPhone ?? "");
         var existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.CustomerPhone || l.Telefono == searchPhone);
@@ -58,6 +59,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         return "INSTRUCCIÓN PARA LA IA: Dile al cliente textualmente: 'Excelente [Nombre], un agente especializado en captación de propiedades se comunicará contigo en breve para asesorarte de manera personalizada con tu inmueble. ¡Gracias por confiar en nosotros!'";
     }
 }
+
 
 
 

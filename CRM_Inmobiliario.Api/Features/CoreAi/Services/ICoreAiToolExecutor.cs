@@ -13,10 +13,10 @@ public class ToolExecutionContext
     public string TriggerMessage { get; set; } = null!;
     public string? CustomerPhone { get; set; } // Si es WhatsApp
     public string? PhoneNumberId { get; set; } // Si es WhatsApp
-    public Contacto? Contacto { get; set; } // Opcional, si estamos en contexto WhatsApp
+    public Guid? ContactoId { get; set; } // Opcional, si estamos en contexto WhatsApp
 }
 
 public interface ICoreAiToolExecutor
 {
-    Task<string> HandleToolCallAsync(AiToolCall toolCall, ToolExecutionContext context);
+    Task<string> HandleToolCallAsync(AiToolCall toolCall, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default);
 }

@@ -34,7 +34,6 @@ public sealed class CrmDbContext : DbContext
     public DbSet<AgentDailyTokenUsage> AgentDailyTokenUsages => Set<AgentDailyTokenUsage>();
     public DbSet<AgentConversation> AgentConversations => Set<AgentConversation>();
     public DbSet<AgentMessage> AgentMessages => Set<AgentMessage>();
-    public DbSet<FinancialRate> FinancialRates => Set<FinancialRate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

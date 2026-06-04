@@ -10,62 +10,57 @@ namespace CRM_Inmobiliario.Api.Features.AgentAi.Tools;
 
 public sealed class GenerarCotizacionRapidaHandler : ICoreAiToolHandler
 {
-    private readonly IFinancialRateRepository _rateRepository;
     private readonly ILogger<GenerarCotizacionRapidaHandler> _logger;
 
     public GenerarCotizacionRapidaHandler(
-        IFinancialRateRepository rateRepository,
         ILogger<GenerarCotizacionRapidaHandler> logger)
     {
-        _rateRepository = rateRepository;
         _logger = logger;
     }
 
     public string ToolName => "GenerarCotizacionRapida";
 
-    public async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
+    public async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Iniciando generación de cotización rápida.");
 
         decimal montoPropiedad = 0;
         decimal enganche = 0;
+        decimal tasaInteresAnual = 0;
+        int[] plazosDisponibles = Array.Empty<int>();
 
-        if (args.RootElement.TryGetProperty("montoPropiedad", out var mpProp) && mpProp.TryGetDecimal(out var mp))
+        if (args.RootElement.TryGetProperty("montoPropiedad", out var mpProp) && mpProp.TryGetDecimal(out var mp)) montoPropiedad = mp;
+        if (args.RootElement.TryGetProperty("enganche", out var engProp) && engProp.TryGetDecimal(out var eng)) enganche = eng;
+        if (args.RootElement.TryGetProperty("tasaInteresAnual", out var tasaProp) && tasaProp.TryGetDecimal(out var tasa)) tasaInteresAnual = tasa;
+        
+        if (args.RootElement.TryGetProperty("plazosMeses", out var plazosProp) && plazosProp.ValueKind == JsonValueKind.Array)
         {
-            montoPropiedad = mp;
+            var plazos = new List<int>();
+            foreach (var element in plazosProp.EnumerateArray())
+            {
+                if (element.TryGetInt32(out var p)) plazos.Add(p);
+            }
+            plazosDisponibles = plazos.ToArray();
         }
 
-        if (args.RootElement.TryGetProperty("enganche", out var engProp) && engProp.TryGetDecimal(out var eng))
-        {
-            enganche = eng;
-        }
-
-        if (montoPropiedad <= 0)
-        {
-            return "No se especificó un monto válido para la propiedad.";
-        }
-
-        var rates = await _rateRepository.GetCurrentRatesAsync();
-        if (rates == null || rates.PlazosDisponibles == null || rates.PlazosDisponibles.Length == 0)
-        {
-            return "No hay tasas financieras disponibles en este momento. Informa al usuario.";
-        }
+        // VALIDACIONES DE SEGURIDAD / LEGALES CONTRA ALUCINACIONES DEL LLM
+        if (montoPropiedad <= 0) return "Error: No se especificó un monto válido para la propiedad.";
+        if (enganche < 0) return "Error: El enganche no puede ser negativo.";
+        if (tasaInteresAnual <= 0 || tasaInteresAnual > 25) return "Error Crítico: La tasa de interés provista por el RAG es irreal (fuera del rango 1%-25%). Verifica la extracción del documento.";
+        if (plazosDisponibles.Length == 0) return "Error: No se proporcionaron plazos válidos en meses (ej. [240, 360]) extraídos del documento.";
 
         decimal montoPrestamo = montoPropiedad - enganche;
-        if (montoPrestamo <= 0)
-        {
-            return "El monto de préstamo calculado es inválido. Verifica el enganche.";
-        }
+        if (montoPrestamo <= 0) return "Error: El monto de préstamo calculado es inválido. Verifica el enganche.";
 
         var response = new CotizacionResponse
         {
-            TasaInteresAplicada = rates.TasaInteresAnual,
+            TasaInteresAplicada = tasaInteresAnual,
             Proyecciones = new List<ProyeccionPlazo>()
         };
 
-        decimal tasaMensual = (rates.TasaInteresAnual / 100m) / 12m;
+        decimal tasaMensual = (tasaInteresAnual / 100m) / 12m;
 
-        foreach (var plazoMeses in rates.PlazosDisponibles)
+        foreach (var plazoMeses in plazosDisponibles)
         {
             decimal pagoMensual = 0;
             if (tasaMensual > 0)
@@ -88,7 +83,10 @@ public sealed class GenerarCotizacionRapidaHandler : ICoreAiToolHandler
             });
         }
 
-        return JsonSerializer.Serialize(response);
+        string jsonResponse = JsonSerializer.Serialize(response);
+        string avisoLegal = "\n\nINSTRUCCIÓN CRÍTICA PARA LA IA: Debes copiar y pegar el siguiente texto EXACTAMENTE al final de tu respuesta al usuario, sin omitir ni una letra:\n\n🚨 *Aviso Legal:* Los valores presentados son proyecciones referenciales basadas en los tarifarios públicos actuales y no constituyen una pre-aprobación crediticia. Las tasas definitivas (VIS/VIP/Normal), plazos y porcentajes de entrada están sujetos al análisis de riesgo individual, buró de crédito del solicitante y políticas internas de la institución financiera al momento del desembolso. Se recomienda verificar las condiciones finales directamente con un asesor de la entidad.";
+        
+        return jsonResponse + avisoLegal;
     }
 }
 
@@ -103,3 +101,4 @@ public class ProyeccionPlazo
     public int Meses { get; set; }
     public decimal PagoMensual { get; set; }
 }
+

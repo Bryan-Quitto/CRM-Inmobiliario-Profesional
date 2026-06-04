@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Pgvector.EntityFrameworkCore;
 using CRM_Inmobiliario.Api.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp;
 
@@ -18,10 +19,11 @@ public sealed class WhatsAppAiService
     private readonly IWhatsAppMessageSender _messageSender;
     private readonly IWhatsAppConversationManager _conversationManager;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext _dbContext;
+    private readonly IDbContextFactory<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext> _dbContextFactory;
     private readonly CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory _providerFactory;
     private readonly CRM_Inmobiliario.Api.Features.AI.Services.IGeminiApiClient _geminiApiClient;
     private readonly string? _openAiApiKey;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public WhatsAppAiService(
         ILogger<WhatsAppAiService> logger,
@@ -31,9 +33,10 @@ public sealed class WhatsAppAiService
         IWhatsAppMessageSender messageSender,
         IWhatsAppConversationManager conversationManager,
         IHttpClientFactory httpClientFactory,
-        CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext dbContext,
+        IDbContextFactory<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext> dbContextFactory,
         CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory providerFactory,
-        CRM_Inmobiliario.Api.Features.AI.Services.IGeminiApiClient geminiApiClient)
+        CRM_Inmobiliario.Api.Features.AI.Services.IGeminiApiClient geminiApiClient,
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
         _promptBuilder = promptBuilder;
@@ -42,10 +45,11 @@ public sealed class WhatsAppAiService
         _messageSender = messageSender;
         _conversationManager = conversationManager;
         _httpClientFactory = httpClientFactory;
-        _dbContext = dbContext;
+        _dbContextFactory = dbContextFactory;
         _providerFactory = providerFactory;
         _geminiApiClient = geminiApiClient;
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
+        _scopeFactory = scopeFactory;
     }
 
     public async Task ProcessIncomingAudioAsync(string phone, byte[] audioBytes, string mediaUrl, string phoneNumberId, CancellationToken cancellationToken = default)
@@ -65,12 +69,12 @@ public sealed class WhatsAppAiService
             _logger.LogInformation("Procesando mensaje de {Phone}: {Message}", phone, messageText);
 
             // 1. Preparar contexto (Contacto, Conversación, Historial, Filtros de Etapa)
-            var context = await _conversationManager.PrepareContextAsync(phone, messageText, phoneNumberId);
+            var context = await _conversationManager.PrepareContextAsync(phone, messageText, phoneNumberId, cancellationToken);
             
             // Logear mensaje del usuario en DB
             if (context.Contacto != null)
             {
-                await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "user", messageText);
+                await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "user", messageText, cancellationToken);
             }
 
             // 2. Manejar respuesta automática de transferencia y Silence Mode
@@ -81,9 +85,9 @@ public sealed class WhatsAppAiService
                     _logger.LogInformation("Contacto {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
                     if (context.Contacto != null)
                     {
-                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", context.AutoResponse);
+                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", context.AutoResponse, cancellationToken);
                     }
-                    await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse, phoneNumberId);
+                    await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse, phoneNumberId, cancellationToken);
                 }
                 else
                 {
@@ -93,7 +97,8 @@ public sealed class WhatsAppAiService
             }
 
             // 3. Orquestación con LLMProviderFactory
-            var tenantAgent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var tenantAgent = await dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId, cancellationToken);
             string rawProviderName = tenantAgent?.ActiveLLMProvider ?? "OpenAI";
             string apiKeyToUse = !string.IsNullOrEmpty(tenantAgent?.AiApiKey) 
                 ? tenantAgent.AiApiKey 
@@ -122,9 +127,42 @@ public sealed class WhatsAppAiService
 
             bool requiresAction = true;
             string? finalResponse = null;
+            int toolFailureCount = 0;
+            int iterationCount = 0;
+            long totalAccumulatedTotalTokens = 0;
+            long totalAccumulatedInputTokens = 0;
+            long totalAccumulatedCachedTokens = 0;
+            long totalAccumulatedOutputTokens = 0;
 
             while (requiresAction)
             {
+                iterationCount++;
+                if (iterationCount > 5)
+                {
+                    _logger.LogWarning("Límite de iteraciones excedido para {Phone}. Activando Circuit Breaker.", phone);
+                    finalResponse = "Ha ocurrido un fallo inesperado, le pido una disculpa por las molestias. Un agente humano le ayudará en unos momentos.";
+                    
+                    var execContextCb = new CRM_Inmobiliario.Api.Features.CoreAi.Services.ToolExecutionContext
+                    {
+                        UserId = context.Contacto?.Id ?? Guid.Empty,
+                        Channel = "WhatsApp",
+                        TriggerMessage = messageText,
+                        CustomerPhone = phone,
+                        PhoneNumberId = phoneNumberId,
+                        ContactoId = context.Contacto?.Id
+                    };
+                    var fallbackToolCall = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"Activación de Circuit Breaker (Límite de iteraciones de IA excedido)\"}" };
+                    await _toolExecutor.HandleToolCallAsync(fallbackToolCall, execContextCb, cancellationToken);
+                    
+                    history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
+                    if (context.Contacto != null)
+                    {
+                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse, cancellationToken);
+                    }
+                    requiresAction = false;
+                    break;
+                }
+
                 var chatMessagesForAi = new List<ChatMessage>();
                 
                 if (history.Count > 0 && history[0].Role == ChatRole.System)
@@ -144,7 +182,7 @@ public sealed class WhatsAppAiService
                 requiresAction = false;
                 
                 var textBuilder = new System.Text.StringBuilder();
-                CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall? currentToolCall = null;
+                var currentToolCalls = new Dictionary<string, CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall>();
                 string? finishReason = null;
                 
                 int? streamTotalTokens = null;
@@ -159,7 +197,7 @@ public sealed class WhatsAppAiService
                     throw new InvalidOperationException("Se ha excedido el límite de seguridad de 50,000 tokens por mensaje. Operación cancelada.");
                 }
 
-                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, null, cancellationToken: cancellationToken))
+                await foreach(var update in provider.StreamChatAsync(aiHistory, tools, null, 4000, cancellationToken: cancellationToken))
                 {
                     if (!string.IsNullOrEmpty(update.TextUpdate))
                     {
@@ -167,13 +205,16 @@ public sealed class WhatsAppAiService
                     }
                     if (update.ToolCallUpdate != null)
                     {
-                        if (currentToolCall == null)
+                        var callId = update.ToolCallUpdate.Id;
+                        if (string.IsNullOrEmpty(callId)) callId = update.ToolCallUpdate.Index?.ToString() ?? "default";
+                        if (!currentToolCalls.ContainsKey(callId))
                         {
-                            currentToolCall = update.ToolCallUpdate;
+                            if (string.IsNullOrEmpty(update.ToolCallUpdate.Id)) update.ToolCallUpdate.Id = callId;
+                            currentToolCalls[callId] = update.ToolCallUpdate;
                         }
                         else
                         {
-                            currentToolCall.Arguments += update.ToolCallUpdate.Arguments;
+                            currentToolCalls[callId].Arguments += update.ToolCallUpdate.Arguments;
                         }
                     }
                     if (update.FinishReason != null)
@@ -195,37 +236,112 @@ public sealed class WhatsAppAiService
 
                 if (streamTotalTokens.HasValue && context.Contacto != null)
                 {
-                    _logger.LogInformation("--- CONSUMO DE TOKENS --- Total: {Total} | Input: {Input} | Cached: {Cached} | Output: {Output}", 
+                    _logger.LogInformation("--- CONSUMO DE TOKENS PARCIAL --- Total: {Total} | Input: {Input} | Cached: {Cached} | Output: {Output}", 
                         streamTotalTokens.Value, streamInputTokens ?? 0, streamCachedTokens ?? 0, streamOutputTokens ?? 0);
 
-                    await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, 
-                        streamTotalTokens.Value, 
-                        streamInputTokens ?? 0, 
-                        streamCachedTokens ?? 0, 
-                        streamOutputTokens ?? 0,
-                        providerName);
+                    totalAccumulatedTotalTokens += streamTotalTokens.Value;
+                    totalAccumulatedInputTokens += streamInputTokens ?? 0;
+                    totalAccumulatedCachedTokens += streamCachedTokens ?? 0;
+                    totalAccumulatedOutputTokens += streamOutputTokens ?? 0;
                 }
 
-                if (currentToolCall != null)
+                if (currentToolCalls.Any())
                 {
-                    var argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(currentToolCall.Arguments);
-                    var chatToolCall = new FunctionCallContent(currentToolCall.Id, currentToolCall.Name, argsDict);
-                    history.Add(new ChatMessage(ChatRole.Assistant, "") { Contents = { chatToolCall } });
-                    
-                    _logger.LogInformation("--- TOOL CALL: {Tool} ---", currentToolCall.Name);
-                    var execContext = new CRM_Inmobiliario.Api.Features.CoreAi.Services.ToolExecutionContext
+                    var assistantMessage = new ChatMessage(ChatRole.Assistant, "");
+                    foreach (var call in currentToolCalls.Values)
                     {
-                        UserId = context.Contacto!.Id,
-                        Channel = "WhatsApp",
-                        TriggerMessage = messageText,
-                        CustomerPhone = phone,
-                        PhoneNumberId = phoneNumberId,
-                        Contacto = context.Contacto
-                    };
-                    string toolResult = await _toolExecutor.HandleToolCallAsync(currentToolCall, execContext);
-                    history.Add(new ChatMessage(ChatRole.Tool, toolResult) { Contents = { new FunctionResultContent(currentToolCall.Id, toolResult) } });
-                    
-                    requiresAction = true;
+                        IDictionary<string, object?>? argsDict = null;
+                        try { argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(call.Arguments); } catch { argsDict = new Dictionary<string, object?>(); }
+                        assistantMessage.Contents.Add(new FunctionCallContent(call.Id, call.Name, argsDict ?? new Dictionary<string, object?>()));
+                    }
+                    history.Add(assistantMessage);
+
+                    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    try
+                    {
+                        var toolTasks = currentToolCalls.Values.Select(async call => 
+                        {
+                            IDictionary<string, object?>? argsDict = null;
+                            string toolResult = "";
+                            bool jsonError = false;
+                            try
+                            {
+                                argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(call.Arguments);
+                                if (argsDict == null) throw new System.Text.Json.JsonException("Null JSON is not allowed.");
+                            }
+                            catch (Exception ex) when (ex is System.Text.Json.JsonException || ex is ArgumentNullException)
+                            {
+                                _logger.LogWarning(ex, "Error al deserializar JSON de los argumentos del tool {Tool}", call.Name);
+                                jsonError = true;
+                                toolResult = "Error Crítico: El JSON de los argumentos es inválido. Por favor revisa y corrige el formato.";
+                            }
+
+                            _logger.LogInformation("--- TOOL CALL: {Tool} ---", call.Name);
+                            var execContext = new CRM_Inmobiliario.Api.Features.CoreAi.Services.ToolExecutionContext
+                            {
+                                UserId = context.Contacto?.Id ?? Guid.Empty,
+                                Channel = "WhatsApp",
+                                TriggerMessage = messageText,
+                                CustomerPhone = phone,
+                                PhoneNumberId = phoneNumberId,
+                                ContactoId = context.Contacto?.Id
+                            };
+                            
+                            if (!jsonError)
+                            {
+                                try
+                                {
+                                    await using var scope = _scopeFactory.CreateAsyncScope();
+                                    var toolExecutor = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Features.CoreAi.Services.ICoreAiToolExecutor>();
+                                    toolResult = await toolExecutor.HandleToolCallAsync(call, execContext, linkedCts.Token);
+                                }
+                                catch
+                                {
+                                    await linkedCts.CancelAsync();
+                                    throw;
+                                }
+                            }
+                            
+                            return new { Call = call, Result = toolResult, ExecContext = execContext };
+                        }).ToList();
+
+                        var results = await Task.WhenAll(toolTasks);
+
+                        foreach (var res in results)
+                        {
+                            if (res.Result.StartsWith("Error Crítico:"))
+                            {
+                                toolFailureCount++;
+                                if (toolFailureCount >= 3)
+                                {
+                                    _logger.LogWarning("Circuit Breaker activado para {Phone}. Demasiados errores críticos de la IA.", phone);
+                                    finalResponse = "Ha ocurrido un fallo inesperado, le pido una disculpa por las molestias. Un agente humano le ayudará en unos momentos.";
+                                    
+                                    // Invocar Asistencia Humana automáticamente
+                                    var fallbackToolCall = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"Activación de Circuit Breaker (Errores críticos continuos de IA)\"}" };
+                                    await _toolExecutor.HandleToolCallAsync(fallbackToolCall, res.ExecContext, linkedCts.Token);
+
+                                    history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
+                                    if (context.Contacto != null)
+                                    {
+                                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse, linkedCts.Token);
+                                    }
+                                    requiresAction = false;
+                                    break;
+                                }
+                            }
+
+                            history.Add(new ChatMessage(ChatRole.Tool, res.Result) { Contents = { new FunctionResultContent(res.Call.Id, res.Result) } });
+                        }
+                        if (!requiresAction) break; // if circuit breaker hit
+                        
+                        requiresAction = true;
+                    }
+                    catch
+                    {
+                        await linkedCts.CancelAsync();
+                        throw;
+                    }
                 }
                 else
                 {
@@ -247,23 +363,56 @@ public sealed class WhatsAppAiService
                     
                     if (context.Contacto != null)
                     {
-                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse);
+                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse, cancellationToken);
                     }
                     _logger.LogInformation("--- RESPUESTA FINAL IA: {Response} ---", finalResponse);
                 }
             }
 
+            if (totalAccumulatedTotalTokens > 0 && context.Contacto != null)
+            {
+                _logger.LogInformation("--- CONSUMO DE TOKENS ACUMULADO --- Total: {Total} | Input: {Input} | Cached: {Cached} | Output: {Output}", 
+                    totalAccumulatedTotalTokens, totalAccumulatedInputTokens, totalAccumulatedCachedTokens, totalAccumulatedOutputTokens);
+
+                int total, input, cached, output;
+                try
+                {
+                    checked 
+                    { 
+                        total = (int)totalAccumulatedTotalTokens; 
+                        input = (int)totalAccumulatedInputTokens;
+                        cached = (int)totalAccumulatedCachedTokens;
+                        output = (int)totalAccumulatedOutputTokens;
+                    }
+                }
+                catch (OverflowException)
+                {
+                    _logger.LogWarning("Integer Overflow en tokens detectado y mitigado.");
+                    total = int.MaxValue;
+                    input = int.MaxValue;
+                    cached = int.MaxValue;
+                    output = int.MaxValue;
+                }
+                await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, 
+                    total, 
+                    input, 
+                    cached, 
+                    output,
+                    providerName,
+                    cancellationToken);
+            }
+
             // 4. Persistir estado del historial
             if (context.Contacto != null)
             {
-                await _conversationManager.SaveStateAsync(context.Contacto.Id, history);
+                await _conversationManager.SaveStateAsync(context.Contacto.Id, history, cancellationToken);
             }
 
             // 5. Enviar a WhatsApp con limpieza de formato
             if (!string.IsNullOrEmpty(finalResponse))
             {
                 finalResponse = Regex.Replace(finalResponse, @"\*+", "*");
-                await _messageSender.SendWhatsAppMessageAsync(phone, finalResponse, phoneNumberId);
+                await _messageSender.SendWhatsAppMessageAsync(phone, finalResponse, phoneNumberId, cancellationToken);
             }
         }
         catch (Polly.Timeout.TimeoutRejectedException)

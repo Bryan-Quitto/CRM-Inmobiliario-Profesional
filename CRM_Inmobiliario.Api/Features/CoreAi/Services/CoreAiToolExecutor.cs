@@ -13,21 +13,18 @@ namespace CRM_Inmobiliario.Api.Features.CoreAi.Services;
 
 public sealed class CoreAiToolExecutor : ICoreAiToolExecutor
 {
-    private readonly CrmDbContext _context;
     private readonly ILogger<CoreAiToolExecutor> _logger;
     private readonly IEnumerable<ICoreAiToolHandler> _handlers;
 
     public CoreAiToolExecutor(
-        CrmDbContext context, 
         ILogger<CoreAiToolExecutor> logger,
         IEnumerable<ICoreAiToolHandler> handlers)
     {
-        _context = context;
         _logger = logger;
         _handlers = handlers;
     }
 
-    public async Task<string> HandleToolCallAsync(AiToolCall toolCall, ToolExecutionContext context)
+    public async Task<string> HandleToolCallAsync(AiToolCall toolCall, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Ejecutando herramienta: {ToolName} para Usuario {UserId} en {Channel}", toolCall.Name, context.UserId, context.Channel);
         
@@ -43,9 +40,8 @@ public sealed class CoreAiToolExecutor : ICoreAiToolExecutor
                 return "Error: Herramienta no encontrada.";
             }
 
-            var result = await handler.ExecuteAsync(args, context);
-            
-            await _context.SaveChangesAsync();
+            var result = await handler.ExecuteAsync(args, context, cancellationToken);
+
             
             return result;
         } 

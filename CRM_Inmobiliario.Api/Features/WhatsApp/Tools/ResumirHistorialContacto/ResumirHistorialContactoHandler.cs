@@ -10,14 +10,15 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Tools.ResumirHistorialContacto;
 
 public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
 {
-    public ResumirHistorialContactoHandler(CrmDbContext context, ILogger<ResumirHistorialContactoHandler> logger) 
-        : base(context, logger) { }
+    public ResumirHistorialContactoHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<ResumirHistorialContactoHandler> logger) 
+        : base(dbContextFactory, logger) { }
 
     public override string ToolName => "ResumirHistorialContacto";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
-        string searchTerm = args.RootElement.GetProperty("searchTerm").GetString() ?? string.Empty;
+        await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        string searchTerm = ExtractSafeString(args.RootElement, "searchTerm", 100, string.Empty);
 
         var result = await (from c in _context.Contactos
                             where c.Nombre.Contains(searchTerm) || c.Telefono.Contains(searchTerm)
@@ -54,3 +55,4 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
         return JsonSerializer.Serialize(result);
     }
 }
+

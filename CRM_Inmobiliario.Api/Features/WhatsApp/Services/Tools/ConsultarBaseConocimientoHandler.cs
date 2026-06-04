@@ -16,17 +16,18 @@ public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
 {
     private readonly CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService _embeddingService;
 
-    public ConsultarBaseConocimientoHandler(CrmDbContext context, ILogger<ConsultarBaseConocimientoHandler> logger, CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService embeddingService) 
-        : base(context, logger) 
+    public ConsultarBaseConocimientoHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<ConsultarBaseConocimientoHandler> logger, CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService embeddingService) 
+        : base(dbContextFactory, logger) 
     { 
         _embeddingService = embeddingService;
     }
 
     public override string ToolName => "ConsultarBaseConocimiento";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
-        string? queryStr = args.RootElement.TryGetProperty("query", out var q) ? q.GetString() : null;
+        await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        string queryStr = ExtractSafeString(args.RootElement, "query", 500, string.Empty);
 
         _logger.LogInformation("Iniciando consulta corporativa (RAG): Query={Query}", queryStr ?? "Ninguno");
 
@@ -101,6 +102,7 @@ public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
         return "No encontré información sobre este tema en los documentos corporativos. Indica amablemente al usuario que no tienes ese dato e invítalo a hablar con un asesor.";
     }
 }
+
 
 
 

@@ -36,7 +36,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         _providerFactory = providerFactory;
     }
 
-    public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId)
+    public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId, CancellationToken cancellationToken = default)
     {
         // 1. Búsqueda inteligente del Agente primero
         var agente = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
@@ -261,7 +261,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         return new WhatsAppContext(contacto, conversation, history, autoMsg, isFirstMessage);
     }
 
-    public async Task SaveStateAsync(Guid contactoId, List<ChatMessage> history)
+    public async Task SaveStateAsync(Guid contactoId, List<ChatMessage> history, CancellationToken cancellationToken = default)
     {
         var conversation = await _context.WhatsappConversations
             .FirstOrDefaultAsync(c => c.ContactoId == contactoId);
@@ -274,7 +274,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         }
     }
 
-    public async Task LogMessageAsync(Guid contactoId, string phone, string role, string content)
+    public async Task LogMessageAsync(Guid contactoId, string phone, string role, string content, CancellationToken cancellationToken = default)
     {
         _context.WhatsappMessages.Add(new WhatsappMessage 
         { 
@@ -288,7 +288,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         await _context.SaveChangesAsync();
     }
 
-    public async Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI")
+    public async Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default)
     {
         var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
         var targetDate = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.FromHours(-5));

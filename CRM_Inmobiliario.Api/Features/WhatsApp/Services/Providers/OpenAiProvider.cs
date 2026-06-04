@@ -128,7 +128,8 @@ public class OpenAiProvider : ILLMProvider
                 {
                     Id = tu.ToolCallId ?? string.Empty,
                     Name = tu.FunctionName ?? string.Empty,
-                    Arguments = tu.FunctionArgumentsUpdate?.ToString() ?? string.Empty
+                    Arguments = tu.FunctionArgumentsUpdate?.ToString() ?? string.Empty,
+                    Index = tu.Index
                 };
             }
 

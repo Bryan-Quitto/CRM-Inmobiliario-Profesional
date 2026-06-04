@@ -11,15 +11,16 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
 public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
 {
-    public ConsultarDetallesPropiedadHandler(CrmDbContext context, ILogger<ConsultarDetallesPropiedadHandler> logger) 
-        : base(context, logger) 
+    public ConsultarDetallesPropiedadHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<ConsultarDetallesPropiedadHandler> logger) 
+        : base(dbContextFactory, logger) 
     { 
     }
 
     public override string ToolName => "ConsultarDetallesPropiedad";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
+        await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string? propiedadIdStr = args.RootElement.TryGetProperty("propiedadId", out var pid) ? pid.GetString() : null;
 
         _logger.LogInformation("Iniciando consulta profunda de propiedad: ID={PropiedadId}", propiedadIdStr ?? "Ninguno");
@@ -66,6 +67,7 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
         return sb.ToString();
     }
 }
+
 
 
 
