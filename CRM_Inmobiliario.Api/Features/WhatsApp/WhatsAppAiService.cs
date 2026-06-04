@@ -9,23 +9,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp;
 
-public enum ChatIntent
-{
-    NUEVA_BUSQUEDA,
-    CAMBIO_TEMA,
-    CONTINUACION
-}
-
-public class SemanticRouterResponse
-{
-    public ChatIntent Intent { get; set; }
-}
-
 public sealed class WhatsAppAiService
 {
     private readonly ILogger<WhatsAppAiService> _logger;
     private readonly IWhatsAppPromptBuilder _promptBuilder;
-    private readonly IWhatsAppToolExecutor _toolExecutor;
+    private readonly CRM_Inmobiliario.Api.Features.CoreAi.Services.ICoreAiToolExecutor _toolExecutor;
+    private readonly CRM_Inmobiliario.Api.Features.CoreAi.Services.ISemanticRouterService _semanticRouterService;
     private readonly IWhatsAppMessageSender _messageSender;
     private readonly IWhatsAppConversationManager _conversationManager;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -37,7 +26,8 @@ public sealed class WhatsAppAiService
     public WhatsAppAiService(
         ILogger<WhatsAppAiService> logger,
         IWhatsAppPromptBuilder promptBuilder,
-        IWhatsAppToolExecutor toolExecutor,
+        CRM_Inmobiliario.Api.Features.CoreAi.Services.ICoreAiToolExecutor toolExecutor,
+        CRM_Inmobiliario.Api.Features.CoreAi.Services.ISemanticRouterService semanticRouterService,
         IWhatsAppMessageSender messageSender,
         IWhatsAppConversationManager conversationManager,
         IHttpClientFactory httpClientFactory,
@@ -48,6 +38,7 @@ public sealed class WhatsAppAiService
         _logger = logger;
         _promptBuilder = promptBuilder;
         _toolExecutor = toolExecutor;
+        _semanticRouterService = semanticRouterService;
         _messageSender = messageSender;
         _conversationManager = conversationManager;
         _httpClientFactory = httpClientFactory;
@@ -123,42 +114,10 @@ public sealed class WhatsAppAiService
             var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
 
             // Semantic Router Evaluation
-            if (history.Count > 1)
+            var routerResult = await _semanticRouterService.DetermineIntentAsync(history, cancellationToken);
+            if (routerResult == CRM_Inmobiliario.Api.Features.CoreAi.Services.ChatIntent.NUEVA_BUSQUEDA || routerResult == CRM_Inmobiliario.Api.Features.CoreAi.Services.ChatIntent.CAMBIO_TEMA)
             {
-                var routerMessages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
-                {
-                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage 
-                    { 
-                        Role = "system", 
-                        Content = "Evalúa la intención de la última interacción del usuario. Responde con la propiedad 'intent'. Valores posibles: 'NUEVA_BUSQUEDA' (si pide buscar propiedades diferentes, cambia de ciudad/sector, o quiere empezar de cero), 'CAMBIO_TEMA' (si cambia de tema por completo) o 'CONTINUACION' (si es una respuesta a una pregunta, aporta más detalles a la búsqueda actual, o pregunta por una de las propiedades enviadas). No uses ningún otro formato ni expliques nada." 
-                    }
-                };
-                
-                var lastMessages = history.Where(m => m.Role == ChatRole.User || m.Role == ChatRole.Assistant)
-                                            .Where(m => !m.Contents.Any(c => c is FunctionCallContent))
-                                            .TakeLast(3).ToList();
-                
-                foreach(var m in lastMessages)
-                {
-                    var roleStr = m.Role == ChatRole.User ? "user" : "assistant";
-                    var content = m.Text ?? "";
-                    routerMessages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = roleStr, Content = content });
-                }
-                
-                var routerProvider = _providerFactory.GetProvider("Gemini", Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? apiKeyToUse, "gemini-2.5-flash-lite");
-                
-                var routerResultWrapper = await routerProvider.GetStructuredResponseAsync<SemanticRouterResponse>(routerMessages, cancellationToken);
-                var routerResult = routerResultWrapper?.Intent ?? ChatIntent.CONTINUACION;
-                
-                if (routerResult == ChatIntent.NUEVA_BUSQUEDA || routerResult == ChatIntent.CAMBIO_TEMA)
-                {
-                    _logger.LogInformation("Semantic Router: {Intent} detectada. Limpiando parámetros.", routerResult.ToString());
-                    _conversationManager.ApplyNuevaBusqueda(history);
-                }
-                else
-                {
-                    _logger.LogInformation("Semantic Router: CONTINUACION detectada. Resultado: {Result}", routerResult.ToString());
-                }
+                _conversationManager.ApplyNuevaBusqueda(history);
             }
 
             bool requiresAction = true;
@@ -254,7 +213,16 @@ public sealed class WhatsAppAiService
                     history.Add(new ChatMessage(ChatRole.Assistant, "") { Contents = { chatToolCall } });
                     
                     _logger.LogInformation("--- TOOL CALL: {Tool} ---", currentToolCall.Name);
-                    string toolResult = await _toolExecutor.HandleToolCallAsync(currentToolCall, phone, messageText, context.Contacto, phoneNumberId);
+                    var execContext = new CRM_Inmobiliario.Api.Features.CoreAi.Services.ToolExecutionContext
+                    {
+                        UserId = context.Contacto!.Id,
+                        Channel = "WhatsApp",
+                        TriggerMessage = messageText,
+                        CustomerPhone = phone,
+                        PhoneNumberId = phoneNumberId,
+                        Contacto = context.Contacto
+                    };
+                    string toolResult = await _toolExecutor.HandleToolCallAsync(currentToolCall, execContext);
                     history.Add(new ChatMessage(ChatRole.Tool, toolResult) { Contents = { new FunctionResultContent(currentToolCall.Id, toolResult) } });
                     
                     requiresAction = true;
@@ -310,3 +278,5 @@ public sealed class WhatsAppAiService
         }
     }
 }
+
+

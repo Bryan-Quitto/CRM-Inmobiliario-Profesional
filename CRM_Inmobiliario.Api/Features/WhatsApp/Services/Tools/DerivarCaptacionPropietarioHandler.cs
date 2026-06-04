@@ -1,3 +1,5 @@
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -6,19 +8,19 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
-public sealed class DerivarCaptacionPropietarioHandler : BaseWhatsAppToolHandler
+public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
 {
     public DerivarCaptacionPropietarioHandler(CrmDbContext context, ILogger<DerivarCaptacionPropietarioHandler> logger) 
         : base(context, logger) { }
 
     public override string ToolName => "DerivarCaptacionPropietario";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
     {
         string nombre = args.RootElement.GetProperty("nombre").GetString() ?? "Desconocido";
         
-        string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
-        var existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == phone || l.Telefono == searchPhone);
+        string searchPhone = context.CustomerPhone?.StartsWith("+") == true ? context.CustomerPhone : "+" + (context.CustomerPhone ?? "");
+        var existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.CustomerPhone || l.Telefono == searchPhone);
         
         if (existing == null)
         {
@@ -31,7 +33,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseWhatsAppToolHandler
                 {
                     Id = Guid.NewGuid(),
                     Nombre = nombre,
-                    Telefono = phone,
+                    Telefono = context.CustomerPhone ?? string.Empty,
                     Origen = "IA WhatsApp",
                     AgenteId = agent.Id,
                     FechaCreacion = DateTimeOffset.UtcNow,
@@ -40,7 +42,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseWhatsAppToolHandler
                     EsPropietario = true
                 };
                 _context.Contactos.Add(newPropietario);
-                await LogAiActionAsync("Registro Propietario Captacion", args.RootElement.GetRawText(), phone, triggerMessage, newPropietario.Id);
+                await LogAiActionAsync("Registro Propietario Captacion", args.RootElement.GetRawText(), context);
             }
         }
         else
@@ -49,10 +51,20 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseWhatsAppToolHandler
             {
                 existing.EsPropietario = true;
                 existing.EsProspecto = false;
-                await LogAiActionAsync("Actualizacion a Propietario", args.RootElement.GetRawText(), phone, triggerMessage, existing.Id);
+                await LogAiActionAsync("Actualizacion a Propietario", args.RootElement.GetRawText(), context);
             }
         }
         
         return "INSTRUCCIÓN PARA LA IA: Dile al cliente textualmente: 'Excelente [Nombre], un agente especializado en captación de propiedades se comunicará contigo en breve para asesorarte de manera personalizada con tu inmueble. ¡Gracias por confiar en nosotros!'";
     }
 }
+
+
+
+
+
+
+
+
+
+

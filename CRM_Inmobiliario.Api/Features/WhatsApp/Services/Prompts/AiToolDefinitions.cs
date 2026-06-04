@@ -103,6 +103,67 @@ public static class AiToolDefinitions
                     "required": ["motivo"]
                 }
                 """
+            },
+            new AiToolDefinition
+            {
+                Name = "ResumirHistorialContacto",
+                Description = "Consulta el historial completo de un contacto en el CRM (notas, tareas, etapa de embudo y mensajes previos). Úsala cuando necesites recordar el contexto completo de un cliente o antes de transferirlo a un agente.",
+                ParametersSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "searchTerm": { "type": "string", "description": "Nombre completo o teléfono del contacto a buscar." }
+                    },
+                    "required": ["searchTerm"]
+                }
+                """
+            },
+            new AiToolDefinition
+            {
+                Name = "CrearTareaCRM",
+                Description = "Crea una tarea, recordatorio o cita en la agenda del agente en el CRM. Si el cliente pide agendar algo, DEBES pedir obligatoriamente Título, Descripción y Fecha/Hora. Si el cliente no te da alguno, PREGÚNTALE antes de usar esta herramienta.",
+                ParametersSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "titulo": { "type": "string", "description": "Título corto y claro de la tarea." },
+                        "descripcion": { "type": "string", "description": "Detalle completo de lo que el agente debe hacer o preparar." },
+                        "fechaProgramada": { "type": "string", "description": "Fecha y hora en formato ISO 8601 (ej. 2024-05-20T15:30:00). Asegúrate de pedir la hora si el cliente solo dice el día." },
+                        "contactoId": { "type": "string", "description": "ID del contacto (Guid), si lo conoces." },
+                        "propiedadId": { "type": "string", "description": "ID de la propiedad (Guid), si aplica." }
+                    },
+                    "required": ["titulo", "descripcion", "fechaProgramada"]
+                }
+                """
+            },
+            new AiToolDefinition
+            {
+                Name = "GenerarCotizacionRapida",
+                Description = "Calcula la proyección hipotecaria y cuotas estimadas para la compra de una propiedad usando las tasas de interés y plazos actuales del mercado. NO inventes las cuotas, USA SIEMPRE esta herramienta para darle proyecciones precisas al cliente.",
+                ParametersSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "montoPropiedad": { "type": "number", "description": "El precio total de la propiedad." },
+                        "enganche": { "type": "number", "description": "El monto que el cliente planea dar como entrada o enganche inicial." }
+                    },
+                    "required": ["montoPropiedad", "enganche"]
+                }
+                """
+            },
+            new AiToolDefinition
+            {
+                Name = "NavegacionDirecta",
+                Description = "Úsala OBLIGATORIAMENTE para redirigir al usuario a una sección específica del sistema (por ejemplo, agendar una cita o ver la vista 3D) en la SPA. Emite una señal de control de redirección.",
+                ParametersSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "destino": { "type": "string", "description": "La ruta a la que se debe redirigir al usuario, ej. '/agendar-cita', '/propiedades/123/3d'." }
+                    },
+                    "required": ["destino"]
+                }
+                """
             }
         };
     }

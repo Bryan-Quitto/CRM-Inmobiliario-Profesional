@@ -4,6 +4,7 @@ import { usePerfil } from '../../auth/api/perfil';
 import { supabase } from '../../../lib/supabase';
 import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
+import { TokenUsageTable } from './TokenUsageTable';
 
 export const ConfiguracionIntegracionIA: React.FC = () => {
   const { perfil } = usePerfil();
@@ -344,6 +345,10 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
             </div>
           </div>
         )}
+      </section>
+
+      <section className="space-y-6 bg-slate-100/50 p-8 rounded-[40px] border border-slate-200/60 mt-8 max-w-4xl mx-auto">
+        <TokenUsageTable />
       </section>
     </div>
   );

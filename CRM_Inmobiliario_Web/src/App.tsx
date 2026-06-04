@@ -26,6 +26,8 @@ const PropiedadesList = lazy(() => import('./features/propiedades/components/Pro
 const AnaliticaView = lazy(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView })));
 const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
 const AuditoriaLogsView = lazy(() => import('./features/ia/components/AuditoriaLogsView').then(m => ({ default: m.AuditoriaLogsView })));
+const IaLogsLayout = lazy(() => import('./features/ia/components/IaLogsLayout').then(m => ({ default: m.IaLogsLayout })));
+const PersonalLogsView = lazy(() => import('./features/ia/components/PersonalLogsView').then(m => ({ default: m.PersonalLogsView })));
 const ConfiguracionLayout = lazy(() => import('./features/configuracion/components/ConfiguracionLayout'));
 const ConfiguracionPerfil = lazy(() => import('./features/auth/components/ConfiguracionPerfil'));
 const ConfiguracionIA = lazy(() => import('./features/configuracion/components/ConfiguracionIA').then(m => ({ default: m.ConfiguracionIA })));
@@ -34,6 +36,8 @@ const ConfiguracionOrganizacion = lazy(() => import('./features/configuracion/co
 const ConfiguracionAgentes = lazy(() => import('./features/configuracion/components/ConfiguracionAgentes').then(m => ({ default: m.ConfiguracionAgentes })));
 const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad })));
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
+
+import { CopilotDrawer } from './features/copilot/components/CopilotDrawer';
 
 function AppContent({ session }: { session: Session | null }) {
   const location = useLocation();
@@ -92,7 +96,13 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/propietarios" element={<ContactosList />} />
               <Route path="/propietarios/:id" element={<ContactoDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
-              <Route path="/ia-logs" element={<AuditoriaLogsView />} />
+              <Route path="/ia-logs" element={<Suspense fallback={<PageLoader />}><IaLogsLayout /></Suspense>}>
+                <Route index element={<Navigate to="whatsapp" replace />} />
+                <Route path="whatsapp" element={<AuditoriaLogsView />} />
+                <Route path="personal" element={<Suspense fallback={<PageLoader />}><PersonalLogsView /></Suspense>} />
+                <Route path="facebook" element={<Navigate to="whatsapp" replace />} />
+                <Route path="general" element={<Navigate to="whatsapp" replace />} />
+              </Route>
               <Route path="/kpis" element={<AnaliticaView />} />
               <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionLayout /></Suspense>}>
                 <Route index element={<Navigate to="perfil" replace />} />
@@ -118,6 +128,8 @@ function AppContent({ session }: { session: Session | null }) {
           <AgendaPanel onClose={() => setIsAgendaOpen(false)} />
         </Suspense>
       </aside>
+
+      <CopilotDrawer />
     </div>
   );
 }

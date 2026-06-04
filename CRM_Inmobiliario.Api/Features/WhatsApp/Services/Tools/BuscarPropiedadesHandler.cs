@@ -1,3 +1,5 @@
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using System.Text;
 using CRM_Inmobiliario.Api.Domain.Entities;
@@ -8,7 +10,7 @@ using Pgvector.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
-public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
+public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
 {
     private readonly CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService _embeddingService;
 
@@ -20,7 +22,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "BuscarPropiedades";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
     {
         string? queryStr = args.RootElement.TryGetProperty("query", out var q) ? q.GetString() : null;
         string? tipoOperacion = args.RootElement.TryGetProperty("tipoOperacion", out var to) ? to.GetString() : null;
@@ -37,7 +39,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         }
 
         var descartadosIds = await _context.ContactoInteresPropiedades
-            .Where(i => i.Contacto!.Telefono == phone && i.NivelInteres == "Descartada")
+            .Where(i => i.Contacto!.Telefono == context.CustomerPhone && i.NivelInteres == "Descartada")
             .Select(i => i.PropiedadId)
             .ToListAsync();
 
@@ -47,9 +49,9 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
         string? provider = null;
         string? apiKey = null;
 
-        if (!string.IsNullOrEmpty(phoneNumberId))
+        if (!string.IsNullOrEmpty(context.PhoneNumberId))
         {
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == context.PhoneNumberId);
             if (agent != null)
             {
                 currentAgentId = agent.Id;
@@ -148,7 +150,24 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 
         if (results.Any()) 
         {
-            await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
+            await LogAiActionAsync("BusquedaPropiedades", args.RootElement.GetRawText(), context);
+            
+            if (context.Channel == "Copilot")
+            {
+                var minifiedResults = results.Select(r => new
+                {
+                    r.Id,
+                    r.Titulo,
+                    r.Precio,
+                    r.Sector,
+                    r.Ciudad,
+                    r.Habitaciones,
+                    r.Banos,
+                    r.Operacion
+                });
+                return JsonSerializer.Serialize(minifiedResults);
+            }
+
             return FormatearCsv(results);
         }
 
@@ -176,3 +195,7 @@ public sealed class BuscarPropiedadesHandler : BaseWhatsAppToolHandler
 }
 
 public record PropiedadResultDto(Guid Id, string Titulo, decimal Precio, string? Sector, string? Ciudad, string? Direccion, int? Habitaciones, decimal? Banos, int? Estacionamientos, int? AniosAntiguedad, decimal? AreaTotal, decimal? AreaConstruccion, decimal? AreaTerreno, int? MediosBanos, string? UrlRemax, string? Operacion, string? TipoPropiedad, string? EstadoComercial, string? NotaIA, string? Descripcion);
+
+
+
+

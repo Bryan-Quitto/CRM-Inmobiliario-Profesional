@@ -1,3 +1,5 @@
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using System.Text;
 using CRM_Inmobiliario.Api.Domain.Entities;
@@ -7,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
-public sealed class ConsultarDetallesPropiedadHandler : BaseWhatsAppToolHandler
+public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
 {
     public ConsultarDetallesPropiedadHandler(CrmDbContext context, ILogger<ConsultarDetallesPropiedadHandler> logger) 
         : base(context, logger) 
@@ -16,7 +18,7 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseWhatsAppToolHandler
 
     public override string ToolName => "ConsultarDetallesPropiedad";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, string phone, string triggerMessage, Contacto? contacto, string phoneNumberId)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
     {
         string? propiedadIdStr = args.RootElement.TryGetProperty("propiedadId", out var pid) ? pid.GetString() : null;
 
@@ -34,7 +36,7 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseWhatsAppToolHandler
             return "No encontré ninguna propiedad con ese ID en la base de datos.";
         }
 
-        await LogAiActionAsync("ConsultaDetallesPropiedad", args.RootElement.GetRawText(), phone, triggerMessage, contacto?.Id);
+        await LogAiActionAsync("ConsultaDetallesPropiedad", args.RootElement.GetRawText(), context);
 
         var sb = new StringBuilder();
         sb.AppendLine($"--- DETALLES PROFUNDOS DE LA PROPIEDAD: {propiedad.Id} ---");
@@ -64,3 +66,7 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseWhatsAppToolHandler
         return sb.ToString();
     }
 }
+
+
+
+
