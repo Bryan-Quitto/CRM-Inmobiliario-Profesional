@@ -87,7 +87,6 @@ builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.I
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, SolicitarAsistenciaHumanaHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.WhatsApp.Tools.ResumirHistorialContacto.ResumirHistorialContactoHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.WhatsApp.Tools.CrearTareaCRM.CrearTareaCRMHandler>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.IFinancialRateRepository, CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.FinancialRateRepository>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.GenerarCotizacionRapidaHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.NavegacionDirectaHandler>();
 

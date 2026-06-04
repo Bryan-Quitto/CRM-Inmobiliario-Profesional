@@ -23,7 +23,8 @@ namespace CRM_Inmobiliario.Tests
         {
             var loggerMock = new Mock<ILogger<WhatsAppAiService>>();
             var promptBuilderMock = new Mock<IWhatsAppPromptBuilder>();
-            var toolExecutorMock = new Mock<IWhatsAppToolExecutor>();
+            var toolExecutorMock = new Mock<CRM_Inmobiliario.Api.Features.CoreAi.Services.ICoreAiToolExecutor>();
+            var semanticRouterServiceMock = new Mock<CRM_Inmobiliario.Api.Features.CoreAi.Services.ISemanticRouterService>();
             var messageSenderMock = new Mock<IWhatsAppMessageSender>();
             var httpClientFactoryMock = new Mock<IHttpClientFactory>();
             
@@ -37,7 +38,6 @@ namespace CRM_Inmobiliario.Tests
             var providerMock = new Mock<ILLMProvider>();
             
             var geminiApiClientMock = new Mock<IGeminiApiClient>();
-            var datasetProviderMock = new Mock<IDatasetProvider>();
 
             // Setup provider mock to return the routerResponse
             var asyncUpdates = new List<AiResponseUpdate> 
@@ -66,17 +66,24 @@ namespace CRM_Inmobiliario.Tests
             providerFactoryMock.Setup(f => f.GetProvider(It.IsAny<string>(), It.IsAny<string>()))
                                .Returns(providerMock.Object);
 
+            var dbContextFactoryMock = new Mock<IDbContextFactory<CrmDbContext>>();
+            dbContextFactoryMock.Setup(f => f.CreateDbContextAsync(It.IsAny<System.Threading.CancellationToken>()))
+                                .ReturnsAsync(dbContext);
+
+            var scopeFactoryMock = new Mock<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
+
             return new WhatsAppAiService(
                 loggerMock.Object,
                 promptBuilderMock.Object,
                 toolExecutorMock.Object,
+                semanticRouterServiceMock.Object,
                 messageSenderMock.Object,
                 conversationManagerMock.Object,
                 httpClientFactoryMock.Object,
-                dbContext,
+                dbContextFactoryMock.Object,
                 providerFactoryMock.Object,
                 geminiApiClientMock.Object,
-                datasetProviderMock.Object
+                scopeFactoryMock.Object
             );
         }
 

@@ -14,21 +14,40 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
 {
     private readonly CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService _embeddingService;
 
-    public BuscarPropiedadesHandler(CrmDbContext context, ILogger<BuscarPropiedadesHandler> logger, CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService embeddingService) 
-        : base(context, logger) 
+    public BuscarPropiedadesHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<BuscarPropiedadesHandler> logger, CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService embeddingService) 
+        : base(dbContextFactory, logger) 
     { 
         _embeddingService = embeddingService;
     }
 
     public override string ToolName => "BuscarPropiedades";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
-        string? queryStr = args.RootElement.TryGetProperty("query", out var q) ? q.GetString() : null;
-        string? tipoOperacion = args.RootElement.TryGetProperty("tipoOperacion", out var to) ? to.GetString() : null;
-        decimal? presupuestoMaximo = args.RootElement.TryGetProperty("presupuestoMaximo", out var pm) && pm.ValueKind == JsonValueKind.Number ? pm.GetDecimal() : null;
-        int? habitacionesMinimas = args.RootElement.TryGetProperty("habitacionesMinimas", out var hm) && hm.ValueKind == JsonValueKind.Number ? hm.GetInt32() : null;
-        int? antiguedadMaxima = args.RootElement.TryGetProperty("antiguedadMaxima", out var am) && am.ValueKind == JsonValueKind.Number ? am.GetInt32() : null;
+        await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        string queryStr = ExtractSafeString(args.RootElement, "query", 500, string.Empty);
+        string tipoOperacion = ExtractSafeString(args.RootElement, "tipoOperacion", 50, string.Empty);
+
+        decimal? presupuestoMaximo = null;
+        if (args.RootElement.TryGetProperty("presupuestoMaximo", out _))
+        {
+            if (!TryExtractSafeDecimal(args.RootElement, "presupuestoMaximo", out var pm, out var error, 0, 1000000000m)) return error;
+            presupuestoMaximo = pm;
+        }
+
+        int? habitacionesMinimas = null;
+        if (args.RootElement.TryGetProperty("habitacionesMinimas", out _))
+        {
+            if (!TryExtractSafeDecimal(args.RootElement, "habitacionesMinimas", out var hm, out var error, 0, 50)) return error;
+            habitacionesMinimas = (int)hm;
+        }
+
+        int? antiguedadMaxima = null;
+        if (args.RootElement.TryGetProperty("antiguedadMaxima", out _))
+        {
+            if (!TryExtractSafeDecimal(args.RootElement, "antiguedadMaxima", out var am, out var error, 0, 200)) return error;
+            antiguedadMaxima = (int)am;
+        }
 
         _logger.LogInformation("Iniciando búsqueda híbrida: Query={Query}, Tipo={Tipo}, Presupuesto={Presupuesto}, Habitaciones={Habitaciones}, Antiguedad={Antiguedad}", 
             queryStr ?? "Ninguno", tipoOperacion ?? "Cualquiera", presupuestoMaximo, habitacionesMinimas, antiguedadMaxima);
@@ -195,6 +214,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
 }
 
 public record PropiedadResultDto(Guid Id, string Titulo, decimal Precio, string? Sector, string? Ciudad, string? Direccion, int? Habitaciones, decimal? Banos, int? Estacionamientos, int? AniosAntiguedad, decimal? AreaTotal, decimal? AreaConstruccion, decimal? AreaTerreno, int? MediosBanos, string? UrlRemax, string? Operacion, string? TipoPropiedad, string? EstadoComercial, string? NotaIA, string? Descripcion);
+
 
 
 

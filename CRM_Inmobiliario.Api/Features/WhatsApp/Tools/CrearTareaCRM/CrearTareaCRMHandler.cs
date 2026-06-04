@@ -11,28 +11,32 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Tools.CrearTareaCRM;
 
 public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
 {
-    public CrearTareaCRMHandler(CrmDbContext context, ILogger<CrearTareaCRMHandler> logger) 
-        : base(context, logger) { }
+    public CrearTareaCRMHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<CrearTareaCRMHandler> logger) 
+        : base(dbContextFactory, logger) { }
 
     public override string ToolName => "CrearTareaCRM";
 
-    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context)
+    public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
-        string titulo = args.RootElement.TryGetProperty("titulo", out var t) ? t.GetString() ?? string.Empty : string.Empty;
-        string descripcion = args.RootElement.TryGetProperty("descripcion", out var d) ? d.GetString() ?? string.Empty : string.Empty;
-        string fechaProgramadaStr = args.RootElement.TryGetProperty("fechaProgramada", out var f) ? f.GetString() ?? string.Empty : string.Empty;
+        await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        string titulo = ExtractSafeString(args.RootElement, "titulo", 100, string.Empty);
+        string descripcion = ExtractSafeString(args.RootElement, "descripcion", 1000, string.Empty);
         
         Guid? contactoId = args.RootElement.TryGetProperty("contactoId", out var cid) && Guid.TryParse(cid.GetString(), out Guid parsedCid) ? parsedCid : null;
         Guid? propiedadId = args.RootElement.TryGetProperty("propiedadId", out var pid) && Guid.TryParse(pid.GetString(), out Guid parsedPid) ? parsedPid : null;
 
-        if (string.IsNullOrEmpty(titulo) || string.IsNullOrEmpty(descripcion) || string.IsNullOrEmpty(fechaProgramadaStr))
+        if (string.IsNullOrEmpty(titulo) || string.IsNullOrEmpty(descripcion))
         {
-            return "Error: Título, descripción y fechaProgramada son obligatorios.";
+            return "Error: Título y descripción son obligatorios.";
         }
 
-        if (!DateTimeOffset.TryParse(fechaProgramadaStr, out DateTimeOffset fechaProgramada))
+        if (!TryExtractSafeFutureDate(args.RootElement, "fechaProgramada", out DateTimeOffset fechaProgramada, out string errorFecha, 2))
         {
-            return "Error: Formato de fechaProgramada inválido.";
+            return errorFecha;
+        }
+        if (fechaProgramada == DateTimeOffset.MinValue)
+        {
+            return "Error: fechaProgramada es obligatoria y debe tener un formato válido.";
         }
 
         Guid agenteId;
@@ -44,16 +48,26 @@ public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
         }
         else
         {
-            // If we don't have a specific ContactoId, we try to use the current user's contact if any, 
-            // otherwise fallback to Admin. Wait, let's check context.Contacto.
-            if (context.Contacto != null)
+            if (context.ContactoId.HasValue)
             {
-                agenteId = context.Contacto.AgenteId;
+                var contextContacto = await _context.Contactos.FindAsync(new object[] { context.ContactoId.Value }, cancellationToken);
+                if (contextContacto != null)
+                {
+                    agenteId = contextContacto.AgenteId;
+                }
+                else
+                {
+                    var fallbackAgent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin", cancellationToken)
+                                    ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync(cancellationToken);
+                    
+                    if (fallbackAgent == null) return "Error: No se encontró agente para asignar la tarea.";
+                    agenteId = fallbackAgent.Id;
+                }
             }
             else
             {
-                var fallbackAgent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin")
-                                ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
+                var fallbackAgent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin", cancellationToken)
+                                ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync(cancellationToken);
                 
                 if (fallbackAgent == null) return "Error: No se encontró agente para asignar la tarea.";
                 agenteId = fallbackAgent.Id;
@@ -81,3 +95,4 @@ public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
         return $"Tarea creada exitosamente con el ID {task.Id}. Se agendó para el {fechaProgramada:O}.";
     }
 }
+

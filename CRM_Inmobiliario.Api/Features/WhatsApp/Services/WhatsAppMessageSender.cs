@@ -20,7 +20,7 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
         _whatsappPhoneId = Environment.GetEnvironmentVariable("WHATSAPP_PHONE_NUMBER_ID")?.Trim().Trim('"');
     }
 
-    public async Task SendWhatsAppMessageAsync(string to, string text, string? phoneNumberId = null)
+    public async Task SendWhatsAppMessageAsync(string to, string text, string? phoneNumberId = null, CancellationToken cancellationToken = default)
     {
         var phoneIdToUse = phoneNumberId ?? _whatsappPhoneId;
         
@@ -45,7 +45,7 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _whatsappToken);
             request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();

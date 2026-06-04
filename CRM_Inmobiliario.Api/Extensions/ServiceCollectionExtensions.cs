@@ -45,6 +45,22 @@ public static class ServiceCollectionExtensions
             }
         });
 
+        services.AddDbContextFactory<CrmDbContext>(options => 
+        {
+            options.UseNpgsql(dataSource, npgsqlOptions => 
+            {
+                npgsqlOptions.UseVector();
+                npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
+            });
+
+            if (environment.IsDevelopment())
+            {
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging();
+            }
+        });
+
         // Supabase Client
         var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
         var supabaseRoleKey = Environment.GetEnvironmentVariable("SUPABASE_ROLE_KEY");
