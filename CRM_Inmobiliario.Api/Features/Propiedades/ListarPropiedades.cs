@@ -81,17 +81,16 @@ public static class ListarPropiedadesFeature
 
             if (agenciaId.HasValue)
             {
-                // En agencia ves todo lo de la agencia, lo que tú registraste o donde hayas participado
+                // En agencia ves todo lo de la agencia, o si eres el dueño, o si fuiste el creador y el agente invitado no ha activado su cuenta
                 query = query.Where(p => p.AgenciaId == agenciaId || 
-                                       p.CreatedByAgenteId == currentUserId || 
-                                       p.Transactions.Any(t => t.CreatedById == currentUserId));
+                                       p.AgenteId == currentUserId || 
+                                       (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo)));
             }
             else
             {
-                // Independiente: Ves lo que captaste, lo que registraste o donde hayas participado
+                // Independiente: Ves lo que captaste, o si fuiste el creador y el agente invitado no ha activado su cuenta
                 query = query.Where(p => p.AgenteId == currentUserId || 
-                                       p.CreatedByAgenteId == currentUserId || 
-                                       p.Transactions.Any(t => t.CreatedById == currentUserId));
+                                       (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo)));
             }
 
             var totalCount = await query.CountAsync();
@@ -136,16 +135,8 @@ public static class ListarPropiedadesFeature
                         .FirstOrDefault(),
                     x.Property.FechaIngreso,
                     new PropertyPermissions(
-                        // Permiso de edición si:
-                        // 1. Eres el captador Y está marcado como activo
-                        // 2. Eres el creador Y el captador está marcado como inactivo (o no hay captador)
-                        (x.Property.AgenteId == currentUserId && x.Property.EsCaptadorActivo) || 
-                        (x.Property.CreatedByAgenteId == currentUserId && (!x.Property.EsCaptadorActivo || x.Property.AgenteId == null)),
-                        
-                        // Cambio de estado permitido SI Y SOLO SI:
-                        // Eres el dueño/gestor según la regla de Agente Activo.
-                        (x.Property.AgenteId == currentUserId && x.Property.EsCaptadorActivo) || 
-                        (x.Property.CreatedByAgenteId == currentUserId && (!x.Property.EsCaptadorActivo || x.Property.AgenteId == null))
+                        x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo)),
+                        x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))
                     ),
                     x.ActiveTransaction,
                     x.Property.Version.ToString(),

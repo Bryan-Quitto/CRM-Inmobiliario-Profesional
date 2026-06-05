@@ -31,6 +31,8 @@ public static class SubirImagenPropiedadFeature
             // 1. Verificar si la propiedad existe y el usuario tiene permisos de gestión
             var propiedad = await context.Properties
                 .Include(p => p.Media)
+                .Include(p => p.Agente)
+                .Include(p => p.Transactions)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (propiedad == null)

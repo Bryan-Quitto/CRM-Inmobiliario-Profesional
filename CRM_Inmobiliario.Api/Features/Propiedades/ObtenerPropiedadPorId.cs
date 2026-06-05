@@ -91,9 +91,8 @@ public static class ObtenerPropiedadPorIdFeature
                 .AsSplitQuery()
                 .Where(p => p.Id == id && 
                            (p.AgenteId == currentUserId || 
-                            p.CreatedByAgenteId == currentUserId || 
                             (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId) ||
-                            p.Transactions.Any(t => t.CreatedById == currentUserId)))
+                            (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo))))
                 .Select(p => new
                 {
                     Property = p,
@@ -170,20 +169,9 @@ public static class ObtenerPropiedadPorIdFeature
                             m.EsPrincipal,
                             m.Orden)),
                     new PropertyPermissions(
-                        // Permiso de edición si:
-                        // 1. Eres el captador Y está marcado como activo
-                        // 2. Eres el creador Y el captador está marcado como inactivo (o no hay captador)
-                        (x.Property.AgenteId == currentUserId && x.Property.EsCaptadorActivo) || 
-                        (x.Property.CreatedByAgenteId == currentUserId && (!x.Property.EsCaptadorActivo || x.Property.AgenteId == null)),
-                        
-                        (x.Property.AgenteId == currentUserId && x.Property.EsCaptadorActivo) || 
-                        (x.Property.CreatedByAgenteId == currentUserId && (!x.Property.EsCaptadorActivo || x.Property.AgenteId == null)),
-                        
-                        // Cambio de estado permitido SI Y SOLO SI:
-                        // Eres el dueño/gestor según la regla de Agente Activo.
-                        // El autor de la transacción (quien la vendió/reservó) YA NO tiene este permiso.
-                        (x.Property.AgenteId == currentUserId && x.Property.EsCaptadorActivo) || 
-                        (x.Property.CreatedByAgenteId == currentUserId && (!x.Property.EsCaptadorActivo || x.Property.AgenteId == null))
+                        x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo)),
+                        x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo)),
+                        x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))
                     ),
                     x.ActiveTransaction,
                     x.Property.Version.ToString()))

@@ -34,6 +34,8 @@ public static class EliminarImagenesSeleccionadasFeature
             {
                 // 0. Verificar que el usuario tiene permisos de gestión sobre la propiedad
                 var propiedad = await context.Properties
+                    .Include(p => p.Agente)
+                    .Include(p => p.Transactions)
                     .FirstOrDefaultAsync(p => p.Id == propiedadId, ct);
 
                 if (propiedad == null)

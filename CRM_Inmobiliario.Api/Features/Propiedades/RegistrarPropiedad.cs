@@ -79,7 +79,7 @@ public static class RegistrarPropiedadFeature
                     AgenciaId = currentAgent?.AgenciaId,
                     CreatedById = currentUserId,
                     Rol = "Agente",
-                    FechaCreacion = DateTimeOffset.UtcNow
+                    FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5))
                 };
                 context.Agents.Add(nuevoAgente);
                 finalAgenteId = nuevoAgente.Id;
@@ -129,7 +129,7 @@ public static class RegistrarPropiedadFeature
                 CreatedByAgenteId = currentUserId,
                 AgenciaId = currentAgent?.AgenciaId,
                 PropietarioId = command.PropietarioId,
-                FechaIngreso = command.FechaIngreso ?? DateTimeOffset.UtcNow
+                FechaIngreso = command.FechaIngreso ?? DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5))
             };
 
             context.Properties.Add(propiedad);

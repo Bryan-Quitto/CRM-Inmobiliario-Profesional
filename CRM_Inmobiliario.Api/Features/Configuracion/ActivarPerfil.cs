@@ -15,7 +15,8 @@ public static class ActivarPerfil
         string Nombre,
         string Apellido,
         string Telefono,
-        Guid? AgenciaId);
+        Guid? AgenciaId,
+        Guid? GuestAgentId = null);
 
     public static IEndpointRouteBuilder MapActivarPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
@@ -42,7 +43,7 @@ public static class ActivarPerfil
                     AgenciaId = request.AgenciaId,
                     Rol = "Agente",
                     Activo = true,
-                    FechaCreacion = DateTimeOffset.UtcNow
+                    FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5))
                 };
                 context.Agents.Add(agente);
             }
@@ -56,7 +57,41 @@ public static class ActivarPerfil
                 agente.Activo = true;
             }
 
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            if (request.GuestAgentId.HasValue)
+            {
+                var oldId = request.GuestAgentId.Value;
+                
+                // SECURITY VALIDATION: Prevent IDOR / Account takeover
+                var guestAgent = await context.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Id == oldId && a.Email == email);
+                if (guestAgent == null)
+                {
+                    await transaction.RollbackAsync();
+                    return Results.BadRequest(new { message = "ID de agente invitado inválido o no corresponde a tu correo." });
+                }
+                
+                await context.Properties
+                    .Where(p => p.AgenteId == oldId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.AgenteId, agenteId));
+
+                await context.Properties
+                    .Where(p => p.CreatedByAgenteId == oldId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.CreatedByAgenteId, agenteId));
+
+                await context.Contactos
+                    .Where(c => c.AgenteId == oldId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.AgenteId, agenteId));
+
+                // Opcional: Eliminar el agente invitado viejo o dejarlo inactivo/renombrado
+                await context.Agents
+                    .Where(a => a.Id == oldId)
+                    .ExecuteDeleteAsync();
+            }
+
             await context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
 
             return Results.Ok(new { message = "Perfil activado y registrado exitosamente." });
         })

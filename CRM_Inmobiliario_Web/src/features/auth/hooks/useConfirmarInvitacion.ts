@@ -84,11 +84,15 @@ export const useConfirmarInvitacion = () => {
 
       if (updateError) throw updateError;
 
+      const { data: { user } } = await supabase.auth.getUser();
+      const guestAgentId = user?.user_metadata?.guest_agent_id || null;
+
       await api.post('/configuracion/activar-perfil', {
         nombre: formData.nombre,
         apellido: formData.apellido,
         telefono: formData.telefono,
-        agenciaId: formData.agenciaId || null
+        agenciaId: formData.agenciaId || null,
+        guestAgentId: guestAgentId
       });
 
       toast.success('¡Perfil configurado!', {
