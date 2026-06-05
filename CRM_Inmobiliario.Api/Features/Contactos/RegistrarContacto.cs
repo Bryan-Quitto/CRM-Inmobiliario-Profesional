@@ -23,7 +23,7 @@ public static class RegistrarContactoFeature
                 Nombre = command.Nombre,
                 Apellido = command.Apellido,
                 Email = command.Email,
-                Telefono = command.Telefono.NormalizeEcuadorPhone() ?? command.Telefono,
+                Telefono = command.Telefono.NormalizePhoneE164() ?? command.Telefono,
                 Origen = command.Origen,
                 EsProspecto = command.EsContacto,
                 EsPropietario = command.EsPropietario,

@@ -73,7 +73,7 @@ public static class RegistrarPropiedadFeature
                     Id = Guid.NewGuid(),
                     Nombre = command.NuevoCaptador.Nombre,
                     Apellido = command.NuevoCaptador.Apellido,
-                    Telefono = command.NuevoCaptador.Telefono,
+                    Telefono = command.NuevoCaptador.Telefono.NormalizePhoneE164() ?? command.NuevoCaptador.Telefono,
                     Email = $"invitado_{Guid.NewGuid().ToString()[..8]}@crm-inmobiliario.com",
                     Activo = false,
                     AgenciaId = currentAgent?.AgenciaId,

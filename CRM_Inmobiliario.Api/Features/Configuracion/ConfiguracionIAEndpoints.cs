@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Json;
 using Hangfire;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
@@ -15,10 +17,17 @@ public static class ConfiguracionIAEndpoints
     public record IASettingsResponse(
         string? AiApiKey,
         string? WhatsAppPhoneNumberId,
-        int DailyTokenLimitPerContact);
+        int DailyTokenLimitPerContact,
+        int DailyTokenLimitPersonal,
+        bool IsPersonalAiEnabled,
+        bool IsWhatsAppAiEnabled,
+        int TokensUsedToday);
 
     public record UpdateIASettingsRequest(
         int? DailyTokenLimitPerContact,
+        int? DailyTokenLimitPersonal,
+        bool? IsPersonalAiEnabled,
+        bool? IsWhatsAppAiEnabled,
         string? AiApiKey,
         string? WhatsAppPhoneNumberId);
 
@@ -31,13 +40,24 @@ public static class ConfiguracionIAEndpoints
         endpoints.MapGet("/configuracion/ia-settings", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
+            var today = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
+            
+            var tokensUsedToday = await context.AgentDailyTokenUsages
+                .Where(u => u.AgentId == agenteId && u.Date == today)
+                .Select(u => u.TokensUsed)
+                .FirstOrDefaultAsync();
+
             var settings = await context.Agents
                 .AsNoTracking()
                 .Where(a => a.Id == agenteId)
                 .Select(a => new IASettingsResponse(
                     a.AiApiKey,
                     a.WhatsAppPhoneNumberId,
-                    a.DailyTokenLimitPerContact))
+                    a.DailyTokenLimitPerContact,
+                    a.DailyTokenLimitPersonal,
+                    a.IsPersonalAiEnabled,
+                    a.IsWhatsAppAiEnabled,
+                    tokensUsedToday))
                 .FirstOrDefaultAsync();
 
             if (settings is null)
@@ -59,7 +79,12 @@ public static class ConfiguracionIAEndpoints
         {
             if (request.DailyTokenLimitPerContact.HasValue && (request.DailyTokenLimitPerContact < 20000 || request.DailyTokenLimitPerContact > 1000000))
             {
-                return Results.BadRequest(new { Message = "El límite de tokens debe estar entre 20,000 y 1,000,000." });
+                return Results.BadRequest(new { Message = "El límite de tokens para WhatsApp debe estar entre 20,000 y 1,000,000." });
+            }
+
+            if (request.DailyTokenLimitPersonal.HasValue && (request.DailyTokenLimitPersonal < 20000 || request.DailyTokenLimitPersonal > 1000000))
+            {
+                return Results.BadRequest(new { Message = "El límite de tokens para IA Personal debe estar entre 20,000 y 1,000,000." });
             }
 
             var agenteId = user.GetRequiredUserId();
@@ -86,6 +111,21 @@ public static class ConfiguracionIAEndpoints
                 agente.DailyTokenLimitPerContact = request.DailyTokenLimitPerContact.Value;
             }
 
+            if (request.DailyTokenLimitPersonal.HasValue)
+            {
+                agente.DailyTokenLimitPersonal = request.DailyTokenLimitPersonal.Value;
+            }
+
+            if (request.IsPersonalAiEnabled.HasValue)
+            {
+                agente.IsPersonalAiEnabled = request.IsPersonalAiEnabled.Value;
+            }
+
+            if (request.IsWhatsAppAiEnabled.HasValue)
+            {
+                agente.IsWhatsAppAiEnabled = request.IsWhatsAppAiEnabled.Value;
+            }
+
             if (request.AiApiKey != null)
             {
                 var newKey = string.IsNullOrWhiteSpace(request.AiApiKey) ? null : request.AiApiKey.Trim();
@@ -98,16 +138,31 @@ public static class ConfiguracionIAEndpoints
                     var client = httpClientFactory.CreateClient();
                     System.Net.Http.HttpResponseMessage? testRes = null;
 
-                    if (isGemini)
+                    try
                     {
-                        var body = new { contents = new[] { new { parts = new[] { new { text = "hi" } } } } };
-                        testRes = await client.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={newKey}", body);
+                        if (isGemini)
+                        {
+                            var body = new { contents = new[] { new { parts = new[] { new { text = "hi" } } } } };
+                            testRes = await client.PostAsJsonAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={newKey}", body);
+                        }
+                        else if (isOpenAI)
+                        {
+                            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newKey);
+                            var body = new { model = "gpt-4o-mini", messages = new[] { new { role = "user", content = "hi" } }, max_tokens = 1 };
+                            testRes = await client.PostAsJsonAsync("https://api.openai.com/v1/chat/completions", body);
+                        }
                     }
-                    else if (isOpenAI)
+                    catch (System.Net.Http.HttpRequestException)
                     {
-                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newKey);
-                        var body = new { model = "gpt-4o-mini", messages = new[] { new { role = "user", content = "hi" } }, max_tokens = 1 };
-                        testRes = await client.PostAsJsonAsync("https://api.openai.com/v1/chat/completions", body);
+                        return Results.BadRequest(new { Message = "Error de red al intentar validar la API Key. Por favor verifique su conexión e intente nuevamente." });
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        return Results.BadRequest(new { Message = "El tiempo de espera se agotó al validar la API Key. Intente nuevamente." });
+                    }
+                    catch (Exception)
+                    {
+                        return Results.BadRequest(new { Message = "Error inesperado al intentar validar la API Key. Intente nuevamente." });
                     }
 
                     if (testRes != null)
@@ -167,6 +222,41 @@ public static class ConfiguracionIAEndpoints
         })
         .WithTags("Configuracion")
         .WithName("ValidarConfiguracionIA");
+
+        endpoints.MapPost("/configuracion/ia-settings/reset-tokens", async (ClaimsPrincipal user, CrmDbContext context) =>
+        {
+            var agenteId = user.GetRequiredUserId();
+            var today = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
+            
+            var cacheKey = agenteId.ToString();
+            var semaphore = CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentAiService.Locks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+            
+            await semaphore.WaitAsync();
+            try
+            {
+                var usage = await context.AgentDailyTokenUsages
+                    .FirstOrDefaultAsync(u => u.AgentId == agenteId && u.Date == today);
+
+                if (usage != null)
+                {
+                    usage.TokensUsed = 0;
+                    usage.InputTokens = 0;
+                    usage.CachedTokens = 0;
+                    usage.OutputTokens = 0;
+                    // No modificar CostoUSD para preservar el historial
+                    
+                    await context.SaveChangesAsync();
+                }
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+
+            return Results.Ok(new { Message = "Contador de tokens reiniciado exitosamente." });
+        })
+        .WithTags("Configuracion")
+        .WithName("ReiniciarTokensIA");
 
         return endpoints;
     }

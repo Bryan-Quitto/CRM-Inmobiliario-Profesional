@@ -5,6 +5,7 @@ import { CompartirContactoModal } from './CompartirContactoModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
 import { toast } from 'sonner';
+import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracionIA';
 import type { Contacto } from '../../types';
 
 interface ContactoCardProps {
@@ -29,6 +30,8 @@ export const ContactoCard = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isMultipolar = contacto.esContacto && contacto.esPropietario;
   const { isBotActivo, handleToggle, isLoading, showOverrideModal, confirmOverride, cancelOverride } = useContactoBotToggle(contacto);
+  const { settings } = useConfiguracionIA();
+  const isWhatsAppAiEnabled = settings?.isWhatsAppAiEnabled ?? true;
   
   const getEtapaStyles = (etapa: string, isPropietario: boolean = false) => {
     const list = isPropietario ? ETAPAS_PROPIETARIO : ETAPAS;
@@ -213,14 +216,23 @@ export const ContactoCard = ({
               <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-purple-50 text-purple-600 border-purple-100/50">
                 Estado IA
               </span>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
-                : contacto.estadoIA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
-                : contacto.estadoIA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
-                : 'bg-slate-50 text-slate-400 border-slate-100'
-              }`}>
-                {isBotActivo ? 'Operativo' : contacto.estadoIA === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
-              </span>
+              {!isWhatsAppAiEnabled ? (
+                <span 
+                  className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-100/50 cursor-help"
+                  title="La IA de WhatsApp está desactivada en tu Configuración"
+                >
+                  Inactivo (Global)
+                </span>
+              ) : (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                  isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
+                  : contacto.estadoIA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
+                  : contacto.estadoIA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+                  : 'bg-slate-50 text-slate-400 border-slate-100'
+                }`}>
+                  {isBotActivo ? 'Operativo' : contacto.estadoIA === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -251,6 +263,10 @@ export const ContactoCard = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (!isWhatsAppAiEnabled) {
+                      toast.error("Debes activar la IA de WhatsApp en Configuración para usar esta función");
+                      return;
+                    }
                     const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
                     if (isStageLocked) {
                       toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
@@ -260,16 +276,18 @@ export const ContactoCard = ({
                     handleToggle(!isBotActivo);
                   }}
                   className={`h-8 px-2 rounded-lg flex items-center gap-1.5 transition-all ${
-                    (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                    !isWhatsAppAiEnabled
                       ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
-                      : isBotActivo 
-                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
-                        : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
+                      : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                        ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
+                        : isBotActivo 
+                          ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
+                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  title={isBotActivo ? 'Desactivar IA' : 'Activar IA'}
+                  title={!isWhatsAppAiEnabled ? "Debes activar la IA de WhatsApp en Configuración para usar esta función" : (isBotActivo ? 'Desactivar IA' : 'Activar IA')}
                 >
                   <Bot className="h-3.5 w-3.5" />
-                  <span className="text-[10px] font-black uppercase tracking-wider">{isBotActivo ? 'SI' : 'NO'}</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider">{!isWhatsAppAiEnabled ? 'NO' : (isBotActivo ? 'SI' : 'NO')}</span>
                 </button>
               </div>
               <button 

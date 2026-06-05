@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using CRM_Inmobiliario.Api.Extensions;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp;
 
@@ -77,7 +78,8 @@ public static class WebhooksFeature
                 if (value.TryGetProperty("messages", out var messages))
                 {
                     var message = messages[0];
-                    string phone = message.GetProperty("from").GetString() ?? string.Empty;
+                    string rawPhone = message.GetProperty("from").GetString() ?? string.Empty;
+                    string phone = rawPhone.NormalizePhoneE164() ?? rawPhone;
                     string messageId = message.TryGetProperty("id", out var idProp) ? idProp.GetString() ?? string.Empty : string.Empty;
                     
                     if (!string.IsNullOrEmpty(messageId))

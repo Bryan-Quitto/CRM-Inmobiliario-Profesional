@@ -51,6 +51,12 @@ public sealed class Agent
 
     public int DailyTokenLimitPerContact { get; set; } = 50000;
 
+    public int DailyTokenLimitPersonal { get; set; } = 500000;
+
+    public bool IsPersonalAiEnabled { get; set; } = true;
+
+    public bool IsWhatsAppAiEnabled { get; set; } = true;
+
     [MaxLength(50)]
     public string? WhatsAppPhoneNumberId { get; set; }
 

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useState, useRef, useEffect } from 'react';
 import type { Contacto } from '../../types';
 import { useContactoTokenUsage } from '../../hooks/useContactoTokenUsage';
+import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracionIA';
 
 interface ContactoProfileCardProps {
   contacto: Contacto;
@@ -14,6 +15,8 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
   const { isBotActivo, handleToggle, isLoading, showOverrideModal, confirmOverride, cancelOverride } = useContactoBotToggle(contacto);
   const [rango, setRango] = useState<'hoy' | 'semana' | 'mes' | 'siempre'>('hoy');
   const { usage, isLoading: isLoadingUsage } = useContactoTokenUsage(contacto.id, rango);
+  const { settings } = useConfiguracionIA();
+  const isWhatsAppAiEnabled = settings?.isWhatsAppAiEnabled ?? true;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -66,7 +69,14 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
               </div>
               <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado IA</p>
-                {isBotActivo ? (
+                {!isWhatsAppAiEnabled ? (
+                  <span 
+                    className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-help"
+                    title="La IA de WhatsApp está desactivada en tu Configuración"
+                  >
+                    Inactivo (Global)
+                  </span>
+                ) : isBotActivo ? (
                   <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
                 ) : contacto.estadoIA === 'Escalado' ? (
                   <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
@@ -81,6 +91,10 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (!isWhatsAppAiEnabled) {
+                    toast.error("Debes activar la IA de WhatsApp en Configuración para usar esta función");
+                    return;
+                  }
                   const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
                   if (isStageLocked) {
                     toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
@@ -89,10 +103,13 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
                   if (isLoading || contacto.esCompartido) return;
                   handleToggle(!isBotActivo);
                 }}
+                title={!isWhatsAppAiEnabled ? "Debes activar la IA de WhatsApp en Configuración para usar esta función" : undefined}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                  !isWhatsAppAiEnabled
                     ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                    : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
+                    : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                      ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                      : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
                 } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${

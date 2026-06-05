@@ -2,6 +2,7 @@ import React from 'react';
 import { Save, CheckCircle, Building2 } from 'lucide-react';
 import type { PerfilAgente } from '../../api/perfil';
 import type { FormDataPerfil } from '../../hooks/useConfiguracionPerfil';
+import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
 
 interface DatosPersonalesFormProps {
   formData: FormDataPerfil;
@@ -63,18 +64,9 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
             {/* Teléfono */}
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Teléfono / WhatsApp</label>
-              <input
-                type="tel"
+              <PhoneInputWorldClass
                 value={formData.telefono}
-                onChange={(e) => {
-                  let val = e.target.value;
-                  if (val && !val.startsWith('+')) {
-                     val = '+593 ' + val.replace(/^0/, '');
-                  }
-                  setFormData({ ...formData, telefono: val });
-                }}
-                className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
-                placeholder="+593 98 765 4321"
+                onChange={(phone) => setFormData({ ...formData, telefono: phone })}
               />
             </div>
 

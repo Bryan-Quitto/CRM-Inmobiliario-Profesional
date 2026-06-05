@@ -1,42 +1,56 @@
 using System.Text.RegularExpressions;
+using PhoneNumbers;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
 public static partial class PhoneExtensions
 {
-    [GeneratedRegex(@"[^\d]")]
-    private static partial Regex DigitsOnlyRegex();
+    [GeneratedRegex(@"[^\d+]")]
+    private static partial Regex DigitsAndPlusRegex();
 
     /// <summary>
-    /// Normaliza un número de teléfono para que siempre tenga el prefijo +593 (Ecuador).
+    /// Normaliza un número de teléfono a E.164.
+    /// Si no tiene código de país, asume +593 (Ecuador).
     /// </summary>
     /// <param name="phone">El número de entrada.</param>
-    /// <returns>El número normalizado en formato +593XXXXXXXXX.</returns>
-    public static string? NormalizeEcuadorPhone(this string? phone)
+    /// <returns>El número normalizado en formato E.164.</returns>
+    public static string? NormalizePhoneE164(this string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone))
             return null;
 
-        // Limpiar todo excepto dígitos
-        var digits = DigitsOnlyRegex().Replace(phone, "");
-
-        if (string.IsNullOrEmpty(digits))
-            return null;
-
-        // Si ya tiene el código de país 593 al inicio
-        if (digits.StartsWith("593"))
+        var util = PhoneNumberUtil.GetInstance();
+        try
         {
-            return $"+{digits}";
+            // Asume Ecuador si no se especifica el código de país.
+            var parsedNumber = util.Parse(phone, "EC");
+            return util.Format(parsedNumber, PhoneNumberFormat.E164);
         }
-
-        // Si empieza con 0 (común en Ecuador, ej. 098...), quitar el 0
-        if (digits.StartsWith('0'))
+        catch (NumberParseException)
         {
-            digits = digits[1..];
-        }
+            // Fallback básico si falla libphonenumber
+            var cleanPhone = DigitsAndPlusRegex().Replace(phone, "");
+            
+            if (string.IsNullOrWhiteSpace(cleanPhone))
+                return null;
 
-        // Si después de limpiar tiene 9 dígitos (celular estándar en Ecuador sin el 0 inicial)
-        // o 8 dígitos (fijo), le ponemos el prefijo.
-        return $"+593{digits}";
+            if (!cleanPhone.StartsWith('+'))
+            {
+                if (cleanPhone.StartsWith("593"))
+                {
+                    cleanPhone = "+" + cleanPhone;
+                }
+                else
+                {
+                    if (cleanPhone.StartsWith('0'))
+                    {
+                        cleanPhone = cleanPhone[1..];
+                    }
+                    cleanPhone = "+593" + cleanPhone;
+                }
+            }
+
+            return cleanPhone;
+        }
     }
 }

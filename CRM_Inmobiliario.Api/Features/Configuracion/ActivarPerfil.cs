@@ -38,7 +38,7 @@ public static class ActivarPerfil
                     Nombre = request.Nombre,
                     Apellido = request.Apellido,
                     Email = email,
-                    Telefono = request.Telefono.NormalizeEcuadorPhone(),
+                    Telefono = request.Telefono.NormalizePhoneE164() ?? request.Telefono,
                     AgenciaId = request.AgenciaId,
                     Rol = "Agente",
                     Activo = true,
@@ -51,7 +51,7 @@ public static class ActivarPerfil
                 // Si ya existe, actualizamos los datos
                 agente.Nombre = request.Nombre;
                 agente.Apellido = request.Apellido;
-                agente.Telefono = request.Telefono.NormalizeEcuadorPhone();
+                agente.Telefono = request.Telefono.NormalizePhoneE164() ?? request.Telefono;
                 agente.AgenciaId = request.AgenciaId;
                 agente.Activo = true;
             }
