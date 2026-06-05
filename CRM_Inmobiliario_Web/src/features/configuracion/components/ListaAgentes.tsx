@@ -4,6 +4,9 @@ import { useAgentes } from '../hooks/useAgentes';
 import { Loader2, ShieldAlert, UserCheck } from 'lucide-react';
 import { ReasignacionAgenteModal } from './ReasignacionAgenteModal';
 import { ReactivacionAgenteModal } from './ReactivacionAgenteModal';
+import { ActivarAgenteInvitadoModal } from './ActivarAgenteInvitadoModal';
+import { toast } from 'sonner';
+import { activarAgenteInvitado } from '../api/activarAgenteInvitado';
 
 
 
@@ -16,6 +19,9 @@ export const ListaAgentes: React.FC = () => {
 
   const [reactivarModalOpen, setReactivarModalOpen] = useState(false);
   const [selectedReactivarAgent, setSelectedReactivarAgent] = useState<{ id: string, nombre: string } | null>(null);
+
+  const [activarInvitadoModalOpen, setActivarInvitadoModalOpen] = useState(false);
+  const [selectedInvitadoAgent, setSelectedInvitadoAgent] = useState<{ id: string, nombre: string } | null>(null);
 
   if (isLoading) {
     return (
@@ -55,6 +61,17 @@ export const ListaAgentes: React.FC = () => {
                     <ShieldAlert size={16} />
                     Desactivar Agente
                   </button>
+                ) : agente.email?.includes('invitado_') ? (
+                  <button
+                    onClick={() => {
+                      setSelectedInvitadoAgent({ id: agente.id, nombre: `${agente.nombre} ${agente.apellido}` });
+                      setActivarInvitadoModalOpen(true);
+                    }}
+                    className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <UserCheck size={16} />
+                    Activar
+                  </button>
                 ) : (
                   <button
                     onClick={() => {
@@ -93,6 +110,40 @@ export const ListaAgentes: React.FC = () => {
           onClose={() => setReactivarModalOpen(false)}
           onSuccess={() => {
             mutate(); // Recargar la lista
+          }}
+        />
+      )}
+
+      {selectedInvitadoAgent && (
+        <ActivarAgenteInvitadoModal
+          isOpen={activarInvitadoModalOpen}
+          agenteId={selectedInvitadoAgent.id}
+          agenteNombre={selectedInvitadoAgent.nombre}
+          onClose={() => setActivarInvitadoModalOpen(false)}
+          onSubmit={async (newEmail, agenciaId) => {
+            const previousAgentes = agentes;
+            
+            // [Zero-Wait Policy]: Optimistic update local cache
+            mutate(
+              agentes?.map(a => a.id === selectedInvitadoAgent.id ? { ...a, email: newEmail } : a),
+              false // Don't revalidate immediately
+            );
+
+            try {
+              await activarAgenteInvitado({
+                id: selectedInvitadoAgent.id,
+                realEmail: newEmail,
+                agenciaId: agenciaId
+              });
+              toast.success('Invitación enviada', {
+                description: `Se ha enviado la invitación a ${newEmail} exitosamente.`
+              });
+              mutate(); // Revalidate eventually
+            } catch (error) {
+              // Rollback on error
+              mutate(previousAgentes, false);
+              throw error; // Let the modal catch it to show the error message
+            }
           }}
         />
       )}

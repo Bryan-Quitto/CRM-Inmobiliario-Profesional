@@ -11,9 +11,9 @@ public static class PropertyPermissionsHelper
     /// </summary>
     public static bool CanManage(Property property, Guid currentUserId)
     {
-        // 1. Si el captador es activo: Solo el AgenteId puede gestionar.
-        // 2. Si el captador no es activo: Solo el Creador (CreatedByAgenteId) puede gestionar.
-        return (property.EsCaptadorActivo && property.AgenteId == currentUserId) ||
-               (!property.EsCaptadorActivo && property.CreatedByAgenteId == currentUserId);
+        // Regla de Agentes Invitados: El creador mantiene acceso si el agente asignado es invitado (Activo = false).
+        // Si el agente activa su cuenta (Activo = true), el creador pierde acceso y el nuevo agente toma control total.
+        return property.AgenteId == currentUserId ||
+               ((property.Transactions?.Any(t => t.CreatedById == currentUserId) == true) && (property.Agente == null || !property.Agente.Activo));
     }
 }

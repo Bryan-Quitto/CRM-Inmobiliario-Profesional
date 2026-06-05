@@ -51,6 +51,8 @@ public static class ActualizarPropiedadFeature
             var currentUserId = user.GetRequiredUserId();
 
             var propiedad = await context.Properties
+                .Include(p => p.Agente)
+                .Include(p => p.Transactions)
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
 
             if (propiedad is null)
@@ -89,7 +91,7 @@ public static class ActualizarPropiedadFeature
                     AgenciaId = propiedad.AgenciaId,
                     CreatedById = currentUserId,
                     Rol = "Agente",
-                    FechaCreacion = DateTimeOffset.UtcNow
+                    FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5))
                 };
                 context.Agents.Add(nuevoAgente);
                 finalAgenteId = nuevoAgente.Id;

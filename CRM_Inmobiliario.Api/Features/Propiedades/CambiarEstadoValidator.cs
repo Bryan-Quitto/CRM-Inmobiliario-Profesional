@@ -35,9 +35,8 @@ public static class CambiarEstadoValidator
                 .ThenInclude(t => t.CreatedBy)
             .FirstOrDefaultAsync(p => p.Id == propertyId && 
                 (p.AgenteId == currentUserId || 
-                 p.CreatedByAgenteId == currentUserId || 
                  (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId) ||
-                 p.Transactions.Any(t => t.CreatedById == currentUserId)), ct);
+                 (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo))), ct);
 
         if (property == null)
         {
@@ -46,25 +45,19 @@ public static class CambiarEstadoValidator
         }
 
         // 2. SEGURIDAD: Guardián de Estados (Multi-Agente)
-        // Lógica de Dueño/Gestor según EsCaptadorActivo
-        bool esDuenioGestor = (property.EsCaptadorActivo && property.AgenteId == currentUserId) || 
-                             (!property.EsCaptadorActivo && property.CreatedByAgenteId == currentUserId);
+        // Lógica de Dueño/Gestor según Regla de Agentes Invitados
+        bool esDuenioGestor = property.AgenteId == currentUserId || 
+                              (property.Transactions.Any(t => t.CreatedById == currentUserId) && (property.Agente == null || !property.Agente.Activo));
 
         // Regla ESTRICTA: Solo el dueño/gestor puede cambiar estados. 
-        // El autor de la transacción ya no tiene este permiso (Spec 015 Update).
         if (!esDuenioGestor)
         {
-            var autorId = property.EsCaptadorActivo ? property.AgenteId : property.CreatedByAgenteId;
-            var autorNombre = property.EsCaptadorActivo 
-                ? (property.Agente != null ? $"{property.Agente.Nombre} {property.Agente.Apellido}" : "el agente captador")
-                : "el agente que registró la propiedad";
-
-            string msg = property.EstadoComercial == "Disponible"
-                ? (property.EsCaptadorActivo 
-                    ? $"Solo el agente captador ({autorNombre}) puede modificar los estados."
-                    : $"Solo el agente ({autorNombre}) que registró la propiedad puede modificar los estados.")
-                : $"Esta propiedad está siendo gestionada por {autorNombre}. Contáctese con dicho agente para cualquier cambio de estado.";
-
+            var esCreador = property.Transactions.Any(t => t.CreatedById == currentUserId);
+            var gestorActivo = property.Agente != null && property.Agente.Activo;
+            string msg = "No tiene permisos para modificar los estados de esta propiedad.";
+            if (esCreador && gestorActivo)
+                msg = $"El agente invitado ha activado su cuenta y ahora tiene el control exclusivo de la propiedad.";
+            
             return new ValidationResult(false, msg, StatusCodes.Status400BadRequest);
         }
 

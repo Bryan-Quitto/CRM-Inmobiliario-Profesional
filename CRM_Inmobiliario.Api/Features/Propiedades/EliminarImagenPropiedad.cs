@@ -23,7 +23,8 @@ public static class EliminarImagenPropiedadFeature
             var agenteId = user.GetRequiredUserId();
 
             var media = await context.PropertyMedia
-                .Include(m => m.Propiedad)
+                .Include(m => m.Propiedad).ThenInclude(p => p!.Agente)
+                .Include(m => m.Propiedad).ThenInclude(p => p!.Transactions)
                 .FirstOrDefaultAsync(m => m.Id == imagenId && m.PropiedadId == propiedadId);
 
             if (media == null)
