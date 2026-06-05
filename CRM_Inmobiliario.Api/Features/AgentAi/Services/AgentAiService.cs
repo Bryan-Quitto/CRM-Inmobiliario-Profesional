@@ -91,6 +91,8 @@ public class AgentAiService
                     new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = message }
                 };
 
+                _logger.LogInformation("\n=== [Agent AI] Interacción de Usuario ===\nAgentId: {AgentId}\nMensaje: {Message}\n=======================================", agentId, message);
+
                 var textBuilder = new System.Text.StringBuilder();
 
                 await foreach(var update in provider.StreamChatAsync(messages, new List<AiToolDefinition>(), null, 4000, cancellationToken))
@@ -108,6 +110,7 @@ public class AgentAiService
                     }
                 }
 
+                _logger.LogInformation("\n=== [Agent AI] Respuesta de IA ===\nAgentId: {AgentId}\nRespuesta: {Response}\n================================", agentId, textBuilder.ToString());
                 return textBuilder.ToString();
             }
             catch (Polly.Timeout.TimeoutRejectedException)
@@ -212,6 +215,8 @@ public class AgentAiService
 
                 // Add the current user message
                 messages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = message });
+
+                _logger.LogInformation("\n=== [Agent AI Stream] Interacción de Usuario ===\nAgentId: {AgentId}\nConversationId: {ConversationId}\nMensaje: {Message}\n================================================", agentId, conversationId, message);
 
                 var context = new ToolExecutionContext
                 {
@@ -361,6 +366,8 @@ public class AgentAiService
                         }
                     }
                 }
+
+                _logger.LogInformation("\n=== [Agent AI Stream] Respuesta de IA Final ===\nAgentId: {AgentId}\nConversationId: {ConversationId}\nRespuesta: {Response}\n===============================================", agentId, conversationId, finalFullText.ToString());
             }
             finally
             {

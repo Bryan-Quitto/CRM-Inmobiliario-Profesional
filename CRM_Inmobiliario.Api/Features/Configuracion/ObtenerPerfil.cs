@@ -33,8 +33,6 @@ public static class ObtenerPerfil
                         ?? user.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress") 
                         ?? "";
 
-            Console.WriteLine($"DEBUG [ObtenerPerfil]: Buscando agente {agenteId} ({email})");
-
             var perfil = await context.Agents
                 .AsNoTracking()
                 .Where(a => a.Id == agenteId)

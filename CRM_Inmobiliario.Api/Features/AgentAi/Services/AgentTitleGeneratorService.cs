@@ -8,36 +8,37 @@ using Microsoft.Extensions.AI;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models;
 using System.Collections.Generic;
-
+using Microsoft.Extensions.DependencyInjection;
 namespace CRM_Inmobiliario.Api.Features.AgentAi.Services;
 
 public class AgentTitleGeneratorService
 {
     private readonly ILogger<AgentTitleGeneratorService> _logger;
-    private readonly CrmDbContext _dbContext;
-    private readonly LLMProviderFactory _providerFactory;
+    private readonly Microsoft.Extensions.DependencyInjection.IServiceScopeFactory _scopeFactory;
 
     public AgentTitleGeneratorService(
         ILogger<AgentTitleGeneratorService> logger,
-        CrmDbContext dbContext,
-        LLMProviderFactory providerFactory)
+        Microsoft.Extensions.DependencyInjection.IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-        _dbContext = dbContext;
-        _providerFactory = providerFactory;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task GenerateTitleAsync(Guid agentId, Guid conversationId, string firstMessage, CancellationToken cancellationToken = default)
     {
         try
         {
-            var agent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
+            var providerFactory = scope.ServiceProvider.GetRequiredService<LLMProviderFactory>();
+
+            var agent = await dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
             if (agent == null) return;
 
             var providerName = agent.ActiveLLMProvider ?? "OpenAI";
             string apiKey = agent.AiApiKey ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? string.Empty;
 
-            var provider = _providerFactory.GetProvider(providerName, apiKey);
+            var provider = providerFactory.GetProvider(providerName, apiKey);
 
             var messages = new List<AiMessage>
             {
@@ -57,11 +58,11 @@ public class AgentTitleGeneratorService
             var titleResponse = titleBuilder.ToString();
             if (!string.IsNullOrWhiteSpace(titleResponse))
             {
-                var conversation = await _dbContext.AgentConversations.FirstOrDefaultAsync(c => c.Id == conversationId, cancellationToken);
+                var conversation = await dbContext.AgentConversations.FirstOrDefaultAsync(c => c.Id == conversationId, cancellationToken);
                 if (conversation != null)
                 {
                     conversation.Title = titleResponse.Trim();
-                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
                 }
             }
         }
