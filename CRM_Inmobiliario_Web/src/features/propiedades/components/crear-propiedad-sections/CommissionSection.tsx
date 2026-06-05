@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useFormContext, Controller, useWatch } from 'react-hook-form';
-import { UserPlus, UserCircle, UserCheck, Phone, User } from 'lucide-react';
+import { UserPlus, UserCircle, UserCheck, User } from 'lucide-react';
 import useSWR from 'swr';
 
 import type { CrearPropiedadDTO } from '../../api/crearPropiedad';
@@ -10,6 +10,7 @@ import { getContactos } from '@/features/contactos/api/getContactos';
 import { swrDefaultConfig } from '@/lib/swr';
 import type { Propiedad } from '../../types';
 import { usePerfil } from '@/features/auth/api/perfil';
+import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
 
 interface Props {
   initialData?: Propiedad;
@@ -258,15 +259,19 @@ export const CommissionSection = ({ initialData }: Props) => {
               </div>
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Teléfono (WhatsApp)</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                  <input 
-                    {...register('nuevoCaptador.telefono')}
-                    type="tel" 
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 transition-all"
-                    placeholder="Ej. 0987654321"
-                  />
-                </div>
+                <Controller
+                  name="nuevoCaptador.telefono"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInputWorldClass
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      hasError={!!errors.nuevoCaptador?.telefono}
+                    />
+                  )}
+                />
               </div>
             </div>
           )}

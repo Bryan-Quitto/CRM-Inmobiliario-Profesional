@@ -66,6 +66,16 @@ public sealed class WhatsAppAiService
     {
         try
         {
+            await using var dbContextCheck = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var agente = await dbContextCheck.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId, cancellationToken);
+            if (agente == null) agente = await dbContextCheck.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin", cancellationToken);
+            
+            if (agente != null && !agente.IsWhatsAppAiEnabled)
+            {
+                _logger.LogInformation("WhatsApp AI is globally disabled for agent {AgentId}. Silently ignoring message from {Phone}.", agente.Id, phone);
+                return;
+            }
+
             _logger.LogInformation("Procesando mensaje de {Phone}: {Message}", phone, messageText);
 
             // 1. Preparar contexto (Contacto, Conversación, Historial, Filtros de Etapa)

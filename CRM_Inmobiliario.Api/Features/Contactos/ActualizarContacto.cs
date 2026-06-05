@@ -34,7 +34,7 @@ public static class ActualizarContactoFeature
             contacto.Nombre = command.Nombre;
             contacto.Apellido = command.Apellido;
             contacto.Email = command.Email;
-            contacto.Telefono = command.Telefono.NormalizeEcuadorPhone() ?? command.Telefono;
+            contacto.Telefono = command.Telefono.NormalizePhoneE164() ?? command.Telefono;
             contacto.Origen = command.Origen;
             contacto.EsProspecto = command.EsContacto;
             contacto.EsPropietario = command.EsPropietario;

@@ -5,7 +5,11 @@ export interface IASettings {
   aiApiKey: string | null;
   whatsAppPhoneNumberId: string | null;
   dailyTokenLimitPerContact: number;
+  dailyTokenLimitPersonal: number;
   hasActiveSubscription: boolean;
+  isWhatsAppAiEnabled: boolean;
+  isPersonalAiEnabled: boolean;
+  tokensUsedToday: number;
 }
 
 const getIASettings = async () => {
@@ -21,10 +25,16 @@ export const updateIASettings = async (dailyTokenLimitPerContact: number) => {
 export const useConfiguracionIA = () => {
   const { data, error, isLoading, mutate } = useSWR('/configuracion/ia-settings', getIASettings);
 
+  const resetPersonalTokens = async () => {
+    await api.post('/configuracion/ia-settings/reset-tokens');
+    await mutate();
+  };
+
   return {
     settings: data,
     isLoading,
     isError: error,
-    mutate
+    mutate,
+    resetPersonalTokens
   };
 };

@@ -43,7 +43,7 @@ public static class ServiceCollectionExtensions
                 options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging();
             }
-        });
+        }, ServiceLifetime.Scoped, ServiceLifetime.Singleton);
 
         services.AddDbContextFactory<CrmDbContext>(options => 
         {

@@ -1,6 +1,7 @@
-import { type UseFormRegister, type FieldErrors, type Control, useWatch } from 'react-hook-form';
-import { User, Mail, Phone, UserCheck, Search } from 'lucide-react';
+import { type UseFormRegister, type FieldErrors, type Control, useWatch, Controller } from 'react-hook-form';
+import { User, Mail, UserCheck, Search } from 'lucide-react';
 import { type CrearContactoDTO } from '../../api/crearContacto';
+import { PhoneInputWorldClass } from '../PhoneInputWorldClass';
 
 interface CrearContactoFieldsProps {
   register: UseFormRegister<CrearContactoDTO>;
@@ -129,19 +130,24 @@ export const CrearContactoFields = ({
 
       <div className="space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Teléfono</label>
-        <div className="relative">
-          <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            {...register('telefono', { 
-              required: 'El teléfono es obligatorio',
-              validate: validateTelefono
-            })}
-            type="tel" 
-            disabled={isSuccess}
-            placeholder="+593 98 765 4321"
-            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.telefono ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
-          />
-        </div>
+        <Controller
+          name="telefono"
+          control={control}
+          rules={{ 
+            required: 'El teléfono es obligatorio',
+            validate: validateTelefono
+          }}
+          render={({ field: { onChange, onBlur, value, ref } }) => (
+            <PhoneInputWorldClass
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              ref={ref}
+              disabled={isSuccess}
+              hasError={!!errors.telefono}
+            />
+          )}
+        />
         {errors.telefono && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.telefono.message}</p>}
       </div>
     </div>

@@ -34,7 +34,7 @@ public static class ActualizarPerfil
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(a => a.Nombre, request.Nombre)
                     .SetProperty(a => a.Apellido, request.Apellido)
-                    .SetProperty(a => a.Telefono, request.Telefono.NormalizeEcuadorPhone())
+                    .SetProperty(a => a.Telefono, request.Telefono.NormalizePhoneE164() ?? request.Telefono)
                     .SetProperty(a => a.AgenciaId, request.AgenciaId)
                     .SetProperty(a => a.FotoUrl, request.FotoUrl)
                     .SetProperty(a => a.LogoUrl, request.LogoUrl));
@@ -48,7 +48,7 @@ public static class ActualizarPerfil
                     Nombre = request.Nombre,
                     Apellido = request.Apellido,
                     Email = email,
-                    Telefono = request.Telefono.NormalizeEcuadorPhone(),
+                    Telefono = request.Telefono.NormalizePhoneE164() ?? request.Telefono,
                     AgenciaId = request.AgenciaId,
                     FotoUrl = request.FotoUrl,
                     LogoUrl = request.LogoUrl,

@@ -1,6 +1,7 @@
 import React from 'react';
-import { User, Building, Phone, Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User, Building, Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { PasswordRequirements } from './PasswordRequirements';
+import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
 
 interface ConfirmarInvitacionFormProps {
   formData: {
@@ -75,10 +76,10 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
             <div className="relative group">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
-              <input name="telefono" type="tel" required value={formData.telefono} onChange={handleChange}
-                className="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 text-sm outline-none focus:border-emerald-500 transition-all"
-                placeholder="+593 ..." />
+              <PhoneInputWorldClass
+                value={formData.telefono}
+                onChange={(phone) => handleChange({ target: { name: 'telefono', value: phone } } as unknown as React.ChangeEvent<HTMLInputElement>)}
+              />
             </div>
           </div>
           <div className="space-y-2">

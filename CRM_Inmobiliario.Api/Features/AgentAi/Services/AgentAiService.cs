@@ -19,14 +19,15 @@ namespace CRM_Inmobiliario.Api.Features.AgentAi.Services;
 
 public class AgentAiService
 {
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Lazy<SemaphoreSlim>> _financeLocks = new();
     private readonly ILogger<AgentAiService> _logger;
     private readonly LLMProviderFactory _providerFactory;
     private readonly AgentSystemPromptFactory _promptFactory;
     private readonly Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> _dbContextFactory;
     private readonly ICoreAiToolExecutor _toolExecutor;
-    private readonly IMemoryCache _cache;
     private readonly IServiceScopeFactory _scopeFactory;
+
+    public static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks = new();
+    public static readonly SemaphoreSlim GlobalConcurrencyLock = new(21, 21);
 
     public AgentAiService(
         ILogger<AgentAiService> logger,
@@ -34,7 +35,6 @@ public class AgentAiService
         AgentSystemPromptFactory promptFactory,
         ICoreAiToolExecutor toolExecutor,
         Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory,
-        IMemoryCache cache,
         IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
@@ -42,71 +42,108 @@ public class AgentAiService
         _promptFactory = promptFactory;
         _toolExecutor = toolExecutor;
         _dbContextFactory = dbContextFactory;
-        _cache = cache;
         _scopeFactory = scopeFactory;
     }
 
     public async Task<string> GenerateResponseAsync(Guid agentId, string message, CancellationToken cancellationToken = default)
     {
-        var semaphore = _cache.GetOrCreate(agentId.ToString(), e => { e.SlidingExpiration = TimeSpan.FromMinutes(10); return new Lazy<SemaphoreSlim>(() => new SemaphoreSlim(1,1)); })!.Value;
+        var semaphore = Locks.GetOrAdd(agentId.ToString(), _ => new SemaphoreSlim(1, 1));
+        
         await semaphore.WaitAsync(cancellationToken);
         
         try
         {
-            Agent? agent;
-            await using var _dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-            agent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
-            if (agent == null) throw new InvalidOperationException("Agente no encontrado");
-
-            var providerName = agent.ActiveLLMProvider ?? "OpenAI";
-            string apiKey = agent.AiApiKey ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? string.Empty;
-
-            var provider = _providerFactory.GetProvider(providerName, apiKey);
-
-            var messages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
+            await GlobalConcurrencyLock.WaitAsync(cancellationToken);
+            try
             {
-                new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = _promptFactory.CreatePrompt() },
-                new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = message }
-            };
-
+            string providerName = "OpenAI";
             int? streamTotalTokens = null;
             int? streamInputTokens = null;
             int? streamCachedTokens = null;
             int? streamOutputTokens = null;
-            
-            var textBuilder = new System.Text.StringBuilder();
 
-            await foreach(var update in provider.StreamChatAsync(messages, new List<AiToolDefinition>(), null, 4000, cancellationToken))
+            try
             {
-                if (!string.IsNullOrEmpty(update.TextUpdate))
+                Agent? agent;
+                string apiKey = string.Empty;
+                
+                await using (var _dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken))
                 {
-                    textBuilder.Append(update.TextUpdate);
+                    agent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
+                    if (agent == null) throw new InvalidOperationException("Agente no encontrado");
+
+                    var today = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
+                    var usage = await _dbContext.AgentDailyTokenUsages.FirstOrDefaultAsync(u => u.AgentId == agentId && u.Date == today, cancellationToken);
+                    if (usage != null && usage.TokensUsed >= agent.DailyTokenLimitPersonal)
+                    {
+                        return "Has alcanzado tu límite diario de tokens personales. Por favor, aumenta tu límite o reinicia el contador en Configuración para continuar.";
+                    }
+
+                    providerName = agent.ActiveLLMProvider ?? "OpenAI";
+                    apiKey = agent.AiApiKey ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? string.Empty;
                 }
-                if (update.TotalTokens.HasValue)
+
+                var provider = _providerFactory.GetProvider(providerName, apiKey);
+
+                var messages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
                 {
-                    streamTotalTokens = update.TotalTokens;
-                    streamInputTokens = update.InputTokens;
-                    streamCachedTokens = update.CachedTokens;
-                    streamOutputTokens = update.OutputTokens;
+                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = _promptFactory.CreatePrompt() },
+                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = message }
+                };
+
+                var textBuilder = new System.Text.StringBuilder();
+
+                await foreach(var update in provider.StreamChatAsync(messages, new List<AiToolDefinition>(), null, 4000, cancellationToken))
+                {
+                    if (!string.IsNullOrEmpty(update.TextUpdate))
+                    {
+                        textBuilder.Append(update.TextUpdate);
+                    }
+                    if (update.TotalTokens.HasValue)
+                    {
+                        streamTotalTokens = update.TotalTokens;
+                        streamInputTokens = update.InputTokens;
+                        streamCachedTokens = update.CachedTokens;
+                        streamOutputTokens = update.OutputTokens;
+                    }
+                }
+
+                return textBuilder.ToString();
+            }
+            catch (Polly.Timeout.TimeoutRejectedException)
+            {
+                _logger.LogError("Timeout excedido para el Agente {AgentId} (Posible límite de cuota RPM alcanzado).", agentId);
+                throw;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Operación cancelada por el usuario para el Agente {AgentId}.", agentId);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error crítico en AgentAiService para {AgentId}", agentId);
+                throw;
+            }
+            finally
+            {
+                if (streamTotalTokens.HasValue)
+                {
+                    try 
+                    {
+                        await RecordTokenUsageAsync(agentId, streamTotalTokens.Value, streamInputTokens ?? 0, streamCachedTokens ?? 0, streamOutputTokens ?? 0, providerName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error al registrar uso de tokens en finally para Agente {AgentId}", agentId);
+                    }
                 }
             }
-
-            if (streamTotalTokens.HasValue)
-            {
-                await RecordTokenUsageAsync(agentId, streamTotalTokens.Value, streamInputTokens ?? 0, streamCachedTokens ?? 0, streamOutputTokens ?? 0, providerName, cancellationToken);
-            }
-
-            return textBuilder.ToString();
         }
-        catch (Polly.Timeout.TimeoutRejectedException)
+        finally
         {
-            _logger.LogError("Timeout excedido para el Agente {AgentId} (Posible límite de cuota RPM alcanzado).", agentId);
-            throw;
+            GlobalConcurrencyLock.Release();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error crítico en AgentAiService para {AgentId}", agentId);
-            throw;
         }
         finally
         {
@@ -116,211 +153,238 @@ public class AgentAiService
 
     public async IAsyncEnumerable<string> StreamResponseAsync(Guid agentId, Guid conversationId, string message, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var semaphore = _cache.GetOrCreate(conversationId.ToString(), e => { e.SlidingExpiration = TimeSpan.FromMinutes(10); return new Lazy<SemaphoreSlim>(() => new SemaphoreSlim(1,1)); })!.Value;
+        var semaphore = Locks.GetOrAdd(agentId.ToString(), _ => new SemaphoreSlim(1, 1));
+        
         await semaphore.WaitAsync(cancellationToken);
+
         try
         {
-            Agent? agent;
-            List<AgentMessage> history;
-            await using var _dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-            agent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
-            if (agent == null) throw new InvalidOperationException("Agente no encontrado");
-
-            history = await _dbContext.AgentMessages
-                .Where(m => m.AgentConversationId == conversationId)
-                .OrderByDescending(m => m.CreatedAt)
-                .Take(30)
-                .ToListAsync(cancellationToken);
-            history.Reverse();
-
-            var providerName = agent.ActiveLLMProvider ?? "OpenAI";
-        string apiKey = agent.AiApiKey ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? string.Empty;
-
-        var provider = _providerFactory.GetProvider(providerName, apiKey);
-
-        var messages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
-        {
-            new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = _promptFactory.CreatePrompt() }
-        };
-
-        foreach (var msg in history)
-        {
-            messages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = msg.Role, Content = msg.Content });
-        }
-
-        // Add the current user message
-        messages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = message });
-
-        var context = new ToolExecutionContext
-        {
-            UserId = agentId,
-            Channel = "Copilot",
-            TriggerMessage = message
-        };
-
-        var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
-
-        bool requiresAction = true;
-        var finalFullText = new System.Text.StringBuilder();
-        int toolFailureCount = 0;
-        int iterationCount = 0;
-        long totalAccumulatedTotalTokens = 0;
-        long totalAccumulatedInputTokens = 0;
-        long totalAccumulatedCachedTokens = 0;
-        long totalAccumulatedOutputTokens = 0;
-
-        while (requiresAction)
-        {
-            iterationCount++;
-            if (iterationCount > 5)
-            {
-                _logger.LogWarning("Límite de iteraciones excedido para Copilot. Agente {AgentId}. Activando Circuit Breaker.", agentId);
-                yield return "\n\nHa ocurrido un fallo inesperado (demasiadas iteraciones), por favor, vuelva a intentarlo y si el error persiste contactese con administracion.";
-                break;
-            }
-
-            requiresAction = false;
-            var textBuilder = new System.Text.StringBuilder();
-            var currentToolCalls = new Dictionary<string, CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall>();
-
-            int? streamTotalTokens = null;
-            int? streamInputTokens = null;
-            int? streamCachedTokens = null;
-            int? streamOutputTokens = null;
-
-            await foreach(var update in provider.StreamChatAsync(messages, tools, null, 4000, cancellationToken))
-            {
-                if (!string.IsNullOrEmpty(update.TextUpdate))
-                {
-                    textBuilder.Append(update.TextUpdate);
-                    finalFullText.Append(update.TextUpdate);
-                    yield return update.TextUpdate;
-                }
-                if (update.ToolCallUpdate != null)
-                {
-                    var callId = update.ToolCallUpdate.Id;
-                    if (string.IsNullOrEmpty(callId)) callId = update.ToolCallUpdate.Index?.ToString() ?? "default";
-                    if (!currentToolCalls.ContainsKey(callId))
-                    {
-                        if (string.IsNullOrEmpty(update.ToolCallUpdate.Id)) update.ToolCallUpdate.Id = callId;
-                        currentToolCalls[callId] = update.ToolCallUpdate;
-                    }
-                    else
-                    {
-                        currentToolCalls[callId].Arguments += update.ToolCallUpdate.Arguments;
-                    }
-                }
-                if (update.TotalTokens.HasValue)
-                {
-                    streamTotalTokens = update.TotalTokens;
-                    streamInputTokens = update.InputTokens;
-                    streamCachedTokens = update.CachedTokens;
-                    streamOutputTokens = update.OutputTokens;
-                }
-            }
-
-            if (streamTotalTokens.HasValue)
-            {
-                totalAccumulatedTotalTokens += streamTotalTokens.Value;
-                totalAccumulatedInputTokens += streamInputTokens ?? 0;
-                totalAccumulatedCachedTokens += streamCachedTokens ?? 0;
-                totalAccumulatedOutputTokens += streamOutputTokens ?? 0;
-            }
-
-            if (currentToolCalls.Any())
-            {
-                messages.Add(new AiMessage { Role = "assistant", Content = "", ToolCalls = currentToolCalls.Values.ToList() });
-                
-                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                try
-                {
-                    var toolTasks = currentToolCalls.Values.Select(async call => 
-                    {
-                        string toolResult = "";
-                        bool jsonError = false;
-                        try
-                        {
-                            var argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(call.Arguments);
-                            if (argsDict == null) throw new System.Text.Json.JsonException("Null JSON is not allowed.");
-                        }
-                        catch (Exception ex) when (ex is System.Text.Json.JsonException || ex is ArgumentNullException)
-                        {
-                            _logger.LogWarning(ex, "Error al deserializar JSON de los argumentos del tool {Tool}", call.Name);
-                            jsonError = true;
-                            toolResult = "Error Crítico: El JSON de los argumentos es inválido. Por favor revisa y corrige el formato.";
-                        }
-
-                        if (!jsonError)
-                        {
-                            try
-                            {
-                                await using var scope = _scopeFactory.CreateAsyncScope();
-                                var toolExecutor = scope.ServiceProvider.GetRequiredService<ICoreAiToolExecutor>();
-                                toolResult = await toolExecutor.HandleToolCallAsync(call, context, linkedCts.Token);
-                            }
-                            catch
-                            {
-                                await linkedCts.CancelAsync();
-                                throw;
-                            }
-                        }
-                        return new { Call = call, Result = toolResult };
-                    }).ToList();
-
-                    var results = await Task.WhenAll(toolTasks);
-
-                    foreach (var res in results)
-                    {
-                        if (res.Result.StartsWith("Error Crítico:"))
-                        {
-                            toolFailureCount++;
-                            if (toolFailureCount >= 3)
-                            {
-                                _logger.LogWarning("Circuit Breaker activado para Copilot. Agente {AgentId}. Demasiados errores críticos.", agentId);
-                            }
-                        }
-
-                        messages.Add(new AiMessage { Role = "tool", Content = res.Result, ToolCallId = res.Call.Id });
-                        requiresAction = true;
-                    }
-                }
-                catch
-                {
-                    await linkedCts.CancelAsync();
-                    throw;
-                }
-
-                if (toolFailureCount >= 3)
-                {
-                    yield return "\n\nHa ocurrido un fallo inesperado, por favor, vuelva a intentarlo y si el error persiste contactese con administracion.";
-                    requiresAction = false;
-                    break;
-                }
-            }
-        }
-        
-        if (totalAccumulatedTotalTokens > 0)
-        {
-            int total, input, cached, output;
+            await GlobalConcurrencyLock.WaitAsync(cancellationToken);
             try
             {
-                checked 
-                { 
-                    total = (int)totalAccumulatedTotalTokens; 
-                    input = (int)totalAccumulatedInputTokens;
-                    cached = (int)totalAccumulatedCachedTokens;
-                    output = (int)totalAccumulatedOutputTokens;
+            string providerName = "OpenAI";
+            long totalAccumulatedTotalTokens = 0;
+            long totalAccumulatedInputTokens = 0;
+            long totalAccumulatedCachedTokens = 0;
+            long totalAccumulatedOutputTokens = 0;
+
+            try
+            {
+                Agent? agent;
+                List<AgentMessage> history;
+                string apiKey = string.Empty;
+
+                await using (var _dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken))
+                {
+                    agent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
+                    if (agent == null) throw new InvalidOperationException("Agente no encontrado");
+
+                    var today = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
+                    var usage = await _dbContext.AgentDailyTokenUsages.FirstOrDefaultAsync(u => u.AgentId == agentId && u.Date == today, cancellationToken);
+                    if (usage != null && usage.TokensUsed >= agent.DailyTokenLimitPersonal)
+                    {
+                        yield return "Has alcanzado tu límite diario de tokens personales. Por favor, aumenta tu límite o reinicia el contador en Configuración para continuar.";
+                        yield break;
+                    }
+
+                    history = await _dbContext.AgentMessages
+                        .Where(m => m.AgentConversationId == conversationId)
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Take(30)
+                        .ToListAsync(cancellationToken);
+                    history.Reverse();
+
+                    providerName = agent.ActiveLLMProvider ?? "OpenAI";
+                    apiKey = agent.AiApiKey ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? string.Empty;
+                }
+
+                var provider = _providerFactory.GetProvider(providerName, apiKey);
+
+                var messages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
+                {
+                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = _promptFactory.CreatePrompt() }
+                };
+
+                foreach (var msg in history)
+                {
+                    messages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = msg.Role, Content = msg.Content });
+                }
+
+                // Add the current user message
+                messages.Add(new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = message });
+
+                var context = new ToolExecutionContext
+                {
+                    UserId = agentId,
+                    Channel = "Copilot",
+                    TriggerMessage = message
+                };
+
+                var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
+
+                bool requiresAction = true;
+                var finalFullText = new System.Text.StringBuilder();
+                int toolFailureCount = 0;
+                int iterationCount = 0;
+
+                while (requiresAction)
+                {
+                    iterationCount++;
+                    if (iterationCount > 5)
+                    {
+                        _logger.LogWarning("Límite de iteraciones excedido para Copilot. Agente {AgentId}. Activando Circuit Breaker.", agentId);
+                        yield return "\n\nHa ocurrido un fallo inesperado (demasiadas iteraciones), por favor, vuelva a intentarlo y si el error persiste contáctese con administración.";
+                        break;
+                    }
+
+                    requiresAction = false;
+                    var textBuilder = new System.Text.StringBuilder();
+                    var currentToolCalls = new Dictionary<string, CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall>();
+
+                    int? streamTotalTokens = null;
+                    int? streamInputTokens = null;
+                    int? streamCachedTokens = null;
+                    int? streamOutputTokens = null;
+
+                    try
+                    {
+                        await foreach(var update in provider.StreamChatAsync(messages, tools, null, 4000, cancellationToken))
+                        {
+                            if (!string.IsNullOrEmpty(update.TextUpdate))
+                            {
+                                textBuilder.Append(update.TextUpdate);
+                                finalFullText.Append(update.TextUpdate);
+                                yield return update.TextUpdate;
+                            }
+                            if (update.ToolCallUpdate != null)
+                            {
+                                var callId = update.ToolCallUpdate.Id;
+                                if (string.IsNullOrEmpty(callId)) callId = update.ToolCallUpdate.Index?.ToString() ?? "default";
+                                if (!currentToolCalls.ContainsKey(callId))
+                                {
+                                    if (string.IsNullOrEmpty(update.ToolCallUpdate.Id)) update.ToolCallUpdate.Id = callId;
+                                    currentToolCalls[callId] = update.ToolCallUpdate;
+                                }
+                                else
+                                {
+                                    currentToolCalls[callId].Arguments += update.ToolCallUpdate.Arguments;
+                                }
+                            }
+                            if (update.TotalTokens.HasValue)
+                            {
+                                streamTotalTokens = update.TotalTokens;
+                                streamInputTokens = update.InputTokens;
+                                streamCachedTokens = update.CachedTokens;
+                                streamOutputTokens = update.OutputTokens;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        if (streamTotalTokens.HasValue)
+                        {
+                            totalAccumulatedTotalTokens += streamTotalTokens.Value;
+                            totalAccumulatedInputTokens += streamInputTokens ?? 0;
+                            totalAccumulatedCachedTokens += streamCachedTokens ?? 0;
+                            totalAccumulatedOutputTokens += streamOutputTokens ?? 0;
+                        }
+                    }
+
+                    if (currentToolCalls.Any())
+                    {
+                        messages.Add(new AiMessage { Role = "assistant", Content = "", ToolCalls = currentToolCalls.Values.ToList() });
+                        
+                        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                        try
+                        {
+                            var toolTasks = currentToolCalls.Values.Select(async call => 
+                            {
+                                string toolResult = "";
+                                bool jsonError = false;
+                                try
+                                {
+                                    var argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(call.Arguments);
+                                    if (argsDict == null) throw new System.Text.Json.JsonException("Null JSON is not allowed.");
+                                }
+                                catch (Exception ex) when (ex is System.Text.Json.JsonException || ex is ArgumentNullException)
+                                {
+                                    _logger.LogWarning(ex, "Error al deserializar JSON de los argumentos del tool {Tool}", call.Name);
+                                    jsonError = true;
+                                    toolResult = "Error Crítico: El JSON de los argumentos es inválido. Por favor revisa y corrige el formato.";
+                                }
+
+                                if (!jsonError)
+                                {
+                                    try
+                                    {
+                                        await using var scope = _scopeFactory.CreateAsyncScope();
+                                        var toolExecutor = scope.ServiceProvider.GetRequiredService<ICoreAiToolExecutor>();
+                                        toolResult = await toolExecutor.HandleToolCallAsync(call, context, linkedCts.Token);
+                                    }
+                                    catch
+                                    {
+                                        await linkedCts.CancelAsync();
+                                        throw;
+                                    }
+                                }
+                                return new { Call = call, Result = toolResult };
+                            }).ToList();
+
+                            var results = await Task.WhenAll(toolTasks);
+
+                            foreach (var res in results)
+                            {
+                                if (res.Result.StartsWith("Error Crítico:"))
+                                {
+                                    toolFailureCount++;
+                                    if (toolFailureCount >= 3)
+                                    {
+                                        _logger.LogWarning("Circuit Breaker activado para Copilot. Agente {AgentId}. Demasiados errores críticos.", agentId);
+                                    }
+                                }
+
+                                messages.Add(new AiMessage { Role = "tool", Content = res.Result, ToolCallId = res.Call.Id });
+                                requiresAction = true;
+                            }
+                        }
+                        catch
+                        {
+                            await linkedCts.CancelAsync();
+                            throw;
+                        }
+
+                        if (toolFailureCount >= 3)
+                        {
+                            yield return "\n\nHa ocurrido un fallo inesperado, por favor, vuelva a intentarlo y si el error persiste contáctese con administración.";
+                            requiresAction = false;
+                            break;
+                        }
+                    }
                 }
             }
-            catch (OverflowException)
+            finally
             {
-                _logger.LogWarning("Integer Overflow en tokens detectado y mitigado.");
-                total = int.MaxValue;
-                input = int.MaxValue;
-                cached = int.MaxValue;
-                output = int.MaxValue;
+                if (totalAccumulatedTotalTokens > 0)
+                {
+                    int total = (int)totalAccumulatedTotalTokens; 
+                    int input = (int)totalAccumulatedInputTokens;
+                    int cached = (int)totalAccumulatedCachedTokens;
+                    int output = (int)totalAccumulatedOutputTokens;
+
+                    try 
+                    {
+                        await RecordTokenUsageAsync(agentId, total, input, cached, output, providerName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error al guardar tokens en finally para Agente {AgentId}", agentId);
+                    }
+                }
             }
-            await RecordTokenUsageAsync(agentId, total, input, cached, output, providerName, cancellationToken);
+        }
+        finally
+        {
+            GlobalConcurrencyLock.Release();
         }
         }
         finally
@@ -329,7 +393,7 @@ public class AgentAiService
         }
     }
 
-    private async Task RecordTokenUsageAsync(Guid agentId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider, CancellationToken cancellationToken)
+    private async Task RecordTokenUsageAsync(Guid agentId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider)
     {
         var today = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
 
@@ -343,85 +407,34 @@ public class AgentAiService
 
         var currentCost = inputCost + outputCost + cachedCost;
 
-        var cacheKey = agentId.ToString() + "_tokens";
-        var lazySemaphore = _financeLocks.GetOrAdd(cacheKey, key => {
-            _ = Task.Run(async () => {
-                await Task.Delay(TimeSpan.FromMinutes(10));
-                _financeLocks.TryRemove(key, out var removed);
-            });
-            return new Lazy<SemaphoreSlim>(() => new SemaphoreSlim(1,1));
-        });
-        var semaphore = lazySemaphore.Value;
-        await semaphore.WaitAsync(cancellationToken);
-        try
-        {
-            int retryCount = 0;
-            const int maxRetries = 3;
+        await using var _dbContext = await _dbContextFactory.CreateDbContextAsync(CancellationToken.None);
+        var usage = await _dbContext.AgentDailyTokenUsages
+            .FirstOrDefaultAsync(u => u.AgentId == agentId && u.Date == today, CancellationToken.None);
 
-            while (retryCount < maxRetries)
+        if (usage == null)
         {
-            AgentDailyTokenUsage? usage = null;
-            await using var _dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-            try
+            usage = new AgentDailyTokenUsage
             {
-                usage = await _dbContext.AgentDailyTokenUsages
-                    .FirstOrDefaultAsync(u => u.AgentId == agentId && u.Date == today, cancellationToken);
-
-                if (usage == null)
-                {
-                    usage = new AgentDailyTokenUsage
-                    {
-                        Id = Guid.NewGuid(),
-                        AgentId = agentId,
-                        Date = today,
-                        TokensUsed = totalTokens,
-                        InputTokens = inputTokens,
-                        CachedTokens = cachedTokens,
-                        OutputTokens = outputTokens,
-                        CostoUSD = currentCost
-                    };
-                    _dbContext.AgentDailyTokenUsages.Add(usage);
-                }
-                else
-                {
-                    usage.TokensUsed += totalTokens;
-                    usage.InputTokens += inputTokens;
-                    usage.CachedTokens += cachedTokens;
-                    usage.OutputTokens += outputTokens;
-                    usage.CostoUSD += currentCost;
-                }
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return;
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                retryCount++;
-                _logger.LogWarning(ex, "Conflicto de concurrencia al actualizar tokens diarios para el agente {AgentId}. Intento {RetryCount}/{MaxRetries}", agentId, retryCount, maxRetries);
-                
-                if (retryCount >= maxRetries) throw;
-                
-                await Task.Delay(100 * retryCount, cancellationToken);
-            }
-            catch (DbUpdateException ex)
-            {
-                retryCount++;
-                _logger.LogWarning(ex, "Error de base de datos al actualizar tokens diarios para el agente {AgentId}. Intento {RetryCount}/{MaxRetries}", agentId, retryCount, maxRetries);
-                
-                if (retryCount >= maxRetries) throw;
-                
-                await Task.Delay(100 * retryCount, cancellationToken);
-            }
+                Id = Guid.NewGuid(),
+                AgentId = agentId,
+                Date = today,
+                TokensUsed = totalTokens,
+                InputTokens = inputTokens,
+                CachedTokens = cachedTokens,
+                OutputTokens = outputTokens,
+                CostoUSD = currentCost
+            };
+            _dbContext.AgentDailyTokenUsages.Add(usage);
         }
-        }
-        finally
+        else
         {
-            semaphore.Release();
+            usage.TokensUsed += totalTokens;
+            usage.InputTokens += inputTokens;
+            usage.CachedTokens += cachedTokens;
+            usage.OutputTokens += outputTokens;
+            usage.CostoUSD += currentCost;
         }
+
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
     }
 }
-
-
-
-
-

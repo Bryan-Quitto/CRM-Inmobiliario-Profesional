@@ -28,10 +28,10 @@ public sealed class CoreAiToolExecutor : ICoreAiToolExecutor
     {
         _logger.LogInformation("Ejecutando herramienta: {ToolName} para Usuario {UserId} en {Channel}", toolCall.Name, context.UserId, context.Channel);
         
-        using JsonDocument args = JsonDocument.Parse(toolCall.Arguments);
-
         try 
         {
+            using JsonDocument args = JsonDocument.Parse(string.IsNullOrWhiteSpace(toolCall.Arguments) ? "{}" : toolCall.Arguments);
+
             var handler = _handlers.FirstOrDefault(h => h.ToolName == toolCall.Name);
             
             if (handler == null)

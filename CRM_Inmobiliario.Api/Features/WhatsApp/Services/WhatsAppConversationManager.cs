@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Threading.Tasks;
+using CRM_Inmobiliario.Api.Extensions;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
@@ -59,7 +60,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 Id = Guid.NewGuid(),
                 Nombre = "Cliente WA",
                 Apellido = phone,
-                Telefono = phone,
+                Telefono = phone.NormalizePhoneE164() ?? phone,
                 Origen = "IA WhatsApp",
                 AgenteId = agente.Id,
                 Agente = agente,
@@ -170,7 +171,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             {
                 Id = Guid.NewGuid(),
                 ContactoId = contacto!.Id,
-                Telefono = phone,
+                Telefono = phone.NormalizePhoneE164() ?? phone,
                 HistorialJson = _promptBuilder.SerializeHistory(history),
                 UltimaActualizacion = DateTimeOffset.UtcNow
             };
@@ -195,7 +196,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         { 
             Id = Guid.NewGuid(),
             ContactoId = contacto!.Id,
-            Telefono = phone, 
+            Telefono = phone.NormalizePhoneE164() ?? phone, 
             Rol = "user", 
             Contenido = messageText, 
             Fecha = DateTimeOffset.UtcNow 

@@ -60,6 +60,15 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
   const currentValues = watch();
 
   useEffect(() => {
+    return () => {
+      const win = window as typeof window & { _phoneValidationAbort?: AbortController };
+      if (win._phoneValidationAbort) {
+        win._phoneValidationAbort.abort();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (currentValues.esContacto || currentValues.esPropietario) {
       setRoleError(false);
     }
@@ -154,9 +163,33 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
   const validateTelefono = async (value: string) => {
     if (!value) return true;
     const normalized = value.trim().replace(/\s+/g, '');
+    
+    // Nueva validación básica de longitud
+    if (normalized.length < 8) {
+      return 'El teléfono ingresado es muy corto';
+    }
+
+    // Abort controller para evitar llamadas de red redundantes y debounce
+    const win = window as typeof window & { _phoneValidationAbort?: AbortController };
+    if (win._phoneValidationAbort) {
+      win._phoneValidationAbort.abort();
+    }
+    const abortController = new AbortController();
+    win._phoneValidationAbort = abortController;
+
     try {
+      // Debounce manual de 400ms
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(resolve, 400);
+        abortController.signal.addEventListener('abort', () => {
+          clearTimeout(timeout);
+          reject(new DOMException('Aborted', 'AbortError'));
+        }, { once: true });
+      });
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/contactos/buscar?telefono=${encodeURIComponent(normalized)}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        signal: abortController.signal
       });
       if (response.ok) {
         const existing = await response.json();
@@ -164,7 +197,12 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
           return 'Este número ya está registrado con otro contacto';
         }
       }
-    } catch (e) {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === 'AbortError') {
+        // Ignorar errores de abort, React Hook Form espera una resolución
+        // Retornar true permite que siga hasta que la última llamada real retorne un error si lo hay
+        return true;
+      }
       console.error('Error validando teléfono:', e);
     }
     return true;
