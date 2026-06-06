@@ -41,6 +41,8 @@ public static class ObtenerPropiedadPorIdFeature
         string? PropietarioNombre,
         Guid? CerradoConId,
         string? CerradoConNombre,
+        Guid? AgenteCerradorId,
+        string? AgenteCerradorNombre,
         decimal? PrecioCierre,
         decimal? PrecioReserva,
         IEnumerable<SectionResponse> Secciones,
@@ -140,8 +142,10 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) 
                         ? (x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null) 
                         : "Oculto (Privacidad del Inversionista)",
-                    x.Property.PrecioCierre,
-                    x.Property.PrecioReserva,
+                    x.Property.AgenteCerradorId,
+                    x.Property.AgenteCerrador != null ? x.Property.AgenteCerrador.Nombre + " " + x.Property.AgenteCerrador.Apellido : null,
+                    (x.Property.AgenteId == currentUserId || x.Property.AgenteCerradorId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))) ? x.Property.PrecioCierre : null,
+                    (x.Property.AgenteId == currentUserId || x.Property.AgenteCerradorId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))) ? x.Property.PrecioReserva : null,
                     x.Property.GallerySections
                         .OrderBy(s => s.Orden)
                         .Select(s => new SectionResponse(

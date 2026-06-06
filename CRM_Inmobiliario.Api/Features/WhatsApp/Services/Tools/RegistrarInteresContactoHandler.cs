@@ -73,6 +73,8 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
             interest.FechaRegistro = DateTimeOffset.UtcNow;
         }
 
+        await _context.SaveChangesAsync(cancellationToken);
+
         await LogAiActionAsync("RegistroInteres", args.RootElement.GetRawText(), context);
         
         return $"Interés registrado correctamente como '{nivel}'.";

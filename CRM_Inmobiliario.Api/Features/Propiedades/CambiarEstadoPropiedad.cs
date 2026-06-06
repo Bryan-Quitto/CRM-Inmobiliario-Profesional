@@ -16,7 +16,7 @@ namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class CambiarEstadoPropiedadFeature
 {
-    public record Command(string NuevoEstado, decimal? PrecioCierre = null, Guid? CerradoConId = null, string? Version = null);
+    public record Command(string NuevoEstado, decimal? PrecioCierre = null, Guid? CerradoConId = null, string? Version = null, Guid? AgenteCerradorId = null);
 
     public static void MapCambiarEstadoPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
@@ -54,6 +54,7 @@ public static class CambiarEstadoPropiedadFeature
                     command.NuevoEstado, 
                     command.PrecioCierre, 
                     command.CerradoConId, 
+                    command.AgenteCerradorId,
                     currentUserId, 
                     context, 
                     logger, 

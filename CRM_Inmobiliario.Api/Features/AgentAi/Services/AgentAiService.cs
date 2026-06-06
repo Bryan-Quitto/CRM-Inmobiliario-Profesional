@@ -225,7 +225,7 @@ public class AgentAiService
                     TriggerMessage = message
                 };
 
-                var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
+                var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools("Copilot");
 
                 bool requiresAction = true;
                 var finalFullText = new System.Text.StringBuilder();

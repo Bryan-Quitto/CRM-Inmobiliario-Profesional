@@ -21,7 +21,7 @@ interface PropiedadesModalsOrchestratorProps {
   handleStatusChange: (id: string, nuevoEstado: string, confirmed?: boolean) => void;
   closingPropiedad: { propiedad: Propiedad; nuevoEstado: string } | null;
   setClosingPropiedad: (closing: { propiedad: Propiedad; nuevoEstado: string } | null) => void;
-  handleClosingConfirm: (precio: number | null, id: string, tipo: string) => Promise<void>;
+  handleClosingConfirm: (precio: number | null, id: string, agenteCerradorId: string | undefined, tipo: string) => Promise<void>;
   showReversionModal: { type: 'status', id: string, targetStatus: string, currentStatus?: string } | null;
   setShowReversionModal: (reversion: { type: 'status', id: string, targetStatus: string, currentStatus?: string } | null) => void;
   handleRelistPropiedad: (id: string, reason: string, type: 'Relist' | 'Cancel') => void;

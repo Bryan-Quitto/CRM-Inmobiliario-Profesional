@@ -44,5 +44,10 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .WithMany(p => p.PropertiesOwned)
             .HasForeignKey(d => d.PropietarioId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(d => d.AgenteCerrador)
+            .WithMany()
+            .HasForeignKey(d => d.AgenteCerradorId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

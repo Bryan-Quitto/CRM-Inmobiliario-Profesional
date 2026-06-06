@@ -68,7 +68,15 @@ public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
 
         List<DocumentChunk> topChunks;
         
-        if (provider == "Gemini")
+        if (!_context.Database.IsRelational())
+        {
+            // Fallback for InMemory database testing since it doesn't support Vector or CosineDistance
+            topChunks = await baseQuery
+                .Where(c => c.Content.Contains(queryStr))
+                .Take(3)
+                .ToListAsync();
+        }
+        else if (provider == "Gemini")
         {
             topChunks = await baseQuery
                 .Where(c => c.GeminiEmbedding != null)

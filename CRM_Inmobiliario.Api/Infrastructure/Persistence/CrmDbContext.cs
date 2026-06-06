@@ -53,6 +53,21 @@ public sealed class CrmDbContext : DbContext
         // Aplicar todas las configuraciones de IEntityTypeConfiguration encontradas en el ensamblado
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CrmDbContext).Assembly);
 
+        if (!Database.IsRelational())
+        {
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes().ToList())
+            {
+                var vectorProperties = entityType.GetProperties()
+                    .Where(p => p.ClrType == typeof(Pgvector.Vector))
+                    .ToList();
+
+                foreach (var property in vectorProperties)
+                {
+                    modelBuilder.Entity(entityType.ClrType).Ignore(property.Name);
+                }
+            }
+        }
+
         // CONVERTIDOR GLOBAL UTC (Spec 011 / Npgsql Fix)
         // PostgreSQL timestamp with time zone requiere offset 0 (UTC)
         ConfigureGlobalDateTimeOffsetConverter(modelBuilder);

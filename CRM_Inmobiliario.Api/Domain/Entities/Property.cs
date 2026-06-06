@@ -88,6 +88,9 @@ public sealed class Property
     public Guid? AgenciaId { get; set; }
     public Agency? Agencia { get; set; }
 
+    public Guid? AgenteCerradorId { get; set; }
+    public Agent? AgenteCerrador { get; set; }
+
     public Guid? PropietarioId { get; set; }
     public Contacto? Propietario { get; set; }
 

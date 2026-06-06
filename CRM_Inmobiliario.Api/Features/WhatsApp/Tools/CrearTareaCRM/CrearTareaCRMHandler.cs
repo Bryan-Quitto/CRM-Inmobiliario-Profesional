@@ -89,6 +89,7 @@ public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
         };
 
         _context.Tasks.Add(task);
+        await _context.SaveChangesAsync(cancellationToken);
         
         await LogAiActionAsync("CrearTareaCRM", args.RootElement.GetRawText(), context);
 
