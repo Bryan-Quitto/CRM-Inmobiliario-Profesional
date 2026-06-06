@@ -124,5 +124,6 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapGetConversationsEndpoint();
         apiGroup.MapGetConversationMessagesEndpoint();
         apiGroup.MapUpdateConversationTitleEndpoint();
+        apiGroup.MapDeleteConversationEndpoint();
     }
 }

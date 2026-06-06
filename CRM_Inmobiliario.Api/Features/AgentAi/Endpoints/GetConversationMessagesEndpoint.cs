@@ -20,11 +20,11 @@ public static class GetConversationMessagesEndpoint
 
     private static async Task<IResult> HandleAsync(
         [FromRoute] Guid conversationId,
-        [FromQuery] int offset,
-        [FromQuery] int limit,
         HttpContext context,
         CrmDbContext dbContext,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] int offset = 0,
+        [FromQuery] int limit = 50)
     {
         var userIdClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var agentId))

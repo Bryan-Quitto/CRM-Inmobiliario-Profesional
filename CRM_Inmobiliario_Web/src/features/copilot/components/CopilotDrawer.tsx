@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, RefreshCcw, Send, Bot, Loader2, ShieldAlert, Minus, ChevronDown, Mic, MicOff } from 'lucide-react';
+import { X, RefreshCcw, Send, Bot, Loader2, ShieldAlert, Minus, ChevronDown, Mic, MicOff, History } from 'lucide-react';
 import { useCopilotStore } from '../store/useCopilotStore';
 import { useCopilotChat } from '../hooks/useCopilotChat';
 import { ChatMessageItem } from './ChatMessageItem';
@@ -162,6 +162,16 @@ export const CopilotDrawer: React.FC = () => {
               <Bot className="h-5 w-5 text-indigo-600" />
             </div>
             <h2 className="text-base font-semibold">Asistente de IA</h2>
+            <Link 
+              to="/ia-logs/personal" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="no-drag ml-1 p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+              title="Ver Historial"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <History className="h-4 w-4" />
+            </Link>
           </div>
           <div className="flex items-center gap-1">
             <button

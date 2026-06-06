@@ -21,6 +21,7 @@ interface CopilotState {
   overwriteLastMessage: (content: string) => void;
   setConversationId: (id: string) => void;
   clearConversation: () => void;
+  setMessages: (messages: ChatMessage[]) => void;
 }
 
 export const useCopilotStore = create<CopilotState>()(
@@ -63,6 +64,7 @@ export const useCopilotStore = create<CopilotState>()(
         }),
       setConversationId: (id) => set({ conversationId: id }),
       clearConversation: () => set({ conversationId: null, messages: [] }),
+      setMessages: (messages) => set({ messages }),
     }),
     {
       name: 'crm_copilot_storage',

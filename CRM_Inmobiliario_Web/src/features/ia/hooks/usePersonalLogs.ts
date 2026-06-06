@@ -7,6 +7,7 @@ export interface AgentConversation {
   id: string;
   title: string;
   updatedAt: string;
+  createdAt: string;
 }
 
 const fetcher = (url: string) => api.get<AgentConversation[]>(url).then(res => res.data);
@@ -18,6 +19,9 @@ export const usePersonalLogs = () => {
 
   const [search, setSearch] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  
+  const [sortBy, setSortBy] = useState<'createdAt' | 'updatedAt'>('updatedAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Configuramos Fuse para búsqueda en cliente
   const fuse = useMemo(() => {
@@ -29,10 +33,19 @@ export const usePersonalLogs = () => {
   }, [conversations]);
 
   const filteredConversations = useMemo(() => {
-    if (!search.trim()) return conversations;
-    const results = fuse.search(search);
-    return results.map(result => result.item);
-  }, [search, fuse, conversations]);
+    let result = [...conversations];
+    
+    if (search.trim()) {
+      const fuseResults = fuse.search(search);
+      result = fuseResults.map(r => r.item);
+    }
+    
+    return result.sort((a, b) => {
+      const dateA = new Date(a[sortBy]).getTime();
+      const dateB = new Date(b[sortBy]).getTime();
+      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+  }, [search, fuse, conversations, sortBy, sortDirection]);
 
   return {
     conversations: filteredConversations,
@@ -40,6 +53,10 @@ export const usePersonalLogs = () => {
     error,
     search,
     setSearch,
+    sortBy,
+    setSortBy,
+    sortDirection,
+    setSortDirection,
     confirmDeleteId,
     setConfirmDeleteId,
     mutate,

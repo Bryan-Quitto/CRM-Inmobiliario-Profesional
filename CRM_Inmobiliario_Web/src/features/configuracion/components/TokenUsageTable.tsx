@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { useTokenUsage } from '../api/finops';
 
 export const TokenUsageTable = () => {
   const { data, isLoading, error } = useTokenUsage();
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
 
   if (isLoading) {
     return (
@@ -33,34 +36,73 @@ export const TokenUsageTable = () => {
     );
   }
 
+  const filteredData = data.filter(row => {
+    if (fechaDesde && row.fecha < fechaDesde) return false;
+    if (fechaHasta && row.fecha > fechaHasta) return false;
+    return true;
+  });
+
+  const totalInputTokens = filteredData.reduce((acc, row) => acc + row.tokensInput, 0);
+  const totalOutputTokens = filteredData.reduce((acc, row) => acc + row.tokensOutput, 0);
+  const grandTotalCost = filteredData.reduce((acc, row) => acc + row.costoTotalUsd, 0);
+
   return (
-    <div className="w-full mt-8">
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Consumo de Tokens IA</h3>
+    <div className="w-full">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <label className="text-xs font-bold text-slate-500 block mb-1">Desde</label>
+          <input
+            type="date"
+            value={fechaDesde}
+            onChange={(e) => setFechaDesde(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="text-xs font-bold text-slate-500 block mb-1">Hasta</label>
+          <input
+            type="date"
+            value={fechaHasta}
+            onChange={(e) => setFechaHasta(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tokens Input</span>
+          <span className="text-2xl font-black text-slate-900 font-mono">{totalInputTokens.toLocaleString('es-EC')}</span>
+        </div>
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tokens Output</span>
+          <span className="text-2xl font-black text-slate-900 font-mono">{totalOutputTokens.toLocaleString('es-EC')}</span>
+        </div>
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+          <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Costo Total Estimado</span>
+          <span className="text-2xl font-black text-emerald-600 font-mono">${grandTotalCost.toFixed(6)}</span>
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
             <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
               <tr>
                 <th scope="col" className="px-6 py-4 font-medium tracking-wider">Fecha</th>
-                <th scope="col" className="px-6 py-4 font-medium tracking-wider">Modelo</th>
                 <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Tokens Input</th>
                 <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Tokens Output</th>
                 <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Costo Total ($ USD)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-              {data.map((row, index) => (
+              {filteredData.map((row, index) => (
                 <tr 
                   key={index} 
                   className="bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200"
                 >
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-gray-200">
                     {row.fecha}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                      {row.modelo}
-                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right font-mono">
                     {row.tokensInput.toLocaleString('es-EC')}

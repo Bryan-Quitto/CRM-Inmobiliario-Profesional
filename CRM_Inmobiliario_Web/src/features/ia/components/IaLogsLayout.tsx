@@ -49,7 +49,7 @@ export const IaLogsLayout = () => {
       </div>
 
       {/* Contenido de la subruta */}
-      <div className="pt-4">
+      <div>
         <Outlet />
       </div>
     </div>
