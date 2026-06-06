@@ -16,6 +16,7 @@ public static class CambiarEstadoProcessor
         string nuevoEstado,
         decimal? precioCierre,
         Guid? cerradoConId,
+        Guid? agenteCerradorId,
         Guid currentUserId,
         CrmDbContext context,
         ILogger logger,
@@ -124,6 +125,7 @@ public static class CambiarEstadoProcessor
         property.PrecioCierre = esCierre ? precioCierre : null;
         property.PrecioReserva = esReserva ? precioCierre : null;
         property.CerradoConId = esCierreOReserva ? cerradoConId : null;
+        property.AgenteCerradorId = esCierreOReserva ? agenteCerradorId : null;
 
         // 4.1. Asegurar Interés
         if (esCierreOReserva && contacto != null)

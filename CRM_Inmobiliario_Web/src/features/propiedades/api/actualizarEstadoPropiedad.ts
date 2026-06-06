@@ -5,7 +5,8 @@ export const actualizarEstadoPropiedad = async (
   nuevoEstado: string, 
   precioCierre?: number, 
   cerradoConId?: string,
+  agenteCerradorId?: string,
   version?: string
 ): Promise<void> => {
-  await api.patch(`/propiedades/${id}/estado`, { nuevoEstado, precioCierre, cerradoConId, version });
+  await api.patch(`/propiedades/${id}/estado`, { nuevoEstado, precioCierre, cerradoConId, agenteCerradorId, version });
 };

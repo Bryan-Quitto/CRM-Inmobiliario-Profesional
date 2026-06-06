@@ -96,43 +96,55 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
             .Where(p => string.IsNullOrEmpty(tipoOperacion) || p.Operacion == tipoOperacion)
             .Where(p => !presupuestoMaximo.HasValue || p.Precio <= presupuestoMaximo.Value)
             .Where(p => !habitacionesMinimas.HasValue || p.Habitaciones >= habitacionesMinimas.Value)
-            .Where(p => !antiguedadMaxima.HasValue || p.AniosAntiguedad == null || p.AniosAntiguedad <= antiguedadMaxima.Value)
-            // Regla de Visibilidad (Data Tenancy): Agencia completa o solo suyas si es independiente
-            .Where(p => 
+            .Where(p => !antiguedadMaxima.HasValue || p.AniosAntiguedad == null || p.AniosAntiguedad <= antiguedadMaxima.Value);
+
+        // Regla de Visibilidad (Data Tenancy): Agencia completa o solo suyas si es independiente
+        if (currentAgencyId != null || currentAgentId != null)
+        {
+            baseQuery = baseQuery.Where(p => 
                 (currentAgencyId != null && p.AgenciaId == currentAgencyId) || 
                 (currentAgentId != null && (p.AgenteId == currentAgentId || p.CreatedByAgenteId == currentAgentId)));
+        }
 
         List<PropiedadResultDto> results;
 
-        if (provider == "Gemini")
+        if (_context.Database.IsRelational())
         {
-            results = await baseQuery
-                .Where(p => p.GeminiEmbedding != null)
-                .Where(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding) < 0.45)
-                .OrderBy(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding))
-                .Take(3)
-                .Select(p => new PropiedadResultDto(
-                    p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
-                    p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
-                    p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
-                    p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
-                    p.Descripcion
-                )).ToListAsync();
+            if (provider == "Gemini")
+            {
+                results = await baseQuery
+                    .Where(p => p.GeminiEmbedding != null)
+                    .Where(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding) < 0.45)
+                    .OrderBy(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding))
+                    .Take(3)
+                    .Select(p => new PropiedadResultDto(
+                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                        p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
+                        p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
+                        p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
+                        p.Descripcion
+                    )).ToListAsync();
+            }
+            else
+            {
+                results = await baseQuery
+                    .Where(p => p.VectorEmbedding != null)
+                    .Where(p => p.VectorEmbedding!.CosineDistance(queryEmbedding) < 0.45)
+                    .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
+                    .Take(3)
+                    .Select(p => new PropiedadResultDto(
+                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                        p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
+                        p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
+                        p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
+                        p.Descripcion
+                    )).ToListAsync();
+            }
         }
         else
         {
-            results = await baseQuery
-                .Where(p => p.VectorEmbedding != null)
-                .Where(p => p.VectorEmbedding!.CosineDistance(queryEmbedding) < 0.45)
-                .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
-                .Take(3)
-                .Select(p => new PropiedadResultDto(
-                    p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
-                    p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
-                    p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un asesor te avisará si vuelve a estar disponible.'" :
-                    p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un asesor te avisará si hay similares disponibles.'" : null,
-                    p.Descripcion
-                )).ToListAsync();
+            // En memoria o en entornos no relacionales, omitimos la búsqueda vectorial porque los campos son ignorados
+            results = new List<PropiedadResultDto>();
         }
 
         // Fallback: Full Text Search if Semantic Search is too strict or fails

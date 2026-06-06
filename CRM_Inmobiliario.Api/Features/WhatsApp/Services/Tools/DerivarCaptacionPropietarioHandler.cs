@@ -40,7 +40,11 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                     FechaCreacion = DateTimeOffset.UtcNow,
                     EtapaEmbudo = "Nuevo",
                     EsProspecto = false,
-                    EsPropietario = true
+                    EsPropietario = true,
+                    BotActivo = false,
+                    TransferenciaNotificada = true,
+                    EstadoIA = "Derivado a Captacion",
+                    Notas = "Derivado automáticamente para captación de propiedad."
                 };
                 _context.Contactos.Add(newPropietario);
                 await LogAiActionAsync("Registro Propietario Captacion", args.RootElement.GetRawText(), context);
@@ -48,13 +52,18 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         }
         else
         {
-            if (!existing.EsPropietario)
-            {
-                existing.EsPropietario = true;
-                existing.EsProspecto = false;
-                await LogAiActionAsync("Actualizacion a Propietario", args.RootElement.GetRawText(), context);
-            }
+            existing.EsPropietario = true;
+            existing.EsProspecto = false;
+            existing.BotActivo = false;
+            existing.TransferenciaNotificada = true;
+            existing.EstadoIA = "Derivado a Captacion";
+            existing.Notas = string.IsNullOrWhiteSpace(existing.Notas) 
+                ? "Derivado automáticamente para captación de propiedad." 
+                : $"{existing.Notas}\nDerivado automáticamente para captación de propiedad.";
+            await LogAiActionAsync("Actualizacion a Propietario", args.RootElement.GetRawText(), context);
         }
+        
+        await _context.SaveChangesAsync(cancellationToken);
         
         return "INSTRUCCIÓN PARA LA IA: Dile al cliente textualmente: 'Excelente [Nombre], un agente especializado en captación de propiedades se comunicará contigo en breve para asesorarte de manera personalizada con tu inmueble. ¡Gracias por confiar en nosotros!'";
     }

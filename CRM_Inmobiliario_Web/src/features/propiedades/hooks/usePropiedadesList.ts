@@ -50,8 +50,8 @@ export const usePropiedadesList = () => {
   });
 
   // Wrapper for handleClosingConfirm to match original signature
-  const handleClosingConfirm = (precioCierre: number | null, cerradoConId: string, tipoCierre: string) => 
-    handleClosingConfirmBase(precioCierre, cerradoConId, tipoCierre, ui.closingPropiedad);
+  const handleClosingConfirm = (precioCierre: number | null, cerradoConId: string, agenteCerradorId: string | undefined, tipoCierre: string) => 
+    handleClosingConfirmBase(precioCierre, cerradoConId, agenteCerradorId, tipoCierre, ui.closingPropiedad);
 
   return {
     // Data

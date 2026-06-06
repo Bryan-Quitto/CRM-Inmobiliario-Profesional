@@ -17,7 +17,7 @@ interface DetalleModalsOrchestratorProps {
   setClosingState: (state?: string) => void;
   setShowReversionModal: (modal: { type: 'transaction' | 'status', id?: string, targetStatus?: string } | null) => void;
   handleStatusChange: (status: string, confirmed?: boolean) => void;
-  handleClosingConfirm: (precioCierre: number | null, cerradoConId: string, finalStatus: string) => Promise<void>;
+  handleClosingConfirm: (precioCierre: number | null, cerradoConId: string, agenteCerradorId: string | undefined, finalStatus: string) => Promise<void>;
   handleRelist: (targetStatus?: string) => Promise<void>;
   handleCancelTransaction: (targetStatus?: string) => Promise<void>;
   mutate: () => void;

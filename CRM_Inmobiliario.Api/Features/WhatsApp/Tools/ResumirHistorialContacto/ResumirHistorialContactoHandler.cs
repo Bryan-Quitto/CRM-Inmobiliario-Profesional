@@ -21,6 +21,8 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
         string searchTerm = ExtractSafeString(args.RootElement, "searchTerm", 100, string.Empty);
 
         var result = await (from c in _context.Contactos
+                                .Include(c => c.Tasks)
+                                .Include(c => c.Interactions)
                             where c.Nombre.Contains(searchTerm) || c.Telefono.Contains(searchTerm)
                             let whatsapp = _context.WhatsappConversations
                                 .OrderByDescending(w => w.UltimaActualizacion)

@@ -7,7 +7,7 @@ interface ClosingModalProps {
   isOpen: boolean;
   onClose: () => void;
   // onConfirm ahora recibe el precio, el ID del socio (contacto o propiedad) y el estado final deseado para la propiedad
-  onConfirm: (precioCierre: number | null, partnerId: string, finalStatus: string) => Promise<void>;
+  onConfirm: (precioCierre: number | null, partnerId: string, agenteCerradorId: string | undefined, finalStatus: string) => Promise<void>;
   mode: 'property' | 'contacto';
   initialData?: {
     id: string;
@@ -31,7 +31,10 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
     isSubmitting, 
     isSuccess,
     contactoOptions,
-    propiedadOptions 
+    propiedadOptions,
+    isSharedTransaction,
+    agenteCerradorId,
+    agenteOptions
   } = state;
 
   const {
@@ -42,7 +45,10 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
     handleConfirm,
     onSearchClients,
     onSearchProperties,
-    handlePropertySelect
+    onSearchAgentes,
+    handlePropertySelect,
+    setIsSharedTransaction,
+    setAgenteCerradorId
   } = actions;
 
   if (!isOpen) return null;
@@ -156,6 +162,34 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isSharedTransaction}
+                  onChange={(e) => setIsSharedTransaction(e.target.checked)}
+                  className="w-5 h-5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 transition-colors"
+                />
+                <span className="text-sm font-black text-slate-700">
+                  ¿Transacción compartida con otro agente?
+                </span>
+              </label>
+
+              {isSharedTransaction && (
+                <div className="pt-2 animate-in slide-in-from-top-2 duration-200">
+                  <DynamicSearchSelect
+                    label="Agente Cerrador"
+                    icon={User}
+                    placeholder="Buscar agente..."
+                    options={agenteOptions}
+                    onSearch={onSearchAgentes}
+                    onChange={(id) => setAgenteCerradorId(id)}
+                    value={agenteCerradorId}
+                  />
+                </div>
+              )}
             </div>
 
             <div className={`bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3 ${isReserva ? 'bg-indigo-50 border-indigo-100' : ''}`}>

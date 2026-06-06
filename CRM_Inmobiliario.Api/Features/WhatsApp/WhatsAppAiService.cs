@@ -126,7 +126,7 @@ public sealed class WhatsAppAiService
             
             var provider = _providerFactory.GetProvider(providerName, apiKeyToUse);
             var history = context.History;
-            var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools();
+            var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools("WhatsApp");
 
             // Semantic Router Evaluation
             var routerResult = await _semanticRouterService.DetermineIntentAsync(history, cancellationToken);

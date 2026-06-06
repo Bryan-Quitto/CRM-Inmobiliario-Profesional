@@ -61,6 +61,17 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
         sb.AppendLine($"Enlace Web: {propiedad.UrlRemax ?? "No disponible"}");
         sb.AppendLine($"--- DESCRIPCIÓN COMPLETA ---");
         sb.AppendLine(propiedad.Descripcion);
+
+        if (!string.Equals(context.Channel, "WhatsApp", StringComparison.OrdinalIgnoreCase))
+        {
+            sb.AppendLine($"--- INFORMACIÓN PRIVADA (SOLO USO INTERNO) ---");
+            sb.AppendLine($"Porcentaje de Comisión: {propiedad.PorcentajeComision}%");
+            if (propiedad.PropietarioId.HasValue)
+            {
+                sb.AppendLine($"ID Dueño / Propietario: {propiedad.PropietarioId}");
+            }
+            sb.AppendLine($"Es Captación Propia: {(propiedad.EsCaptacionPropia ? "Sí" : "No")}");
+        }
         
         sb.AppendLine("\nINSTRUCCIÓN CRÍTICA PARA LA IA: Acabas de solicitar los detalles profundos de esta propiedad. Lee cuidadosamente la descripción de arriba. Si el dato que el cliente preguntó (ej. años, un árbol, parqueos) SÍ está en el texto, respóndele afirmativamente basándote en esta información. CONFÍA en estos datos, no te confundas con propiedades de las que hablaron antes.");
 

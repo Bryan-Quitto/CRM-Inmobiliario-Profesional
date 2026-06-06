@@ -14,6 +14,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using System.Net.Http;
 using Microsoft.EntityFrameworkCore;
 using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 
 namespace CRM_Inmobiliario.Tests
 {
@@ -71,6 +72,13 @@ namespace CRM_Inmobiliario.Tests
                                 .ReturnsAsync(dbContext);
 
             var scopeFactoryMock = new Mock<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
+
+            var parsedIntent = ChatIntent.CONTINUACION;
+            if (routerResponse.Contains("NUEVA_BUSQUEDA")) parsedIntent = ChatIntent.NUEVA_BUSQUEDA;
+            else if (routerResponse.Contains("CAMBIO_TEMA")) parsedIntent = ChatIntent.CAMBIO_TEMA;
+            
+            semanticRouterServiceMock.Setup(s => s.DetermineIntentAsync(It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<System.Threading.CancellationToken>()))
+                                     .ReturnsAsync(parsedIntent);
 
             return new WhatsAppAiService(
                 loggerMock.Object,

@@ -6,9 +6,9 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts;
 
 public static class AiToolDefinitions
 {
-    public static List<AiToolDefinition> GetTools()
+    public static List<AiToolDefinition> GetTools(string channel = "WhatsApp")
     {
-        return new List<AiToolDefinition>
+        var tools = new List<AiToolDefinition>
         {
             new AiToolDefinition
             {
@@ -45,7 +45,9 @@ public static class AiToolDefinitions
             new AiToolDefinition
             {
                 Name = "ConsultarBaseConocimiento",
-                Description = "Consulta los documentos y políticas corporativas de la inmobiliaria (ej. reglas de reserva, devoluciones, requisitos de crédito, comisiones). Usa esta herramienta cuando el cliente pregunte sobre cómo funcionan los procesos.",
+                Description = channel == "Copilot" 
+                    ? "Consulta los documentos y políticas corporativas de la inmobiliaria, tanto PÚBLICAS como INTERNAS (uso exclusivo para agentes). Usa esta herramienta cuando necesites entender procesos, comisiones, o políticas internas."
+                    : "Consulta los documentos y políticas corporativas PÚBLICAS de la inmobiliaria (ej. reglas de reserva, devoluciones, requisitos de crédito). Usa esta herramienta cuando el cliente pregunte sobre cómo funcionan los procesos.",
                 ParametersSchema = """
                 {
                     "type": "object",
@@ -76,7 +78,13 @@ public static class AiToolDefinitions
                 }
                 """
             },
-            new AiToolDefinition
+
+
+        };
+
+        if (channel == "WhatsApp")
+        {
+            tools.Add(new AiToolDefinition
             {
                 Name = "DerivarCaptacionPropietario",
                 Description = "ÚSALA ÚNICAMENTE si el cliente indica que es DUEÑO de una propiedad y quiere venderla, alquilarla o promocionarla con nosotros. Esto terminará la conversación y derivará a un agente captador.",
@@ -89,8 +97,9 @@ public static class AiToolDefinitions
                     "required": ["nombre"]
                 }
                 """
-            },
-            new AiToolDefinition
+            });
+
+            tools.Add(new AiToolDefinition
             {
                 Name = "SolicitarAsistenciaHumana",
                 Description = "Pide ayuda a un humano de forma OBLIGATORIA si detectas frustración, sarcasmo negativo, quejas repetitivas, lenguaje ofensivo, o si el cliente lo pide explícitamente.",
@@ -103,8 +112,11 @@ public static class AiToolDefinitions
                     "required": ["motivo"]
                 }
                 """
-            },
-            new AiToolDefinition
+            });
+        }
+        else if (channel == "Copilot")
+        {
+            tools.Add(new AiToolDefinition
             {
                 Name = "ResumirHistorialContacto",
                 Description = "Consulta el historial completo de un contacto en el CRM (notas, tareas, etapa de embudo y mensajes previos). Úsala cuando necesites recordar el contexto completo de un cliente o antes de transferirlo a un agente.",
@@ -117,8 +129,25 @@ public static class AiToolDefinitions
                     "required": ["searchTerm"]
                 }
                 """
-            },
-            new AiToolDefinition
+            });
+
+            tools.Add(new AiToolDefinition
+            {
+                Name = "GenerarCotizacionRapida",
+                Description = "Calcula la proyección hipotecaria y cuotas estimadas para la compra de una propiedad usando las tasas de interés y plazos actuales del mercado. NO inventes las cuotas, USA SIEMPRE esta herramienta para darle proyecciones precisas al cliente.",
+                ParametersSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "montoPropiedad": { "type": "number", "description": "El precio total de la propiedad." },
+                        "enganche": { "type": "number", "description": "El monto que el cliente planea dar como entrada o enganche inicial." }
+                    },
+                    "required": ["montoPropiedad", "enganche"]
+                }
+                """
+            });
+
+            tools.Add(new AiToolDefinition
             {
                 Name = "CrearTareaCRM",
                 Description = "Crea una tarea, recordatorio o cita en la agenda del agente en el CRM. Si el cliente pide agendar algo, DEBES pedir obligatoriamente Título, Descripción y Fecha/Hora. Si el cliente no te da alguno, PREGÚNTALE antes de usar esta herramienta.",
@@ -135,23 +164,9 @@ public static class AiToolDefinitions
                     "required": ["titulo", "descripcion", "fechaProgramada"]
                 }
                 """
-            },
-            new AiToolDefinition
-            {
-                Name = "GenerarCotizacionRapida",
-                Description = "Calcula la proyección hipotecaria y cuotas estimadas para la compra de una propiedad usando las tasas de interés y plazos actuales del mercado. NO inventes las cuotas, USA SIEMPRE esta herramienta para darle proyecciones precisas al cliente.",
-                ParametersSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "montoPropiedad": { "type": "number", "description": "El precio total de la propiedad." },
-                        "enganche": { "type": "number", "description": "El monto que el cliente planea dar como entrada o enganche inicial." }
-                    },
-                    "required": ["montoPropiedad", "enganche"]
-                }
-                """
-            },
-            new AiToolDefinition
+            });
+
+            tools.Add(new AiToolDefinition
             {
                 Name = "NavegacionDirecta",
                 Description = "Úsala OBLIGATORIAMENTE para redirigir al usuario a una sección específica del sistema (por ejemplo, agendar una cita o ver la vista 3D) en la SPA. Emite una señal de control de redirección.",
@@ -164,7 +179,9 @@ public static class AiToolDefinitions
                     "required": ["destino"]
                 }
                 """
-            }
-        };
+            });
+        }
+
+        return tools;
     }
 }

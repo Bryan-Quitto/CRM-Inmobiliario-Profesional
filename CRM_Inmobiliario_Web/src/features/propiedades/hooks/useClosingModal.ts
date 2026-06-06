@@ -3,12 +3,13 @@ import { toast } from 'sonner';
 import { buscarContactos } from '../../contactos/api/buscarContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import { useTareas } from '../../tareas/context/useTareas';
+import { useAgentes } from '@/features/configuracion/hooks/useAgentes';
 import { type SearchItem } from '@/components/DynamicSearchSelect';
 
 interface UseClosingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (precioCierre: number | null, partnerId: string, finalStatus: string) => Promise<void>;
+  onConfirm: (precioCierre: number | null, partnerId: string, agenteCerradorId: string | undefined, finalStatus: string) => Promise<void>;
   mode: 'property' | 'contacto';
   initialData?: {
     id: string;
@@ -35,6 +36,10 @@ export const useClosingModal = ({
   const [selectedPartnerData, setSelectedPartnerData] = useState<{titulo: string, operacion: string} | null>(
     mode === 'property' && initialData ? { titulo: initialData.titulo, operacion: initialData.operacion } : null
   );
+  
+  const [isSharedTransaction, setIsSharedTransaction] = useState(false);
+  const [agenteCerradorId, setAgenteCerradorId] = useState<string | undefined>();
+  const { agentes } = useAgentes();
   
   const [tipoCierre, setTipoCierre] = useState<string>(() => {
     if (intendedState) return intendedState;
@@ -67,6 +72,8 @@ export const useClosingModal = ({
       
       setPrecioCierre(initialData?.precio.toString() || '');
       setPartnerId(mode === 'property' ? undefined : initialData?.id);
+      setIsSharedTransaction(false);
+      setAgenteCerradorId(undefined);
       setIsSubmitting(false);
       setIsSuccess(false);
       
@@ -106,6 +113,16 @@ export const useClosingModal = ({
     [propiedades, mode, initialData?.id]
   );
 
+  const agenteOptions = useMemo(() => 
+    agentes.map(a => ({
+      id: a.id,
+      title: `${a.nombre} ${a.apellido}`.trim(),
+      subtitle: a.email,
+      raw: a
+    })),
+    [agentes]
+  );
+
   const handleConfirm = async () => {
     const isReserva = tipoCierre === 'Reservada' || tipoCierre === 'En Negociación';
     
@@ -126,9 +143,14 @@ export const useClosingModal = ({
       return;
     }
 
+    if (isSharedTransaction && !agenteCerradorId) {
+      toast.error('Por favor, selecciona al agente con quien compartes la transacción.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await onConfirm(precioCierre ? Number(precioCierre) : null, partnerId, tipoCierre);
+      await onConfirm(precioCierre ? Number(precioCierre) : null, partnerId, isSharedTransaction ? agenteCerradorId : undefined, tipoCierre);
       setIsSuccess(true);
       setTimeout(() => {
         onClose();
@@ -174,6 +196,14 @@ export const useClosingModal = ({
     }));
   };
 
+  const onSearchAgentes = async (query: string) => {
+    const q = query.toLowerCase();
+    return agenteOptions.filter(a => 
+      a.title.toLowerCase().includes(q) || 
+      (a.subtitle && a.subtitle.toLowerCase().includes(q))
+    );
+  };
+
   const handlePropertySelect = (id: string | undefined, _title: string | undefined, item?: SearchItem) => {
     if (!id) return;
     setPartnerId(id);
@@ -198,7 +228,10 @@ export const useClosingModal = ({
       isSubmitting,
       isSuccess,
       contactoOptions,
-      propiedadOptions
+      propiedadOptions,
+      isSharedTransaction,
+      agenteCerradorId,
+      agenteOptions
     },
     actions: {
       setPrecioCierre,
@@ -208,7 +241,10 @@ export const useClosingModal = ({
       handleConfirm,
       onSearchClients,
       onSearchProperties,
-      handlePropertySelect
+      onSearchAgentes,
+      handlePropertySelect,
+      setIsSharedTransaction,
+      setAgenteCerradorId
     }
   };
 };

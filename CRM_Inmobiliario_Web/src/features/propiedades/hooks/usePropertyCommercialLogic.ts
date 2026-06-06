@@ -112,6 +112,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     propiedad: Propiedad,
     precioCierre: number | null,
     cerradoConId: string, 
+    agenteCerradorId: string | undefined,
     finalStatus: string
   ) => {
     const oldEstado = propiedad.estadoComercial;
@@ -123,7 +124,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
       try {
         if (isMounted.current) setIsProcessing(true);
         
-        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre ?? undefined, cerradoConId, propiedad.version);
+        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre ?? undefined, cerradoConId, agenteCerradorId, propiedad.version);
 
         if (statusToApply === 'Vendida') {
           await limpiarImagenesPropiedad(propiedad.id);
