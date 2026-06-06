@@ -98,6 +98,8 @@ public static class StreamChatEndpoint
 
         if (isFirstMessage)
         {
+            await context.Response.WriteAsync($"data: [SystemAction: ConversationId={conversationId}]\n\n", cancellationToken);
+            await context.Response.Body.FlushAsync(cancellationToken);
             _ = Task.Run(() => titleService.GenerateTitleAsync(agentId, conversationId, request.Message, CancellationToken.None));
         }
 

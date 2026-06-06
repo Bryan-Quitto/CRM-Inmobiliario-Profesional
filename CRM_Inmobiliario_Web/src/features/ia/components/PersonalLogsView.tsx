@@ -1,8 +1,10 @@
 import { usePersonalLogs } from '../hooks/usePersonalLogs';
-import { Search, MessageSquare, Trash2, Check, X, AlertCircle, Pencil } from 'lucide-react';
+import { useCopilotChat } from '../../copilot/hooks/useCopilotChat';
+import { Search, MessageSquare, Trash2, Check, X, AlertCircle, Pencil, ExternalLink, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/axios';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { PersonalTokenUsagePanel } from './PersonalTokenUsagePanel';
 
 export const PersonalLogsView = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -14,10 +16,36 @@ export const PersonalLogsView = () => {
     error,
     search,
     setSearch,
+    sortBy,
+    setSortBy,
+    sortDirection,
+    setSortDirection,
     confirmDeleteId,
     setConfirmDeleteId,
     mutate
   } = usePersonalLogs();
+
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+    if (isSortOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSortOpen]);
+
+  const SORT_LABELS = {
+    createdAt: 'Fecha de creación',
+    updatedAt: 'Fecha de modificación'
+  };
+
+  const { loadConversation } = useCopilotChat();
 
   const handleEditSubmit = async (id: string, originalTitle: string) => {
     if (!editTitle.trim() || editTitle.trim() === originalTitle) {
@@ -104,16 +132,61 @@ export const PersonalLogsView = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
-        <div className="relative w-full max-w-sm group">
-          <Search className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
-          <input 
-            type="text" 
-            placeholder="Buscar en el historial..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold focus:ring-8 focus:ring-blue-50 focus:border-blue-200 transition-all outline-none shadow-sm placeholder:text-slate-300"
-          />
+      <PersonalTokenUsagePanel />
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
+        <div className="flex-1 flex flex-col gap-1.5 w-full max-w-sm">
+          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Búsqueda rápida</label>
+          <div className="relative group">
+            <Search className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Buscar en el historial..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-white border-2 border-slate-100 rounded-2xl py-3.5 pl-12 pr-6 text-sm font-bold focus:ring-8 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none shadow-sm placeholder:text-slate-300"
+            />
+          </div>
+        </div>
+
+        {/* Dropdown de Ordenamiento */}
+        <div className="flex flex-col gap-1.5 shrink-0">
+          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Ordenar por</label>
+          <div className="relative" ref={sortRef}>
+            <div className="flex bg-white border-2 border-slate-100 rounded-2xl shadow-sm hover:border-slate-200 transition-all h-[52px]">
+              <button 
+                onClick={() => setIsSortOpen(!isSortOpen)}
+                className="flex items-center gap-2 pl-4 pr-2 py-2 text-sm font-bold text-slate-600 transition-all cursor-pointer border-r-2 border-slate-100 w-[190px]"
+              >
+                <ArrowUpDown className="h-4 w-4 text-slate-500 shrink-0" />
+                <span className="truncate flex-1 text-left">{SORT_LABELS[sortBy]}</span>
+                <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`} />
+              </button>
+              <button
+                onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                className="px-4 py-2 text-slate-500 hover:text-indigo-600 transition-colors flex items-center justify-center cursor-pointer"
+                title={sortDirection === 'asc' ? 'Orden Ascendente' : 'Orden Descendente'}
+              >
+                {sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+              </button>
+            </div>
+
+            {isSortOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
+                {(['createdAt', 'updatedAt'] as const).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => { setSortBy(option); setIsSortOpen(false); }}
+                    className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                      sortBy === option ? 'text-indigo-600 bg-indigo-50/50' : 'text-slate-600'
+                    }`}
+                  >
+                    {SORT_LABELS[option]}
+                    {sortBy === option && <Check className="h-4 w-4" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -132,7 +205,7 @@ export const PersonalLogsView = () => {
         ) : (
           conversations.map((conv) => (
             <div key={conv.id} className="bg-white border-2 border-slate-50 rounded-[2rem] p-5 flex items-center justify-between hover:border-blue-100 hover:shadow-lg hover:shadow-blue-500/5 transition-all group/row">
-              <div className="flex flex-col flex-1 mr-4">
+              <div className="flex flex-col flex-1 min-w-0 mr-4">
                 {editingId === conv.id ? (
                   <input
                     type="text"
@@ -147,8 +220,8 @@ export const PersonalLogsView = () => {
                     className="font-bold text-slate-900 border-b-2 border-blue-500 outline-none bg-transparent pb-0.5"
                   />
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900">{conv.title || 'Conversación sin título'}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-bold text-slate-900 truncate">{conv.title || 'Conversación sin título'}</span>
                     <button
                       onClick={() => {
                         setEditingId(conv.id);
@@ -185,13 +258,22 @@ export const PersonalLogsView = () => {
                     </button>
                   </div>
                 ) : (
-                  <button 
-                    onClick={() => setConfirmDeleteId(conv.id)}
-                    className="cursor-pointer p-3 text-slate-300 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button 
+                      onClick={() => loadConversation(conv.id)}
+                      className="cursor-pointer p-3 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all"
+                      title="Continuar"
+                    >
+                      <ExternalLink className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => setConfirmDeleteId(conv.id)}
+                      className="cursor-pointer p-3 text-slate-300 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

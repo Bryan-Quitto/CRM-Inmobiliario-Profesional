@@ -5,8 +5,26 @@ import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/axios';
 
 export const useCopilotChat = () => {
-  const { addMessage, updateLastMessage, overwriteLastMessage, setTyping } = useCopilotStore();
+  const { addMessage, updateLastMessage, overwriteLastMessage, setTyping, setConversationId, setMessages, setOpen, conversationId } = useCopilotStore();
   const navigate = useNavigate();
+
+  const loadConversation = async (id: string) => {
+    try {
+      const response = await api.get(`/conversations/${id}/messages`);
+      const data = response.data.map((m: { id: string; role: string; content: string; createdAt: string }) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: m.createdAt,
+      }));
+      setMessages(data);
+      setConversationId(id);
+      setOpen(true);
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+      // Fallback for UI if error
+    }
+  };
 
   const sendMessage = async (content: string) => {
     addMessage({
@@ -37,7 +55,7 @@ export const useCopilotChat = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, conversationId }),
       });
 
       if (!response.ok) {
@@ -87,6 +105,14 @@ export const useCopilotChat = () => {
                 cleanChunk = cleanChunk.replace(match[0], '');
               }
 
+              const convRegex = /\[SystemAction:\s*ConversationId=(.*?)\]/g;
+              let matchConv;
+              while ((matchConv = convRegex.exec(textChunk)) !== null) {
+                const id = matchConv[1];
+                setConversationId(id);
+                cleanChunk = cleanChunk.replace(matchConv[0], '');
+              }
+
               fullText += cleanChunk;
               overwriteLastMessage(fullText);
             }
@@ -101,5 +127,5 @@ export const useCopilotChat = () => {
     }
   };
 
-  return { sendMessage };
+  return { sendMessage, loadConversation };
 };

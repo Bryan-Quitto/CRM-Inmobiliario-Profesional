@@ -4,12 +4,14 @@ import { usePerfil } from '../../auth/api/perfil';
 import { supabase } from '../../../lib/supabase';
 import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
+import { useConfiguracionIA, type IASettings } from '../hooks/useConfiguracionIA';
 import { TokenUsageTable } from './TokenUsageTable';
 
 type TabType = 'General' | 'Personal' | 'WhatsApp' | 'Facebook';
 
 export const ConfiguracionIntegracionIA: React.FC = () => {
   const { perfil } = usePerfil();
+  const { mutate: mutateSettings } = useConfiguracionIA();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -148,6 +150,20 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
         isPersonalAiEnabled,
         isWhatsAppAiEnabled
       });
+      
+      mutateSettings((currentData?: IASettings) => {
+        if (!currentData) return undefined;
+        return {
+          ...currentData,
+          isPersonalAiEnabled,
+          isWhatsAppAiEnabled,
+          dailyTokenLimitPerContact: limitValue,
+          dailyTokenLimitPersonal: personalLimitValue,
+          aiApiKey,
+          whatsAppPhoneNumberId: whatsAppId
+        };
+      }, { revalidate: true });
+
       toast.success('Configuración guardada correctamente.');
     } catch (err) {
       const error = err as { response?: { data?: { message?: string, Message?: string } } };
@@ -271,7 +287,7 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
         </div>
 
         {/* Tabs - Diseño tipo Pills Premium */}
-        <div className="flex space-x-1 bg-slate-200/50 p-1.5 rounded-2xl mb-6">
+        <div className="flex space-x-1 bg-slate-200/50 p-1.5 rounded-2xl mb-6 overflow-x-auto hide-scrollbar whitespace-nowrap">
           {(['General', 'Personal', 'WhatsApp', 'Facebook'] as const).map((tab) => (
             <button
               key={tab}
@@ -292,7 +308,8 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
             <Loader2 className="animate-spin text-indigo-600" size={32} />
           </div>
         ) : (
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-8 animate-in fade-in duration-300">
+          <>
+            <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-8 animate-in fade-in duration-300">
             
             {/* TAB: GENERAL */}
             {activeTab === 'General' && (
@@ -357,7 +374,7 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                   <h4 className="text-base font-bold text-slate-800">Control Financiero y Acceso</h4>
                   
                   {/* Switch para Activar/Desactivar IA de WhatsApp */}
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <div>
                       <p className="font-bold text-slate-900">Activar IA para WhatsApp</p>
                       <p className="text-sm text-slate-500">Permite que el bot responda mensajes entrantes de WhatsApp.</p>
@@ -374,7 +391,7 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                   </div>
 
                   {/* Límite de Tokens */}
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
                     <div className="flex items-center gap-3">
                       <MessageSquare className="w-5 h-5 text-slate-400" />
                       <div>
@@ -418,7 +435,7 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                   <h4 className="text-base font-bold text-slate-800">Control Financiero y Acceso</h4>
                   
                   {/* Switch para Activar/Desactivar IA Personal */}
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <div>
                       <p className="font-bold text-slate-900">Activar IA del Sistema</p>
                       <p className="text-sm text-slate-500">Permite usar el Copiloto dentro del CRM.</p>
@@ -435,7 +452,7 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                   </div>
 
                   {/* Límite de Tokens Personal */}
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
                     <div className="flex items-center gap-3">
                       <ShieldAlert className="w-5 h-5 text-slate-400" />
                       <div>
@@ -463,11 +480,6 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                     </div>
                   </div>
                   {renderLimitWarning(personalLimitValue)}
-                </div>
-
-                <div className="mt-10 pt-6 border-t border-slate-100">
-                  <h4 className="text-lg font-bold text-slate-800 mb-4">Consumo Total de Tokens</h4>
-                  <TokenUsageTable />
                 </div>
               </div>
             )}
@@ -505,6 +517,14 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
             </div>
 
           </div>
+
+          {activeTab === 'Personal' && (
+            <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-sm border border-slate-200 mt-6 animate-in fade-in duration-300">
+              <h3 className="text-xl font-black text-slate-800 mb-6">Consumo Total de Tokens</h3>
+              <TokenUsageTable />
+            </div>
+          )}
+        </>
         )}
       </section>
     </div>

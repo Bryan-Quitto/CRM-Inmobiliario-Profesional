@@ -19,11 +19,11 @@ public static class GetConversationsEndpoint
     }
 
     private static async Task<IResult> HandleAsync(
-        [FromQuery] int page,
-        [FromQuery] int pageSize,
         HttpContext context,
         CrmDbContext dbContext,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50)
     {
         var userIdClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var agentId))
@@ -32,7 +32,7 @@ public static class GetConversationsEndpoint
         }
 
         page = page < 1 ? 1 : page;
-        pageSize = pageSize < 1 ? 20 : pageSize;
+        pageSize = pageSize < 1 ? 50 : pageSize;
 
         var conversations = await dbContext.AgentConversations
             .Where(c => c.AgentId == agentId)
@@ -43,7 +43,8 @@ public static class GetConversationsEndpoint
             {
                 c.Id,
                 c.Title,
-                c.UpdatedAt
+                c.UpdatedAt,
+                c.CreatedAt
             })
             .ToListAsync(cancellationToken);
 
