@@ -22,23 +22,38 @@ public sealed class GenerarCotizacionRapidaHandler : ICoreAiToolHandler
 
     public async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Iniciando generación de cotización rápida.");
+        _logger.LogInformation("Iniciando generación de cotización rápida. Argumentos RAW: {Args}", args.RootElement.GetRawText());
 
         decimal montoPropiedad = 0;
         decimal enganche = 0;
         decimal tasaInteresAnual = 0;
         int[] plazosDisponibles = Array.Empty<int>();
 
-        if (args.RootElement.TryGetProperty("montoPropiedad", out var mpProp) && mpProp.TryGetDecimal(out var mp)) montoPropiedad = mp;
-        if (args.RootElement.TryGetProperty("enganche", out var engProp) && engProp.TryGetDecimal(out var eng)) enganche = eng;
-        if (args.RootElement.TryGetProperty("tasaInteresAnual", out var tasaProp) && tasaProp.TryGetDecimal(out var tasa)) tasaInteresAnual = tasa;
+        decimal GetDecimalFromJson(JsonElement element, string propertyName)
+        {
+            if (element.TryGetProperty(propertyName, out var prop))
+            {
+                if (prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var val)) return val;
+                if (prop.ValueKind == JsonValueKind.String)
+                {
+                    string strVal = prop.GetString()?.Replace("%", "").Trim() ?? "";
+                    if (decimal.TryParse(strVal, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var sVal)) return sVal;
+                }
+            }
+            return 0;
+        }
+
+        montoPropiedad = GetDecimalFromJson(args.RootElement, "montoPropiedad");
+        enganche = GetDecimalFromJson(args.RootElement, "enganche");
+        tasaInteresAnual = GetDecimalFromJson(args.RootElement, "tasaInteresAnual");
         
         if (args.RootElement.TryGetProperty("plazosMeses", out var plazosProp) && plazosProp.ValueKind == JsonValueKind.Array)
         {
             var plazos = new List<int>();
             foreach (var element in plazosProp.EnumerateArray())
             {
-                if (element.TryGetInt32(out var p)) plazos.Add(p);
+                if (element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out var p)) plazos.Add(p);
+                else if (element.ValueKind == JsonValueKind.String && int.TryParse(element.GetString(), out var sp)) plazos.Add(sp);
             }
             plazosDisponibles = plazos.ToArray();
         }

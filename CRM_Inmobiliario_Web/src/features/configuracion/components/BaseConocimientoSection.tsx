@@ -1,14 +1,19 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { BookOpen, UploadCloud, FileText, Loader2, CheckCircle2, ShieldAlert, Globe, X, Database } from 'lucide-react';
+import { BookOpen, UploadCloud, FileText, Loader2, CheckCircle2, ShieldAlert, Globe, X, Database, Building2 } from 'lucide-react';
 import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
+import useSWR from 'swr';
+import type { Agency } from '../api/agencias';
 
 export const BaseConocimientoSection: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [audience, setAudience] = useState<'Public' | 'Internal'>('Internal');
+  const [agenciaId, setAgenciaId] = useState<string>('global');
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: agencias } = useSWR<Agency[]>('/configuracion/agencias', (url: string) => api.get(url).then(res => res.data));
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -57,6 +62,9 @@ export const BaseConocimientoSection: React.FC = () => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('audience', audience);
+    if (agenciaId !== 'global') {
+      formData.append('agenciaId', agenciaId);
+    }
 
     try {
       await api.post('/corporate-knowledge/ingest', formData, {
@@ -146,6 +154,64 @@ export const BaseConocimientoSection: React.FC = () => {
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 Conocimiento accesible por el Bot de WhatsApp para responder dudas a los prospectos.
               </p>
+            </label>
+
+            <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-2 mt-4">Alcance del Documento</h3>
+            
+            <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 flex flex-col gap-2 ${
+              agenciaId === 'global' 
+                ? 'bg-blue-50 border-blue-500 shadow-sm shadow-blue-200' 
+                : 'bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+            }`}>
+              <input 
+                type="radio" 
+                name="scope" 
+                value="global" 
+                checked={agenciaId === 'global'} 
+                onChange={() => setAgenciaId('global')}
+                className="sr-only"
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe size={18} className={agenciaId === 'global' ? 'text-blue-600' : 'text-slate-400'} />
+                  <span className={`font-bold ${agenciaId === 'global' ? 'text-blue-700' : 'text-slate-600'}`}>Global</span>
+                </div>
+                {agenciaId === 'global' && <CheckCircle2 size={18} className="text-blue-600" />}
+              </div>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Disponible para TODAS las agencias y agentes independientes.
+              </p>
+            </label>
+
+            <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 flex flex-col gap-2 ${
+              agenciaId !== 'global' 
+                ? 'bg-indigo-50 border-indigo-500 shadow-sm shadow-indigo-200' 
+                : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => {
+                  if (agenciaId === 'global' && agencias && agencias.length > 0) {
+                    setAgenciaId(agencias[0].id);
+                  }
+                }}>
+                  <Building2 size={18} className={agenciaId !== 'global' ? 'text-indigo-600' : 'text-slate-400'} />
+                  <span className={`font-bold ${agenciaId !== 'global' ? 'text-indigo-700' : 'text-slate-600'}`}>Agencia Específica</span>
+                </div>
+                {agenciaId !== 'global' && <CheckCircle2 size={18} className="text-indigo-600" />}
+              </div>
+              <select 
+                value={agenciaId === 'global' ? '' : agenciaId}
+                onChange={(e) => {
+                  if (e.target.value) setAgenciaId(e.target.value);
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className={`mt-2 block w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-opacity ${agenciaId === 'global' ? 'opacity-60 cursor-pointer' : 'opacity-100'}`}
+              >
+                <option value="" disabled>Selecciona una agencia...</option>
+                {agencias?.map(a => (
+                  <option key={a.id} value={a.id}>{a.nombre}</option>
+                ))}
+              </select>
             </label>
           </div>
 

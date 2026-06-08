@@ -22,6 +22,7 @@ public static class IngestDocumentEndpoint
         app.MapPost("/corporate-knowledge/ingest", async (
             IFormFile file, 
             [Microsoft.AspNetCore.Mvc.FromForm] string audience,
+            [Microsoft.AspNetCore.Mvc.FromForm] Guid? agenciaId,
             ClaimsPrincipal user, 
             CrmDbContext context, 
             Hangfire.IBackgroundJobClient backgroundJobs,
@@ -58,6 +59,7 @@ public static class IngestDocumentEndpoint
             var document = new Document
             {
                 Id = Guid.NewGuid(),
+                AgenciaId = agenciaId,
                 Title = Path.GetFileNameWithoutExtension(file.FileName),
                 Source = file.FileName,
                 Audience = parsedAudience,
@@ -71,6 +73,7 @@ public static class IngestDocumentEndpoint
                 documentChunks.Add(new DocumentChunk
                 {
                     Id = Guid.NewGuid(),
+                    AgenciaId = agenciaId,
                     DocumentId = document.Id,
                     Content = chunks[i],
                     ChunkIndex = i,

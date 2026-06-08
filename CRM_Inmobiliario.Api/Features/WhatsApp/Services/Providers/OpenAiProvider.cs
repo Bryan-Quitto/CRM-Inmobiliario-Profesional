@@ -183,7 +183,74 @@ public class OpenAiProvider : ILLMProvider
             TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver()
         };
 
-        var schemaNode = System.Text.Json.Schema.JsonSchemaExporter.GetJsonSchemaAsNode(options, typeof(T));
+        var schemaOptions = new System.Text.Json.Schema.JsonSchemaExporterOptions
+        {
+            TransformSchemaNode = (context, node) =>
+            {
+                if (node is System.Text.Json.Nodes.JsonObject jsonObj)
+                {
+                    // 1. Limpiar el arreglo "type" y extraer el tipo base (ej. "object" o "string")
+                    if (jsonObj.TryGetPropertyValue("type", out var rawTypeNode) && rawTypeNode is System.Text.Json.Nodes.JsonArray typeArray)
+                    {
+                        string? baseType = null;
+                        foreach (var item in typeArray)
+                        {
+                            if (item is System.Text.Json.Nodes.JsonValue arrValue && arrValue.TryGetValue<string>(out var arrTypeStr) && arrTypeStr != "null")
+                            {
+                                baseType = arrTypeStr;
+                                break;
+                            }
+                        }
+                        
+                        if (baseType != null)
+                        {
+                            jsonObj["type"] = baseType; // Reemplazamos el arreglo con el string simple
+                        }
+                    }
+
+                    // 2. Lógica de validación y limpieza original
+                    bool isObject = jsonObj.ContainsKey("properties");
+                    
+                    if (!isObject && jsonObj.TryGetPropertyValue("type", out var typeNode) && typeNode != null)
+                    {
+                        if (typeNode is System.Text.Json.Nodes.JsonValue value && value.TryGetValue<string>(out var typeString) && typeString == "object")
+                        {
+                            isObject = true;
+                        }
+                        // Mantenemos esto por si alguna otra parte de la generación esquemática deja arreglos
+                        else if (typeNode is System.Text.Json.Nodes.JsonArray array)
+                        {
+                            foreach (var item in array)
+                            {
+                                if (item is System.Text.Json.Nodes.JsonValue arrValue && arrValue.TryGetValue<string>(out var arrTypeString) && arrTypeString == "object")
+                                {
+                                    isObject = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (isObject)
+                    {
+                        jsonObj["additionalProperties"] = false;
+                        
+                        if (jsonObj.TryGetPropertyValue("properties", out var propsNode) && propsNode is System.Text.Json.Nodes.JsonObject propsObj)
+                        {
+                            var requiredArray = new System.Text.Json.Nodes.JsonArray();
+                            foreach (var prop in propsObj)
+                            {
+                                requiredArray.Add(prop.Key);
+                            }
+                            jsonObj["required"] = requiredArray;
+                        }
+                    }
+                }
+                return node;
+            }
+        };
+
+        var schemaNode = System.Text.Json.Schema.JsonSchemaExporter.GetJsonSchemaAsNode(options, typeof(T), schemaOptions);
         var schemaString = schemaNode.ToJsonString();
 
         var chatOptions = new ChatCompletionOptions

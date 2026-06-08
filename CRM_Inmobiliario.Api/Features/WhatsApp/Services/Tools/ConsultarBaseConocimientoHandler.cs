@@ -36,17 +36,16 @@ public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
             return "No se especificó la pregunta para consultar en la base de datos corporativa.";
         }
 
+        Guid? currentAgencyId = null;
         string? provider = null;
         string? apiKey = null;
 
-        if (!string.IsNullOrEmpty(context.PhoneNumberId))
+        var agent = await ResolveIdentityAsync(context, cancellationToken);
+        if (agent != null)
         {
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == context.PhoneNumberId);
-            if (agent != null)
-            {
-                provider = agent.ActiveLLMProvider;
-                apiKey = agent.AiApiKey;
-            }
+            currentAgencyId = agent.AgenciaId;
+            provider = agent.ActiveLLMProvider;
+            apiKey = agent.AiApiKey;
         }
 
         var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr, provider ?? "OpenAI", apiKey);
@@ -57,6 +56,10 @@ public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
         }
 
         var baseQuery = _context.DocumentChunks.AsQueryable();
+        
+        // Regla de Visibilidad (Data Tenancy): Agencia actual o globales
+        baseQuery = baseQuery.Where(c => c.AgenciaId == null || c.AgenciaId == currentAgencyId);
+
         if (context.Channel != "Copilot") 
         {
             baseQuery = baseQuery.Where(c => c.Audience == DocumentAudience.Public);

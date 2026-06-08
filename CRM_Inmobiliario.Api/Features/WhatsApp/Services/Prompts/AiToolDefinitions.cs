@@ -36,9 +36,9 @@ public static class AiToolDefinitions
                 {
                     "type": "object",
                     "properties": {
-                        "propiedadId": { "type": "string", "description": "El ID (Guid) de la propiedad que deseas consultar." }
+                        "nombrePropiedad": { "type": "string", "description": "El nombre completo de la propiedad (ej. Departamento Duplex Compañero)." }
                     },
-                    "required": ["propiedadId"]
+                    "required": ["nombrePropiedad"]
                 }
                 """
             },
@@ -55,26 +55,6 @@ public static class AiToolDefinitions
                         "query": { "type": "string", "description": "Pregunta corporativa o de proceso en lenguaje natural." }
                     },
                     "required": ["query"]
-                }
-                """
-            },
-
-            new AiToolDefinition
-            {
-                Name = "RegistrarInteresContacto",
-                Description = "Registra el interés del cliente. REGLAS: 'Alto' (Quiere visitar o comprar), 'Medio' (Preguntas técnicas: alícuota, financiamiento, fotos detalladas), 'Bajo' (Preguntas básicas: precio, negociabilidad, ubicación general), 'Descartada' (Rechazo).",
-                ParametersSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "propiedadId": { "type": "string", "description": "ID único de la propiedad (Guid)." },
-                        "nivelInteres": { 
-                            "type": "string", 
-                            "enum": ["Bajo", "Medio", "Alto", "Descartada"],
-                            "description": "Nivel de interés según las REGLAS técnicas." 
-                        }
-                    },
-                    "required": ["propiedadId", "nivelInteres"]
                 }
                 """
             },
@@ -113,6 +93,26 @@ public static class AiToolDefinitions
                 }
                 """
             });
+
+            tools.Add(new AiToolDefinition
+            {
+                Name = "RegistrarInteresContacto",
+                Description = "Registra el interés del cliente. REGLAS: 'Alto' (Quiere visitar o comprar), 'Medio' (Preguntas técnicas: alícuota, financiamiento, fotos detalladas), 'Bajo' (Preguntas básicas: precio, negociabilidad, ubicación general), 'Descartada' (Rechazo).",
+                ParametersSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "nombrePropiedad": { "type": "string", "description": "El nombre completo de la propiedad." },
+                        "nivelInteres": { 
+                            "type": "string", 
+                            "enum": ["Bajo", "Medio", "Alto", "Descartada"],
+                            "description": "Nivel de interés según las REGLAS técnicas." 
+                        }
+                    },
+                    "required": ["nombrePropiedad", "nivelInteres"]
+                }
+                """
+            });
         }
         else if (channel == "Copilot")
         {
@@ -140,9 +140,15 @@ public static class AiToolDefinitions
                     "type": "object",
                     "properties": {
                         "montoPropiedad": { "type": "number", "description": "El precio total de la propiedad." },
-                        "enganche": { "type": "number", "description": "El monto que el cliente planea dar como entrada o enganche inicial." }
+                        "enganche": { "type": "number", "description": "El monto que el cliente planea dar como entrada o enganche inicial." },
+                        "tasaInteresAnual": { "type": "number", "description": "La tasa de interés anual que ofrece el banco (ej. 8.5)." },
+                        "plazosMeses": { 
+                            "type": "array", 
+                            "items": { "type": "integer" },
+                            "description": "Los plazos de financiamiento convertidos a meses (ej. 15 años = [180])." 
+                        }
                     },
-                    "required": ["montoPropiedad", "enganche"]
+                    "required": ["montoPropiedad", "enganche", "tasaInteresAnual", "plazosMeses"]
                 }
                 """
             });
@@ -150,36 +156,31 @@ public static class AiToolDefinitions
             tools.Add(new AiToolDefinition
             {
                 Name = "CrearTareaCRM",
-                Description = "Crea una tarea, recordatorio o cita en la agenda del agente en el CRM. Si el cliente pide agendar algo, DEBES pedir obligatoriamente Título, Descripción y Fecha/Hora. Si el cliente no te da alguno, PREGÚNTALE antes de usar esta herramienta.",
+                Description = "Crea una tarea o cita en el CRM. REGLA CRÍTICA: Debes revisar todo el historial reciente; si el usuario mencionó con quién es la cita (contacto) o dónde/qué propiedad es, ESTÁS OBLIGADO a enviar esos nombres en 'contactoBusqueda' y 'propiedadBusqueda'. NUNCA crees la tarea en blanco si tienes ese contexto. Si te falta Título, Descripción, Fecha/Hora o Tipo de Tarea, PREGÚNTALE al usuario antes de llamar la herramienta.",
                 ParametersSchema = """
                 {
                     "type": "object",
                     "properties": {
+                        "contexto_previo": { "type": "string", "description": "Antes de llenar los demás campos, resume brevemente quién es la persona de interés y cuál es la propiedad mencionada en TODO el historial de la conversación. Si no hay ninguno, pon 'Ninguno'." },
                         "titulo": { "type": "string", "description": "Título corto y claro de la tarea." },
                         "descripcion": { "type": "string", "description": "Detalle completo de lo que el agente debe hacer o preparar." },
                         "fechaProgramada": { "type": "string", "description": "Fecha y hora en formato ISO 8601 (ej. 2024-05-20T15:30:00). Asegúrate de pedir la hora si el cliente solo dice el día." },
-                        "contactoId": { "type": "string", "description": "ID del contacto (Guid), si lo conoces." },
-                        "propiedadId": { "type": "string", "description": "ID de la propiedad (Guid), si aplica." }
+                        "tipoTarea": { 
+                            "type": "string", 
+                            "enum": ["Llamada", "Visita", "Reunión", "Trámite"],
+                            "description": "El tipo de la tarea. Si el usuario no lo especifica explícitamente o no se deduce claramente, PREGÚNTALE." 
+                        },
+                        "contactoId": { "type": "string", "description": "ID exacto del contacto (Guid), SOLO si lo tienes explícitamente confirmado." },
+                        "contactoBusqueda": { "type": "string", "description": "Nombre, apellido o teléfono a buscar si NO tienes el ID exacto." },
+                        "propiedadId": { "type": "string", "description": "ID exacto de la propiedad (Guid), SOLO si lo tienes explícitamente confirmado." },
+                        "propiedadBusqueda": { "type": "string", "description": "Título o código de la propiedad a buscar si NO tienes el ID exacto." }
                     },
-                    "required": ["titulo", "descripcion", "fechaProgramada"]
+                    "required": ["contexto_previo", "titulo", "descripcion", "fechaProgramada", "tipoTarea"]
                 }
                 """
             });
 
-            tools.Add(new AiToolDefinition
-            {
-                Name = "NavegacionDirecta",
-                Description = "Úsala OBLIGATORIAMENTE para redirigir al usuario a una sección específica del sistema (por ejemplo, agendar una cita o ver la vista 3D) en la SPA. Emite una señal de control de redirección.",
-                ParametersSchema = """
-                {
-                    "type": "object",
-                    "properties": {
-                        "destino": { "type": "string", "description": "La ruta a la que se debe redirigir al usuario, ej. '/agendar-cita', '/propiedades/123/3d'." }
-                    },
-                    "required": ["destino"]
-                }
-                """
-            });
+
         }
 
         return tools;

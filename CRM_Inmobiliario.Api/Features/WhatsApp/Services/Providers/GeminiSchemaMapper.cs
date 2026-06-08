@@ -79,6 +79,11 @@ public static class GeminiSchemaMapper
             }
         }
 
+        if (element.TryGetProperty("items", out var itemsElement) && schema.Type == Google.GenAI.Types.Type.Array)
+        {
+            schema.Items = ParseElement(itemsElement);
+        }
+
         return schema;
     }
 }

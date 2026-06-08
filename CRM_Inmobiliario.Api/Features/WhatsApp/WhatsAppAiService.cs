@@ -129,7 +129,7 @@ public sealed class WhatsAppAiService
             var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools("WhatsApp");
 
             // Semantic Router Evaluation
-            var routerResult = await _semanticRouterService.DetermineIntentAsync(history, cancellationToken);
+            var routerResult = await _semanticRouterService.DetermineIntentAsync(history, providerName, apiKeyToUse, cancellationToken);
             if (routerResult == CRM_Inmobiliario.Api.Features.CoreAi.Services.ChatIntent.NUEVA_BUSQUEDA || routerResult == CRM_Inmobiliario.Api.Features.CoreAi.Services.ChatIntent.CAMBIO_TEMA)
             {
                 _conversationManager.ApplyNuevaBusqueda(history);
@@ -215,16 +215,25 @@ public sealed class WhatsAppAiService
                     }
                     if (update.ToolCallUpdate != null)
                     {
-                        var callId = update.ToolCallUpdate.Id;
-                        if (string.IsNullOrEmpty(callId)) callId = update.ToolCallUpdate.Index?.ToString() ?? "default";
-                        if (!currentToolCalls.ContainsKey(callId))
+                        var indexKey = update.ToolCallUpdate.Index?.ToString() ?? "0";
+                        if (!currentToolCalls.ContainsKey(indexKey))
                         {
-                            if (string.IsNullOrEmpty(update.ToolCallUpdate.Id)) update.ToolCallUpdate.Id = callId;
-                            currentToolCalls[callId] = update.ToolCallUpdate;
+                            currentToolCalls[indexKey] = update.ToolCallUpdate;
+                            // Asegurarnos de que el ID no sea nulo si OpenAI no lo mandó, aunque normalmente viene en el primer chunk.
+                            if (string.IsNullOrEmpty(currentToolCalls[indexKey].Id))
+                                currentToolCalls[indexKey].Id = "call_" + indexKey;
                         }
                         else
                         {
-                            currentToolCalls[callId].Arguments += update.ToolCallUpdate.Arguments;
+                            currentToolCalls[indexKey].Arguments += update.ToolCallUpdate.Arguments;
+                            if (string.IsNullOrEmpty(currentToolCalls[indexKey].Name) && !string.IsNullOrEmpty(update.ToolCallUpdate.Name))
+                            {
+                                currentToolCalls[indexKey].Name = update.ToolCallUpdate.Name;
+                            }
+                            if (string.IsNullOrEmpty(currentToolCalls[indexKey].Id) && !string.IsNullOrEmpty(update.ToolCallUpdate.Id))
+                            {
+                                currentToolCalls[indexKey].Id = update.ToolCallUpdate.Id;
+                            }
                         }
                     }
                     if (update.FinishReason != null)
@@ -258,10 +267,10 @@ public sealed class WhatsAppAiService
                 if (currentToolCalls.Any())
                 {
                     var assistantMessage = new ChatMessage(ChatRole.Assistant, "");
-                    foreach (var call in currentToolCalls.Values)
+                    foreach (var call in currentToolCalls.Values.Where(c => !string.IsNullOrWhiteSpace(c.Name)))
                     {
                         IDictionary<string, object?>? argsDict = null;
-                        try { argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(call.Arguments); } catch { argsDict = new Dictionary<string, object?>(); }
+                        try { argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(string.IsNullOrWhiteSpace(call.Arguments) ? "{}" : call.Arguments); } catch { argsDict = new Dictionary<string, object?>(); }
                         assistantMessage.Contents.Add(new FunctionCallContent(call.Id, call.Name, argsDict ?? new Dictionary<string, object?>()));
                     }
                     history.Add(assistantMessage);
@@ -269,14 +278,15 @@ public sealed class WhatsAppAiService
                     using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     try
                     {
-                        var toolTasks = currentToolCalls.Values.Select(async call => 
+                        var toolTasks = currentToolCalls.Values.Where(c => !string.IsNullOrWhiteSpace(c.Name)).Select(async call => 
                         {
                             IDictionary<string, object?>? argsDict = null;
                             string toolResult = "";
                             bool jsonError = false;
                             try
                             {
-                                argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(call.Arguments);
+                                string validJsonArgs = string.IsNullOrWhiteSpace(call.Arguments) ? "{}" : call.Arguments;
+                                argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(validJsonArgs);
                                 if (argsDict == null) throw new System.Text.Json.JsonException("Null JSON is not allowed.");
                             }
                             catch (Exception ex) when (ex is System.Text.Json.JsonException || ex is ArgumentNullException)
@@ -317,6 +327,7 @@ public sealed class WhatsAppAiService
 
                         var results = await Task.WhenAll(toolTasks);
 
+                        requiresAction = true;
                         foreach (var res in results)
                         {
                             if (res.Result.StartsWith("Error Crítico:"))
@@ -344,8 +355,6 @@ public sealed class WhatsAppAiService
                             history.Add(new ChatMessage(ChatRole.Tool, res.Result) { Contents = { new FunctionResultContent(res.Call.Id, res.Result) } });
                         }
                         if (!requiresAction) break; // if circuit breaker hit
-                        
-                        requiresAction = true;
                     }
                     catch
                     {

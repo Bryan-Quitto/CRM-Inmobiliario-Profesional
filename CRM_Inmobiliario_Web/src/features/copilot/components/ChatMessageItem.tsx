@@ -2,14 +2,17 @@ import React from 'react';
 import { User, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useNavigate } from 'react-router-dom';
 import type { ChatMessage } from '../store/useCopilotStore';
 import { PropertyCardPreview } from './PropertyCardPreview';
+import { ContactCardPreview } from './ContactCardPreview';
 
 interface ChatMessageItemProps {
   msg: ChatMessage;
 }
 
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg }) => {
+  const navigate = useNavigate();
   return (
     <div className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
       <div
@@ -37,11 +40,35 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg }) => {
               strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
               a: ({ href, children, ...props }) => {
                 const text = String(children);
-                if (href?.startsWith('/propiedades/') && text.includes('Ver Ficha Completa:')) {
-                  const id = href.replace('/propiedades/', '');
+                const cleanHref = href?.trim() ?? '';
+                if (cleanHref.startsWith('/propiedades/') && text.includes('Ver Ficha Completa:')) {
+                  const id = cleanHref.replace('/propiedades/', '');
+
                   const titleMatch = text.match(/Ver Ficha Completa:\s*(.*)/);
                   const title = titleMatch ? titleMatch[1] : 'Propiedad';
                   return <PropertyCardPreview id={id} title={title} />;
+                }
+                if (cleanHref.startsWith('/contactos/') && text.includes('Ver Perfil:')) {
+                  const id = cleanHref.replace('/contactos/', '');
+                  const nameMatch = text.match(/Ver Perfil:\s*(.*)/);
+                  const name = nameMatch ? nameMatch[1] : 'Contacto';
+                  return <ContactCardPreview id={id} name={name} />;
+                }
+                // Links internos del SPA: navegan sin recarga ni tokens extra.
+                if (cleanHref.startsWith('/')) {
+                  return (
+                    <a
+                      href={cleanHref}
+                      className="text-indigo-600 hover:underline hover:text-indigo-700 cursor-pointer font-medium"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate(cleanHref);
+                      }}
+                      {...props}
+                    >
+                      {children}
+                    </a>
+                  );
                 }
                 return (
                   <a href={href} className="text-indigo-600 hover:underline hover:text-indigo-700 cursor-pointer" target="_blank" rel="noopener noreferrer" {...props}>

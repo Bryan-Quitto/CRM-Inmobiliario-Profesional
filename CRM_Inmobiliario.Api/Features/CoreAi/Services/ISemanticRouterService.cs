@@ -20,5 +20,5 @@ public class SemanticRouterResponse
 
 public interface ISemanticRouterService
 {
-    Task<ChatIntent> DetermineIntentAsync(IReadOnlyList<ChatMessage> history, CancellationToken cancellationToken = default);
+    Task<ChatIntent> DetermineIntentAsync(IReadOnlyList<ChatMessage> history, string providerName, string apiKeyToUse, CancellationToken cancellationToken = default);
 }

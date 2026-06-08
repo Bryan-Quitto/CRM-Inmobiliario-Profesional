@@ -21,16 +21,45 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
     public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        string? propiedadIdStr = args.RootElement.TryGetProperty("propiedadId", out var pid) ? pid.GetString() : null;
+        string? pNameStr = args.RootElement.TryGetProperty("nombrePropiedad", out var pName) ? pName.GetString() : null;
 
-        _logger.LogInformation("Iniciando consulta profunda de propiedad: ID={PropiedadId}", propiedadIdStr ?? "Ninguno");
+        _logger.LogInformation("Iniciando consulta profunda de propiedad: Nombre={NombrePropiedad}", pNameStr ?? "Ninguno");
 
-        if (string.IsNullOrEmpty(propiedadIdStr) || !Guid.TryParse(propiedadIdStr, out var propiedadId))
+        if (string.IsNullOrWhiteSpace(pNameStr))
         {
-            return "No se especificó un ID válido de la propiedad a consultar.";
+            return "No se especificó un nombre válido de la propiedad a consultar.";
         }
 
-        var propiedad = await _context.Properties.FirstOrDefaultAsync(p => p.Id == propiedadId);
+        string searchTerm = pNameStr.ToLower().Replace("-", " ").Trim();
+        var propiedadBase = await _context.Properties.FirstOrDefaultAsync(p => p.Titulo.ToLower().Contains(searchTerm));
+
+        if (propiedadBase == null)
+        {
+            return $"No encontré ninguna propiedad que coincida con el nombre '{pNameStr}' en la base de datos.";
+        }
+
+        Guid propiedadId = propiedadBase.Id;
+
+        Guid? currentAgentId = null;
+        Guid? currentAgencyId = null;
+
+        var agent = await ResolveIdentityAsync(context, cancellationToken);
+        if (agent != null)
+        {
+            currentAgentId = agent.Id;
+            currentAgencyId = agent.AgenciaId;
+        }
+
+        var baseQuery = _context.Properties.AsQueryable();
+
+        if (currentAgencyId != null || currentAgentId != null)
+        {
+            baseQuery = baseQuery.Where(p => 
+                (currentAgencyId != null && p.AgenciaId == currentAgencyId) || 
+                (currentAgentId != null && (p.AgenteId == currentAgentId || p.CreatedByAgenteId == currentAgentId)));
+        }
+
+        var propiedad = await baseQuery.FirstOrDefaultAsync(p => p.Id == propiedadId);
 
         if (propiedad == null)
         {

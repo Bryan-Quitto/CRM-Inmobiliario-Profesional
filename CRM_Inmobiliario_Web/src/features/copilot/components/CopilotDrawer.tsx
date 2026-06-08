@@ -213,16 +213,30 @@ export const CopilotDrawer: React.FC = () => {
             </div>
           ) : (
             <>
-              {messages.map((msg) => (
-                <ChatMessageItem key={msg.id} msg={msg} />
-              ))}
+              {messages.map((msg) => {
+                if (msg.role === 'assistant' && !msg.content) {
+                  return (
+                    <div key={msg.id} className="flex gap-3">
+                      <div className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-slate-200 text-slate-600 shadow-sm border border-white">
+                        <Bot className="h-4 w-4" />
+                      </div>
+                      <div className="px-4 py-3 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-2 rounded-tl-none">
+                        <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                        <span className="text-sm text-slate-500 font-medium animate-pulse">Pensando...</span>
+                      </div>
+                    </div>
+                  );
+                }
+                return <ChatMessageItem key={msg.id} msg={msg} />;
+              })}
               {isTyping && messages[messages.length - 1]?.role !== 'assistant' && (
                 <div className="flex gap-3">
                   <div className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-slate-200 text-slate-600 shadow-sm border border-white">
                     <Bot className="h-4 w-4" />
                   </div>
-                  <div className="px-4 py-3 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center rounded-tl-none">
-                    <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                  <div className="px-4 py-3 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-2 rounded-tl-none">
+                    <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                    <span className="text-sm text-slate-500 font-medium animate-pulse">Pensando...</span>
                   </div>
                 </div>
               )}

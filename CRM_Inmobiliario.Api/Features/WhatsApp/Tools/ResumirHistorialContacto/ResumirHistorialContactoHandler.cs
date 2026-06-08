@@ -20,10 +20,19 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string searchTerm = ExtractSafeString(args.RootElement, "searchTerm", 100, string.Empty);
 
+        var agent = await ResolveIdentityAsync(context, cancellationToken);
+        if (agent == null) return "{\"error\": \"Acceso denegado: No se pudo identificar al agente.\"}";
+
+        string searchTermLower = searchTerm.ToLower();
+
         var result = await (from c in _context.Contactos
                                 .Include(c => c.Tasks)
                                 .Include(c => c.Interactions)
-                            where c.Nombre.Contains(searchTerm) || c.Telefono.Contains(searchTerm)
+                            where c.AgenteId == agent.Id && 
+                                  ((c.Nombre != null && c.Nombre.ToLower().Contains(searchTermLower)) || 
+                                   (c.Apellido != null && c.Apellido.ToLower().Contains(searchTermLower)) || 
+                                   ((c.Nombre ?? "") + " " + (c.Apellido ?? "")).ToLower().Contains(searchTermLower) ||
+                                   (c.Telefono != null && c.Telefono.Contains(searchTerm)))
                             let whatsapp = _context.WhatsappConversations
                                 .OrderByDescending(w => w.UltimaActualizacion)
                                 .FirstOrDefault(w => w.ContactoId == c.Id)
