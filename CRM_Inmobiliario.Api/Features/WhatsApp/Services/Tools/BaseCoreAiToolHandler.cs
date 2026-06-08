@@ -6,6 +6,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.Extensions.Logging;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
 
@@ -47,6 +48,23 @@ public abstract class BaseCoreAiToolHandler : ICoreAiToolHandler
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         await dbContext.AiActionLogs.AddAsync(log, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    // --- RESOLUCIÓN DE IDENTIDAD UNIVERSAL ---
+    protected async Task<Agent?> ResolveIdentityAsync(ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        if (context.Channel == "Copilot")
+        {
+            return await dbContext.Agents.FirstOrDefaultAsync(a => a.Id == context.UserId, cancellationToken);
+        }
+        else if (!string.IsNullOrEmpty(context.PhoneNumberId))
+        {
+            return await dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == context.PhoneNumberId, cancellationToken);
+        }
+
+        return null;
     }
 
     // --- BARRERAS ANTI-ALUCINACIÓN (ESCUDO) ---

@@ -12,7 +12,7 @@ export const PropertyCardPreview: React.FC<PropertyCardPreviewProps> = ({ id, ti
 
   return (
     <div 
-      onClick={() => navigate(`/propiedades/${id}`)}
+      onClick={() => navigate(`/propiedades?id=${id}`)}
       className="mt-3 mb-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex items-center gap-3"
     >
       <div className="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600">

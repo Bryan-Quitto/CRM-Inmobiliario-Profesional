@@ -235,11 +235,9 @@ public class GeminiProvider : ILLMProvider
         {
             var update = new AiResponseUpdate();
             
-            Console.WriteLine($"[GEMINI_DEBUG] Raw chunk received. Text: '{response.Text}'");
             if (response.Candidates != null && response.Candidates.Count > 0)
             {
                 var candidate = response.Candidates[0];
-                Console.WriteLine($"[GEMINI_DEBUG] FinishReason: {candidate.FinishReason}");
                 if (candidate.Content?.Parts != null)
                 {
                     foreach (var part in candidate.Content.Parts)

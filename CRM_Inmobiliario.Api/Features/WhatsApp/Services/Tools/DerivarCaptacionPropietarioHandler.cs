@@ -20,15 +20,18 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string nombre = ExtractSafeString(args.RootElement, "nombre", 100, "Desconocido");
         
+        var identity = await ResolveIdentityAsync(context, cancellationToken);
+        Guid? currentAgentId = identity?.Id;
+
         string searchPhone = context.CustomerPhone?.StartsWith("+") == true ? context.CustomerPhone : "+" + (context.CustomerPhone ?? "");
         var existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.CustomerPhone || l.Telefono == searchPhone);
         
         if (existing == null)
         {
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin")
-                        ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync();
+            var agentIdToUse = currentAgentId ?? (await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin"))?.Id 
+                               ?? (await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync())?.Id;
 
-            if (agent != null)
+            if (agentIdToUse != null)
             {
                 var newPropietario = new Contacto
                 {
@@ -36,7 +39,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                     Nombre = nombre,
                     Telefono = context.CustomerPhone ?? string.Empty,
                     Origen = "IA WhatsApp",
-                    AgenteId = agent.Id,
+                    AgenteId = agentIdToUse.Value,
                     FechaCreacion = DateTimeOffset.UtcNow,
                     EtapaEmbudo = "Nuevo",
                     EsProspecto = false,

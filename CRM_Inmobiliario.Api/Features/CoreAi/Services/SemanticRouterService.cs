@@ -21,7 +21,7 @@ public class SemanticRouterService : ISemanticRouterService
         _providerFactory = providerFactory;
     }
 
-    public async Task<ChatIntent> DetermineIntentAsync(IReadOnlyList<ChatMessage> history, CancellationToken cancellationToken = default)
+    public async Task<ChatIntent> DetermineIntentAsync(IReadOnlyList<ChatMessage> history, string providerName, string apiKeyToUse, CancellationToken cancellationToken = default)
     {
         if (history == null || history.Count <= 1)
         {
@@ -48,8 +48,8 @@ public class SemanticRouterService : ISemanticRouterService
             routerMessages.Add(new AiMessage { Role = roleStr, Content = content });
         }
         
-        string apiKeyToUse = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? string.Empty;
-        var routerProvider = _providerFactory.GetProvider("Gemini", apiKeyToUse, "gemini-2.5-flash-lite");
+        string modelToUse = providerName == "OpenAI" ? "gpt-4o-mini" : "gemini-2.5-flash-lite";
+        var routerProvider = _providerFactory.GetProvider(providerName, apiKeyToUse, modelToUse);
         
         var routerResultWrapper = await routerProvider.GetStructuredResponseAsync<SemanticRouterResponse>(routerMessages, cancellationToken);
         var routerResult = routerResultWrapper?.Intent ?? ChatIntent.CONTINUACION;

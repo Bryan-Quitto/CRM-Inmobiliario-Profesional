@@ -21,6 +21,9 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
         string motivo = ExtractSafeString(args.RootElement, "motivo", 500, "No especificado");
         await LogAiActionAsync("Alerta", args.RootElement.GetRawText(), context, cancellationToken);
         
+        var identity = await ResolveIdentityAsync(context, cancellationToken);
+        Guid? currentAgentId = identity?.Id;
+
         Contacto? contacto = null;
         if (context.ContactoId.HasValue)
         {
@@ -29,8 +32,8 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
 
         if (contacto == null)
         {
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin", cancellationToken)
-                        ?? await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync(cancellationToken);
+            var agentIdToUse = currentAgentId ?? (await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin", cancellationToken))?.Id
+                               ?? (await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync(cancellationToken))?.Id;
 
             contacto = new Contacto
             {
@@ -38,7 +41,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                 Nombre = "Usuario Desconocido",
                 Telefono = context.CustomerPhone ?? string.Empty,
                 Origen = "IA WhatsApp",
-                AgenteId = agent?.Id ?? Guid.Empty,
+                AgenteId = agentIdToUse ?? Guid.Empty,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EtapaEmbudo = "Nuevo",
                 EstadoIA = "Escalado",

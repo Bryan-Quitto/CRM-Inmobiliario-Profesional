@@ -1,6 +1,6 @@
 # Llamadas a Funciones de IA (Function Callings)
 
-Tras refactorizar el código base (`CRM_Inmobiliario.Api\Features\WhatsApp\Services\Prompts\AiToolDefinitions.cs`), las **10 funciones** ahora están estrictamente separadas por canales de ejecución para garantizar la seguridad y experiencia del usuario (WhatsApp para clientes vs Copilot para el agente interno).
+Tras refactorizar el código base (`CRM_Inmobiliario.Api\Features\WhatsApp\Services\Prompts\AiToolDefinitions.cs`), las **9 funciones** ahora están estrictamente separadas por canales de ejecución para garantizar la seguridad y experiencia del usuario (WhatsApp para clientes vs Copilot para el agente interno).
 
 ---
 
@@ -25,17 +25,17 @@ Estas herramientas forman la funcionalidad principal y están disponibles tanto 
 - **Parámetros:**
   - `query` *(string, requerido)*: Pregunta corporativa o de proceso.
 
+---
+
+## 📱 Herramientas Exclusivas de WhatsApp
+Estas herramientas son exclusivas de la IA de cara al cliente final. No pueden ser invocadas por el Agente Interno.
+
 ### 4. RegistrarInteresContacto
 - **Descripción:** Registra formalmente el nivel de interés de un contacto por una propiedad específica (Alto, Medio, Bajo, Descartada) tras enviarle opciones o tras una visita.
 - **Parámetros:**
   - `propiedadId` *(string, requerido)*: ID de la propiedad que generó el interés.
   - `nivelInteres` *(string, requerido)*: El nivel de interés (Alto, Medio, Bajo, Descartada).
   - `notas` *(string, opcional)*: Observaciones o feedback específico del cliente sobre esta propiedad.
-
----
-
-## 📱 Herramientas Exclusivas de WhatsApp
-Estas herramientas son exclusivas de la IA de cara al cliente final. No pueden ser invocadas por el Agente Interno.
 
 ### 5. SolicitarAsistenciaHumana
 - **Descripción:** Apaga el bot y escala la conversación a un agente humano en caso de frustración o petición expresa.
@@ -63,13 +63,22 @@ Estas herramientas están diseñadas estrictamente para interactuar de forma pro
   - `titulo` *(string, requerido)*, `descripcion` *(string, requerido)*, `fechaProgramada` *(string, requerido)*.
   - `contactoId`, `propiedadId` *(opcionales)*.
 
-### 9. NavegacionDirecta
-- **Descripción:** Redirige al agente internamente a una sección específica del SPA del sistema.
-- **Parámetros:**
-  - `destino` *(string, requerido)*: La ruta a redirigir (ej. `'/agendar-cita'`).
-
-### 10. GenerarCotizacionRapida
+### 9. GenerarCotizacionRapida
 - **Descripción:** Calcula la proyección hipotecaria y cuotas estimadas basándose en documentos corporativos internos.
 - **Parámetros:**
   - `montoPropiedad` *(number, requerido)*: El precio total.
   - `enganche` *(number, requerido)*: Entrada inicial planeada.
+  - `tasaInteresAnual` *(number, requerido)*: Tasa de interés anual (ej. 8.5).
+  - `plazosMeses` *(array de enteros, requerido)*: Plazos de financiamiento en meses (ej. [180]).
+
+---
+
+## 🔗 Navegación Interna (Convención de Links — sin tool)
+
+La navegación interna **no usa function calling**. El Copilot incluye links Markdown en su respuesta y el frontend los intercepta con React Router.
+
+- **Formato:** `[emoji Descripción](ruta)` — ej. `[📅 Ir al Calendario](/calendario)`
+- **Ventaja:** $0 tokens extra vs. la antigua tool `NavegacionDirecta` (eliminada).
+- **Rutas soportadas:** `/`, `/calendario`, `/contactos`, `/propiedades`, `/kpis`, `/configuracion/perfil`, `/configuracion/ia`, `/ia-logs/whatsapp`.
+- **Rutas dinámicas:** La IA resuelve el ID con `ResumirHistorialContacto` y construye el link completo, ej. `/contactos/uuid`.
+- **Interceptor:** `ChatMessageItem.tsx` → renderer custom del componente `a` de `ReactMarkdown`.

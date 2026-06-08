@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import { getTareas } from '../api/getTareas';
 import { getContactos } from '../../contactos/api/getContactos';
@@ -103,6 +103,17 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       new Date(t.fechaInicio) <= hoy
     ).length;
   }, [tareas]);
+
+  useEffect(() => {
+    const handleInvalidate = (e: CustomEvent) => {
+      if (e.detail?.key === '/tareas') {
+        mutate();
+      }
+    };
+    window.addEventListener('swr-invalidate', handleInvalidate as EventListener);
+    return () => window.removeEventListener('swr-invalidate', handleInvalidate as EventListener);
+  }, [mutate]);
+
   const value = {
     tareas,
     loading,

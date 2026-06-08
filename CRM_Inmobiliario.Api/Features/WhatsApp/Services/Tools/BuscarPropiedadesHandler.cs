@@ -68,16 +68,13 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
         string? provider = null;
         string? apiKey = null;
 
-        if (!string.IsNullOrEmpty(context.PhoneNumberId))
+        var agent = await ResolveIdentityAsync(context, cancellationToken);
+        if (agent != null)
         {
-            var agent = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == context.PhoneNumberId);
-            if (agent != null)
-            {
-                currentAgentId = agent.Id;
-                currentAgencyId = agent.AgenciaId;
-                provider = agent.ActiveLLMProvider;
-                apiKey = agent.AiApiKey;
-            }
+            currentAgentId = agent.Id;
+            currentAgencyId = agent.AgenciaId;
+            provider = agent.ActiveLLMProvider;
+            apiKey = agent.AiApiKey;
         }
 
         var allowedStates = new[] { "Disponible", "Reservada", "Alquilada" };

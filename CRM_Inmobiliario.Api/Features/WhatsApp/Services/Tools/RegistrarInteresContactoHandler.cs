@@ -25,13 +25,48 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
 
     public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Iniciando RegistrarInteresContacto con Args: {Args}", args.RootElement.GetRawText());
+        
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        if (!args.RootElement.TryGetProperty("propiedadId", out var pIdProp) || !Guid.TryParse(pIdProp.GetString(), out var propiedadId))
-            return "Error: ID de propiedad inválido.";
+        
+        if (!args.RootElement.TryGetProperty("nombrePropiedad", out var pNameProp))
+        {
+            return "Error: No se envió el parámetro nombrePropiedad.";
+        }
 
-        bool propertyExists = await _context.Properties.AnyAsync(p => p.Id == propiedadId);
+        string pNameStr = pNameProp.GetString() ?? string.Empty;
+        Guid propiedadId;
+
+        // Búsqueda robusta por título o slug
+        string searchTerm = pNameStr.ToLower().Replace("-", " ").Trim();
+        var propertyByTitle = await _context.Properties.FirstOrDefaultAsync(p => p.Titulo.ToLower().Contains(searchTerm));
+        
+        if (propertyByTitle != null)
+        {
+            propiedadId = propertyByTitle.Id;
+            _logger.LogInformation("Resolución semántica exitosa: Se mapeó '{Nombre}' al Guid {Guid}", pNameStr, propiedadId);
+        }
+        else
+        {
+            _logger.LogWarning("RegistrarInteresContacto falló: No se encontró la propiedad con el nombre: {Valor}", pNameStr);
+            return $"Error: No se encontró ninguna propiedad que coincida con el nombre '{pNameStr}'.";
+        }
+
+        var identity = await ResolveIdentityAsync(context, cancellationToken);
+        Guid? currentAgentId = identity?.Id;
+        Guid? currentAgencyId = identity?.AgenciaId;
+
+        var baseQuery = _context.Properties.AsQueryable();
+        if (currentAgencyId != null || currentAgentId != null)
+        {
+            baseQuery = baseQuery.Where(p => 
+                (currentAgencyId != null && p.AgenciaId == currentAgencyId) || 
+                (currentAgentId != null && (p.AgenteId == currentAgentId || p.CreatedByAgenteId == currentAgentId)));
+        }
+
+        bool propertyExists = await baseQuery.AnyAsync(p => p.Id == propiedadId);
         if (!propertyExists)
-            return "Error: La propiedad con ese ID no existe en la base de datos. Por favor verifica el ID o pide disculpas al usuario por la confusión.";
+            return "Error: La propiedad con ese ID no existe en la base de datos o no tienes permiso para verla. Por favor verifica el ID.";
 
         NivelInteresPermitido nivelEnum = ExtractSafeEnum(args.RootElement, "nivelInteres", NivelInteresPermitido.Medio);
         string nivel = nivelEnum.ToString();
@@ -41,7 +76,7 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
             var conversation = await _context.WhatsappConversations.FirstOrDefaultAsync(c => c.Telefono == context.CustomerPhone);
             if (conversation != null)
             {
-                var history = conversation.HistorialJson.ToLower();
+                var history = (conversation.HistorialJson ?? string.Empty).ToLower();
                 if ((history.Contains("presupuesto") || history.Contains("$") || history.Contains("precio") || history.Contains("barat")) 
                     && !history.Contains("no me gusta") && !history.Contains("feo") && !history.Contains("descart") && !history.Contains("quitar"))
                 {

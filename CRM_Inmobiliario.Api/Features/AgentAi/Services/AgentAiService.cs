@@ -110,7 +110,7 @@ public class AgentAiService
                     }
                 }
 
-                _logger.LogInformation("\n=== [Agent AI] Respuesta de IA ===\nAgentId: {AgentId}\nRespuesta: {Response}\n================================", agentId, textBuilder.ToString());
+                _logger.LogInformation("\n=== [Agent AI] Respuesta de IA ===\nAgentId: {AgentId}\nTokens Totales: {TotalTokens} (Entrada: {InputTokens}, Salida: {OutputTokens})\nRespuesta: {Response}\n================================", agentId, streamTotalTokens ?? 0, streamInputTokens ?? 0, streamOutputTokens ?? 0, textBuilder.ToString());
                 return textBuilder.ToString();
             }
             catch (Polly.Timeout.TimeoutRejectedException)
@@ -263,16 +263,20 @@ public class AgentAiService
                             }
                             if (update.ToolCallUpdate != null)
                             {
-                                var callId = update.ToolCallUpdate.Id;
-                                if (string.IsNullOrEmpty(callId)) callId = update.ToolCallUpdate.Index?.ToString() ?? "default";
-                                if (!currentToolCalls.ContainsKey(callId))
+                                var callKey = update.ToolCallUpdate.Index?.ToString() ?? update.ToolCallUpdate.Id;
+                                if (string.IsNullOrEmpty(callKey)) callKey = "default";
+
+                                if (!currentToolCalls.ContainsKey(callKey))
                                 {
-                                    if (string.IsNullOrEmpty(update.ToolCallUpdate.Id)) update.ToolCallUpdate.Id = callId;
-                                    currentToolCalls[callId] = update.ToolCallUpdate;
+                                    if (string.IsNullOrEmpty(update.ToolCallUpdate.Id)) update.ToolCallUpdate.Id = callKey;
+                                    currentToolCalls[callKey] = update.ToolCallUpdate;
                                 }
                                 else
                                 {
-                                    currentToolCalls[callId].Arguments += update.ToolCallUpdate.Arguments;
+                                    var existing = currentToolCalls[callKey];
+                                    if (!string.IsNullOrEmpty(update.ToolCallUpdate.Id)) existing.Id = update.ToolCallUpdate.Id;
+                                    if (!string.IsNullOrEmpty(update.ToolCallUpdate.Name)) existing.Name = update.ToolCallUpdate.Name;
+                                    existing.Arguments += update.ToolCallUpdate.Arguments;
                                 }
                             }
                             if (update.TotalTokens.HasValue)
@@ -308,7 +312,8 @@ public class AgentAiService
                                 bool jsonError = false;
                                 try
                                 {
-                                    var argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(call.Arguments);
+                                    string argumentsToDeserialize = string.IsNullOrWhiteSpace(call.Arguments) ? "{}" : call.Arguments;
+                                    var argsDict = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object?>>(argumentsToDeserialize);
                                     if (argsDict == null) throw new System.Text.Json.JsonException("Null JSON is not allowed.");
                                 }
                                 catch (Exception ex) when (ex is System.Text.Json.JsonException || ex is ArgumentNullException)
@@ -367,7 +372,7 @@ public class AgentAiService
                     }
                 }
 
-                _logger.LogInformation("\n=== [Agent AI Stream] Respuesta de IA Final ===\nAgentId: {AgentId}\nConversationId: {ConversationId}\nRespuesta: {Response}\n===============================================", agentId, conversationId, finalFullText.ToString());
+                _logger.LogInformation("\n=== [Agent AI Stream] Respuesta de IA Final ===\nAgentId: {AgentId}\nConversationId: {ConversationId}\nTokens Totales: {TotalTokens} (Entrada: {InputTokens}, Salida: {OutputTokens})\nRespuesta: {Response}\n===============================================", agentId, conversationId, totalAccumulatedTotalTokens, totalAccumulatedInputTokens, totalAccumulatedOutputTokens, finalFullText.ToString());
             }
             finally
             {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCopilotStore } from '../store/useCopilotStore';
 import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/axios';
+import { mutate } from 'swr';
 
 export const useCopilotChat = () => {
   const { addMessage, updateLastMessage, overwriteLastMessage, setTyping, setConversationId, setMessages, setOpen, conversationId } = useCopilotStore();
@@ -94,26 +95,33 @@ export const useCopilotChat = () => {
               }
 
               const textChunk = dataValue.replace(/\\n/g, '\n');
+              fullText += textChunk;
               
-              const redirectRegex = /\[SystemAction:\s*RedirectTo=(.*?)\]/g;
+              const redirectRegex = /[`\\]*\[SystemAction:\s*RedirectTo=([^\]\\]+)[`\\]*\][`\\]*/gi;
               let match;
-              let cleanChunk = textChunk;
-              
-              while ((match = redirectRegex.exec(textChunk)) !== null) {
-                const path = match[1];
+              while ((match = redirectRegex.exec(fullText)) !== null) {
+                const path = match[1].trim();
                 navigate(path);
-                cleanChunk = cleanChunk.replace(match[0], '');
+                fullText = fullText.replace(match[0], '');
               }
 
-              const convRegex = /\[SystemAction:\s*ConversationId=(.*?)\]/g;
+              const convRegex = /[`\\]*\[SystemAction:\s*ConversationId=([^\]\\]+)[`\\]*\][`\\]*/gi;
               let matchConv;
-              while ((matchConv = convRegex.exec(textChunk)) !== null) {
-                const id = matchConv[1];
+              while ((matchConv = convRegex.exec(fullText)) !== null) {
+                const id = matchConv[1].trim();
                 setConversationId(id);
-                cleanChunk = cleanChunk.replace(matchConv[0], '');
+                fullText = fullText.replace(matchConv[0], '');
               }
 
-              fullText += cleanChunk;
+              const invalidateRegex = /[`\\]*\[SystemAction:\s*InvalidateCache=([^\]\\]+)[`\\]*\][`\\]*/gi;
+              let matchInvalidate;
+              while ((matchInvalidate = invalidateRegex.exec(fullText)) !== null) {
+                const cacheKey = matchInvalidate[1].trim();
+                mutate(cacheKey);
+                window.dispatchEvent(new CustomEvent('swr-invalidate', { detail: { key: cacheKey } }));
+                fullText = fullText.replace(matchInvalidate[0], '');
+              }
+
               overwriteLastMessage(fullText);
             }
           }
