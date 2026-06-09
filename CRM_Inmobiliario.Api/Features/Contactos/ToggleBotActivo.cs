@@ -14,7 +14,7 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class ToggleBotActivoFeature
 {
-    public record ToggleBotActivoCommand(bool BotActivo);
+    public record ToggleBotActivoCommand(bool BotActivo, string Channel = "WhatsApp");
 
     public static void MapToggleBotActivoEndpoint(this IEndpointRouteBuilder app)
     {
@@ -44,12 +44,25 @@ public static class ToggleBotActivoFeature
                 return Results.BadRequest(new { Message = "El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA." });
             }
 
-            var updatedCount = await context.Contactos
-                .Where(c => c.Id == id && c.AgenteId == agenteId)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(c => c.BotActivo, command.BotActivo)
-                    .SetProperty(c => c.EstadoIA, c => command.BotActivo ? null : c.EstadoIA)
-                    .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada), ct);
+            int updatedCount = 0;
+            if (command.Channel == "Facebook")
+            {
+                updatedCount = await context.Contactos
+                    .Where(c => c.Id == id && c.AgenteId == agenteId)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(c => c.BotActivoFB, command.BotActivo)
+                        .SetProperty(c => c.EstadoIA_FB, c => command.BotActivo ? null : c.EstadoIA_FB)
+                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada), ct);
+            }
+            else
+            {
+                updatedCount = await context.Contactos
+                    .Where(c => c.Id == id && c.AgenteId == agenteId)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(c => c.BotActivoWA, command.BotActivo)
+                        .SetProperty(c => c.EstadoIA_WA, c => command.BotActivo ? null : c.EstadoIA_WA)
+                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada), ct);
+            }
 
             if (updatedCount == 0)
             {

@@ -44,9 +44,9 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                     EtapaEmbudo = "Nuevo",
                     EsProspecto = false,
                     EsPropietario = true,
-                    BotActivo = false,
+                    BotActivoWA = false,
                     TransferenciaNotificada = true,
-                    EstadoIA = "Derivado a Captacion",
+                    EstadoIA_WA = "Derivado a Captacion",
                     Notas = "Derivado automáticamente para captación de propiedad."
                 };
                 _context.Contactos.Add(newPropietario);
@@ -57,9 +57,9 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         {
             existing.EsPropietario = true;
             existing.EsProspecto = false;
-            existing.BotActivo = false;
+            existing.BotActivoWA = false;
             existing.TransferenciaNotificada = true;
-            existing.EstadoIA = "Derivado a Captacion";
+            existing.EstadoIA_WA = "Derivado a Captacion";
             existing.Notas = string.IsNullOrWhiteSpace(existing.Notas) 
                 ? "Derivado automáticamente para captación de propiedad." 
                 : $"{existing.Notas}\nDerivado automáticamente para captación de propiedad.";

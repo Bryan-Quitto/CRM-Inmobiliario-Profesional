@@ -12,11 +12,13 @@ interface ContactoProfileCardProps {
 }
 
 export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
-  const { isBotActivo, handleToggle, isLoading, showOverrideModal, confirmOverride, cancelOverride } = useContactoBotToggle(contacto);
+  const waToggle = useContactoBotToggle(contacto, 'WhatsApp');
+  const fbToggle = useContactoBotToggle(contacto, 'Facebook');
   const [rango, setRango] = useState<'hoy' | 'semana' | 'mes' | 'siempre'>('hoy');
   const { usage, isLoading: isLoadingUsage } = useContactoTokenUsage(contacto.id, rango);
   const { settings } = useConfiguracionIA();
   const isWhatsAppAiEnabled = settings?.isWhatsAppAiEnabled ?? true;
+  const isFacebookAiEnabled = settings?.isFacebookAiEnabled ?? true;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -62,61 +64,19 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
         </div>
 
         {!contacto.esCompartido && (
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all">
-            <div className="flex items-center gap-4">
-              <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors ${isBotActivo ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-slate-400'}`}>
-                <Bot className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado IA</p>
-                {!isWhatsAppAiEnabled ? (
-                  <span 
-                    className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-help"
-                    title="La IA de WhatsApp está desactivada en tu Configuración"
-                  >
-                    Inactivo (Global)
-                  </span>
-                ) : isBotActivo ? (
-                  <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
-                ) : contacto.estadoIA === 'Escalado' ? (
-                  <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
-                ) : contacto.estadoIA === 'LimiteAlcanzado' ? (
-                  <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de Tokens</span>
-                ) : (
-                  <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
-                )}
-              </div>
-            </div>
-            <div className="inline-block">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isWhatsAppAiEnabled) {
-                    toast.error("Debes activar la IA de WhatsApp en Configuración para usar esta función");
-                    return;
-                  }
-                  const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
-                  if (isStageLocked) {
-                    toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
-                    return;
-                  }
-                  if (isLoading || contacto.esCompartido) return;
-                  handleToggle(!isBotActivo);
-                }}
-                title={!isWhatsAppAiEnabled ? "Debes activar la IA de WhatsApp en Configuración para usar esta función" : undefined}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  !isWhatsAppAiEnabled
-                    ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                    : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
-                      ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                      : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
-                } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isBotActivo ? 'translate-x-6' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
+          <div className="flex flex-col gap-3">
+            <BotToggleRow 
+              channel="WhatsApp" 
+              isGlobalEnabled={isWhatsAppAiEnabled} 
+              toggleState={waToggle} 
+              contacto={contacto} 
+            />
+            <BotToggleRow 
+              channel="Facebook" 
+              isGlobalEnabled={isFacebookAiEnabled} 
+              toggleState={fbToggle} 
+              contacto={contacto} 
+            />
           </div>
         )}
 
@@ -230,15 +190,97 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
       </div>
 
       <ConfirmModal
-        isOpen={showOverrideModal}
-        onClose={cancelOverride}
-        onConfirm={confirmOverride}
-        title="Reactivar IA (Límite Superado)"
-        description="Este contacto ha alcanzado su límite de tokens diarios. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
+        isOpen={waToggle.showOverrideModal}
+        onClose={waToggle.cancelOverride}
+        onConfirm={waToggle.confirmOverride}
+        title="Reactivar IA (Límite Superado) - WhatsApp"
+        description="Este contacto ha alcanzado su límite de tokens diarios en WhatsApp. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
         confirmText="Sí, reactivar bot"
         type="info"
         icon={<Bot className="h-10 w-10 text-blue-500" />}
       />
+
+      <ConfirmModal
+        isOpen={fbToggle.showOverrideModal}
+        onClose={fbToggle.cancelOverride}
+        onConfirm={fbToggle.confirmOverride}
+        title="Reactivar IA (Límite Superado) - Facebook"
+        description="Este contacto ha alcanzado su límite de tokens diarios en Facebook. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
+        confirmText="Sí, reactivar bot"
+        type="info"
+        icon={<Bot className="h-10 w-10 text-blue-500" />}
+      />
+    </div>
+  );
+};
+
+interface BotToggleRowProps {
+  channel: 'WhatsApp' | 'Facebook';
+  isGlobalEnabled: boolean;
+  toggleState: ReturnType<typeof useContactoBotToggle>;
+  contacto: Contacto;
+}
+
+const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotToggleRowProps) => {
+  const { isBotActivo, handleToggle, isLoading } = toggleState;
+  const estadoIA = channel === 'Facebook' ? contacto.estadoIA_FB : contacto.estadoIA_WA;
+
+  return (
+    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all">
+      <div className="flex items-center gap-4">
+        <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors ${isBotActivo ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-slate-400'}`}>
+          <Bot className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IA {channel}</p>
+          {!isGlobalEnabled ? (
+            <span 
+              className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-help"
+              title={`La IA de ${channel} está desactivada en tu Configuración`}
+            >
+              Inactivo (Global)
+            </span>
+          ) : isBotActivo ? (
+            <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
+          ) : estadoIA === 'Escalado' ? (
+            <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
+          ) : estadoIA === 'LimiteAlcanzado' ? (
+            <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de Tokens</span>
+          ) : (
+            <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
+          )}
+        </div>
+      </div>
+      <div className="inline-block">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isGlobalEnabled) {
+              toast.error(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
+              return;
+            }
+            const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+            if (isStageLocked) {
+              toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+              return;
+            }
+            if (isLoading || contacto.esCompartido) return;
+            handleToggle(!isBotActivo);
+          }}
+          title={!isGlobalEnabled ? `Debes activar la IA de ${channel} en Configuración para usar esta función` : undefined}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            !isGlobalEnabled
+              ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+              : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
+          } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+            isBotActivo ? 'translate-x-6' : 'translate-x-1'
+          }`} />
+        </button>
+      </div>
     </div>
   );
 };

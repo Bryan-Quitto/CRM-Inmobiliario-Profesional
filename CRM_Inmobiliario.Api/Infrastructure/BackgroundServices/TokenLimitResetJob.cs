@@ -17,15 +17,21 @@ public class TokenLimitResetJob
 
     public async Task ResetDailyLimitsAsync()
     {
-        var result = await _context.Contactos
-            .Where(c => c.EstadoIA == "LimiteAlcanzado" && !c.BotActivo)
+        var resultWA = await _context.Contactos
+            .Where(c => c.EstadoIA_WA == "LimiteAlcanzado" && !c.BotActivoWA)
             .ExecuteUpdateAsync(s => s
-                .SetProperty(c => c.BotActivo, true)
-                .SetProperty(c => c.EstadoIA, (string?)null));
+                .SetProperty(c => c.BotActivoWA, true)
+                .SetProperty(c => c.EstadoIA_WA, (string?)null));
 
-        if (result > 0)
+        var resultFB = await _context.Contactos
+            .Where(c => c.EstadoIA_FB == "LimiteAlcanzado" && !c.BotActivoFB)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(c => c.BotActivoFB, true)
+                .SetProperty(c => c.EstadoIA_FB, (string?)null));
+
+        if (resultWA > 0 || resultFB > 0)
         {
-            _logger.LogInformation("Hangfire: Límite diario reseteado para {Count} contactos. Bots reactivados.", result);
+            _logger.LogInformation("Hangfire: Límite diario reseteado para WA ({CountWA}) y FB ({CountFB}) contactos. Bots reactivados.", resultWA, resultFB);
         }
     }
 }

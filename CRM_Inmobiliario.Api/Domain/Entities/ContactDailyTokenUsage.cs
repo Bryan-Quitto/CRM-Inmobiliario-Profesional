@@ -16,6 +16,10 @@ public sealed class ContactDailyTokenUsage
     [Required]
     public DateTimeOffset Date { get; set; }
 
+    [Required]
+    [MaxLength(50)]
+    public string Channel { get; set; } = "WhatsApp";
+
     public int TokensUsed { get; set; }
     public int InputTokens { get; set; }
     public int CachedTokens { get; set; }

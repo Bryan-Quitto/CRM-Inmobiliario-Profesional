@@ -82,7 +82,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             }
         }
         
-        // 3. Filtrado por BotActivo y Reglas de Handoff
+        // 3. Filtrado por BotActivoWA y Reglas de Handoff
         string? autoMsg = null;
         if (contacto != null)
         {
@@ -90,16 +90,16 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
             var targetDate = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.FromHours(-5));
             var usage = await _context.ContactDailyTokenUsages
-                .FirstOrDefaultAsync(u => u.ContactoId == contacto.Id && u.Date == targetDate);
+                .FirstOrDefaultAsync(u => u.ContactoId == contacto.Id && u.Date == targetDate && u.Channel == "WhatsApp");
                 
             int limit = contacto.Agente?.DailyTokenLimitPerContact ?? 50000;
             
             if (usage != null && (usage.InputTokens + usage.OutputTokens) >= limit)
             {
-                if (contacto.BotActivo)
+                if (contacto.BotActivoWA)
                 {
-                    contacto.BotActivo = false;
-                    contacto.EstadoIA = "LimiteAlcanzado";
+                    contacto.BotActivoWA = false;
+                    contacto.EstadoIA_WA = "LimiteAlcanzado";
                     contacto.TransferenciaNotificada = false;
                     await _context.SaveChangesAsync();
                     
@@ -108,10 +108,10 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             }
             else
             {
-                if (!contacto.BotActivo && contacto.EstadoIA == "LimiteAlcanzado")
+                if (!contacto.BotActivoWA && contacto.EstadoIA_WA == "LimiteAlcanzado")
                 {
-                    contacto.BotActivo = true;
-                    contacto.EstadoIA = null;
+                    contacto.BotActivoWA = true;
+                    contacto.EstadoIA_WA = null;
                     contacto.TransferenciaNotificada = false;
                     await _context.SaveChangesAsync();
                     
@@ -120,23 +120,23 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             }
 
             // Regla: Si es solo propietario (no prospecto), requiere asistencia humana inmediata
-            if (contacto.EsPropietario && !contacto.EsProspecto && contacto.BotActivo)
+            if (contacto.EsPropietario && !contacto.EsProspecto && contacto.BotActivoWA)
             {
-                contacto.BotActivo = false;
-                contacto.EstadoIA = "Escalado";
+                contacto.BotActivoWA = false;
+                contacto.EstadoIA_WA = "Escalado";
                 await _context.Contactos
                     .Where(c => c.Id == contacto.Id)
                     .ExecuteUpdateAsync(s => s
-                        .SetProperty(c => c.BotActivo, false)
-                        .SetProperty(c => c.EstadoIA, "Escalado")
+                        .SetProperty(c => c.BotActivoWA, false)
+                        .SetProperty(c => c.EstadoIA_WA, "Escalado")
                         .SetProperty(c => c.TransferenciaNotificada, false));
             }
 
-            if (!contacto.BotActivo)
+            if (!contacto.BotActivoWA)
             {
                 if (!contacto.TransferenciaNotificada)
                 {
-                    if (contacto.EstadoIA == "LimiteAlcanzado")
+                    if (contacto.EstadoIA_WA == "LimiteAlcanzado")
                     {
                         autoMsg = "Lamentablemente has alcanzado el límite de consultas automáticas por el día de hoy. 🤖 ¡Pero no te preocupes! En unos instantes un agente humano continuará ayudándote con tus dudas.";
                     }
@@ -317,7 +317,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         while (!saved)
         {
             var usage = await _context.ContactDailyTokenUsages
-                .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date == targetDate);
+                .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date == targetDate && u.Channel == "WhatsApp");
 
             if (usage == null)
             {
@@ -331,7 +331,8 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                     CachedTokens = cachedTokens,
                     OutputTokens = outputTokens,
                     CostoUSD = costoTransaccion,
-                    AhorroUSD = ahorroTransaccion
+                    AhorroUSD = ahorroTransaccion,
+                    Channel = "WhatsApp"
                 };
                 _context.ContactDailyTokenUsages.Add(usage);
             }

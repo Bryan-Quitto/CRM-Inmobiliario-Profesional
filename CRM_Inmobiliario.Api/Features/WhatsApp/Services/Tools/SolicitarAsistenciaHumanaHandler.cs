@@ -44,22 +44,22 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                 AgenteId = agentIdToUse ?? Guid.Empty,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EtapaEmbudo = "Nuevo",
-                EstadoIA = "Escalado",
+                EstadoIA_WA = "Escalado",
                 EsProspecto = true,
                 Notas = $"Escalamiento: {motivo}",
-                BotActivo = false,
+                BotActivoWA = false,
                 TransferenciaNotificada = true
             };
             _context.Contactos.Add(contacto);
         }
         else
         {
-            contacto.EstadoIA = "Escalado";
+            contacto.EstadoIA_WA = "Escalado";
             contacto.Notas = string.IsNullOrWhiteSpace(contacto.Notas) 
                 ? $"Escalamiento: {motivo}" 
                 : $"{contacto.Notas}\nEscalamiento: {motivo}";
             
-            contacto.BotActivo = false;
+            contacto.BotActivoWA = false;
             contacto.TransferenciaNotificada = true;
             
             _context.Contactos.Update(contacto);

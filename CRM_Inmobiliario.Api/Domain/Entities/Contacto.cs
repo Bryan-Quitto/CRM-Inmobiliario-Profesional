@@ -44,6 +44,10 @@ public sealed class Contacto
 
     public bool BotActivo { get; set; } = true;
     public string? EstadoIA { get; set; }
+    public bool BotActivoWA { get; set; } = true;
+    public bool BotActivoFB { get; set; } = true;
+    public string? EstadoIA_WA { get; set; }
+    public string? EstadoIA_FB { get; set; }
     public bool TransferenciaNotificada { get; set; } = false;
 
     // PSID de Facebook Messenger — identificador único del contacto dentro de la página

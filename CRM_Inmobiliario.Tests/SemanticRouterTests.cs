@@ -77,7 +77,7 @@ namespace CRM_Inmobiliario.Tests
             if (routerResponse.Contains("NUEVA_BUSQUEDA")) parsedIntent = ChatIntent.NUEVA_BUSQUEDA;
             else if (routerResponse.Contains("CAMBIO_TEMA")) parsedIntent = ChatIntent.CAMBIO_TEMA;
             
-            semanticRouterServiceMock.Setup(s => s.DetermineIntentAsync(It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<System.Threading.CancellationToken>()))
+            semanticRouterServiceMock.Setup(s => s.DetermineIntentAsync(It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
                                      .ReturnsAsync(parsedIntent);
 
             return new WhatsAppAiService(

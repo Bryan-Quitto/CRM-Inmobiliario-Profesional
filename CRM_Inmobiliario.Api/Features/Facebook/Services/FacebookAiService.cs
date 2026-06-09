@@ -123,7 +123,7 @@ public sealed class FacebookAiService
             {
                 try 
                 {
-                    await RecordTokenUsageAsync(ctx.Agente.Id, streamTotalTokens.Value, streamInputTokens ?? 0, 0, streamOutputTokens ?? 0, providerName);
+                    await RecordTokenUsageAsync(ctx.Agente.Id, ctx.Contacto?.Id, streamTotalTokens.Value, streamInputTokens ?? 0, 0, streamOutputTokens ?? 0, providerName);
                 }
                 catch (Exception ex)
                 {
@@ -138,7 +138,7 @@ public sealed class FacebookAiService
         }
     }
 
-    private async Task RecordTokenUsageAsync(Guid agentId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider)
+    private async Task RecordTokenUsageAsync(Guid agentId, Guid? contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider)
     {
         var today = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
 
@@ -179,6 +179,38 @@ public sealed class FacebookAiService
             usage.CachedTokens += cachedTokens;
             usage.OutputTokens += outputTokens;
             usage.CostoUSD += currentCost;
+        }
+
+        if (contactoId.HasValue)
+        {
+            var contactUsage = await _dbContext.ContactDailyTokenUsages
+                .FirstOrDefaultAsync(u => u.ContactoId == contactoId.Value && u.Date == today && u.Channel == "Facebook", CancellationToken.None);
+
+            if (contactUsage == null)
+            {
+                contactUsage = new CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage
+                {
+                    Id = Guid.NewGuid(),
+                    ContactoId = contactoId.Value,
+                    Date = today,
+                    TokensUsed = totalTokens,
+                    InputTokens = inputTokens,
+                    CachedTokens = cachedTokens,
+                    OutputTokens = outputTokens,
+                    CostoUSD = currentCost,
+                    AhorroUSD = 0m,
+                    Channel = "Facebook"
+                };
+                _dbContext.ContactDailyTokenUsages.Add(contactUsage);
+            }
+            else
+            {
+                contactUsage.TokensUsed += totalTokens;
+                contactUsage.InputTokens += inputTokens;
+                contactUsage.CachedTokens += cachedTokens;
+                contactUsage.OutputTokens += outputTokens;
+                contactUsage.CostoUSD += currentCost;
+            }
         }
 
         await _dbContext.SaveChangesAsync(CancellationToken.None);

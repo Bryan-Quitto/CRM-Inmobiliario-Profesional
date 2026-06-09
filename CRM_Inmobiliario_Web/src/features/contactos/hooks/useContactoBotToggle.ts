@@ -6,22 +6,30 @@ import { toast } from 'sonner';
 
 interface ToggleContacto {
   id: string;
-  botActivo: boolean;
+  botActivo?: boolean;
+  botActivoWA?: boolean;
+  botActivoFB?: boolean;
   estadoIA?: string | null;
+  estadoIA_WA?: string | null;
+  estadoIA_FB?: string | null;
 }
 
-export const useContactoBotToggle = (contacto: ToggleContacto) => {
+export const useContactoBotToggle = (contacto: ToggleContacto, channel: 'WhatsApp' | 'Facebook' = 'WhatsApp') => {
   const { mutate } = useSWRConfig();
-  const [isBotActivo, setIsBotActivo] = useState(contacto.botActivo);
+  
+  const getBotActivo = () => channel === 'Facebook' ? (contacto.botActivoFB ?? true) : (contacto.botActivoWA ?? true);
+  const getEstadoIA = () => channel === 'Facebook' ? contacto.estadoIA_FB : contacto.estadoIA_WA;
+
+  const [isBotActivo, setIsBotActivo] = useState(getBotActivo());
   const [isLoading, setIsLoading] = useState(false);
   const [showOverrideModal, setShowOverrideModal] = useState(false);
 
   useEffect(() => {
-    setIsBotActivo(contacto.botActivo);
-  }, [contacto.botActivo]);
+    setIsBotActivo(channel === 'Facebook' ? (contacto.botActivoFB ?? true) : (contacto.botActivoWA ?? true));
+  }, [contacto.botActivoWA, contacto.botActivoFB, channel]);
 
   const handleToggle = async (checked: boolean) => {
-    if (checked && contacto.estadoIA === 'LimiteAlcanzado') {
+    if (checked && getEstadoIA() === 'LimiteAlcanzado') {
       setShowOverrideModal(true);
       return;
     }
@@ -31,7 +39,7 @@ export const useContactoBotToggle = (contacto: ToggleContacto) => {
     setIsLoading(true);
 
     try {
-      await toggleBotActivo(contacto.id, checked);
+      await toggleBotActivo(contacto.id, checked, channel);
       toast.success(checked ? 'Bot activado' : 'Bot desactivado', {
         description: checked 
           ? 'La IA responderá los mensajes de este contacto.' 
@@ -56,7 +64,7 @@ export const useContactoBotToggle = (contacto: ToggleContacto) => {
     setIsLoading(true);
 
     try {
-      await api.post(`/contactos/${contacto.id}/bot-override`);
+      await api.post(`/contactos/${contacto.id}/bot-override`, { channel });
       toast.success('Bot reactivado y límite reiniciado');
       mutate('/contactos');
       mutate(`/contactos/${contacto.id}`);

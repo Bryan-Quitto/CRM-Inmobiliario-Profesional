@@ -10,7 +10,7 @@ namespace CRM_Inmobiliario.Api.Features.Facebook.Services;
 /// busca/crea el contacto por PSID, carga/crea la conversación, aplica reglas de handoff.
 /// Extraído de FacebookAiService para cumplir el límite de 200 líneas por archivo.
 /// </summary>
-internal sealed class FacebookContextBuilder
+public sealed class FacebookContextBuilder
 {
     private readonly IDbContextFactory<CrmDbContext> _dbFactory;
     private readonly ILogger _logger;
@@ -87,7 +87,7 @@ internal sealed class FacebookContextBuilder
         }
 
         // Evaluar si el bot está activo para este contacto
-        bool shouldSilence = !contacto.BotActivo;
+        bool shouldSilence = !contacto.BotActivoFB;
 
         // Cargar o crear conversación por PSID + AgenteId
         var conversation = await db.FacebookConversations.FirstOrDefaultAsync(

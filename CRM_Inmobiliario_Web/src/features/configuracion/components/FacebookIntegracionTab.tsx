@@ -18,6 +18,9 @@ declare global {
       ) => void;
     };
     fbAsyncInit: () => void;
+  }
+}
+
 /* ─── Props ──────────────────────────────────────────────────────────────── */
 interface Props {
   facebookPageId: string | null;

@@ -8,6 +8,7 @@ public class ContactDailyTokenUsageConfiguration : IEntityTypeConfiguration<Cont
 {
     public void Configure(EntityTypeBuilder<ContactDailyTokenUsage> builder)
     {
-        builder.HasIndex(u => new { u.ContactoId, u.Date }).IsUnique();
+        builder.HasKey(u => u.Id);
+        builder.HasIndex(u => new { u.ContactoId, u.Date, u.Channel }).IsUnique();
     }
 }

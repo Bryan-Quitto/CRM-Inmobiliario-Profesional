@@ -39,7 +39,7 @@ public sealed class CrmDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        if (Database.IsRelational())
+        if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
         {
             modelBuilder.HasPostgresExtension("unaccent");
             modelBuilder.HasPostgresExtension("vector");
@@ -55,7 +55,7 @@ public sealed class CrmDbContext : DbContext
         // Aplicar todas las configuraciones de IEntityTypeConfiguration encontradas en el ensamblado
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CrmDbContext).Assembly);
 
-        if (!Database.IsRelational())
+        if (Database.ProviderName != "Npgsql.EntityFrameworkCore.PostgreSQL")
         {
             foreach (var entityType in modelBuilder.Model.GetEntityTypes().ToList())
             {
