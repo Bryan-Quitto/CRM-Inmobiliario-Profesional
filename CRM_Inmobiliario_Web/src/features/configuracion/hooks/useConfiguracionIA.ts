@@ -10,6 +10,9 @@ export interface IASettings {
   isWhatsAppAiEnabled: boolean;
   isPersonalAiEnabled: boolean;
   tokensUsedToday: number;
+  facebookPageId: string | null;
+  facebookPageName: string | null;
+  isFacebookAiEnabled: boolean;
 }
 
 const getIASettings = async () => {

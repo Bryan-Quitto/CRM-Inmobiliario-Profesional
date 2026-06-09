@@ -5,6 +5,7 @@ using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+using CRM_Inmobiliario.Api.Features.Facebook.Services;
 using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -76,6 +77,12 @@ builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentS
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentAiService>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentTitleGeneratorService>();
 builder.Services.AddScoped<IWhatsAppJobProcessor, WhatsAppJobProcessor>();
+
+// Facebook Messenger Stack
+builder.Services.AddHttpClient<IFacebookMessageSender, FacebookMessageSender>()
+    .AddStandardResilienceHandler();
+builder.Services.AddScoped<IFacebookJobProcessor, FacebookJobProcessor>();
+builder.Services.AddScoped<FacebookAiService>();
 
 // Handlers de herramientas IA
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, BuscarPropiedadesHandler>();

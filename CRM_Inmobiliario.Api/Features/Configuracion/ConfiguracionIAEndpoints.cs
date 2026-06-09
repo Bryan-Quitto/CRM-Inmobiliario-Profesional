@@ -21,7 +21,11 @@ public static class ConfiguracionIAEndpoints
         int DailyTokenLimitPersonal,
         bool IsPersonalAiEnabled,
         bool IsWhatsAppAiEnabled,
-        int TokensUsedToday);
+        int TokensUsedToday,
+        string? FacebookPageId,
+        string? FacebookPageName,
+        bool IsFacebookAiEnabled,
+        int DailyTokenLimitFacebook);
 
     public record UpdateIASettingsRequest(
         int? DailyTokenLimitPerContact,
@@ -29,7 +33,9 @@ public static class ConfiguracionIAEndpoints
         bool? IsPersonalAiEnabled,
         bool? IsWhatsAppAiEnabled,
         string? AiApiKey,
-        string? WhatsAppPhoneNumberId);
+        string? WhatsAppPhoneNumberId,
+        bool? IsFacebookAiEnabled,
+        int? DailyTokenLimitFacebook);
 
     public record ValidateIASettingsRequest(
         string? AiApiKey,
@@ -57,7 +63,11 @@ public static class ConfiguracionIAEndpoints
                     a.DailyTokenLimitPersonal,
                     a.IsPersonalAiEnabled,
                     a.IsWhatsAppAiEnabled,
-                    tokensUsedToday))
+                    tokensUsedToday,
+                    a.FacebookPageId,
+                    a.FacebookPageName,
+                    a.IsFacebookAiEnabled,
+                    a.DailyTokenLimitFacebook))
                 .FirstOrDefaultAsync();
 
             if (settings is null)
@@ -85,6 +95,11 @@ public static class ConfiguracionIAEndpoints
             if (request.DailyTokenLimitPersonal.HasValue && (request.DailyTokenLimitPersonal < 20000 || request.DailyTokenLimitPersonal > 1000000))
             {
                 return Results.BadRequest(new { Message = "El límite de tokens para IA Personal debe estar entre 20,000 y 1,000,000." });
+            }
+
+            if (request.DailyTokenLimitFacebook.HasValue && (request.DailyTokenLimitFacebook < 20000 || request.DailyTokenLimitFacebook > 1000000))
+            {
+                return Results.BadRequest(new { Message = "El límite de tokens para Facebook debe estar entre 20,000 y 1,000,000." });
             }
 
             var agenteId = user.GetRequiredUserId();
@@ -124,6 +139,16 @@ public static class ConfiguracionIAEndpoints
             if (request.IsWhatsAppAiEnabled.HasValue)
             {
                 agente.IsWhatsAppAiEnabled = request.IsWhatsAppAiEnabled.Value;
+            }
+
+            if (request.IsFacebookAiEnabled.HasValue)
+            {
+                agente.IsFacebookAiEnabled = request.IsFacebookAiEnabled.Value;
+            }
+
+            if (request.DailyTokenLimitFacebook.HasValue)
+            {
+                agente.DailyTokenLimitFacebook = request.DailyTokenLimitFacebook.Value;
             }
 
             if (request.AiApiKey != null)

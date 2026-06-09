@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { useTokenUsage } from '../api/finops';
 
-export const TokenUsageTable = () => {
-  const { data, isLoading, error } = useTokenUsage();
+interface Props {
+  channel?: string;
+}
+
+export const TokenUsageTable = ({ channel = 'Copilot' }: Props) => {
+  const { data, isLoading, error } = useTokenUsage(channel);
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
 

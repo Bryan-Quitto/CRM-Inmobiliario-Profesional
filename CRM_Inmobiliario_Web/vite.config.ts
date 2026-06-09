@@ -1,11 +1,26 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 
 // https://vite.dev/config/
 export default defineConfig({
   envDir: '../',
+  server: {
+    // HTTPS requerido por Facebook JS SDK (FB.login bloqueado en HTTP desde 2018)
+    https: {},
+    port: 5173,
+    hmr: {
+      // Configuración explícita del WebSocket de HMR para evitar ERR_CERT_AUTHORITY_INVALID.
+      // El certificado autofirmado de basicSsl no es reconocido por la CA del navegador;
+      // al especificar host y puerto explícitos, Vite no intenta negociar una conexión separada.
+      host: 'localhost',
+      protocol: 'wss',
+      clientPort: 5173,
+    },
+  },
   plugins: [
+    basicSsl(),
     react({
       // @ts-expect-error - React Compiler es experimental y puede no estar en los tipos estables del plugin v6 todavía
       babel: {

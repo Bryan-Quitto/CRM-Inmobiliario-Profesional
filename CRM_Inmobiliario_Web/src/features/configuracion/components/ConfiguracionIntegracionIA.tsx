@@ -6,6 +6,7 @@ import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
 import { useConfiguracionIA, type IASettings } from '../hooks/useConfiguracionIA';
 import { TokenUsageTable } from './TokenUsageTable';
+import { FacebookIntegracionTab } from './FacebookIntegracionTab';
 
 type TabType = 'General' | 'Personal' | 'WhatsApp' | 'Facebook';
 
@@ -22,8 +23,12 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
   const [whatsAppId, setWhatsAppId] = useState('');
   const [limitValue, setLimitValue] = useState<number>(50000);
   const [personalLimitValue, setPersonalLimitValue] = useState<number>(500000);
+  const [facebookLimitValue, setFacebookLimitValue] = useState<number>(50000);
   const [isPersonalAiEnabled, setIsPersonalAiEnabled] = useState(true);
   const [isWhatsAppAiEnabled, setIsWhatsAppAiEnabled] = useState(true);
+  const [facebookPageId, setFacebookPageId] = useState<string | null>(null);
+  const [facebookPageName, setFacebookPageName] = useState<string | null>(null);
+  const [isFacebookAiEnabled, setIsFacebookAiEnabled] = useState(false);
   
   const [isFetching, setIsFetching] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -86,8 +91,12 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
       setWhatsAppId(response.data.whatsAppPhoneNumberId || '');
       setLimitValue(response.data.dailyTokenLimitPerContact || 50000);
       setPersonalLimitValue(response.data.dailyTokenLimitPersonal || 500000);
+      setFacebookLimitValue(response.data.dailyTokenLimitFacebook || 50000);
       setIsPersonalAiEnabled(response.data.isPersonalAiEnabled ?? true);
       setIsWhatsAppAiEnabled(response.data.isWhatsAppAiEnabled ?? true);
+      setFacebookPageId(response.data.facebookPageId ?? null);
+      setFacebookPageName(response.data.facebookPageName ?? null);
+      setIsFacebookAiEnabled(response.data.isFacebookAiEnabled ?? false);
     } catch {
       toast.error('Error al cargar la configuración.');
     } finally {
@@ -140,6 +149,11 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
       return;
     }
 
+    if (facebookLimitValue < 20000 || facebookLimitValue > 1000000) {
+      toast.error('El límite de Facebook debe estar entre 20,000 y 1,000,000 de tokens.');
+      return;
+    }
+
     setIsSaving(true);
     try {
       await api.put('/configuracion/ia-settings', {
@@ -147,8 +161,10 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
         whatsAppPhoneNumberId: whatsAppId || null,
         dailyTokenLimitPerContact: limitValue,
         dailyTokenLimitPersonal: personalLimitValue,
+        dailyTokenLimitFacebook: facebookLimitValue,
         isPersonalAiEnabled,
-        isWhatsAppAiEnabled
+        isWhatsAppAiEnabled,
+        isFacebookAiEnabled
       });
       
       mutateSettings((currentData?: IASettings) => {
@@ -157,8 +173,10 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
           ...currentData,
           isPersonalAiEnabled,
           isWhatsAppAiEnabled,
+          isFacebookAiEnabled,
           dailyTokenLimitPerContact: limitValue,
           dailyTokenLimitPersonal: personalLimitValue,
+          dailyTokenLimitFacebook: facebookLimitValue,
           aiApiKey,
           whatsAppPhoneNumberId: whatsAppId
         };
@@ -486,15 +504,18 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
 
             {/* TAB: FACEBOOK */}
             {activeTab === 'Facebook' && (
-              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-20 h-20 bg-slate-100 rounded-[24px] flex items-center justify-center mb-6 text-slate-400 shadow-sm border border-slate-200/50">
-                  <MessageSquare size={36} />
-                </div>
-                <h3 className="text-2xl font-black text-slate-800">Próximamente</h3>
-                <p className="text-slate-500 max-w-sm mt-2 font-medium">
-                  La integración con Facebook Messenger e Instagram Direct está en desarrollo y estará disponible en futuras actualizaciones.
-                </p>
-              </div>
+              <FacebookIntegracionTab
+                facebookPageId={facebookPageId}
+                facebookPageName={facebookPageName}
+                isFacebookAiEnabled={isFacebookAiEnabled}
+                setIsFacebookAiEnabled={setIsFacebookAiEnabled}
+                facebookLimitValue={facebookLimitValue}
+                setFacebookLimitValue={setFacebookLimitValue}
+                isSaving={isSaving}
+                renderCostEstimate={renderCostEstimate}
+                renderLimitWarning={renderLimitWarning}
+                onSuccess={() => { mutateSettings(); loadSettings(); }}
+              />
             )}
 
             {/* Botón de Guardar Global */}
@@ -502,12 +523,13 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={
-                  isSaving || 
-                  isValidating || 
-                  !!aiKeyError || 
-                  !!waIdError || 
+                  isSaving ||
+                  isValidating ||
+                  !!aiKeyError ||
+                  !!waIdError ||
                   limitValue < 20000 || limitValue > 1000000 ||
-                  personalLimitValue < 20000 || personalLimitValue > 1000000
+                  personalLimitValue < 20000 || personalLimitValue > 1000000 ||
+                  facebookLimitValue < 20000 || facebookLimitValue > 1000000
                 }
                 className="cursor-pointer flex items-center justify-center gap-2 px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -518,10 +540,10 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
 
           </div>
 
-          {activeTab === 'Personal' && (
+          {(activeTab === 'Personal' || (activeTab === 'Facebook' && facebookPageId)) && (
             <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-sm border border-slate-200 mt-6 animate-in fade-in duration-300">
               <h3 className="text-xl font-black text-slate-800 mb-6">Consumo Total de Tokens</h3>
-              <TokenUsageTable />
+              <TokenUsageTable channel={activeTab === 'Personal' ? 'Copilot' : 'Facebook'} />
             </div>
           )}
         </>

@@ -10,6 +10,7 @@ using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Features.SeccionesGaleria;
 using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
+using CRM_Inmobiliario.Api.Features.Facebook;
 using CRM_Inmobiliario.Api.Features.Admin;
 using CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
 using CRM_Inmobiliario.Api.Features.AgentAi.Endpoints;
@@ -102,6 +103,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapListarLogsSeguridadEndpoint();
         apiGroup.MapAdminApiKeysEndpoints();
         apiGroup.MapConfiguracionIAEndpoints();
+        apiGroup.MapFacebookOAuthEndpoints();
         apiGroup.MapGetAgentTokenUsageEndpoint();
 
         // Calendario
@@ -112,8 +114,9 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapObtenerLogsIa();
         apiGroup.MapObtenerConversacionIa();
 
-        // Webhooks (Sin Auth usualmente)
+        // Webhooks (Sin Auth)
         endpoints.MapWhatsAppWebhooksEndpoints();
+        endpoints.MapFacebookWebhooksEndpoints();
 
         // Admin
         apiGroup.MapReVectorizeEndpoint();

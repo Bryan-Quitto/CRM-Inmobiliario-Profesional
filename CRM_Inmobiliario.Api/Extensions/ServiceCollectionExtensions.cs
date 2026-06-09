@@ -147,7 +147,15 @@ public static class ServiceCollectionExtensions
             });
         });
         var frontendUrl = configuration["FrontendUrl"] ?? Environment.GetEnvironmentVariable("FrontendUrl") ?? "http://localhost:5173";
-        services.AddCors(options => options.AddDefaultPolicy(p => p.WithOrigins(frontendUrl).AllowAnyMethod().AllowAnyHeader()));
+
+        // Permitir ambas variantes (http y https) para cubrir dev local con y sin SSL
+        var allowedOrigins = new[] { frontendUrl, frontendUrl.Replace("http://", "https://"), frontendUrl.Replace("https://", "http://") }
+            .Distinct()
+            .ToArray();
+
+        services.AddCors(options => options.AddDefaultPolicy(p =>
+            p.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader()));
+
 
         return services;
     }

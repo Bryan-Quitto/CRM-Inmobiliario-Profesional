@@ -63,6 +63,20 @@ public sealed class Agent
     [MaxLength(50)]
     public string ByokKeyStatus { get; set; } = "Valid";
 
+    // Integración Facebook Messenger — identificador y token por página, no globales
+    [MaxLength(50)]
+    public string? FacebookPageId { get; set; }
+
+    [MaxLength(500)]
+    public string? FacebookPageAccessToken { get; set; }
+
+    [MaxLength(200)]
+    public string? FacebookPageName { get; set; }
+
+    public bool IsFacebookAiEnabled { get; set; } = false;
+
+    public int DailyTokenLimitFacebook { get; set; } = 50000;
+
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 
     // Relaciones de navegación

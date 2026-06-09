@@ -13,6 +13,7 @@ public class AgentDailyTokenUsage
     public int OutputTokens { get; set; }
     public decimal CostoUSD { get; set; }
     public decimal AhorroUSD { get; set; }
+    public string Channel { get; set; } = "Copilot";
 
     public Agent Agent { get; set; } = null!;
 }

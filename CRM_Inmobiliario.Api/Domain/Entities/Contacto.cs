@@ -46,6 +46,10 @@ public sealed class Contacto
     public string? EstadoIA { get; set; }
     public bool TransferenciaNotificada { get; set; } = false;
 
+    // PSID de Facebook Messenger — identificador único del contacto dentro de la página
+    [MaxLength(50)]
+    public string? FacebookSenderId { get; set; }
+
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? FechaCierre { get; set; }
 

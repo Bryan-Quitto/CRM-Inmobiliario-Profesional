@@ -421,7 +421,7 @@ public class AgentAiService
 
         await using var _dbContext = await _dbContextFactory.CreateDbContextAsync(CancellationToken.None);
         var usage = await _dbContext.AgentDailyTokenUsages
-            .FirstOrDefaultAsync(u => u.AgentId == agentId && u.Date == today, CancellationToken.None);
+            .FirstOrDefaultAsync(u => u.AgentId == agentId && u.Date == today && u.Channel == "Copilot", CancellationToken.None);
 
         if (usage == null)
         {
@@ -434,7 +434,8 @@ public class AgentAiService
                 InputTokens = inputTokens,
                 CachedTokens = cachedTokens,
                 OutputTokens = outputTokens,
-                CostoUSD = currentCost
+                CostoUSD = currentCost,
+                Channel = "Copilot"
             };
             _dbContext.AgentDailyTokenUsages.Add(usage);
         }
