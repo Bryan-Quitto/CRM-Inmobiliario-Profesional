@@ -101,6 +101,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
       tipoTarea: data.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
       estado: 'Pendiente' as const,
       fechaInicio: new Date(data.fechaInicio).toISOString(),
+      fechaCreacion: new Date().toISOString(),
       contactoNombre: contacto ? [contacto.nombre, contacto.apellido].filter(Boolean).join(' ') : undefined,
       propiedadTitulo: propiedad ? propiedad.titulo : undefined
     };

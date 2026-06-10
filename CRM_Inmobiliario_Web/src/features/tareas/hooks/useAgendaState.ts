@@ -24,6 +24,13 @@ export const useAgendaState = (allTareas: Tarea[]) => {
   const [isComandoPanelOpen, setIsComandoPanelOpen] = useState(false);
   const [prefillData, setPrefillData] = useState<PrefillResuelto | null>(null);
 
+  // Filtros y Búsqueda
+  const [isToolbarOpen, setIsToolbarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterTipos, setFilterTipos] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'fechaInicio' | 'fechaCreacion'>('fechaInicio');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
   const selectedTarea = useMemo(() => 
     allTareas.find(t => t.id === selectedTareaId), 
   [allTareas, selectedTareaId]);
@@ -45,6 +52,16 @@ export const useAgendaState = (allTareas: Tarea[]) => {
     setIsComandoPanelOpen,
     prefillData,
     setPrefillData,
-    selectedTarea
+    selectedTarea,
+    isToolbarOpen,
+    setIsToolbarOpen,
+    searchQuery,
+    setSearchQuery,
+    filterTipos,
+    setFilterTipos,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder
   };
 };

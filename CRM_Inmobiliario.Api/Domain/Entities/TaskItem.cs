@@ -42,4 +42,6 @@ public sealed class TaskItem
     [Required]
     [MaxLength(50)]
     public string Estado { get; set; } = "Pendiente";
+
+    public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 }

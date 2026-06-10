@@ -4,6 +4,7 @@ export interface Tarea {
   descripcion?: string;
   tipoTarea: 'Llamada' | 'Visita' | 'Reunión' | 'Trámite';
   fechaInicio: string;
+  fechaCreacion: string;
   estado: 'Pendiente' | 'Completada' | 'Cancelada';
   contactoNombre?: string;
   propiedadTitulo?: string;

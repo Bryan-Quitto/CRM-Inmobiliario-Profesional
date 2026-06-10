@@ -16,6 +16,7 @@ import { useAgendaActions } from '../hooks/useAgendaActions';
 
 // Sections
 import { AgendaHeader } from './agenda-panel-sections/AgendaHeader';
+import { AgendaToolbar } from './agenda-panel-sections/AgendaToolbar';
 import { AgendaTaskList } from './agenda-panel-sections/AgendaTaskList';
 import { AgendaHistory } from './agenda-panel-sections/AgendaHistory';
 
@@ -44,7 +45,17 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     setIsComandoPanelOpen,
     prefillData,
     setPrefillData,
-    selectedTarea
+    selectedTarea,
+    isToolbarOpen,
+    setIsToolbarOpen,
+    searchQuery,
+    setSearchQuery,
+    filterTipos,
+    setFilterTipos,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder
   } = useAgendaState(allTareas);
 
   // 2. Filters Hook
@@ -54,7 +65,14 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     tareasAtrasadas,
     tareasHoy,
     tareasFuturas
-  } = useAgendaFilters(allTareas, historySearch);
+  } = useAgendaFilters(
+    allTareas, 
+    historySearch, 
+    searchQuery, 
+    filterTipos, 
+    sortBy, 
+    sortOrder
+  );
 
   // 3. Actions Hook
   const { handleCompletar, handleCancelar } = useAgendaActions({
@@ -150,10 +168,25 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
 
       <AgendaHeader 
         tareasPendientesCount={tareasPendientes.length}
+        isToolbarOpen={isToolbarOpen}
+        onToggleToolbar={() => setIsToolbarOpen(!isToolbarOpen)}
         onOpenComando={() => setIsComandoPanelOpen(true)}
         onCreateTask={() => setView('create')}
         onClose={onClose}
       />
+
+      {isToolbarOpen && (
+        <AgendaToolbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filterTipos={filterTipos}
+          onFilterTiposChange={setFilterTipos}
+          sortBy={sortBy}
+          onSortByChange={setSortBy}
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
+        />
+      )}
 
       <AgendaTaskList 
         loading={loading}

@@ -1,10 +1,39 @@
 import { useMemo } from 'react';
 import type { Tarea } from '../types';
 
-export const useAgendaFilters = (allTareas: Tarea[], historySearch: string) => {
-  const tareasPendientes = useMemo(() => 
-    allTareas.filter(t => t.estado === 'Pendiente'), 
-  [allTareas]);
+export const useAgendaFilters = (
+  allTareas: Tarea[], 
+  historySearch: string,
+  searchQuery: string = '',
+  filterTipos: string[] = [],
+  sortBy: 'fechaInicio' | 'fechaCreacion' = 'fechaInicio',
+  sortOrder: 'asc' | 'desc' = 'asc'
+) => {
+  const tareasPendientes = useMemo(() => {
+    let pendientes = allTareas.filter(t => t.estado === 'Pendiente');
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      pendientes = pendientes.filter(t => 
+        t.titulo.toLowerCase().includes(q) || 
+        t.contactoNombre?.toLowerCase().includes(q) ||
+        t.propiedadTitulo?.toLowerCase().includes(q)
+      );
+    }
+
+    if (filterTipos.length > 0) {
+      pendientes = pendientes.filter(t => filterTipos.includes(t.tipoTarea));
+    }
+
+    pendientes.sort((a, b) => {
+      // Usamos fechaInicio como fallback si fechaCreacion no está definida en tareas antiguas
+      const dateA = new Date(a[sortBy] || a.fechaInicio).getTime();
+      const dateB = new Date(b[sortBy] || b.fechaInicio).getTime();
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
+    return pendientes;
+  }, [allTareas, searchQuery, filterTipos, sortBy, sortOrder]);
   
   const filteredHistorial = useMemo(() => 
     allTareas.filter(t => {
