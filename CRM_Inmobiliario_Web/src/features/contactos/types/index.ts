@@ -34,8 +34,7 @@ export interface Contacto {
   esContacto: boolean;
   estadoPropietario: string;
   esPropietario: boolean;
-  botActivo: boolean;
-  estadoIA?: string | null;
+
   botActivoWA?: boolean;
   botActivoFB?: boolean;
   estadoIA_WA?: string | null;

@@ -6,7 +6,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
 {
@@ -23,8 +23,17 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         var identity = await ResolveIdentityAsync(context, cancellationToken);
         Guid? currentAgentId = identity?.Id;
 
-        string searchPhone = context.CustomerPhone?.StartsWith("+") == true ? context.CustomerPhone : "+" + (context.CustomerPhone ?? "");
-        var existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.CustomerPhone || l.Telefono == searchPhone);
+        Contacto? existing = null;
+        if (context.ContactoId.HasValue)
+        {
+            existing = await _context.Contactos.FindAsync(new object[] { context.ContactoId.Value }, cancellationToken);
+        }
+
+        if (existing == null && !string.IsNullOrWhiteSpace(context.CustomerPhone))
+        {
+            string searchPhone = context.CustomerPhone.StartsWith("+") ? context.CustomerPhone : "+" + context.CustomerPhone;
+            existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.CustomerPhone || l.Telefono == searchPhone, cancellationToken);
+        }
         
         if (existing == null)
         {

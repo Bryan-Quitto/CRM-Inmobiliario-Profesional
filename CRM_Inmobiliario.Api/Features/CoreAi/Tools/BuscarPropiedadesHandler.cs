@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Pgvector.EntityFrameworkCore;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
 {
@@ -57,10 +57,14 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
             return "No se especificó un criterio de búsqueda.";
         }
 
-        var descartadosIds = await _context.ContactoInteresPropiedades
-            .Where(i => i.Contacto!.Telefono == context.CustomerPhone && i.NivelInteres == "Descartada")
-            .Select(i => i.PropiedadId)
-            .ToListAsync();
+        var descartadosIds = new List<Guid>();
+        if (context.ContactoId.HasValue)
+        {
+            descartadosIds = await _context.ContactoInteresPropiedades
+                .Where(i => i.ContactoId == context.ContactoId.Value && i.NivelInteres == "Descartada")
+                .Select(i => i.PropiedadId)
+                .ToListAsync();
+        }
 
         Guid? currentAgentId = null;
         Guid? currentAgencyId = null;

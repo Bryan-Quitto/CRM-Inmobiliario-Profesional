@@ -8,7 +8,7 @@ using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using Microsoft.EntityFrameworkCore;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public abstract class BaseCoreAiToolHandler : ICoreAiToolHandler
 {
@@ -58,6 +58,10 @@ public abstract class BaseCoreAiToolHandler : ICoreAiToolHandler
         if (context.Channel == "Copilot")
         {
             return await dbContext.Agents.FirstOrDefaultAsync(a => a.Id == context.UserId, cancellationToken);
+        }
+        else if (context.Channel == "Facebook" && !string.IsNullOrEmpty(context.PhoneNumberId))
+        {
+            return await dbContext.Agents.FirstOrDefaultAsync(a => a.FacebookPageId == context.PhoneNumberId, cancellationToken);
         }
         else if (!string.IsNullOrEmpty(context.PhoneNumberId))
         {

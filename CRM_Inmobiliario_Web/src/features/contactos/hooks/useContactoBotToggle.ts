@@ -6,10 +6,8 @@ import { toast } from 'sonner';
 
 interface ToggleContacto {
   id: string;
-  botActivo?: boolean;
   botActivoWA?: boolean;
   botActivoFB?: boolean;
-  estadoIA?: string | null;
   estadoIA_WA?: string | null;
   estadoIA_FB?: string | null;
 }

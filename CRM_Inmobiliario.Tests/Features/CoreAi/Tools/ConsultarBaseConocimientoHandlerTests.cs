@@ -7,7 +7,7 @@ using CRM_Inmobiliario.Api.Domain.Enums;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using CRM_Inmobiliario.Api.Features.Propiedades.Services;
-using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+using CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,7 @@ using Moq;
 using Pgvector;
 using Xunit;
 
-namespace CRM_Inmobiliario.Tests.Features.WhatsApp.Services.Tools;
+namespace CRM_Inmobiliario.Tests.Features.CoreAi.Tools;
 
 public class ConsultarBaseConocimientoHandlerTests
 {

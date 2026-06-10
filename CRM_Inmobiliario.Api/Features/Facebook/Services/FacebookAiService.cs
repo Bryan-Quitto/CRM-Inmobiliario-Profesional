@@ -20,19 +20,22 @@ public sealed class FacebookAiService
     private readonly LLMProviderFactory _providerFactory;
     private readonly ILogger<FacebookAiService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly Microsoft.Extensions.DependencyInjection.IServiceScopeFactory _scopeFactory;
 
     public FacebookAiService(
         IDbContextFactory<CrmDbContext> dbFactory,
         IFacebookMessageSender messageSender,
         LLMProviderFactory providerFactory,
         ILogger<FacebookAiService> logger,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        Microsoft.Extensions.DependencyInjection.IServiceScopeFactory scopeFactory)
     {
         _dbFactory = dbFactory;
         _messageSender = messageSender;
         _providerFactory = providerFactory;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task ProcessMessageAsync(string senderId, string text, string pageId, CancellationToken ct = default)
@@ -95,30 +98,22 @@ public sealed class FacebookAiService
 
             var provider = _providerFactory.GetProvider(providerName, apiKey);
 
+            var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools("Facebook");
             var aiMessages = BuildAiMessages(ctx.Agente.Nombre, ctx.Agente.Apellido, history);
-            var noTools = new List<AiToolDefinition>();
 
-            var responseBuilder = new System.Text.StringBuilder();
-            
-            // Variables para tracking de tokens
-            int? streamTotalTokens = null;
-            int? streamInputTokens = null;
-            int? streamOutputTokens = null;
+            var (response, streamTotalTokens, streamInputTokens, streamOutputTokens) = await FacebookAiLoopHelper.RunLoopAsync(
+                provider,
+                history,
+                aiMessages,
+                tools,
+                senderId,
+                pageId,
+                ctx.Contacto?.Id,
+                text,
+                _scopeFactory,
+                _logger,
+                ct);
 
-            await foreach (var update in provider.StreamChatAsync(aiMessages, noTools, null, 500, cancellationToken: ct))
-            {
-                if (!string.IsNullOrEmpty(update.TextUpdate))
-                    responseBuilder.Append(update.TextUpdate);
-                    
-                if (update.TotalTokens.HasValue)
-                {
-                    streamTotalTokens = update.TotalTokens;
-                    streamInputTokens = update.InputTokens;
-                    streamOutputTokens = update.OutputTokens;
-                }
-            }
-
-            var response = responseBuilder.ToString();
             if (string.IsNullOrWhiteSpace(response))
             {
                 _logger.LogWarning("Respuesta vacía del LLM para PSID {SenderId}.", senderId);
@@ -147,13 +142,13 @@ public sealed class FacebookAiService
             await _messageSender.SendTextMessageAsync(senderId, response, pageToken, ct);
 
             _logger.LogInformation("\n=== [Facebook AI] Respuesta de IA ===\nAgentId: {AgentId}\nTokens Totales: {TotalTokens} (Entrada: {InputTokens}, Salida: {OutputTokens})\nRespuesta: {Response}\n================================", 
-                ctx.Agente.Id, streamTotalTokens ?? 0, streamInputTokens ?? 0, streamOutputTokens ?? 0, response);
+                ctx.Agente.Id, streamTotalTokens, streamInputTokens, streamOutputTokens, response);
 
-            if (streamTotalTokens.HasValue)
+            if (streamTotalTokens > 0)
             {
                 try 
                 {
-                    await RecordTokenUsageAsync(ctx.Agente.Id, ctx.Contacto?.Id, streamTotalTokens.Value, streamInputTokens ?? 0, 0, streamOutputTokens ?? 0, providerName);
+                    await RecordTokenUsageAsync(ctx.Agente.Id, ctx.Contacto?.Id, streamTotalTokens, streamInputTokens, 0, streamOutputTokens, providerName);
                 }
                 catch (Exception ex)
                 {

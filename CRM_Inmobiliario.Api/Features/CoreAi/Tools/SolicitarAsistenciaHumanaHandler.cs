@@ -6,7 +6,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
 {

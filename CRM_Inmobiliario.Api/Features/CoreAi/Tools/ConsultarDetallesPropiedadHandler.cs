@@ -7,7 +7,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
 {
@@ -91,7 +91,7 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
         sb.AppendLine($"--- DESCRIPCIÓN COMPLETA ---");
         sb.AppendLine(propiedad.Descripcion);
 
-        if (!string.Equals(context.Channel, "WhatsApp", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(context.Channel, "Copilot", StringComparison.OrdinalIgnoreCase))
         {
             sb.AppendLine($"--- INFORMACIÓN PRIVADA (SOLO USO INTERNO) ---");
             sb.AppendLine($"Porcentaje de Comisión: {propiedad.PorcentajeComision}%");

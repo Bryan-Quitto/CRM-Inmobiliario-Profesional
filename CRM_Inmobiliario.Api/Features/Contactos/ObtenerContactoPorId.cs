@@ -24,9 +24,7 @@ public static class ObtenerContactoPorIdFeature
         List<InteresPropiedadResponse> Intereses,
         List<PropiedadCaptadaResponse> PropiedadesCaptadas,
         int NumeroReservas,
-        int NumeroCierres,
-        bool BotActivo,
-        string? EstadoIA);
+        int NumeroCierres);
 
     public record InteraccionResponse(
         Guid Id,
@@ -98,9 +96,7 @@ public static class ObtenerContactoPorIdFeature
                             p.FechaIngreso))
                         .ToList(),
                     context.Properties.Count(p => p.CerradoConId == c.Id && p.EstadoComercial == "Reservada"),
-                    context.Properties.Count(p => p.CerradoConId == c.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada")),
-                    c.BotActivo,
-                    c.EstadoIA
+                    context.Properties.Count(p => p.CerradoConId == c.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"))
                 ))
                 .FirstOrDefaultAsync();
 

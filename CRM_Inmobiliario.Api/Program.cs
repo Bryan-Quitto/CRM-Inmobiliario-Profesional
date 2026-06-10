@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
-using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+using CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 using CRM_Inmobiliario.Api.Features.Facebook.Services;
 using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Hangfire;

@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Pgvector.EntityFrameworkCore;
 using OpenAI.Embeddings;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
 {

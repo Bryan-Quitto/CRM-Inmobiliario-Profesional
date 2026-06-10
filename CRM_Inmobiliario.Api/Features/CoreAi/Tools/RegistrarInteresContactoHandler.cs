@@ -6,7 +6,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Tools;
+namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
 {
@@ -71,18 +71,26 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
         NivelInteresPermitido nivelEnum = ExtractSafeEnum(args.RootElement, "nivelInteres", NivelInteresPermitido.Medio);
         string nivel = nivelEnum.ToString();
         
-        if (nivel == "Descartada")
+        if (nivel == "Descartada" && context.ContactoId.HasValue)
         {
-            var conversation = await _context.WhatsappConversations.FirstOrDefaultAsync(c => c.Telefono == context.CustomerPhone);
-            if (conversation != null)
+            string history = string.Empty;
+            if (context.Channel == "WhatsApp")
             {
-                var history = (conversation.HistorialJson ?? string.Empty).ToLower();
-                if ((history.Contains("presupuesto") || history.Contains("$") || history.Contains("precio") || history.Contains("barat")) 
-                    && !history.Contains("no me gusta") && !history.Contains("feo") && !history.Contains("descart") && !history.Contains("quitar"))
-                {
-                    _logger.LogWarning("Previendo descarte automático por presupuesto para {CustomerPhone}. Cambiando a 'Bajo'.", context.CustomerPhone);
-                    nivel = "Bajo";
-                }
+                var conv = await _context.WhatsappConversations.FirstOrDefaultAsync(c => c.ContactoId == context.ContactoId.Value);
+                history = conv?.HistorialJson ?? string.Empty;
+            }
+            else if (context.Channel == "Facebook")
+            {
+                var conv = await _context.FacebookConversations.FirstOrDefaultAsync(c => c.ContactoId == context.ContactoId.Value);
+                history = conv?.HistorialJson ?? string.Empty;
+            }
+
+            history = history.ToLower();
+            if ((history.Contains("presupuesto") || history.Contains("$") || history.Contains("precio") || history.Contains("barat")) 
+                && !history.Contains("no me gusta") && !history.Contains("feo") && !history.Contains("descart") && !history.Contains("quitar"))
+            {
+                _logger.LogWarning("Previendo descarte automático por presupuesto para Contacto {ContactoId}. Cambiando a 'Bajo'.", context.ContactoId.Value);
+                nivel = "Bajo";
             }
         }
 

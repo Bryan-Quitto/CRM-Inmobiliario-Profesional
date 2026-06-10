@@ -25,9 +25,7 @@ public static class ListarContactosFeature
         int NumeroIntereses,
         int NumeroPropiedadesCaptadas,
         int NumeroReservas,
-        int NumeroCierres,
-        bool BotActivo,
-        string? EstadoIA);
+        int NumeroCierres);
 
     public static RouteHandlerBuilder MapListarContactosEndpoint(this IEndpointRouteBuilder app)
     {
@@ -65,9 +63,7 @@ public static class ListarContactosFeature
                     l.PropertyInterests.Count,
                     l.PropertiesOwned.Count,
                     context.Properties.Count(p => p.CerradoConId == l.Id && p.EstadoComercial == "Reservada"),
-                    context.Properties.Count(p => p.CerradoConId == l.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada")),
-                    l.BotActivo,
-                    l.EstadoIA))
+                    context.Properties.Count(p => p.CerradoConId == l.Id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"))))
                 .ToListAsync();
 
             return Results.Ok(new 

@@ -42,8 +42,7 @@ public sealed class Contacto
 
     public string? Notas { get; set; }
 
-    public bool BotActivo { get; set; } = true;
-    public string? EstadoIA { get; set; }
+
     public bool BotActivoWA { get; set; } = true;
     public bool BotActivoFB { get; set; } = true;
     public string? EstadoIA_WA { get; set; }

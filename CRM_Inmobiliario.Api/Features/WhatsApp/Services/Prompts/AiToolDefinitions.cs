@@ -62,7 +62,7 @@ public static class AiToolDefinitions
 
         };
 
-        if (channel == "WhatsApp")
+        if (channel == "WhatsApp" || channel == "Facebook")
         {
             tools.Add(new AiToolDefinition
             {
