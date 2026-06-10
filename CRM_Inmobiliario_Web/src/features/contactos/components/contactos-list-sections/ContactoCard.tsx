@@ -29,9 +29,11 @@ export const ContactoCard = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isMultipolar = contacto.esContacto && contacto.esPropietario;
-  const { isBotActivo, handleToggle, isLoading, showOverrideModal, confirmOverride, cancelOverride } = useContactoBotToggle(contacto);
+  const waToggle = useContactoBotToggle(contacto, 'WhatsApp');
+  const fbToggle = useContactoBotToggle(contacto, 'Facebook');
   const { settings } = useConfiguracionIA();
   const isWhatsAppAiEnabled = settings?.isWhatsAppAiEnabled ?? true;
+  const isFacebookAiEnabled = settings?.isFacebookAiEnabled ?? true;
   
   const getEtapaStyles = (etapa: string, isPropietario: boolean = false) => {
     const list = isPropietario ? ETAPAS_PROPIETARIO : ETAPAS;
@@ -210,29 +212,112 @@ export const ContactoCard = ({
           )}
 
 
-          {/* Badge Estado IA */}
+          {/* Badges Estado IA WA & FB */}
           {!contacto.esCompartido && (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-purple-50 text-purple-600 border-purple-100/50">
-                Estado IA
-              </span>
-              {!isWhatsAppAiEnabled ? (
-                <span 
-                  className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-100/50 cursor-help"
-                  title="La IA de WhatsApp está desactivada en tu Configuración"
-                >
-                  Inactivo (Global)
+            <div className="flex flex-col gap-2 mt-1">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-purple-50 text-purple-600 border-purple-100/50 min-w-[65px] justify-center">
+                  IA WA
                 </span>
-              ) : (
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                  isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
-                  : contacto.estadoIA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
-                  : contacto.estadoIA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
-                  : 'bg-slate-50 text-slate-400 border-slate-100'
-                }`}>
-                  {isBotActivo ? 'Operativo' : contacto.estadoIA === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
+                {!isWhatsAppAiEnabled ? (
+                  <span 
+                    className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-100/50 cursor-help"
+                    title="La IA de WhatsApp está desactivada en tu Configuración"
+                  >
+                    Inactivo (Global)
+                  </span>
+                ) : (
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                    waToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
+                    : contacto.estadoIA_WA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
+                    : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+                    : 'bg-slate-50 text-slate-400 border-slate-100'
+                  }`}>
+                    {waToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_WA === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
+                  </span>
+                )}
+                <div className="opacity-0 group-hover:opacity-100 transition-all inline-block ml-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isWhatsAppAiEnabled) {
+                        toast.error("Debes activar la IA de WhatsApp en Configuración para usar esta función");
+                        return;
+                      }
+                      const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                      if (isStageLocked) {
+                        toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                        return;
+                      }
+                      if (waToggle.isLoading) return;
+                      waToggle.handleToggle(!waToggle.isBotActivo);
+                    }}
+                    className={`h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
+                      !isWhatsAppAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                        ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
+                        : waToggle.isBotActivo 
+                          ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
+                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
+                    } ${waToggle.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={!isWhatsAppAiEnabled ? "Debes activar la IA de WhatsApp en Configuración para usar esta función" : (waToggle.isBotActivo ? 'Desactivar IA WA' : 'Activar IA WA')}
+                  >
+                    <Bot className="h-3 w-3" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">{waToggle.isBotActivo ? 'SI' : 'NO'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-purple-50 text-purple-600 border-purple-100/50 min-w-[65px] justify-center">
+                  IA FB
                 </span>
-              )}
+                {!isFacebookAiEnabled ? (
+                  <span 
+                    className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-100/50 cursor-help"
+                    title="La IA de Facebook está desactivada en tu Configuración"
+                  >
+                    Inactivo (Global)
+                  </span>
+                ) : (
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                    fbToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
+                    : contacto.estadoIA_FB === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
+                    : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+                    : 'bg-slate-50 text-slate-400 border-slate-100'
+                  }`}>
+                    {fbToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_FB === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
+                  </span>
+                )}
+                <div className="opacity-0 group-hover:opacity-100 transition-all inline-block ml-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isFacebookAiEnabled) {
+                        toast.error("Debes activar la IA de Facebook en Configuración para usar esta función");
+                        return;
+                      }
+                      const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                      if (isStageLocked) {
+                        toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                        return;
+                      }
+                      if (fbToggle.isLoading) return;
+                      fbToggle.handleToggle(!fbToggle.isBotActivo);
+                    }}
+                    className={`h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
+                      !isFacebookAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                        ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
+                        : fbToggle.isBotActivo 
+                          ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
+                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
+                    } ${fbToggle.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={!isFacebookAiEnabled ? "Debes activar la IA de Facebook en Configuración para usar esta función" : (fbToggle.isBotActivo ? 'Desactivar IA FB' : 'Activar IA FB')}
+                  >
+                    <Bot className="h-3 w-3" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">{fbToggle.isBotActivo ? 'SI' : 'NO'}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -259,37 +344,6 @@ export const ContactoCard = ({
         <div className="flex items-center gap-2">
           {!contacto.esCompartido && (
             <>
-              <div className="opacity-0 group-hover:opacity-100 transition-all inline-block">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isWhatsAppAiEnabled) {
-                      toast.error("Debes activar la IA de WhatsApp en Configuración para usar esta función");
-                      return;
-                    }
-                    const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
-                    if (isStageLocked) {
-                      toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
-                      return;
-                    }
-                    if (isLoading) return;
-                    handleToggle(!isBotActivo);
-                  }}
-                  className={`h-8 px-2 rounded-lg flex items-center gap-1.5 transition-all ${
-                    !isWhatsAppAiEnabled
-                      ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
-                      : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
-                        ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
-                        : isBotActivo 
-                          ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
-                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
-                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  title={!isWhatsAppAiEnabled ? "Debes activar la IA de WhatsApp en Configuración para usar esta función" : (isBotActivo ? 'Desactivar IA' : 'Activar IA')}
-                >
-                  <Bot className="h-3.5 w-3.5" />
-                  <span className="text-[10px] font-black uppercase tracking-wider">{!isWhatsAppAiEnabled ? 'NO' : (isBotActivo ? 'SI' : 'NO')}</span>
-                </button>
-              </div>
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
@@ -324,11 +378,21 @@ export const ContactoCard = ({
             contacto={contacto}
           />
           <ConfirmModal
-            isOpen={showOverrideModal}
-            onClose={cancelOverride}
-            onConfirm={confirmOverride}
-            title="Reactivar IA (Límite Superado)"
-            description="Este contacto ha alcanzado su límite de tokens diarios. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
+            isOpen={waToggle.showOverrideModal}
+            onClose={waToggle.cancelOverride}
+            onConfirm={waToggle.confirmOverride}
+            title="Reactivar IA (Límite Superado) - WhatsApp"
+            description="Este contacto ha alcanzado su límite de tokens diarios en WhatsApp. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
+            confirmText="Sí, reactivar bot"
+            type="info"
+            icon={<Bot className="h-10 w-10 text-emerald-500" />}
+          />
+          <ConfirmModal
+            isOpen={fbToggle.showOverrideModal}
+            onClose={fbToggle.cancelOverride}
+            onConfirm={fbToggle.confirmOverride}
+            title="Reactivar IA (Límite Superado) - Facebook"
+            description="Este contacto ha alcanzado su límite de tokens diarios en Facebook. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
             confirmText="Sí, reactivar bot"
             type="info"
             icon={<Bot className="h-10 w-10 text-blue-500" />}

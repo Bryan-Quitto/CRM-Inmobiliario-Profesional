@@ -18,6 +18,7 @@ public static class ObtenerTokenUsageContactoFeature
         app.MapGet("/contactos/{id:guid}/token-usage", async (
             Guid id, 
             string? rango,
+            string? channel,
             ClaimsPrincipal user, 
             CrmDbContext context, 
             Microsoft.Extensions.Logging.ILoggerFactory loggerFactory,
@@ -29,8 +30,9 @@ public static class ObtenerTokenUsageContactoFeature
             var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 
             rango = rango?.ToLower() ?? "hoy";
+            channel = channel?.ToLower() ?? "todas";
             logger.LogInformation("=========================================");
-            logger.LogInformation("Iniciando petición TokenUsage para ContactoId={Id}, AgenteId={AgenteId}, Rango={Rango}", id, agenteId, rango);
+            logger.LogInformation("Iniciando petición TokenUsage para ContactoId={Id}, AgenteId={AgenteId}, Rango={Rango}, Channel={Channel}", id, agenteId, rango, channel);
 
             if (rango == "hoy")
             {
@@ -65,27 +67,29 @@ public static class ObtenerTokenUsageContactoFeature
                     t.Date, t.Date.Offset, t.TokensUsed, t.InputTokens, t.CachedTokens, t.OutputTokens, t.CostoUSD, t.AhorroUSD);
             }
 
+            string? dbChannel = channel == "facebook" ? "Facebook" : (channel == "whatsapp" ? "WhatsApp" : null);
+
             var queryResult = await context.Contactos
                 .Where(c => c.Id == id && (c.AgenteId == agenteId || c.CompartidoCon.Any(ac => ac.AgenteId == agenteId)))
                 .Select(c => new
                 {
                     TotalTokens = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
-                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate && (dbChannel == null || u.Channel == dbChannel))
                         .Sum(u => (int?)u.TokensUsed) ?? 0,
                     InputTokens = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
-                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate && (dbChannel == null || u.Channel == dbChannel))
                         .Sum(u => (int?)u.InputTokens) ?? 0,
                     CachedTokens = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
-                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate && (dbChannel == null || u.Channel == dbChannel))
                         .Sum(u => (int?)u.CachedTokens) ?? 0,
                     OutputTokens = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
-                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate && (dbChannel == null || u.Channel == dbChannel))
                         .Sum(u => (int?)u.OutputTokens) ?? 0,
                     CostoUSD = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
-                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate && (dbChannel == null || u.Channel == dbChannel))
                         .Sum(u => (decimal?)u.CostoUSD) ?? 0m,
                     AhorroUSD = context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
-                        .Where(u => u.ContactoId == id && u.Date >= limitDate)
+                        .Where(u => u.ContactoId == id && u.Date >= limitDate && (dbChannel == null || u.Channel == dbChannel))
                         .Sum(u => (decimal?)u.AhorroUSD) ?? 0m
                 })
                 .FirstOrDefaultAsync(ct);

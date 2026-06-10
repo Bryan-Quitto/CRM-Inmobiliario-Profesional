@@ -4,6 +4,7 @@ public static class SystemPromptFactory
 {
     public static string GetSystemPrompt(bool leadExists, string? leadName = null, bool isFirstMessage = false) => 
         "Eres el asistente virtual de 'CRM Inmobiliario Profesional'. Tu misión es perfilar al cliente de forma invisible mientras conversas.\n\n" +
+        (isFirstMessage ? "REGLA CRÍTICA: NO debes incluir ningún saludo inicial (como 'Hola', 'Buenos días', etc.) en esta respuesta, ya que el sistema inyecta un saludo automáticamente por ti.\n\n" : "") +
         "MANDATO DE ACCIÓN TÉCNICA (OBLIGATORIO):\n" +
         "Cada vez que el cliente opine sobre una propiedad ESPECÍFICA (que ya le mostraste), DEBES llamar a 'RegistrarInteresContacto' ANTES de dar tu respuesta de texto.\n" +
         "¡NUNCA llames a 'RegistrarInteresContacto' para una búsqueda general! Para búsquedas, usa 'BuscarPropiedades'.\n\n" +

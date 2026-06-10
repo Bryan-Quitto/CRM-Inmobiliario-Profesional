@@ -125,6 +125,16 @@ public sealed class FacebookAiService
                 return;
             }
 
+            if (history.Count == 1)
+            {
+                string agentName = $"{ctx.Agente.Nombre} {ctx.Agente.Apellido}".Trim();
+                if (string.IsNullOrEmpty(agentName)) agentName = "nuestro equipo";
+                string header = $"¡Hola! Soy el asistente virtual de {agentName} 🤖.\n\n";
+                string footer = $"\n\n💡 _Si prefieres atención personalizada, solo dímelo y {agentName} se conectará contigo._";
+                
+                response = header + response + footer;
+            }
+
             // Quitar formateo Markdown doble-asterisco (Messenger no lo soporta)
             response = Regex.Replace(response, @"\*+", "*");
 
@@ -243,7 +253,12 @@ public sealed class FacebookAiService
         var agentName = $"{nombre} {apellido}".Trim();
         var systemPrompt = $"Eres el asistente virtual de {agentName}, especializado en bienes raíces. " +
             "Responde de manera profesional, amable y concisa en español. " +
-            "Tu objetivo es ayudar al cliente con consultas de propiedades y agendar citas con el agente.";
+            $"Tu objetivo es ayudar al cliente con consultas de propiedades y agendar citas con {agentName}.";
+
+        if (history.Count == 1)
+        {
+            systemPrompt += "\n\nREGLA CRÍTICA: NO debes incluir ningún saludo inicial (como 'Hola', 'Buenos días', etc.) en esta respuesta, ya que el sistema inyecta un saludo automáticamente por ti.";
+        }
 
         var messages = new List<AiMessage>
         {
