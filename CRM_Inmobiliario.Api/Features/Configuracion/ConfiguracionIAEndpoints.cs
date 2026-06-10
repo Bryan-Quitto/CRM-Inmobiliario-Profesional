@@ -21,10 +21,12 @@ public static class ConfiguracionIAEndpoints
         int DailyTokenLimitPersonal,
         bool IsPersonalAiEnabled,
         bool IsWhatsAppAiEnabled,
+        bool AutoCreateWhatsAppContacts,
         int TokensUsedToday,
         string? FacebookPageId,
         string? FacebookPageName,
         bool IsFacebookAiEnabled,
+        bool AutoCreateFacebookContacts,
         int DailyTokenLimitFacebook);
 
     public record UpdateIASettingsRequest(
@@ -32,9 +34,11 @@ public static class ConfiguracionIAEndpoints
         int? DailyTokenLimitPersonal,
         bool? IsPersonalAiEnabled,
         bool? IsWhatsAppAiEnabled,
+        bool? AutoCreateWhatsAppContacts,
         string? AiApiKey,
         string? WhatsAppPhoneNumberId,
         bool? IsFacebookAiEnabled,
+        bool? AutoCreateFacebookContacts,
         int? DailyTokenLimitFacebook);
 
     public record ValidateIASettingsRequest(
@@ -63,10 +67,12 @@ public static class ConfiguracionIAEndpoints
                     a.DailyTokenLimitPersonal,
                     a.IsPersonalAiEnabled,
                     a.IsWhatsAppAiEnabled,
+                    a.AutoCreateWhatsAppContacts,
                     tokensUsedToday,
                     a.FacebookPageId,
                     a.FacebookPageName,
                     a.IsFacebookAiEnabled,
+                    a.AutoCreateFacebookContacts,
                     a.DailyTokenLimitFacebook))
                 .FirstOrDefaultAsync();
 
@@ -141,9 +147,19 @@ public static class ConfiguracionIAEndpoints
                 agente.IsWhatsAppAiEnabled = request.IsWhatsAppAiEnabled.Value;
             }
 
+            if (request.AutoCreateWhatsAppContacts.HasValue)
+            {
+                agente.AutoCreateWhatsAppContacts = request.AutoCreateWhatsAppContacts.Value;
+            }
+
             if (request.IsFacebookAiEnabled.HasValue)
             {
                 agente.IsFacebookAiEnabled = request.IsFacebookAiEnabled.Value;
+            }
+
+            if (request.AutoCreateFacebookContacts.HasValue)
+            {
+                agente.AutoCreateFacebookContacts = request.AutoCreateFacebookContacts.Value;
             }
 
             if (request.DailyTokenLimitFacebook.HasValue)

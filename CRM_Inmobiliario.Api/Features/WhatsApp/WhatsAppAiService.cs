@@ -1,4 +1,6 @@
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
+using CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models;
+using CRM_Inmobiliario.Api.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.AI;
 using System.ClientModel.Primitives;
@@ -70,16 +72,27 @@ public sealed class WhatsAppAiService
             var agente = await dbContextCheck.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId, cancellationToken);
             if (agente == null) agente = await dbContextCheck.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin", cancellationToken);
             
+            Contacto? contacto = null;
+            if (agente != null)
+            {
+                bool autoCreate = agente.AutoCreateWhatsAppContacts || agente.IsWhatsAppAiEnabled;
+                contacto = await _conversationManager.GetOrCreateContactAsync(phone, phoneNumberId, autoCreate, cancellationToken);
+            }
+
             if (agente != null && !agente.IsWhatsAppAiEnabled)
             {
                 _logger.LogInformation("WhatsApp AI is globally disabled for agent {AgentId}. Silently ignoring message from {Phone}.", agente.Id, phone);
+                if (contacto != null)
+                {
+                    await _conversationManager.LogMessageAsync(contacto.Id, phone, "user", messageText, cancellationToken);
+                }
                 return;
             }
 
             _logger.LogInformation("Procesando mensaje de {Phone}: {Message}", phone, messageText);
 
             // 1. Preparar contexto (Contacto, Conversación, Historial, Filtros de Etapa)
-            var context = await _conversationManager.PrepareContextAsync(phone, messageText, phoneNumberId, cancellationToken);
+            var context = await _conversationManager.PrepareContextAsync(contacto, phone, messageText, phoneNumberId, cancellationToken);
             
             // Logear mensaje del usuario en DB
             if (context.Contacto != null)

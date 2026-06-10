@@ -57,6 +57,8 @@ public sealed class Agent
 
     public bool IsWhatsAppAiEnabled { get; set; } = true;
 
+    public bool AutoCreateWhatsAppContacts { get; set; } = true;
+
     [MaxLength(50)]
     public string? WhatsAppPhoneNumberId { get; set; }
 
@@ -74,6 +76,8 @@ public sealed class Agent
     public string? FacebookPageName { get; set; }
 
     public bool IsFacebookAiEnabled { get; set; } = false;
+
+    public bool AutoCreateFacebookContacts { get; set; } = true;
 
     public int DailyTokenLimitFacebook { get; set; } = 50000;
 

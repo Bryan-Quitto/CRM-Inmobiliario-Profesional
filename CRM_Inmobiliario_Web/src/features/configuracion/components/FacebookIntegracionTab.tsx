@@ -27,6 +27,8 @@ interface Props {
   facebookPageName: string | null;
   isFacebookAiEnabled: boolean;
   setIsFacebookAiEnabled: (val: boolean) => void;
+  autoCreateFacebookContacts: boolean;
+  setAutoCreateFacebookContacts: (val: boolean) => void;
   facebookLimitValue: number;
   setFacebookLimitValue: (val: number) => void;
   isSaving: boolean;
@@ -113,6 +115,8 @@ interface ConnectedCardProps {
   facebookPageId: string;
   isFacebookAiEnabled: boolean;
   setIsFacebookAiEnabled: (val: boolean) => void;
+  autoCreateFacebookContacts: boolean;
+  setAutoCreateFacebookContacts: (val: boolean) => void;
   facebookLimitValue: number;
   setFacebookLimitValue: (val: number) => void;
   isSaving: boolean;
@@ -127,6 +131,8 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
   facebookPageId,
   isFacebookAiEnabled,
   setIsFacebookAiEnabled,
+  autoCreateFacebookContacts,
+  setAutoCreateFacebookContacts,
   facebookLimitValue,
   setFacebookLimitValue,
   isSaving,
@@ -172,6 +178,35 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
           checked={isFacebookAiEnabled}
           disabled={isSaving}
           onChange={(e) => setIsFacebookAiEnabled(e.target.checked)}
+        />
+        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1877F2] peer-disabled:opacity-60" />
+      </label>
+    </div>
+
+    {/* Switch para Creación Automática de Contactos */}
+    <div 
+      className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4"
+      onClick={() => {
+        if (isFacebookAiEnabled) {
+          import('sonner').then(({ toast }) => toast.info("La Inteligencia Artificial requiere la creación automática de contactos para funcionar. Apaga la IA primero si deseas deshabilitar esta opción."));
+        }
+      }}
+    >
+      <div className={isFacebookAiEnabled ? "opacity-50" : ""}>
+        <p className="font-bold text-slate-900">Creación automática de contactos</p>
+        <p className="text-sm text-slate-500">Agrega contactos al CRM al recibir el primer mensaje en Messenger.</p>
+      </div>
+      <label className={`relative inline-flex items-center ${isFacebookAiEnabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} shrink-0`}>
+        <input
+          type="checkbox"
+          className="sr-only peer"
+          checked={isFacebookAiEnabled || autoCreateFacebookContacts}
+          disabled={isSaving || isFacebookAiEnabled}
+          onChange={(e) => {
+            if (!isFacebookAiEnabled) {
+              setAutoCreateFacebookContacts(e.target.checked);
+            }
+          }}
         />
         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1877F2] peer-disabled:opacity-60" />
       </label>
@@ -233,6 +268,8 @@ export const FacebookIntegracionTab: React.FC<Props> = ({
   facebookPageName,
   isFacebookAiEnabled,
   setIsFacebookAiEnabled,
+  autoCreateFacebookContacts,
+  setAutoCreateFacebookContacts,
   facebookLimitValue,
   setFacebookLimitValue,
   isSaving,
@@ -442,6 +479,8 @@ export const FacebookIntegracionTab: React.FC<Props> = ({
             facebookPageId={facebookPageId}
             isFacebookAiEnabled={isFacebookAiEnabled}
             setIsFacebookAiEnabled={setIsFacebookAiEnabled}
+            autoCreateFacebookContacts={autoCreateFacebookContacts}
+            setAutoCreateFacebookContacts={setAutoCreateFacebookContacts}
             facebookLimitValue={facebookLimitValue}
             setFacebookLimitValue={setFacebookLimitValue}
             isSaving={isSaving}

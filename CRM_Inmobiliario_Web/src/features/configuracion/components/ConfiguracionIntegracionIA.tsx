@@ -26,9 +26,11 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
   const [facebookLimitValue, setFacebookLimitValue] = useState<number>(50000);
   const [isPersonalAiEnabled, setIsPersonalAiEnabled] = useState(true);
   const [isWhatsAppAiEnabled, setIsWhatsAppAiEnabled] = useState(true);
+  const [autoCreateWhatsAppContacts, setAutoCreateWhatsAppContacts] = useState(true);
   const [facebookPageId, setFacebookPageId] = useState<string | null>(null);
   const [facebookPageName, setFacebookPageName] = useState<string | null>(null);
   const [isFacebookAiEnabled, setIsFacebookAiEnabled] = useState(false);
+  const [autoCreateFacebookContacts, setAutoCreateFacebookContacts] = useState(true);
   
   const [isFetching, setIsFetching] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -94,9 +96,11 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
       setFacebookLimitValue(response.data.dailyTokenLimitFacebook || 50000);
       setIsPersonalAiEnabled(response.data.isPersonalAiEnabled ?? true);
       setIsWhatsAppAiEnabled(response.data.isWhatsAppAiEnabled ?? true);
+      setAutoCreateWhatsAppContacts(response.data.autoCreateWhatsAppContacts ?? true);
       setFacebookPageId(response.data.facebookPageId ?? null);
       setFacebookPageName(response.data.facebookPageName ?? null);
       setIsFacebookAiEnabled(response.data.isFacebookAiEnabled ?? false);
+      setAutoCreateFacebookContacts(response.data.autoCreateFacebookContacts ?? true);
     } catch {
       toast.error('Error al cargar la configuración.');
     } finally {
@@ -164,7 +168,9 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
         dailyTokenLimitFacebook: facebookLimitValue,
         isPersonalAiEnabled,
         isWhatsAppAiEnabled,
-        isFacebookAiEnabled
+        autoCreateWhatsAppContacts: isWhatsAppAiEnabled ? true : autoCreateWhatsAppContacts,
+        isFacebookAiEnabled,
+        autoCreateFacebookContacts: isFacebookAiEnabled ? true : autoCreateFacebookContacts
       });
       
       mutateSettings((currentData?: IASettings) => {
@@ -173,7 +179,9 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
           ...currentData,
           isPersonalAiEnabled,
           isWhatsAppAiEnabled,
+          autoCreateWhatsAppContacts: isWhatsAppAiEnabled ? true : autoCreateWhatsAppContacts,
           isFacebookAiEnabled,
+          autoCreateFacebookContacts: isFacebookAiEnabled ? true : autoCreateFacebookContacts,
           dailyTokenLimitPerContact: limitValue,
           dailyTokenLimitPersonal: personalLimitValue,
           dailyTokenLimitFacebook: facebookLimitValue,
@@ -408,6 +416,35 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                     </label>
                   </div>
 
+                  {/* Switch para Creación Automática de Contactos */}
+                  <div 
+                    className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4"
+                    onClick={() => {
+                      if (isWhatsAppAiEnabled) {
+                        toast.info("La Inteligencia Artificial requiere la creación automática de contactos para funcionar. Apaga la IA primero si deseas deshabilitar esta opción.");
+                      }
+                    }}
+                  >
+                    <div className={isWhatsAppAiEnabled ? "opacity-50" : ""}>
+                      <p className="font-bold text-slate-900">Creación automática de contactos</p>
+                      <p className="text-sm text-slate-500">Agrega contactos al CRM al recibir el primer mensaje.</p>
+                    </div>
+                    <label className={`relative inline-flex items-center ${isWhatsAppAiEnabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={isWhatsAppAiEnabled || autoCreateWhatsAppContacts}
+                        onChange={(e) => {
+                          if (!isWhatsAppAiEnabled) {
+                            setAutoCreateWhatsAppContacts(e.target.checked);
+                          }
+                        }}
+                        disabled={isWhatsAppAiEnabled}
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                  </div>
+
                   {/* Límite de Tokens */}
                   <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
                     <div className="flex items-center gap-3">
@@ -509,6 +546,8 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                 facebookPageName={facebookPageName}
                 isFacebookAiEnabled={isFacebookAiEnabled}
                 setIsFacebookAiEnabled={setIsFacebookAiEnabled}
+                autoCreateFacebookContacts={autoCreateFacebookContacts}
+                setAutoCreateFacebookContacts={setAutoCreateFacebookContacts}
                 facebookLimitValue={facebookLimitValue}
                 setFacebookLimitValue={setFacebookLimitValue}
                 isSaving={isSaving}

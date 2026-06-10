@@ -26,6 +26,8 @@ export const ORIGENES = [
   { label: 'Referido', value: 'Referido' },
   { label: 'Portal Inmobiliario', value: 'Portal Inmobiliario' },
   { label: 'WhatsApp Directo', value: 'WhatsApp Directo' },
+  { label: 'Automático Facebook', value: 'Aut. Facebook' },
+  { label: 'Automático WhatsApp', value: 'Aut. WhatsApp' },
 ];
 
 export const NIVELES_INTERES = [

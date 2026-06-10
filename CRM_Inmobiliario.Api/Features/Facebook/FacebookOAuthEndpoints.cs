@@ -78,7 +78,8 @@ public static class FacebookOAuthEndpoints
         endpoints.MapPost("/configuracion/facebook/save-page", async (
             SavePageRequest request,
             ClaimsPrincipal user,
-            CrmDbContext context) =>
+            CrmDbContext context,
+            IHttpClientFactory httpClientFactory) =>
         {
             if (string.IsNullOrWhiteSpace(request.PageId))
                 return Results.BadRequest(new { Message = "El ID de página es requerido." });
@@ -93,6 +94,15 @@ public static class FacebookOAuthEndpoints
 
             var agente = await context.Agents.FindAsync(agenteId);
             if (agente is null) return Results.NotFound(new { Message = "Agente no encontrado." });
+
+            // Paso 3: Suscribir la App a los Webhooks de la página (messages, messaging_postbacks)
+            var client = httpClientFactory.CreateClient();
+            var subscribeUrl = $"https://graph.facebook.com/v21.0/{request.PageId}/subscribed_apps?subscribed_fields=messages,messaging_postbacks&access_token={request.PageAccessToken}";
+            var subscribeRes = await client.PostAsync(subscribeUrl, null);
+            if (!subscribeRes.IsSuccessStatusCode)
+            {
+                return Results.BadRequest(new { Message = "No se pudo suscribir el Webhook a la página de Facebook. Asegúrate de tener los permisos correctos en tu App de Meta." });
+            }
 
             agente.FacebookPageId = request.PageId;
             agente.FacebookPageName = request.PageName;

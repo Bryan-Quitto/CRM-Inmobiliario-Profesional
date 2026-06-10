@@ -8,11 +8,13 @@ export interface IASettings {
   dailyTokenLimitPersonal: number;
   hasActiveSubscription: boolean;
   isWhatsAppAiEnabled: boolean;
+  autoCreateWhatsAppContacts: boolean;
   isPersonalAiEnabled: boolean;
   tokensUsedToday: number;
   facebookPageId: string | null;
   facebookPageName: string | null;
   isFacebookAiEnabled: boolean;
+  autoCreateFacebookContacts: boolean;
 }
 
 const getIASettings = async () => {

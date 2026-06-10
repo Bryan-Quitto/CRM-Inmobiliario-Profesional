@@ -33,28 +33,15 @@ public sealed class FacebookContextBuilder
         List<(string Role, string Content)> History,
         bool ShouldSilence);
 
-    public async Task<FacebookContext?> PrepareAsync(string senderId, string pageId, CancellationToken ct)
+    public async Task<Contacto?> GetOrCreateContactAsync(Domain.Entities.Agent agente, string senderId, CancellationToken ct)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
-
-        var agente = await db.Agents.FirstOrDefaultAsync(a => a.FacebookPageId == pageId, ct);
-        if (agente is null)
-        {
-            _logger.LogWarning("No hay agente configurado para la página de Facebook {PageId}.", pageId);
-            return null;
-        }
-
-        if (!agente.IsFacebookAiEnabled)
-        {
-            _logger.LogInformation("Facebook AI desactivado para el agente {AgentId}. Ignorando PSID {SenderId}.", agente.Id, senderId);
-            return null;
-        }
-
-        // Buscar o crear contacto por PSID dentro del agente propietario
         var contacto = await db.Contactos.FirstOrDefaultAsync(
             c => c.FacebookSenderId == senderId && c.AgenteId == agente.Id, ct);
 
-        if (contacto is null)
+        bool autoCreate = agente.AutoCreateFacebookContacts || agente.IsFacebookAiEnabled;
+
+        if (contacto is null && autoCreate)
         {
             var fetcher = new FacebookProfileFetcher(_httpClientFactory, _logger);
             var profile = await fetcher.FetchAsync(senderId, agente.FacebookPageAccessToken ?? string.Empty);
@@ -74,9 +61,9 @@ public sealed class FacebookContextBuilder
                 Id = Guid.NewGuid(),
                 Nombre = nombre,
                 Apellido = apellido,
-                Telefono = senderId,
+                Telefono = string.Empty,
                 FacebookSenderId = senderId,
-                Origen = "IA Facebook",
+                Origen = "Aut. Facebook",
                 AgenteId = agente.Id,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EtapaEmbudo = "Nuevo",
@@ -85,6 +72,15 @@ public sealed class FacebookContextBuilder
             db.Contactos.Add(contacto);
             await db.SaveChangesAsync(ct);
         }
+
+        return contacto;
+    }
+
+    public async Task<FacebookContext?> PrepareAsync(Domain.Entities.Agent agente, Contacto? contacto, string senderId, string pageId, CancellationToken ct)
+    {
+        if (contacto == null) return null;
+
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
         // Evaluar si el bot está activo para este contacto
         bool shouldSilence = !contacto.BotActivoFB;

@@ -39,8 +39,28 @@ public sealed class FacebookAiService
     {
         try
         {
+            await using var dbContextCheck = await _dbFactory.CreateDbContextAsync(ct);
+            var agente = await dbContextCheck.Agents.FirstOrDefaultAsync(a => a.FacebookPageId == pageId, ct);
+            if (agente is null)
+            {
+                _logger.LogWarning("No hay agente configurado para la página de Facebook {PageId}.", pageId);
+                return;
+            }
+
             var builder = new FacebookContextBuilder(_dbFactory, _logger, _httpClientFactory);
-            var ctx = await builder.PrepareAsync(senderId, pageId, ct);
+            var contacto = await builder.GetOrCreateContactAsync(agente, senderId, ct);
+
+            if (!agente.IsFacebookAiEnabled)
+            {
+                _logger.LogInformation("Facebook AI desactivado para el agente {AgentId}. Ignorando PSID {SenderId}.", agente.Id, senderId);
+                if (contacto != null)
+                {
+                    await builder.LogMessageAsync(agente.Id, contacto.Id, senderId, "user", text, ct);
+                }
+                return;
+            }
+
+            var ctx = await builder.PrepareAsync(agente, contacto, senderId, pageId, ct);
             if (ctx is null) return;
 
             // Si el bot está desactivado para este contacto, no responder

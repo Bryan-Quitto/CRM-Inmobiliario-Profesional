@@ -37,23 +37,20 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         _providerFactory = providerFactory;
     }
 
-    public async Task<WhatsAppContext> PrepareContextAsync(string phone, string messageText, string phoneNumberId, CancellationToken cancellationToken = default)
+    public async Task<Contacto?> GetOrCreateContactAsync(string phone, string phoneNumberId, bool autoCreate, CancellationToken cancellationToken = default)
     {
-        // 1. Búsqueda inteligente del Agente primero
-        var agente = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId);
+        var agente = await _context.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId, cancellationToken);
         if (agente == null)
         {
-            // Fallback a administrador si no hay match directo de número
-            agente = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin");
+            agente = await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin", cancellationToken);
         }
 
-        // 2. Búsqueda del Contacto acotada por el Agente
         string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
         var contacto = await _context.Contactos
             .Include(c => c.Agente)
-            .FirstOrDefaultAsync(l => (l.Telefono == phone || l.Telefono == searchPhone) && l.AgenteId == agente!.Id);
+            .FirstOrDefaultAsync(l => (l.Telefono == phone || l.Telefono == searchPhone) && l.AgenteId == agente!.Id, cancellationToken);
         
-        if (contacto == null && agente != null)
+        if (contacto == null && agente != null && autoCreate)
         {
             contacto = new Contacto
             {
@@ -61,7 +58,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 Nombre = "Cliente WA",
                 Apellido = phone,
                 Telefono = phone.NormalizePhoneE164() ?? phone,
-                Origen = "IA WhatsApp",
+                Origen = "Aut. WhatsApp",
                 AgenteId = agente.Id,
                 Agente = agente,
                 FechaCreacion = DateTimeOffset.UtcNow,
@@ -69,18 +66,24 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
                 EsProspecto = true
             };
             _context.Contactos.Add(contacto);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             var comparticionObsoleta = await _context.ContactoAgenteCompartidos
                 .Include(cac => cac.Contacto)
-                .FirstOrDefaultAsync(cac => cac.AgenteId == agente.Id && cac.Contacto != null && cac.Contacto.Telefono == phone);
+                .FirstOrDefaultAsync(cac => cac.AgenteId == agente.Id && cac.Contacto != null && cac.Contacto.Telefono == phone, cancellationToken);
                 
             if (comparticionObsoleta != null)
             {
                 _context.ContactoAgenteCompartidos.Remove(comparticionObsoleta);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
             }
         }
+
+        return contacto;
+    }
+
+    public async Task<WhatsAppContext> PrepareContextAsync(Contacto? contacto, string phone, string messageText, string phoneNumberId, CancellationToken cancellationToken = default)
+    {
         
         // 3. Filtrado por BotActivoWA y Reglas de Handoff
         string? autoMsg = null;
