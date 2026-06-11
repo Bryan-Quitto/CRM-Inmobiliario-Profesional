@@ -47,7 +47,8 @@ export const CommissionSection = ({ initialData }: Props) => {
   }, [userSelectedMode, initialData]);
 
   const { data: agentes = [] } = useSWR('/configuracion/agentes', getAgentes, swrDefaultConfig);
-  const { data: contactos = [] } = useSWR('/contactos', getContactos, swrDefaultConfig);
+  const { data: contactosResponse } = useSWR(['/contactos', { pageSize: 1000 }], () => getContactos({ pageSize: 1000 }), swrDefaultConfig);
+  const contactos = useMemo(() => contactosResponse?.items || [], [contactosResponse?.items]);
 
   const agenteOptions = useMemo<SearchItem[]>(() => {
     if (!perfil?.id) return [];

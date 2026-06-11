@@ -4,7 +4,6 @@ import { getTareas } from '../api/getTareas';
 import { getContactos } from '../../contactos/api/getContactos';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import type { Tarea } from '../types';
-import type { Contacto } from '../../contactos/types';
 import type { Propiedad } from '../../propiedades/types';
 import { TareasContext } from './TareasContext';
 import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
@@ -16,11 +15,12 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     swrDefaultConfig
   );
 
-  const { data: contactos = [], isValidating: loadingContactos } = useSWR<Contacto[]>(
-    '/contactos',
-    getContactos,
+  const { data: contactosResponse, isValidating: loadingContactos } = useSWR(
+    ['/contactos', { pageSize: 1000 }],
+    () => getContactos({ pageSize: 1000 }),
     swrDefaultConfig
   );
+  const contactos = contactosResponse?.items || [];
 
   const { data: propiedades = [], isValidating: loadingPropiedades } = useSWR<Propiedad[]>(
     '/propiedades',

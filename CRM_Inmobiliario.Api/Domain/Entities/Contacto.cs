@@ -65,6 +65,7 @@ public sealed class Contacto
     public ICollection<Property> PropertiesOwned { get; set; } = new List<Property>();
     public ICollection<PropertyTransaction> Transactions { get; set; } = new List<PropertyTransaction>();
     public ICollection<ContactoInteresPropiedad> PropertyInterests { get; set; } = new List<ContactoInteresPropiedad>();
+    public ICollection<Property> PropertiesClosed { get; set; } = new List<Property>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public ICollection<Interaction> Interactions { get; set; } = new List<Interaction>();
     public ICollection<ContactoHistorialEmbudo> HistorialEmbudo { get; set; } = new List<ContactoHistorialEmbudo>();

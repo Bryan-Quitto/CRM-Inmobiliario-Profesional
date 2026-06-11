@@ -57,10 +57,6 @@ const ContactosContent = () => {
 
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
 
-  if (isLoading) {
-    return <ContactosSkeletonList />;
-  }
-
   const activeAdvancedCount = Object.values(advancedFilters).filter(v => v !== undefined && v !== '').length;
 
   const basePath = '/contactos';
@@ -109,15 +105,21 @@ const ContactosContent = () => {
         negociacion={stats.negociacion} 
       />
 
-      <ContactosListContent 
-        filteredContactos={paginatedContactos}
-        activeSegment={activeSegment}
-        viewMode={viewMode}
-        syncing={syncing}
-        onNavigate={(id) => navigate(`${basePath}/${id}`)}
-        onEdit={setSelectedContactoForEdit}
-        onStageChange={handleStageChange}
-      />
+      {isLoading ? (
+        <div className="mt-6">
+          <ContactosSkeletonList />
+        </div>
+      ) : (
+        <ContactosListContent 
+          filteredContactos={paginatedContactos}
+          activeSegment={activeSegment}
+          viewMode={viewMode}
+          syncing={syncing}
+          onNavigate={(id) => navigate(`${basePath}/${id}`)}
+          onEdit={setSelectedContactoForEdit}
+          onStageChange={handleStageChange}
+        />
+      )}
 
       {/* Pagination Controls */}
       {totalPages > 1 && (() => {
