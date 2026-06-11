@@ -10,6 +10,27 @@ namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class ListarPropiedadesFeature
 {
+    public record GetPropiedadesRequest(
+        int? PageNumber,
+        int? PageSize,
+        Guid? CheckContactoId,
+        string? SearchQuery,
+        string? EstadoComercial,
+        string? TipoPropiedad,
+        string? Operacion,
+        decimal? PrecioMin,
+        decimal? PrecioMax,
+        decimal? AreaTotalMin,
+        decimal? AreaTotalMax,
+        int? HabitacionesMin,
+        int? HabitacionesMax,
+        int? AniosAntiguedadMin,
+        int? AniosAntiguedadMax,
+        bool? EsCaptacionPropia,
+        string? SortBy,
+        string? SortDirection
+    );
+
     public record Response(
         Guid Id,
         string Titulo,
@@ -47,20 +68,20 @@ public static class ListarPropiedadesFeature
 
     public static RouteHandlerBuilder MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/propiedades", async (int? pageNumber, int? pageSize, Guid? checkContactoId, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/propiedades", async ([AsParameters] GetPropiedadesRequest request, ClaimsPrincipal user, CrmDbContext context) =>
         {
-            var actualPageNumber = pageNumber ?? 1;
-            var actualPageSize = pageSize ?? 50;
+            var actualPageNumber = request.PageNumber ?? 1;
+            var actualPageSize = request.PageSize ?? 50;
 
             var currentUserId = user.GetRequiredUserId();
 
             string? contactPhoneToShare = null;
             string? cleanPhoneToShare = null;
-            if (checkContactoId.HasValue)
+            if (request.CheckContactoId.HasValue)
             {
                 contactPhoneToShare = await context.Contactos
                     .AsNoTracking()
-                    .Where(c => c.Id == checkContactoId.Value)
+                    .Where(c => c.Id == request.CheckContactoId.Value)
                     .Select(c => c.Telefono)
                     .FirstOrDefaultAsync();
 
@@ -93,10 +114,77 @@ public static class ListarPropiedadesFeature
                                        (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo)));
             }
 
-            var totalCount = await query.CountAsync();
+            // Aplicar filtros dinámicos
+            if (!string.IsNullOrWhiteSpace(request.SearchQuery))
+            {
+                var search = $"%{request.SearchQuery}%";
+                query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Titulo), EF.Functions.Unaccent(search)) ||
+                                         EF.Functions.ILike(EF.Functions.Unaccent(p.Sector), EF.Functions.Unaccent(search)) ||
+                                         EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent(search)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.EstadoComercial) && request.EstadoComercial != "Todos")
+                query = query.Where(p => p.EstadoComercial == request.EstadoComercial);
+
+            if (!string.IsNullOrWhiteSpace(request.TipoPropiedad) && request.TipoPropiedad != "Todos")
+                query = query.Where(p => p.TipoPropiedad == request.TipoPropiedad);
+
+            if (!string.IsNullOrWhiteSpace(request.Operacion) && request.Operacion != "Todas")
+                query = query.Where(p => p.Operacion == request.Operacion);
+
+            if (request.PrecioMin.HasValue)
+                query = query.Where(p => p.Precio >= request.PrecioMin.Value);
+            if (request.PrecioMax.HasValue)
+                query = query.Where(p => p.Precio <= request.PrecioMax.Value);
+
+            if (request.AreaTotalMin.HasValue)
+                query = query.Where(p => p.AreaTotal >= request.AreaTotalMin.Value);
+            if (request.AreaTotalMax.HasValue)
+                query = query.Where(p => p.AreaTotal <= request.AreaTotalMax.Value);
+
+            if (request.HabitacionesMin.HasValue)
+                query = query.Where(p => p.Habitaciones >= request.HabitacionesMin.Value);
+            if (request.HabitacionesMax.HasValue)
+                query = query.Where(p => p.Habitaciones <= request.HabitacionesMax.Value);
+
+            if (request.AniosAntiguedadMin.HasValue)
+                query = query.Where(p => p.AniosAntiguedad >= request.AniosAntiguedadMin.Value);
+            if (request.AniosAntiguedadMax.HasValue)
+                query = query.Where(p => p.AniosAntiguedad <= request.AniosAntiguedadMax.Value);
+
+            if (request.EsCaptacionPropia.HasValue)
+                query = query.Where(p => p.EsCaptacionPropia == request.EsCaptacionPropia.Value);
+
+            var stats = await query
+                .GroupBy(p => 1)
+                .Select(g => new
+                {
+                    Key = g.Key,
+                    TotalCount = g.Count(),
+                    CountVentas = g.Count(p => p.Operacion == "Venta"),
+                    CountAlquiler = g.Count(p => p.Operacion == "Alquiler")
+                })
+                .OrderBy(g => g.Key)
+                .FirstOrDefaultAsync();
+
+            var totalCount = stats?.TotalCount ?? 0;
+            var countVentas = stats?.CountVentas ?? 0;
+            var countAlquiler = stats?.CountAlquiler ?? 0;
+
+            // Ordenamiento dinámico
+            var sortBy = request.SortBy?.ToLowerInvariant() ?? "fechaingreso";
+            var isAsc = (request.SortDirection?.ToLowerInvariant() ?? "desc") == "asc";
+
+            query = sortBy switch
+            {
+                "precio" => isAsc ? query.OrderBy(p => p.Precio).ThenBy(p => p.Id) : query.OrderByDescending(p => p.Precio).ThenByDescending(p => p.Id),
+                "areatotal" => isAsc ? query.OrderBy(p => p.AreaTotal).ThenBy(p => p.Id) : query.OrderByDescending(p => p.AreaTotal).ThenByDescending(p => p.Id),
+                "habitaciones" => isAsc ? query.OrderBy(p => p.Habitaciones).ThenBy(p => p.Id) : query.OrderByDescending(p => p.Habitaciones).ThenByDescending(p => p.Id),
+                "aniosantiguedad" => isAsc ? query.OrderBy(p => p.AniosAntiguedad).ThenBy(p => p.Id) : query.OrderByDescending(p => p.AniosAntiguedad).ThenByDescending(p => p.Id),
+                _ => isAsc ? query.OrderBy(p => p.FechaIngreso).ThenBy(p => p.Id) : query.OrderByDescending(p => p.FechaIngreso).ThenByDescending(p => p.Id)
+            };
 
             var propiedades = await query
-                .OrderByDescending(p => p.FechaIngreso)
                 .Skip((actualPageNumber - 1) * actualPageSize)
                 .Take(actualPageSize)
                 .Select(p => new
@@ -131,6 +219,7 @@ public static class ListarPropiedadesFeature
                         : "Oculto (Privacidad del Inversionista)",
                     x.Property.Media
                         .Where(m => m.EsPrincipal)
+                        .OrderBy(m => m.Id)
                         .Select(m => m.UrlPublica)
                         .FirstOrDefault(),
                     x.Property.FechaIngreso,
@@ -175,6 +264,8 @@ public static class ListarPropiedadesFeature
             {
                 Items = propiedades,
                 TotalCount = totalCount,
+                CountVentas = countVentas,
+                CountAlquiler = countAlquiler,
                 PageNumber = actualPageNumber,
                 PageSize = actualPageSize
             });
@@ -183,3 +274,4 @@ public static class ListarPropiedadesFeature
         .WithName("ListarPropiedades");
     }
 }
+

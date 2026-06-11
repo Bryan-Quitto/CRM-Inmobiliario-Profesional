@@ -3,21 +3,8 @@ import { usePropiedadesFiltering } from './usePropiedadesList/usePropiedadesFilt
 import { usePropiedadesUI } from './usePropiedadesList/usePropiedadesUI';
 import { usePropiedadesActions } from './usePropiedadesList/usePropiedadesActions';
 
-export const usePropiedadesList = () => {
-  // 1. Data Layer
-  const { 
-    propiedades, 
-    stats, 
-    isLoading, 
-    syncing, 
-    mutate, 
-    handleCoverUpdate 
-  } = usePropiedadesData();
-
-  // 2. UI & Navigation Layer
-  const ui = usePropiedadesUI();
-
-  // 3. Filtering Layer
+export const usePropiedadesList = (checkContactoId?: string) => {
+  // 1. Filtering Layer
   const {
     searchQuery,
     setSearchQuery,
@@ -31,12 +18,28 @@ export const usePropiedadesList = () => {
     setSortBy,
     sortDirection,
     setSortDirection,
-    filteredPropiedades,
-    paginatedPropiedades,
     currentPage,
     setCurrentPage,
-    totalPages
-  } = usePropiedadesFiltering(propiedades);
+    queryParams
+  } = usePropiedadesFiltering();
+
+  // 2. Data Layer
+  const { 
+    propiedades, 
+    totalCount,
+    stats, 
+    isLoading, 
+    syncing, 
+    mutate, 
+    handleCoverUpdate 
+  } = usePropiedadesData(queryParams, checkContactoId);
+
+  // Calculate pagination
+  const itemsPerPage = 50;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  // 3. UI & Navigation Layer
+  const ui = usePropiedadesUI();
 
   // 4. Actions Layer
   const {
@@ -60,7 +63,8 @@ export const usePropiedadesList = () => {
   return {
     // Data
     propiedades,
-    filteredPropiedades,
+    filteredPropiedades: propiedades, // All filtering is done on server now
+    paginatedPropiedades: propiedades, // Already paginated from server
     stats,
     loading: isLoading,
     syncing,
@@ -80,7 +84,6 @@ export const usePropiedadesList = () => {
     setSortBy,
     sortDirection,
     setSortDirection,
-    paginatedPropiedades,
     currentPage,
     setCurrentPage,
     totalPages,

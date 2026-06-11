@@ -18,7 +18,7 @@ interface CompartirContactoModalProps {
 export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirContactoModalProps) => {
   const { perfil } = usePerfil();
   const { agentes } = useAgentes(contacto.id);
-  const { propiedades } = usePropiedadesData(contacto.id);
+  const { propiedades } = usePropiedadesData(new URLSearchParams(), contacto.id);
   const { agentesCompartidos, compartir, revocar } = useCompartirContacto(contacto.id);
 
   const [activeTab, setActiveTab] = useState<'compartir' | 'gestion'>('compartir');

@@ -2,10 +2,11 @@ import { useState } from 'react';
 import type { KeyedMutator } from 'swr';
 import { usePropertyCommercialLogic } from '../usePropertyCommercialLogic';
 import type { Propiedad } from '../../types';
+import type { PaginatedResponse } from './usePropiedadesData';
 
 interface UsePropiedadesActionsProps {
   propiedades: Propiedad[];
-  mutate: KeyedMutator<Propiedad[]>;
+  mutate: KeyedMutator<PaginatedResponse<Propiedad>>;
   setOpenDropdownId: (id: string | null) => void;
   setClosingPropiedad: (val: { propiedad: Propiedad; nuevoEstado: string } | null) => void;
   setShowReversionModal: (val: { type: 'status', id: string, targetStatus: string, currentStatus?: string } | null) => void;
@@ -25,8 +26,13 @@ export const usePropiedadesActions = ({
   const commercial = usePropertyCommercialLogic({
     mutateOptimistic: (nuevoEstado) => {
       if (updatingId) {
-        const optimisticData = propiedades.map(p => p.id === updatingId ? { ...p, estadoComercial: nuevoEstado } : p);
-        mutate(optimisticData, false);
+        mutate((currentData) => {
+          if (!currentData) return currentData;
+          return {
+            ...currentData,
+            items: currentData.items.map(p => p.id === updatingId ? { ...p, estadoComercial: nuevoEstado } : p)
+          };
+        }, false);
       }
     },
     revalidate: async () => {
@@ -75,8 +81,13 @@ export const usePropiedadesActions = ({
     setClosingPropiedad(null);
 
     // Custom optimistic for list
-    const optimisticData = propiedades.map(p => p.id === propiedad.id ? { ...p, estadoComercial: tipoCierre } : p);
-    mutate(optimisticData, false);
+    mutate((currentData) => {
+      if (!currentData) return currentData;
+      return {
+        ...currentData,
+        items: currentData.items.map(p => p.id === propiedad.id ? { ...p, estadoComercial: tipoCierre } : p)
+      };
+    }, false);
 
     await commercial.handleClosingConfirm(propiedad, precioCierre, cerradoConId, agenteCerradorId, tipoCierre);
   };
@@ -88,8 +99,13 @@ export const usePropiedadesActions = ({
     setUpdatingId(id);
     
     // Custom optimistic for list
-    const optimisticData = propiedades.map(p => p.id === id ? { ...p, estadoComercial: 'Disponible' } : p);
-    mutate(optimisticData, false);
+    mutate((currentData) => {
+      if (!currentData) return currentData;
+      return {
+        ...currentData,
+        items: currentData.items.map(p => p.id === id ? { ...p, estadoComercial: 'Disponible' } : p)
+      };
+    }, false);
 
     await commercial.handleRelist(propiedad, type, 'Disponible');
   };

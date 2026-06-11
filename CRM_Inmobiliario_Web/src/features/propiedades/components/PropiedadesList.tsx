@@ -57,9 +57,7 @@ const PropiedadesContent = () => {
     dropdownRef
   } = usePropiedadesList();
 
-  if (loading) {
-    return <PropiedadesSkeletonList />;
-  }
+  // El estado loading ahora se maneja más abajo en el render para preservar el foco en los filtros
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans antialiased relative pb-20">
@@ -99,7 +97,9 @@ const PropiedadesContent = () => {
         alquiler={stats.alquiler} 
       />
 
-      {filteredPropiedades.length === 0 ? (
+      {loading ? (
+        <PropiedadesSkeletonList />
+      ) : filteredPropiedades.length === 0 ? (
         <div className="bg-white rounded-3xl border border-dashed border-slate-200 py-32 text-center shadow-sm flex flex-col items-center">
           <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
             <Home className="h-10 w-10 text-slate-200" />

@@ -1,8 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import Fuse from 'fuse.js';
-import type { Propiedad } from '../../types';
-import { AVAILABLE_PROPERTY_FILTERS } from '../../types/filters.types';
+import { useDebounce } from '../../../../hooks/useDebounce';
 
 export type SortOption = 'fechaIngreso' | 'precio' | 'areaTotal' | 'habitaciones' | 'aniosAntiguedad';
 export type SortDirection = 'asc' | 'desc';
@@ -13,158 +11,161 @@ export const defaultAdvancedFilters: AdvancedFiltersState = {
   operacion: 'Todas'
 };
 
-export const usePropiedadesFiltering = (propiedades: Propiedad[]) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterEstado, setFilterEstado] = useState('Todos');
-  const [filterTipo, setFilterTipo] = useState('Todos');
-  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFiltersState>(defaultAdvancedFilters);
-  const [sortBy, setSortBy] = useState<SortOption>('fechaIngreso');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  
+export const usePropiedadesFiltering = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
-  const setCurrentPage = (page: number | ((prev: number) => number)) => {
-    const newPage = typeof page === 'function' ? page(currentPage) : page;
+
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('searchQuery') || '');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  useEffect(() => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
+      const currentQuery = next.get('searchQuery') || '';
+      const newQuery = debouncedSearchQuery || '';
+      
+      if (currentQuery !== newQuery) {
+        if (newQuery) {
+          next.set('searchQuery', newQuery);
+        } else {
+          next.delete('searchQuery');
+        }
+        next.delete('page');
+        return next;
+      }
+      return prev;
+    }, { replace: true });
+  }, [debouncedSearchQuery, setSearchParams]);
+
+  const filterEstado = searchParams.get('estadoComercial') || 'Todos';
+  const filterTipo = searchParams.get('tipoPropiedad') || 'Todos';
+  const sortBy = (searchParams.get('sortBy') as SortOption) || 'fechaIngreso';
+  const sortDirection = (searchParams.get('sortDirection') as SortDirection) || 'desc';
+
+  const knownKeys = ['page', 'searchQuery', 'estadoComercial', 'tipoPropiedad', 'sortBy', 'sortDirection'];
+  
+  const advancedFilters: AdvancedFiltersState = { ...defaultAdvancedFilters };
+  searchParams.forEach((val, key) => {
+    if (!knownKeys.includes(key)) {
+      if (val === 'true') advancedFilters[key] = true;
+      else if (val === 'false') advancedFilters[key] = false;
+      else if (!isNaN(Number(val)) && val.trim() !== '') advancedFilters[key] = Number(val);
+      else advancedFilters[key] = val;
+    }
+  });
+
+  const setFilterEstado = (val: string | ((prev: string) => string)) => {
+    setSearchParams(prevParams => {
+      const currentVal = prevParams.get('estadoComercial') || 'Todos';
+      const newVal = typeof val === 'function' ? val(currentVal) : val;
+      const next = new URLSearchParams(prevParams);
+      if (newVal === 'Todos' || !newVal) next.delete('estadoComercial');
+      else next.set('estadoComercial', newVal);
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  };
+
+  const setFilterTipo = (val: string | ((prev: string) => string)) => {
+    setSearchParams(prevParams => {
+      const currentVal = prevParams.get('tipoPropiedad') || 'Todos';
+      const newVal = typeof val === 'function' ? val(currentVal) : val;
+      const next = new URLSearchParams(prevParams);
+      if (newVal === 'Todos' || !newVal) next.delete('tipoPropiedad');
+      else next.set('tipoPropiedad', newVal);
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  };
+
+  const setSortBy = (val: SortOption | ((prev: SortOption) => SortOption)) => {
+    setSearchParams(prevParams => {
+      const currentVal = (prevParams.get('sortBy') as SortOption) || 'fechaIngreso';
+      const newVal = typeof val === 'function' ? val(currentVal) : val;
+      const next = new URLSearchParams(prevParams);
+      if (!newVal) next.delete('sortBy');
+      else next.set('sortBy', newVal);
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  };
+
+  const setSortDirection = (val: SortDirection | ((prev: SortDirection) => SortDirection)) => {
+    setSearchParams(prevParams => {
+      const currentVal = (prevParams.get('sortDirection') as SortDirection) || 'desc';
+      const newVal = typeof val === 'function' ? val(currentVal) : val;
+      const next = new URLSearchParams(prevParams);
+      if (!newVal) next.delete('sortDirection');
+      else next.set('sortDirection', newVal);
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  };
+
+  const setAdvancedFilters = (val: AdvancedFiltersState | ((prev: AdvancedFiltersState) => AdvancedFiltersState)) => {
+    setSearchParams(prevParams => {
+      const currentAdvanced: AdvancedFiltersState = { ...defaultAdvancedFilters };
+      prevParams.forEach((paramVal, key) => {
+        if (!knownKeys.includes(key)) {
+          if (paramVal === 'true') currentAdvanced[key] = true;
+          else if (paramVal === 'false') currentAdvanced[key] = false;
+          else if (!isNaN(Number(paramVal)) && paramVal.trim() !== '') currentAdvanced[key] = Number(paramVal);
+          else currentAdvanced[key] = paramVal;
+        }
+      });
+
+      const newFilters = typeof val === 'function' ? val(currentAdvanced) : val;
+      const next = new URLSearchParams(prevParams);
+      
+      prevParams.forEach((_, key) => {
+         if (!knownKeys.includes(key)) {
+           next.delete(key);
+         }
+      });
+      
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '' && value !== 'Todas' && value !== 'Todos') {
+          next.set(key, value.toString());
+        } else {
+          next.delete(key);
+        }
+      });
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  };
+
+  const setCurrentPage = (page: number | ((prev: number) => number)) => {
+    setSearchParams(prevParams => {
+      const currentVal = Number(prevParams.get('page')) || 1;
+      const newPage = typeof page === 'function' ? page(currentVal) : page;
+      const next = new URLSearchParams(prevParams);
       if (newPage <= 1) next.delete('page');
       else next.set('page', newPage.toString());
       return next;
     }, { replace: true });
   };
-  
-  const itemsPerPage = 50;
 
-  const fuse = useMemo(() => {
-    return new Fuse(propiedades, {
-      keys: [
-        { name: 'titulo', weight: 0.6 },
-        { name: 'sector', weight: 0.2 },
-        { name: 'ciudad', weight: 0.2 }
-      ],
-      threshold: 0.3,
-      distance: 100
-    });
-  }, [propiedades]);
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+    
+    if (debouncedSearchQuery) params.set('searchQuery', debouncedSearchQuery);
+    if (filterEstado !== 'Todos') params.set('estadoComercial', filterEstado);
+    if (filterTipo !== 'Todos') params.set('tipoPropiedad', filterTipo);
+    if (sortBy) params.set('sortBy', sortBy);
+    if (sortDirection) params.set('sortDirection', sortDirection);
+    
+    params.set('pageNumber', currentPage.toString());
+    params.set('pageSize', '50');
 
-  const filteredPropiedades = useMemo(() => {
-    // 1. Lógica de Filtrado Central (Estado, Tipo y Filtros Avanzados)
-    const applyFilters = (p: Propiedad) => {
-      const matchEstado = filterEstado === 'Todos' || p.estadoComercial === filterEstado;
-      const matchTipo = filterTipo === 'Todos' || p.tipoPropiedad === filterTipo;
-      
-      let matchAdvanced = true;
-
-      for (const filterDef of AVAILABLE_PROPERTY_FILTERS) {
-        const { key, type } = filterDef;
-        const propValue = p[key as keyof Propiedad];
-
-        if (type === 'range') {
-          const minVal = advancedFilters[`${key}Min`];
-          const maxVal = advancedFilters[`${key}Max`];
-          
-          if (minVal && Number(propValue || 0) < Number(minVal)) {
-            matchAdvanced = false;
-            break;
-          }
-          if (maxVal && Number(propValue || 0) > Number(maxVal)) {
-            matchAdvanced = false;
-            break;
-          }
-        } else if (type === 'select') {
-          const val = advancedFilters[key];
-          if (val && val !== 'Todas' && val !== 'Todos' && propValue !== val) {
-            matchAdvanced = false;
-            break;
-          }
-        } else if (type === 'text') {
-          const val = advancedFilters[key];
-          if (val && typeof propValue === 'string' && typeof val === 'string') {
-            if (!propValue.toLowerCase().includes(val.toLowerCase())) {
-              matchAdvanced = false;
-              break;
-            }
-          }
-        } else if (type === 'boolean') {
-          const val = advancedFilters[key];
-          // Boolean filters from UI might be actual booleans or empty strings if unchecked/reset
-          if (val !== undefined && val !== null && val !== '') {
-            const isChecked = val === true || val === 'true';
-            if (Boolean(propValue) !== isChecked) {
-              matchAdvanced = false;
-              break;
-            }
-          }
-        }
+    Object.entries(advancedFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '' && value !== 'Todas' && value !== 'Todos') {
+        params.set(key, value.toString());
       }
-
-      return matchEstado && matchTipo && matchAdvanced;
-    };
-
-    let result = propiedades.filter(applyFilters);
-
-    // 2. Búsqueda por texto (Fuse)
-    if (searchQuery.trim()) {
-      result = fuse.search(searchQuery).map(r => r.item).filter(applyFilters);
-    }
-
-    // 3. Aplicar ordenamiento
-    result = [...result].sort((a, b) => {
-      let comparison = 0;
-      switch (sortBy) {
-        case 'precio':
-          comparison = (a.precio || 0) - (b.precio || 0);
-          break;
-        case 'areaTotal':
-          comparison = (a.areaTotal || 0) - (b.areaTotal || 0);
-          break;
-        case 'habitaciones': {
-          const aHab = a.habitaciones || 0;
-          const bHab = b.habitaciones || 0;
-          if (aHab === 0 && bHab > 0) return 1;
-          if (bHab === 0 && aHab > 0) return -1;
-          if (aHab === 0 && bHab === 0) return 0;
-          comparison = aHab - bHab;
-          break;
-        }
-        case 'aniosAntiguedad': {
-          const aAnt = a.aniosAntiguedad;
-          const bAnt = b.aniosAntiguedad;
-          const aHasAnt = aAnt !== null && aAnt !== undefined;
-          const bHasAnt = bAnt !== null && bAnt !== undefined;
-          
-          if (!aHasAnt && bHasAnt) return 1;
-          if (!bHasAnt && aHasAnt) return -1;
-          if (!aHasAnt && !bHasAnt) return 0;
-          
-          comparison = (aAnt as number) - (bAnt as number);
-          break;
-        }
-        case 'fechaIngreso':
-        default:
-          comparison = new Date(a.fechaIngreso).getTime() - new Date(b.fechaIngreso).getTime();
-          break;
-      }
-      return sortDirection === 'asc' ? comparison : -comparison;
     });
 
-    return result;
-  }, [propiedades, searchQuery, filterEstado, filterTipo, advancedFilters, fuse, sortBy, sortDirection]);
-
-  // Reset pagination to page 1 whenever any filter or sorting changes
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, filterEstado, filterTipo, advancedFilters, sortBy, sortDirection]);
-
-  const totalPages = Math.ceil(filteredPropiedades.length / itemsPerPage);
-  
-  const paginatedPropiedades = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredPropiedades.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredPropiedades, currentPage, itemsPerPage]);
+    return params;
+  };
 
   return {
     searchQuery,
@@ -179,10 +180,9 @@ export const usePropiedadesFiltering = (propiedades: Propiedad[]) => {
     setSortBy,
     sortDirection,
     setSortDirection,
-    filteredPropiedades,
-    paginatedPropiedades,
     currentPage,
     setCurrentPage,
-    totalPages
+    queryParams: buildQueryParams()
   };
 };
+
