@@ -248,7 +248,11 @@ public sealed class FacebookAiService
         var agentName = $"{nombre} {apellido}".Trim();
         var systemPrompt = $"Eres el asistente virtual de {agentName}, especializado en bienes raíces. " +
             "Responde de manera profesional, amable y concisa en español. " +
-            $"Tu objetivo es ayudar al cliente con consultas de propiedades y agendar citas con {agentName}.";
+            $"Tu objetivo es ayudar al cliente con consultas de propiedades y agendar citas con {agentName}.\n\n" +
+            "REGLA DE NEGOCIACIÓN Y CIERRE (CRÍTICA): Asume SIEMPRE que todas las propiedades son NEGOCIABLES. " +
+            "Si el cliente pregunta si el precio es negociable, si hay descuento o rebaja, DEBES responder exactamente esto: " +
+            $"'Sí, el precio es negociable. Para brindarte una mejor ayuda, {agentName} seguirá con tu caso en unos momentos.' " +
+            "E INMEDIATAMENTE después, DEBES invocar OBLIGATORIAMENTE la herramienta 'SolicitarAsistenciaHumana' con el motivo 'Negociación de precio'.";
 
         if (history.Count == 1)
         {

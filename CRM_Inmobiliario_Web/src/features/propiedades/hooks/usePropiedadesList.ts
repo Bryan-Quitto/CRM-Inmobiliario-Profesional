@@ -31,7 +31,11 @@ export const usePropiedadesList = () => {
     setSortBy,
     sortDirection,
     setSortDirection,
-    filteredPropiedades
+    filteredPropiedades,
+    paginatedPropiedades,
+    currentPage,
+    setCurrentPage,
+    totalPages
   } = usePropiedadesFiltering(propiedades);
 
   // 4. Actions Layer
@@ -76,6 +80,10 @@ export const usePropiedadesList = () => {
     setSortBy,
     sortDirection,
     setSortDirection,
+    paginatedPropiedades,
+    currentPage,
+    setCurrentPage,
+    totalPages,
 
     // UI State
     ...ui,

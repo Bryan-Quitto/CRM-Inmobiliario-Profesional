@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Fuse from 'fuse.js';
 import type { Propiedad } from '../../types';
 import { AVAILABLE_PROPERTY_FILTERS } from '../../types/filters.types';
@@ -19,6 +20,20 @@ export const usePropiedadesFiltering = (propiedades: Propiedad[]) => {
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFiltersState>(defaultAdvancedFilters);
   const [sortBy, setSortBy] = useState<SortOption>('fechaIngreso');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const setCurrentPage = (page: number | ((prev: number) => number)) => {
+    const newPage = typeof page === 'function' ? page(currentPage) : page;
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) next.delete('page');
+      else next.set('page', newPage.toString());
+      return next;
+    }, { replace: true });
+  };
+  
+  const itemsPerPage = 50;
 
   const fuse = useMemo(() => {
     return new Fuse(propiedades, {
@@ -136,6 +151,21 @@ export const usePropiedadesFiltering = (propiedades: Propiedad[]) => {
     return result;
   }, [propiedades, searchQuery, filterEstado, filterTipo, advancedFilters, fuse, sortBy, sortDirection]);
 
+  // Reset pagination to page 1 whenever any filter or sorting changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, filterEstado, filterTipo, advancedFilters, sortBy, sortDirection]);
+
+  const totalPages = Math.ceil(filteredPropiedades.length / itemsPerPage);
+  
+  const paginatedPropiedades = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredPropiedades.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredPropiedades, currentPage, itemsPerPage]);
+
   return {
     searchQuery,
     setSearchQuery,
@@ -149,6 +179,10 @@ export const usePropiedadesFiltering = (propiedades: Propiedad[]) => {
     setSortBy,
     sortDirection,
     setSortDirection,
-    filteredPropiedades
+    filteredPropiedades,
+    paginatedPropiedades,
+    currentPage,
+    setCurrentPage,
+    totalPages
   };
 };

@@ -25,7 +25,7 @@ export const useContactosList = () => {
   };
 
   const { data: allContactos = [], isLoading, isLoading: syncing, mutate } = useSWR<Contacto[]>(
-    '/contactos',
+    '/contactos?pageSize=1000',
     getContactos,
     { ...swrDefaultConfig, refreshInterval: 5000, keepPreviousData: true }
   );

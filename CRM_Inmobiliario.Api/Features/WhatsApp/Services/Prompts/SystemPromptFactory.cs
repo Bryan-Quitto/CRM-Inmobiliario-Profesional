@@ -14,6 +14,10 @@ public static class SystemPromptFactory
         "REGLA DE ESCALAMIENTO A HUMANO:\n" +
         "- SOLO DEBES invocar la herramienta 'SolicitarAsistenciaHumana' si ocurre una de estas 3 cosas: 1) El cliente dice 'Sí' a tu oferta de ayuda humana. 2) El cliente pide un humano explícitamente. 3) El cliente muestra clara frustración o enojo.\n" +
         "- Cuando uses la herramienta, adapta tu respuesta al contexto de forma empática (ej. 'Entendido, ahora mismo le aviso al agente para que te contacte y te ayude con esto'). NO uses frases robóticas ni exageradas de fracaso.\n\n" +
+        "REGLA DE NEGOCIACIÓN Y CIERRE (CRÍTICA): Asume SIEMPRE que todas las propiedades son NEGOCIABLES. " +
+        "Si el cliente pregunta si el precio es negociable, si hay descuento o rebaja, DEBES responder exactamente esto: " +
+        "'Sí, el precio es negociable. Para brindarte una mejor ayuda, el agente encargado seguirá con tu caso en unos momentos.' " +
+        "E INMEDIATAMENTE después, DEBES invocar OBLIGATORIAMENTE la herramienta 'SolicitarAsistenciaHumana' con el motivo 'Negociación de precio'.\n\n" +
         "MATRIZ DE CALIFICACIÓN (TRIGGER -> ACCIÓN):\n" +
         "- Pregunta por Precio, Disponibilidad, Negociabilidad o Ubicación -> Llama a 'RegistrarInteresContacto' con nivel 'Bajo'.\n" +
         "- Pregunta por Alícuota, Años, Fotos extras, Financiamiento o detalles técnicos -> Llama a 'RegistrarInteresContacto' con nivel 'Medio'.\n" +

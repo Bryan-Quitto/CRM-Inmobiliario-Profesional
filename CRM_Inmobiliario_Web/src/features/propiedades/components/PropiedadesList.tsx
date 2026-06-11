@@ -1,5 +1,5 @@
 import { SWRConfig } from 'swr';
-import { Loader2, Home } from 'lucide-react';
+import { Loader2, Home, ChevronUp, ChevronDown } from 'lucide-react';
 import { localStorageProvider } from '@/lib/swr';
 import { usePropiedadesList } from '../hooks/usePropiedadesList';
 
@@ -14,6 +14,7 @@ const PropiedadesContent = () => {
   const {
     propiedades,
     filteredPropiedades,
+    paginatedPropiedades,
     stats,
     loading,
     syncing,
@@ -29,6 +30,9 @@ const PropiedadesContent = () => {
     setSortBy,
     sortDirection,
     setSortDirection,
+    currentPage,
+    setCurrentPage,
+    totalPages,
     isModalOpen,
     setIsModalOpen,
     updatingId,
@@ -107,7 +111,7 @@ const PropiedadesContent = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-in fade-in duration-500">
-          {filteredPropiedades.map((p) => (
+          {paginatedPropiedades.map((p) => (
             <PropiedadCard 
               key={p.id}
               propiedad={p}
@@ -123,6 +127,85 @@ const PropiedadesContent = () => {
           ))}
         </div>
       )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (() => {
+        const getVisiblePages = (current: number, total: number) => {
+          if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+          if (current <= 3) return [1, 2, 3, 4, 5];
+          if (current >= total - 2) return [total - 4, total - 3, total - 2, total - 1, total];
+          return [current - 2, current - 1, current, current + 1, current + 2];
+        };
+        const visiblePages = getVisiblePages(currentPage, totalPages);
+
+        return (
+          <div className="mt-12 flex justify-center items-center gap-2 sm:gap-4 flex-wrap">
+            <button 
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${currentPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed hidden sm:block' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm hidden sm:block'}`}
+            >
+              Primera
+            </button>
+
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${currentPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm'}`}
+            >
+              Anterior
+            </button>
+            
+            <div className="flex items-center gap-1 sm:gap-2">
+              {visiblePages[0] > 1 && <span className="text-slate-400">...</span>}
+              {visiblePages.map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center justify-center ${currentPage === page ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}
+                >
+                  {page}
+                </button>
+              ))}
+              {visiblePages[visiblePages.length - 1] < totalPages && <span className="text-slate-400">...</span>}
+            </div>
+
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${currentPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm'}`}
+            >
+              Siguiente
+            </button>
+
+            <button 
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${currentPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed hidden sm:block' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm hidden sm:block'}`}
+            >
+              Última
+            </button>
+          </div>
+        );
+      })()}
+
+      {/* Floating Scroll Buttons */}
+      <div className="fixed bottom-24 right-6 sm:right-8 flex flex-col gap-2 z-[90]">
+        <button 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
+          title="Ir al inicio"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
+        <button 
+          onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+          className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
+          title="Ir al final"
+        >
+          <ChevronDown className="w-5 h-5" />
+        </button>
+      </div>
 
       <PropiedadesModalsOrchestrator 
         propiedades={propiedades}

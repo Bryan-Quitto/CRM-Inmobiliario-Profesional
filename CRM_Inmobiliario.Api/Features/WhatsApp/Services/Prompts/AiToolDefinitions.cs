@@ -22,7 +22,9 @@ public static class AiToolDefinitions
                         "tipoOperacion": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica la intención explícitamente en su ÚLTIMO mensaje (ej. 'Alquiler', 'Venta'). No adivinar ni reutilizar del historial." },
                         "presupuestoMaximo": { "type": "number", "description": "Extraer SOLAMENTE si el cliente menciona explícitamente un presupuesto o precio máximo en su ÚLTIMO mensaje. No adivinar ni reutilizar del historial." },
                         "habitacionesMinimas": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica un mínimo de habitaciones o cuartos en su ÚLTIMO mensaje. No adivinar ni reutilizar del historial." },
-                        "antiguedadMaxima": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica años máximos de antigüedad en su ÚLTIMO mensaje (ej. 'nuevo' = 1, 'max 5 años' = 5). No adivinar ni reutilizar del historial." }
+                        "antiguedadMaxima": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica años máximos de antigüedad en su ÚLTIMO mensaje (ej. 'nuevo' = 1, 'max 5 años' = 5). No adivinar ni reutilizar del historial." },
+                        "ciudad": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica una ciudad en su ÚLTIMO mensaje." },
+                        "sector": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica un sector, barrio o zona en su ÚLTIMO mensaje." }
                     },
                     "required": ["query"]
                 }

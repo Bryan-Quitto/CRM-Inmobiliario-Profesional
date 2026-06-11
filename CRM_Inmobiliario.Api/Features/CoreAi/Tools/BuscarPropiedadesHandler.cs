@@ -27,6 +27,8 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string queryStr = ExtractSafeString(args.RootElement, "query", 500, string.Empty);
         string tipoOperacion = ExtractSafeString(args.RootElement, "tipoOperacion", 50, string.Empty);
+        string ciudad = ExtractSafeString(args.RootElement, "ciudad", 100, string.Empty);
+        string sector = ExtractSafeString(args.RootElement, "sector", 100, string.Empty);
 
         decimal? presupuestoMaximo = null;
         if (args.RootElement.TryGetProperty("presupuestoMaximo", out _))
@@ -49,8 +51,8 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
             antiguedadMaxima = (int)am;
         }
 
-        _logger.LogInformation("Iniciando búsqueda híbrida: Query={Query}, Tipo={Tipo}, Presupuesto={Presupuesto}, Habitaciones={Habitaciones}, Antiguedad={Antiguedad}", 
-            queryStr ?? "Ninguno", tipoOperacion ?? "Cualquiera", presupuestoMaximo, habitacionesMinimas, antiguedadMaxima);
+        _logger.LogInformation("Iniciando búsqueda híbrida: Query={Query}, Tipo={Tipo}, Presupuesto={Presupuesto}, Habitaciones={Habitaciones}, Antiguedad={Antiguedad}, Ciudad={Ciudad}, Sector={Sector}", 
+            queryStr ?? "Ninguno", tipoOperacion ?? "Cualquiera", presupuestoMaximo, habitacionesMinimas, antiguedadMaxima, ciudad ?? "Ninguna", sector ?? "Ninguno");
 
         if (string.IsNullOrEmpty(queryStr))
         {
@@ -95,7 +97,10 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
             .Where(p => !descartadosIds.Contains(p.Id))
             // Filtros duros (Hybrid Search)
             .Where(p => string.IsNullOrEmpty(tipoOperacion) || p.Operacion == tipoOperacion)
-            .Where(p => !presupuestoMaximo.HasValue || p.Precio <= presupuestoMaximo.Value)
+            .Where(p => string.IsNullOrEmpty(ciudad) || EF.Functions.ILike(p.Ciudad, $"%{ciudad}%"))
+            .Where(p => string.IsNullOrEmpty(sector) || EF.Functions.ILike(p.Sector, $"%{sector}%"))
+            // Tolerancia del 15% para que "ronde" el presupuesto
+            .Where(p => !presupuestoMaximo.HasValue || p.Precio <= presupuestoMaximo.Value * 1.15m)
             .Where(p => !habitacionesMinimas.HasValue || p.Habitaciones >= habitacionesMinimas.Value)
             .Where(p => !antiguedadMaxima.HasValue || p.AniosAntiguedad == null || p.AniosAntiguedad <= antiguedadMaxima.Value);
 
@@ -169,6 +174,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
                 }
 
                 results = await fallbackQuery
+                    .OrderByDescending(p => p.Id)
                     .Take(3)
                     .Select(p => new PropiedadResultDto(
                         p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 

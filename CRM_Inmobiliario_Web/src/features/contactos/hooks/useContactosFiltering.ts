@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Fuse from 'fuse.js';
 import type { Contacto } from '../types';
 import { AVAILABLE_CONTACT_FILTERS } from '../types/filters.types';
@@ -22,6 +23,20 @@ export const useContactosFiltering = (contactos: Contacto[]) => {
   const [advancedFilters, setAdvancedFilters] = useState<ContactosAdvancedFiltersState>(defaultContactosAdvancedFilters);
   const [sortBy, setSortBy] = useState<SortOptionContacto>('fechaCreacion');
   const [sortDirection, setSortDirection] = useState<SortDirectionContacto>('desc');
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const setCurrentPage = (page: number | ((prev: number) => number)) => {
+    const newPage = typeof page === 'function' ? page(currentPage) : page;
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) next.delete('page');
+      else next.set('page', newPage.toString());
+      return next;
+    }, { replace: true });
+  };
+  
+  const itemsPerPage = 50;
 
   const fuse = useMemo(() => {
     return new Fuse(contactos, {
@@ -150,6 +165,21 @@ export const useContactosFiltering = (contactos: Contacto[]) => {
     return result;
   }, [contactos, searchQuery, filterVisibilidad, filterOrigen, filterEstadoCliente, filterEstadoPropietario, advancedFilters, fuse, sortBy, sortDirection]);
 
+  // Reset pagination to page 1 whenever any filter or sorting changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, filterVisibilidad, filterOrigen, filterEstadoCliente, filterEstadoPropietario, advancedFilters, sortBy, sortDirection]);
+
+  const totalPages = Math.ceil(filteredContactos.length / itemsPerPage);
+  
+  const paginatedContactos = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredContactos.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredContactos, currentPage, itemsPerPage]);
+
   return {
     searchQuery,
     setSearchQuery,
@@ -167,6 +197,10 @@ export const useContactosFiltering = (contactos: Contacto[]) => {
     setSortBy,
     sortDirection,
     setSortDirection,
-    filteredContactos
+    filteredContactos,
+    paginatedContactos,
+    currentPage,
+    setCurrentPage,
+    totalPages
   };
 };
