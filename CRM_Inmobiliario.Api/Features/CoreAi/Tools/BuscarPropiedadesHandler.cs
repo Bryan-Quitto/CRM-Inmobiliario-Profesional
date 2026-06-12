@@ -85,7 +85,10 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
 
         var allowedStates = new[] { "Disponible", "Reservada", "Alquilada" };
         
-        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(queryStr, provider ?? "OpenAI", apiKey);
+        // Combinamos el query resumido de la IA con el mensaje original del usuario para no perder contexto semántico (Capa 1)
+        string semanticQuery = $"{queryStr} {context.TriggerMessage}".Trim();
+
+        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(semanticQuery, provider ?? "OpenAI", apiKey);
         if (queryEmbedding == null) 
         {
             _logger.LogWarning("No se pudo generar el embedding para la búsqueda semántica.");
@@ -216,7 +219,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
     {
         var sb = new StringBuilder();
         if (!string.IsNullOrEmpty(aviso)) sb.AppendLine(aviso);
-        sb.AppendLine("Id|Titulo|Tipo|Precio|Ubicacion|Operacion|Habitaciones|Baños|MediosBaños|Parqueaderos|AñosAntigüedad|Area|Url|NotaIA|DescripcionSanitizada");
+        sb.AppendLine("Id|Titulo|Tipo|Precio|Ubicacion|DireccionExacta|Operacion|Habitaciones|Baños|MediosBaños|Parqueaderos|AñosAntigüedad|Area|Url|NotaIA|DescripcionSanitizada");
         foreach(var p in resultados)
         {
             var area = p.AreaTotal ?? p.AreaConstruccion ?? p.AreaTerreno;
@@ -226,7 +229,8 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
             var estac = p.Estacionamientos?.ToString() ?? "0";
             var anios = p.AniosAntiguedad?.ToString() ?? "N/A";
             var tipo = p.TipoPropiedad ?? "N/A";
-            sb.AppendLine($"{p.Id}|{p.Titulo}|{tipo}|{p.Precio}|{p.Sector},{p.Ciudad}|{p.Operacion}|{p.Habitaciones}|{p.Banos}|{medBan}|{estac}|{anios}|{area}|{p.UrlRemax}|{p.NotaIA}|{desc}");
+            var direccion = p.Direccion?.Replace("|", "-") ?? "";
+            sb.AppendLine($"{p.Id}|{p.Titulo}|{tipo}|{p.Precio}|{p.Sector},{p.Ciudad}|{direccion}|{p.Operacion}|{p.Habitaciones}|{p.Banos}|{medBan}|{estac}|{anios}|{area}|{p.UrlRemax}|{p.NotaIA}|{desc}");
         }
         return sb.ToString();
     }

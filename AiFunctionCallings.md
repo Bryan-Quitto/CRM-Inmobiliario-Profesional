@@ -1,11 +1,14 @@
 # Llamadas a Funciones de IA (Function Callings)
 
-Tras refactorizar el código base (`CRM_Inmobiliario.Api\Features\WhatsApp\Services\Prompts\AiToolDefinitions.cs`), las **9 funciones** ahora están estrictamente separadas por canales de ejecución para garantizar la seguridad y experiencia del usuario (WhatsApp para clientes vs Copilot para el agente interno).
+Tras refactorizar el código base, las **9 funciones** ahora están estrictamente separadas por canales de ejecución para garantizar la seguridad y experiencia del usuario. Actualmente el proyecto cuenta con **3 IAs**:
+1. IA de Facebook (para clientes)
+2. IA de WhatsApp (para clientes)
+3. IA personal del agente (Copilot)
 
 ---
 
-## 🟢 Herramientas Compartidas (Disponibles para Ambas IAs)
-Estas herramientas forman la funcionalidad principal y están disponibles tanto en WhatsApp como en el Copilot.
+## 🟢 Herramientas Compartidas (Disponibles para las 3 IAs)
+Estas herramientas forman la funcionalidad principal y están disponibles tanto en los canales de clientes (Facebook y WhatsApp) como en el Copilot del agente.
 
 ### 1. BuscarPropiedades
 - **Descripción:** Busca inmuebles utilizando búsqueda semántica según las especificaciones del cliente.
@@ -27,8 +30,8 @@ Estas herramientas forman la funcionalidad principal y están disponibles tanto 
 
 ---
 
-## 📱 Herramientas Exclusivas de WhatsApp
-Estas herramientas son exclusivas de la IA de cara al cliente final. No pueden ser invocadas por el Agente Interno.
+## 📱 Herramientas Exclusivas de Clientes (WhatsApp y Facebook)
+Estas herramientas son exclusivas de las IAs de cara al cliente final (Facebook y WhatsApp comparten en teoría las mismas capacidades). No pueden ser invocadas por el Agente Interno.
 
 ### 4. RegistrarInteresContacto
 - **Descripción:** Registra formalmente el nivel de interés de un contacto por una propiedad específica (Alto, Medio, Bajo, Descartada) tras enviarle opciones o tras una visita.
@@ -50,7 +53,7 @@ Estas herramientas son exclusivas de la IA de cara al cliente final. No pueden s
 ---
 
 ## 👨‍💻 Herramientas Exclusivas del Agente Personal (Copilot)
-Estas herramientas están diseñadas estrictamente para interactuar de forma profunda con la SPA y la administración del CRM. La IA de WhatsApp tiene prohibido acceder a estas acciones.
+Estas herramientas están diseñadas estrictamente para interactuar de forma profunda con la SPA y la administración del CRM. Las IAs de clientes (Facebook y WhatsApp) tienen prohibido acceder a estas acciones.
 
 ### 7. ResumirHistorialContacto
 - **Descripción:** Consulta el historial completo (notas, tareas, mensajes) de un contacto.

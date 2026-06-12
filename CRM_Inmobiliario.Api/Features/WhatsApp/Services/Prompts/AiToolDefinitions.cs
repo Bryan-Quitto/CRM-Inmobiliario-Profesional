@@ -18,13 +18,13 @@ public static class AiToolDefinitions
                 {
                     "type": "object",
                     "properties": {
-                        "query": { "type": "string", "description": "Intención de búsqueda en lenguaje natural. Ej: 'departamento minimalista', 'cerca de la playa'." },
+                        "query": { "type": "string", "description": "REGLA DE ORO: NO RESUMAS EL TEXTO. Copia y pega literalmente la frase o pregunta completa que el usuario te acaba de enviar. Debe contener todas sus palabras." },
                         "tipoOperacion": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica la intención explícitamente en su ÚLTIMO mensaje (ej. 'Alquiler', 'Venta'). No adivinar ni reutilizar del historial." },
                         "presupuestoMaximo": { "type": "number", "description": "Extraer SOLAMENTE si el cliente menciona explícitamente un presupuesto o precio máximo en su ÚLTIMO mensaje. No adivinar ni reutilizar del historial." },
                         "habitacionesMinimas": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica un mínimo de habitaciones o cuartos en su ÚLTIMO mensaje. No adivinar ni reutilizar del historial." },
                         "antiguedadMaxima": { "type": "integer", "description": "Extraer SOLAMENTE si el cliente especifica años máximos de antigüedad en su ÚLTIMO mensaje (ej. 'nuevo' = 1, 'max 5 años' = 5). No adivinar ni reutilizar del historial." },
-                        "ciudad": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica una ciudad en su ÚLTIMO mensaje." },
-                        "sector": { "type": "string", "description": "Extraer SOLAMENTE si el cliente especifica un sector, barrio o zona en su ÚLTIMO mensaje." }
+                        "ciudad": { "type": "string", "description": "Extraer ÚNICAMENTE el nombre exacto de la ciudad (ej. 'Guayaquil', 'Cuenca'). NUNCA incluyas sectores o barrios aquí." },
+                        "sector": { "type": "string", "description": "Extraer ÚNICAMENTE el nombre del barrio o sector (ej. 'Sur', 'Urdesa'). NUNCA incluyas el nombre de la ciudad aquí (incorrecto: 'Sur de Cuenca', correcto: 'Sur')." }
                     },
                     "required": ["query"]
                 }
@@ -84,7 +84,7 @@ public static class AiToolDefinitions
             tools.Add(new AiToolDefinition
             {
                 Name = "SolicitarAsistenciaHumana",
-                Description = "Pide ayuda a un humano de forma OBLIGATORIA si detectas frustración, sarcasmo negativo, quejas repetitivas, lenguaje ofensivo, o si el cliente lo pide explícitamente.",
+                Description = "Pide ayuda a un humano de forma OBLIGATORIA si hay una Negociación de precio, o si detectas frustración, sarcasmo negativo, quejas repetitivas, lenguaje ofensivo, o si el cliente lo pide explícitamente.",
                 ParametersSchema = """
                 {
                     "type": "object",

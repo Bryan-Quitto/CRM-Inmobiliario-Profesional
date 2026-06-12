@@ -30,8 +30,8 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
             return "No se especificó un nombre válido de la propiedad a consultar.";
         }
 
-        string searchTerm = pNameStr.ToLower().Replace("-", " ").Trim();
-        var propiedadBase = await _context.Properties.FirstOrDefaultAsync(p => p.Titulo.ToLower().Contains(searchTerm));
+        string searchTerm = pNameStr.ToLower().Trim();
+        var propiedadBase = await _context.Properties.FirstOrDefaultAsync(p => p.Titulo.ToLower().Contains(searchTerm) || p.Id.ToString() == searchTerm);
 
         if (propiedadBase == null)
         {
