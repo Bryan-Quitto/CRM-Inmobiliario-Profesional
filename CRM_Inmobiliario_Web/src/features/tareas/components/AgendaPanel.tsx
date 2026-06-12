@@ -1,7 +1,7 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { ComandoPanel } from './ComandoPanel';
-import { buscarContactos } from '../../contactos/api/buscarContactos';
+import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import { useTareas } from '../context/useTareas';
 import { CrearTareaForm } from './CrearTareaForm';
@@ -232,10 +232,10 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
 
           if (resultado.contactoTexto) {
             try {
-              const contactos = await buscarContactos(resultado.contactoTexto);
+              const contactos = await getDropdownContactos(resultado.contactoTexto, 'General');
               if (contactos.length > 0) {
                 contactoId = contactos[0].id;
-                contactoLabel = contactos[0].nombreCompleto;
+                contactoLabel = contactos[0].nombre;
               }
             } catch (e) {
               console.error('[AsistenteParser] Error resolviendo contacto:', e);

@@ -104,6 +104,9 @@ public sealed class Property
     [Timestamp]
     public uint Version { get; set; }
 
+    [MaxLength(2000)]
+    public string NormalizedSearchText { get; set; } = string.Empty;
+
     [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "vector(1536)")]
     public Pgvector.Vector? VectorEmbedding { get; set; }
 

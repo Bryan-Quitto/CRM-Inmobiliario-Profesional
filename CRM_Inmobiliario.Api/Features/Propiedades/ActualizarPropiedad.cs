@@ -46,8 +46,9 @@ public static class ActualizarPropiedadFeature
 
     public static void MapActualizarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/propiedades/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IBackgroundJobClient backgroundJobs, CancellationToken ct) =>
+        app.MapPut("/propiedades/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IBackgroundJobClient backgroundJobs, ILogger<CrmDbContext> logger, CancellationToken ct) =>
         {
+            logger.LogInformation("ActualizarPropiedad {Id}: Inicio del request", id);
             var currentUserId = user.GetRequiredUserId();
 
             var propiedad = await context.Properties
@@ -57,6 +58,7 @@ public static class ActualizarPropiedadFeature
 
             if (propiedad is null)
             {
+                logger.LogWarning("ActualizarPropiedad {Id}: Propiedad no encontrada", id);
                 return Results.NotFound();
             }
 
@@ -159,14 +161,18 @@ public static class ActualizarPropiedadFeature
 
             try
             {
+                logger.LogInformation("ActualizarPropiedad {Id}: Iniciando SaveChangesAsync", id);
                 await context.SaveChangesAsync();
+                logger.LogInformation("ActualizarPropiedad {Id}: SaveChangesAsync exitoso", id);
                 
                 // Enqueue background job to update vector embedding
+                logger.LogInformation("ActualizarPropiedad {Id}: Encolando job de embedding", id);
                 backgroundJobs.Enqueue<PropertyEmbeddingJob>(j => j.ProcessPropertyAsync(propiedad.Id));
 
                 // Demote old owner if they no longer have properties
                 if (oldPropietarioId.HasValue && oldPropietarioId != command.PropietarioId)
                 {
+                    logger.LogInformation("ActualizarPropiedad {Id}: Demoteando antiguo propietario {PropietarioId}", id, oldPropietarioId);
                     var tienePropiedades = await context.Properties.AnyAsync(p => p.PropietarioId == oldPropietarioId);
                     if (!tienePropiedades)
                     {

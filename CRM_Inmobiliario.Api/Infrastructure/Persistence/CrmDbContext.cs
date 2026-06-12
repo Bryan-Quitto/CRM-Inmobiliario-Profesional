@@ -43,6 +43,7 @@ public sealed class CrmDbContext : DbContext
         {
             modelBuilder.HasPostgresExtension("unaccent");
             modelBuilder.HasPostgresExtension("vector");
+            modelBuilder.HasPostgresExtension("pg_trgm");
         }
         base.OnModelCreating(modelBuilder);
 
@@ -51,6 +52,18 @@ public sealed class CrmDbContext : DbContext
             .WithOne(m => m.AgentConversation)
             .HasForeignKey(m => m.AgentConversationId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Contacto>()
+            .HasIndex(c => c.NormalizedSearchText)
+            .HasDatabaseName("idx_contactos_search")
+            .HasMethod("gin")
+            .HasOperators("gin_trgm_ops");
+
+        modelBuilder.Entity<Property>()
+            .HasIndex(p => p.NormalizedSearchText)
+            .HasDatabaseName("idx_properties_search")
+            .HasMethod("gin")
+            .HasOperators("gin_trgm_ops");
 
         // Aplicar todas las configuraciones de IEntityTypeConfiguration encontradas en el ensamblado
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CrmDbContext).Assembly);
@@ -93,6 +106,26 @@ public sealed class CrmDbContext : DbContext
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        var contactEntries = ChangeTracker.Entries<Contacto>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+
+        foreach (var entry in contactEntries)
+        {
+            var c = entry.Entity;
+            c.NormalizedSearchText = NormalizeText($"{c.Nombre} {c.Apellido} {c.Email} {c.Telefono}");
+        }
+
+        var propertyEntries = ChangeTracker.Entries<Property>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+            .ToList();
+
+        foreach (var entry in propertyEntries)
+        {
+            var p = entry.Entity;
+            var text = NormalizeText($"{p.Titulo} {p.Descripcion} {p.Sector} {p.Ciudad}");
+            p.NormalizedSearchText = text.Length > 2000 ? text.Substring(0, 2000) : text;
+        }
+
         var entries = ChangeTracker.Entries<Contacto>()
             .Where(e => e.State == EntityState.Modified);
 
@@ -115,5 +148,23 @@ public sealed class CrmDbContext : DbContext
         }
 
         return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    public static string NormalizeText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        var normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+        var stringBuilder = new System.Text.StringBuilder();
+
+        foreach (var c in normalizedString)
+        {
+            var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+            {
+                stringBuilder.Append(c);
+            }
+        }
+
+        return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC).ToLowerInvariant();
     }
 }

@@ -9,7 +9,7 @@ import {
 import { Controller, type UseFormRegister, type UseFormHandleSubmit, type UseFormWatch, type FieldErrors, type Control, type UseFormSetValue } from 'react-hook-form';
 import { DynamicSearchSelect } from '../../../components/DynamicSearchSelect';
 import { TipoTareaSelect } from './TipoTareaSelect';
-import { buscarContactos } from '../../contactos/api/buscarContactos';
+import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import type { EditarTareaFormValues } from '../hooks/useEditarTarea';
 
@@ -90,8 +90,8 @@ export const EditarTareaFormContent = ({
             initialLabel={formData.contactoNombre}
             options={contactoOptions}
             onSearch={async (q) => {
-              const res = await buscarContactos(q);
-              return res.map(c => ({ id: c.id, title: c.nombreCompleto, subtitle: c.telefono }));
+              const res = await getDropdownContactos(q, 'General');
+              return res.map(c => ({ id: c.id, title: c.nombre, subtitle: c.referencia }));
             }}
             onChange={(id, title) => {
               field.onChange(id);

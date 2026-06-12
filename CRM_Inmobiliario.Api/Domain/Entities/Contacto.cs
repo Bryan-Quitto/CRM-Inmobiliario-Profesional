@@ -60,6 +60,14 @@ public sealed class Contacto
     public Guid AgenteId { get; set; }
     public Agent? Agente { get; set; }
 
+    public int NumeroInteracciones { get; set; } = 0;
+    public int NumeroIntereses { get; set; } = 0;
+    public int NumeroPropiedadesCaptadas { get; set; } = 0;
+    public int NumeroReservas { get; set; } = 0;
+    public int NumeroCierres { get; set; } = 0;
+
+    public string NormalizedSearchText { get; set; } = string.Empty;
+
     // Relaciones de navegación
     public ICollection<ContactoAgenteCompartido> CompartidoCon { get; set; } = new List<ContactoAgenteCompartido>();
     public ICollection<Property> PropertiesOwned { get; set; } = new List<Property>();

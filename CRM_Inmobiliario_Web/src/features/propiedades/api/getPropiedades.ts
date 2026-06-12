@@ -2,8 +2,17 @@ import { api } from '@/lib/axios';
 import type { Propiedad } from '../types';
 import type { PaginatedResponse } from '../hooks/usePropiedadesList/usePropiedadesData';
 
-export const getPropiedadesPaginated = async (url: string = '/propiedades'): Promise<PaginatedResponse<Propiedad>> => {
-  const { data } = await api.get<PaginatedResponse<Propiedad>>(url);
+interface GetPropiedadesParams {
+  [key: string]: unknown;
+  signal?: AbortSignal;
+}
+
+export const getPropiedadesPaginated = async (params: GetPropiedadesParams): Promise<PaginatedResponse<Propiedad>> => {
+  const { signal, ...queryParams } = params;
+  const { data } = await api.get<PaginatedResponse<Propiedad>>('/propiedades', {
+    params: queryParams,
+    signal
+  });
   return data;
 };
 

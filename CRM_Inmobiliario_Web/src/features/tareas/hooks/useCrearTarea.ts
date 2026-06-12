@@ -28,7 +28,9 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
   const { contactos, propiedades, addTarea } = useTareas();
 
   const contactoOptions = useMemo(() =>
-    contactos.map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
+    contactos
+      .filter(c => !c.esCompartido)
+      .map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
     [contactos]
   );
 

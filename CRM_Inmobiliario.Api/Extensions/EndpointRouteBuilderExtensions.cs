@@ -25,6 +25,7 @@ public static class EndpointRouteBuilderExtensions
         var apiGroup = endpoints.MapGroup("/api").RequireAuthorization();
 
         // Contactos
+        apiGroup.MapGetDropdownContactosEndpoint();
         apiGroup.MapRegistrarContactoEndpoint();
         apiGroup.MapBuscarContactosEndpoint();
         apiGroup.MapListarContactosEndpoint().CacheOutput();
@@ -41,6 +42,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapObtenerTokenUsageContactoEndpoint();
 
         // Propiedades
+        apiGroup.MapGetDropdownPropiedadesEndpoint();
         apiGroup.MapRegistrarPropiedadEndpoint();
         apiGroup.MapBuscarPropiedadesEndpoint();
         apiGroup.MapListarPropiedadesEndpoint().CacheOutput(p => p.Tag("properties-data"));

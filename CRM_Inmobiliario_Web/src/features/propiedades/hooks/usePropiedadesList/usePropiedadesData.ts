@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import useSWR from 'swr';
 import { getPropiedadesPaginated } from '../../api/getPropiedades';
 import { swrDefaultConfig } from '@/lib/swr';
@@ -19,11 +19,11 @@ export const usePropiedadesData = (queryParams: URLSearchParams, checkContactoId
     urlParams.set('checkContactoId', checkContactoId);
   }
 
-  const url = `/propiedades?${urlParams.toString()}`;
+  const paramsObj = Object.fromEntries(urlParams.entries());
   
   const { data, isLoading, isValidating: syncing, mutate } = useSWR<PaginatedResponse<Propiedad>>(
-    url,
-    getPropiedadesPaginated,
+    ['/propiedades', paramsObj],
+    ([, p]: [string, Record<string, unknown>], extraArgs?: { signal?: AbortSignal }) => getPropiedadesPaginated({ ...p, signal: extraArgs?.signal }),
     { ...swrDefaultConfig, keepPreviousData: true }
   );
 
@@ -31,6 +31,19 @@ export const usePropiedadesData = (queryParams: URLSearchParams, checkContactoId
   const totalCount = data?.totalCount || 0;
   const countVentas = data?.countVentas || 0;
   const countAlquiler = data?.countAlquiler || 0;
+
+  const totalPages = Math.ceil(totalCount / (Number(urlParams.get('pageSize')) || 50));
+  const currentPage = Number(urlParams.get('pageNumber')) || 1;
+
+  // Prefetch de la siguiente página para zero-wait
+  useEffect(() => {
+    if (data && currentPage < totalPages) {
+      import('swr').then(({ preload }) => {
+        preload(['/propiedades', { ...paramsObj, pageNumber: currentPage + 1 }], ([, p]: [string, Record<string, unknown>]) => getPropiedadesPaginated(p as Record<string, unknown>));
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, totalPages, JSON.stringify(paramsObj), data]);
 
   const stats = useMemo(() => ({
     total: totalCount,

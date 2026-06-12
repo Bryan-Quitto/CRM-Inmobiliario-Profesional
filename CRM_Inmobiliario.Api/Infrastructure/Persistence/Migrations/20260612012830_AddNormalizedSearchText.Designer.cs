@@ -3,6 +3,7 @@ using System;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260612012830_AddNormalizedSearchText")]
+    partial class AddNormalizedSearchText
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -796,11 +799,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Property<int?>("MediosBanos")
                         .HasColumnType("integer");
 
-                    b.Property<string>("NormalizedSearchText")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
                     b.Property<string>("Operacion")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -863,12 +861,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("GeminiEmbedding"), "hnsw");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("GeminiEmbedding"), new[] { "vector_cosine_ops" });
-
-                    b.HasIndex("NormalizedSearchText")
-                        .HasDatabaseName("idx_properties_search");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("NormalizedSearchText"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("NormalizedSearchText"), new[] { "gin_trgm_ops" });
 
                     b.HasIndex("PropietarioId");
 

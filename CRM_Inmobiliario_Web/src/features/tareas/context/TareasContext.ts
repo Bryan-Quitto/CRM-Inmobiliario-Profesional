@@ -1,12 +1,12 @@
 import { createContext } from 'react';
 import type { Tarea } from '../types';
-import type { Contacto } from '../../contactos/types';
+import type { DropdownContactoResponse } from '../../contactos/api/getDropdownContactos';
 import type { Propiedad } from '../../propiedades/types';
 
 export interface TareasContextType {
   tareas: Tarea[];
   loading: boolean;
-  contactos: Contacto[];
+  contactos: DropdownContactoResponse[];
   loadingContactos: boolean;
   propiedades: Propiedad[];
   loadingPropiedades: boolean;

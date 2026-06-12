@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import useSWR from 'swr';
+import useSWR, { preload } from 'swr';
 import { getContactos, type GetContactosResponse } from '../api/getContactos';
 import { swrDefaultConfig } from '@/lib/swr';
 import { useContactosFiltering } from './useContactosFiltering';
@@ -34,7 +34,7 @@ export const useContactosList = () => {
   const sortBy = searchParams.get('sortBy') || undefined;
   const sortDirection = searchParams.get('sortDirection') || undefined;
   
-  const params = { 
+  const params = useMemo(() => ({ 
     page, 
     pageSize: 20, 
     search, 
@@ -45,12 +45,13 @@ export const useContactosList = () => {
     estadoPropietario: estadoPropietario === 'Todos' ? undefined : estadoPropietario,
     sortBy,
     sortDirection
-  };
+  }), [page, search, estado, activeSegment, visibilidad, origen, estadoPropietario, sortBy, sortDirection]);
 
   const { data: responseData, isLoading, isValidating, mutate } = useSWR<GetContactosResponse>(
     ['/contactos', params],
-    () => getContactos(params),
-    { ...swrDefaultConfig, refreshInterval: 5000, keepPreviousData: true }
+    // SWR 2.x extraArgs podría ser undefined si no está habilitado, prevenir TypeError
+    ([, p]: [string, Record<string, unknown>], extraArgs?: { signal?: AbortSignal }) => getContactos({ ...p, signal: extraArgs?.signal }),
+    { ...swrDefaultConfig, keepPreviousData: true }
   );
 
   const { cambiarEtapa } = useContactoCommercialLogic();
@@ -93,6 +94,13 @@ export const useContactosList = () => {
 
   // Merge the totalPages logic into the return since filteredContactos is removed
   const totalPages = Math.ceil((responseData?.totalCount || 0) / 20);
+
+  // Prefetch de la siguiente página para zero-wait
+  useEffect(() => {
+    if (responseData && page < totalPages) {
+      preload(['/contactos', { ...params, page: page + 1 }], ([, p]: [string, Record<string, unknown>]) => getContactos(p as Record<string, unknown>));
+    }
+  }, [page, totalPages, params, responseData]);
 
   const handleStageChange = (id: string, nuevaEtapa: string, tipo: 'contacto' | 'propietario' = 'contacto') => {
     const contacto = allContactos.find(c => c.id === id);

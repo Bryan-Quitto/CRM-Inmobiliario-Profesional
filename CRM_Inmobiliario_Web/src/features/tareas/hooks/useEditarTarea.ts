@@ -56,11 +56,13 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
   });
 
   const contactoOptions = useMemo(() => 
-    contactos.map(c => ({ 
-      id: c.id, 
-      title: [c.nombre, c.apellido].filter(Boolean).join(' '), 
-      subtitle: c.telefono 
-    })),
+    contactos
+      .filter(c => !c.esCompartido)
+      .map(c => ({ 
+        id: c.id, 
+        title: [c.nombre, c.apellido].filter(Boolean).join(' '), 
+        subtitle: c.telefono 
+      })),
     [contactos]
   );
 

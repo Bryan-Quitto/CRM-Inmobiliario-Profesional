@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect } from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import { getTareas } from '../api/getTareas';
-import { getContactos } from '../../contactos/api/getContactos';
+import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import type { Tarea } from '../types';
 import type { Propiedad } from '../../propiedades/types';
@@ -15,12 +15,11 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     swrDefaultConfig
   );
 
-  const { data: contactosResponse, isValidating: loadingContactos } = useSWR(
-    ['/contactos', { pageSize: 1000 }],
-    () => getContactos({ pageSize: 1000 }),
+  const { data: contactos = [], isValidating: loadingContactos } = useSWR(
+    '/contactos/dropdown',
+    () => getDropdownContactos(),
     swrDefaultConfig
   );
-  const contactos = contactosResponse?.items || [];
 
   const { data: propiedades = [], isValidating: loadingPropiedades } = useSWR<Propiedad[]>(
     '/propiedades',

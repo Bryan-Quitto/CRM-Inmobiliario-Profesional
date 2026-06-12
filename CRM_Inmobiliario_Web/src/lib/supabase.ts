@@ -7,4 +7,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+  auth: {
+    persistSession: true,
+    // Apagar el autorefresh asíncrono para eliminar por completo los cuellos de botella 
+    // de _onVisibilityChanged que congelaban la UI. Axios ya maneja el logout al dar 401.
+    autoRefreshToken: false,
+  }
+});

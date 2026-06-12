@@ -2,6 +2,11 @@ using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
+using CRM_Inmobiliario.Api.Domain.Entities;
+using Microsoft.Extensions.Caching.Memory;
+
+using CRM_Inmobiliario.Api.Infrastructure.Caching;
 
 namespace CRM_Inmobiliario.Api.Features.Contactos;
 
@@ -47,20 +52,21 @@ public static class ListarContactosFeature
 
     public static RouteHandlerBuilder MapListarContactosEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/contactos", async ([AsParameters] GetContactosRequest request, ClaimsPrincipal user, CrmDbContext context, CancellationToken cancellationToken) =>
+        return app.MapGet("/contactos", async ([AsParameters] GetContactosRequest request, ClaimsPrincipal user, CrmDbContext context, IServiceProvider serviceProvider, CancellationToken cancellationToken) =>
         {
+            var sw = Stopwatch.StartNew();
             var agenteId = user.GetRequiredUserId();
 
-            var baseQuery = context.Contactos
-                .AsNoTracking()
-                .Where(l => l.AgenteId == agenteId || l.CompartidoCon.Any(c => c.AgenteId == agenteId));
+            var propios = context.Contactos.Where(l => l.AgenteId == agenteId);
+            var compartidos = context.Contactos.Where(l => l.CompartidoCon.Any(c => c.AgenteId == agenteId));
+            
+            // Usar Concat (UNION ALL) en lugar de OR/EXISTS para forzar Index Scan en Postgres
+            var baseQuery = propios.Concat(compartidos).AsNoTracking();
 
             if (!string.IsNullOrEmpty(request.Search))
             {
-                var searchPattern = $"%{request.Search}%";
-                baseQuery = baseQuery.Where(c => EF.Functions.ILike(
-                    EF.Functions.Unaccent(c.Nombre + " " + (c.Apellido ?? "")), 
-                    EF.Functions.Unaccent(searchPattern)));
+                var searchPattern = $"%{CrmDbContext.NormalizeText(request.Search)}%";
+                baseQuery = baseQuery.Where(c => EF.Functions.ILike(c.NormalizedSearchText, searchPattern));
             }
 
             if (!string.IsNullOrEmpty(request.Estado))
@@ -97,52 +103,76 @@ public static class ListarContactosFeature
             var sortBy = request.SortBy?.ToLower() ?? "fechacreacion";
             var isDesc = request.SortDirection != "asc";
 
-            var resultList = await baseQuery
-                .GroupBy(x => 1)
-                .Select(g => new GetContactosResponse(
-                    (sortBy == "nombre" ? (isDesc ? g.OrderByDescending(l => l.Nombre).ThenByDescending(l => l.Id) : g.OrderBy(l => l.Nombre).ThenBy(l => l.Id)) :
-                     sortBy == "intereses" ? (isDesc ? g.OrderByDescending(l => l.PropertyInterests.Count).ThenByDescending(l => l.Id) : g.OrderBy(l => l.PropertyInterests.Count).ThenBy(l => l.Id)) :
-                     sortBy == "propiedades" ? (isDesc ? g.OrderByDescending(l => l.PropertiesOwned.Count).ThenByDescending(l => l.Id) : g.OrderBy(l => l.PropertiesOwned.Count).ThenBy(l => l.Id)) :
-                     sortBy == "interacciones" ? (isDesc ? g.OrderByDescending(l => l.Interactions.Count).ThenByDescending(l => l.Id) : g.OrderBy(l => l.Interactions.Count).ThenBy(l => l.Id)) :
-                     (isDesc ? g.OrderByDescending(l => l.FechaCreacion).ThenByDescending(l => l.Id) : g.OrderBy(l => l.FechaCreacion).ThenBy(l => l.Id)))
-                     .Skip((request.Page - 1) * request.PageSize)
-                     .Take(request.PageSize)
-                     .Select(l => new ContactoResponse(
-                         l.Id,
-                         l.Nombre,
-                         l.Apellido,
-                         l.AgenteId == agenteId ? l.Email : "oculto@privado.com",
-                         l.AgenteId == agenteId ? l.Telefono : "***-***-****",
-                         l.Origen,
-                         l.EtapaEmbudo,
-                         l.EstadoPropietario,
-                         l.EsProspecto,
-                         l.EsPropietario,
-                         l.FechaCreacion,
-                         l.AgenteId != agenteId,
-                         l.AgenteId != agenteId ? $"{l.Agente!.Nombre} {l.Agente.Apellido}" : null,
-                         l.Interactions.Count,
-                         l.PropertyInterests.Count,
-                         l.PropertiesOwned.Count,
-                         l.PropertiesClosed.Count(p => p.EstadoComercial == "Reservada"),
-                         l.PropertiesClosed.Count(p => p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada")))
-                     .ToList(),
-                    g.Count(),
-                    g.Count(c => c.EtapaEmbudo == "Nuevo"),
-                    g.Count(c => c.EtapaEmbudo == "En Negociacion")
-                )).ToListAsync(cancellationToken);
-
-            var result = resultList.FirstOrDefault();
-
-            if (result == null)
+            var countsCacheKey = $"Contactos_Counts_{agenteId}_{request.Search}_{request.Estado}_{request.Segmento}_{request.Visibilidad}_{request.Origen}_{request.EstadoPropietario}";
+            
+            var counts = await serviceProvider.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>().GetOrCreateAsync(countsCacheKey, async entry => 
             {
-                return Results.Ok(new GetContactosResponse(new List<ContactoResponse>(), 0, 0, 0));
-            }
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                var swCount = Stopwatch.StartNew();
+                // Implementación The One Trip Pattern: Consolidar conteos en un solo viaje
+                var result = await baseQuery
+                    .GroupBy(c => 1)
+                    .Select(g => new {
+                        TotalCount = g.Count(),
+                        NuevosCount = g.Count(c => c.EtapaEmbudo == "Nuevo"),
+                        EnNegociacionCount = g.Count(c => c.EtapaEmbudo == "En Negociacion")
+                    })
+                    .FirstOrDefaultAsync(cancellationToken) ?? new { TotalCount = 0, NuevosCount = 0, EnNegociacionCount = 0 };
+                swCount.Stop();
+                Console.WriteLine($"[API] Calculó Counts en {swCount.ElapsedMilliseconds}ms (Caché Miss)");
+                return result;
+            });
 
+            var totalCount = counts!.TotalCount;
+            var nuevosCount = counts.NuevosCount;
+            var enNegociacionCount = counts.EnNegociacionCount;
+
+            IQueryable<Contacto> orderedQuery = sortBy switch
+            {
+                "nombre" => isDesc ? baseQuery.OrderByDescending(l => l.Nombre).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.Nombre).ThenBy(l => l.Id),
+                "intereses" => isDesc ? baseQuery.OrderByDescending(l => l.NumeroIntereses).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.NumeroIntereses).ThenBy(l => l.Id),
+                "propiedades" => isDesc ? baseQuery.OrderByDescending(l => l.NumeroPropiedadesCaptadas).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.NumeroPropiedadesCaptadas).ThenBy(l => l.Id),
+                "interacciones" => isDesc ? baseQuery.OrderByDescending(l => l.NumeroInteracciones).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.NumeroInteracciones).ThenBy(l => l.Id),
+                _ => isDesc ? baseQuery.OrderByDescending(l => l.FechaCreacion).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.FechaCreacion).ThenBy(l => l.Id)
+            };
+
+            var items = await orderedQuery
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(l => new ContactoResponse(
+                    l.Id,
+                    l.Nombre,
+                    l.Apellido,
+                    l.AgenteId == agenteId ? l.Email : "oculto@privado.com",
+                    l.AgenteId == agenteId ? l.Telefono : "***-***-****",
+                    l.Origen,
+                    l.EtapaEmbudo,
+                    l.EstadoPropietario,
+                    l.EsProspecto,
+                    l.EsPropietario,
+                    l.FechaCreacion,
+                    l.AgenteId != agenteId,
+                    l.AgenteId != agenteId ? $"{l.Agente!.Nombre} {l.Agente.Apellido}" : null,
+                    l.NumeroInteracciones,
+                    l.NumeroIntereses,
+                    l.NumeroPropiedadesCaptadas,
+                    l.NumeroReservas,
+                    l.NumeroCierres
+                ))
+                .ToListAsync(cancellationToken);
+
+            sw.Stop();
+            Console.WriteLine($"[API] ListarContactos (Backend) tardó {sw.ElapsedMilliseconds} ms (Con Datos) para página {request.Page}");
+
+            var result = new GetContactosResponse(items, totalCount, nuevosCount, enNegociacionCount);
             return Results.Ok(result);
         })
         .RequireAuthorization()
         .WithTags("Contactos")
-        .WithName("ListarContactos");
+        .WithName("ListarContactos")
+        .CacheOutput(policy => policy
+            .AddPolicy<AuthenticatedOutputCachePolicy>()
+            .Expire(TimeSpan.FromHours(1))
+            .Tag("contactos"));
     }
 }

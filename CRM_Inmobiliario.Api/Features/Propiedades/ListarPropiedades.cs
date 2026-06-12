@@ -117,10 +117,8 @@ public static class ListarPropiedadesFeature
             // Aplicar filtros dinámicos
             if (!string.IsNullOrWhiteSpace(request.SearchQuery))
             {
-                var search = $"%{request.SearchQuery}%";
-                query = query.Where(p => EF.Functions.ILike(EF.Functions.Unaccent(p.Titulo), EF.Functions.Unaccent(search)) ||
-                                         EF.Functions.ILike(EF.Functions.Unaccent(p.Sector), EF.Functions.Unaccent(search)) ||
-                                         EF.Functions.ILike(EF.Functions.Unaccent(p.Ciudad), EF.Functions.Unaccent(search)));
+                var searchPattern = $"%{CrmDbContext.NormalizeText(request.SearchQuery)}%";
+                query = query.Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern));
             }
 
             if (!string.IsNullOrWhiteSpace(request.EstadoComercial) && request.EstadoComercial != "Todos")
