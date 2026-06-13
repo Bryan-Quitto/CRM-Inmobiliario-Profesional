@@ -17,10 +17,10 @@ public static class ChatSerializer
         return JsonSerializer.Serialize(history, _jsonOptions);
     }
 
-    public static List<AiMessage> DeserializeHistory(string json, bool leadExists, string? leadName, bool isFirstMessage = false)
+    public static List<AiMessage> DeserializeHistory(string json, bool leadExists, string? leadName, bool isFirstMessage = false, string? corporateContext = null, string? personalContext = null)
     {
         var history = JsonSerializer.Deserialize<List<AiMessage>>(json, _jsonOptions) ?? new List<AiMessage>();
-        var systemPrompt = SystemPromptFactory.GetSystemPrompt(leadExists, leadName, isFirstMessage);
+        var systemPrompt = SystemPromptFactory.GetSystemPrompt(leadExists, leadName, isFirstMessage, corporateContext, personalContext);
         
         foreach (var msg in history)
         {

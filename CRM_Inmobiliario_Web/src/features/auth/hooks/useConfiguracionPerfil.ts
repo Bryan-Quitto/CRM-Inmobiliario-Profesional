@@ -10,6 +10,8 @@ export interface FormDataPerfil {
   agenciaId: string;
   fotoUrl: string;
   logoUrl: string;
+  direccionFisica: string;
+  promptPersonalIA: string;
 }
 
 export interface PwdData {
@@ -30,7 +32,9 @@ export const useConfiguracionPerfil = () => {
     telefono: '',
     agenciaId: '',
     fotoUrl: '',
-    logoUrl: ''
+    logoUrl: '',
+    direccionFisica: '',
+    promptPersonalIA: ''
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -63,7 +67,9 @@ export const useConfiguracionPerfil = () => {
         telefono: perfil.telefono ?? '',
         agenciaId: perfil.agenciaId ?? '',
         fotoUrl: perfil.fotoUrl ?? '',
-        logoUrl: perfil.logoUrl ?? ''
+        logoUrl: perfil.logoUrl ?? '',
+        direccionFisica: perfil.direccionFisica ?? '',
+        promptPersonalIA: perfil.promptPersonalIA ?? ''
       });
       lastSyncedData.current = perfil;
       isInitialized.current = true;
@@ -78,7 +84,9 @@ export const useConfiguracionPerfil = () => {
           telefono: prev.telefono !== (lastSyncedData.current?.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
           agenciaId: prev.agenciaId !== (lastSyncedData.current?.agenciaId ?? '') ? prev.agenciaId : (perfil.agenciaId ?? ''),
           fotoUrl: prev.fotoUrl !== (lastSyncedData.current?.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
-          logoUrl: prev.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? '')
+          logoUrl: prev.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? ''),
+          direccionFisica: prev.direccionFisica !== (lastSyncedData.current?.direccionFisica ?? '') ? prev.direccionFisica : (perfil.direccionFisica ?? ''),
+          promptPersonalIA: prev.promptPersonalIA !== (lastSyncedData.current?.promptPersonalIA ?? '') ? prev.promptPersonalIA : (perfil.promptPersonalIA ?? '')
         };
         lastSyncedData.current = perfil;
         return merged;

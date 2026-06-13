@@ -9,6 +9,20 @@ export interface Agency {
   id: string;
   nombre: string;
   fechaCreacion: string;
+  telefonoCorporativo?: string | null;
+  emailCorporativo?: string | null;
+  direccionFisica?: string | null;
+  sitioWeb?: string | null;
+  contextoCorporativoIA?: string | null;
+}
+
+export interface AgencyData {
+  nombre: string;
+  telefonoCorporativo?: string | null;
+  emailCorporativo?: string | null;
+  direccionFisica?: string | null;
+  sitioWeb?: string | null;
+  contextoCorporativoIA?: string | null;
 }
 
 export const invitarAgente = async (data: InvitarAgenteRequest) => {
@@ -21,7 +35,12 @@ export const listarAgencias = async (): Promise<Agency[]> => {
   return response.data;
 };
 
-export const crearAgencia = async (nombre: string): Promise<Agency> => {
-  const response = await api.post('/configuracion/agencias', { nombre });
+export const crearAgencia = async (data: AgencyData): Promise<Agency> => {
+  const response = await api.post('/configuracion/agencias', data);
+  return response.data;
+};
+
+export const actualizarAgencia = async (id: string, data: AgencyData): Promise<Agency> => {
+  const response = await api.put(`/configuracion/agencias/${id}`, data);
   return response.data;
 };

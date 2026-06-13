@@ -11,6 +11,8 @@ export interface PerfilAgente {
   agenciaId?: string | null;
   fotoUrl?: string;
   logoUrl?: string;
+  direccionFisica?: string;
+  promptPersonalIA?: string;
   rol: string;
   fechaCreacion: string;
 }

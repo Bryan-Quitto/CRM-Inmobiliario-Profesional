@@ -34,6 +34,7 @@ const ConfiguracionIA = lazy(() => import('./features/configuracion/components/C
 const ConfiguracionIntegracionIA = lazy(() => import('./features/configuracion/components/ConfiguracionIntegracionIA').then(m => ({ default: m.ConfiguracionIntegracionIA })));
 const ConfiguracionOrganizacion = lazy(() => import('./features/configuracion/components/ConfiguracionOrganizacion').then(m => ({ default: m.ConfiguracionOrganizacion })));
 const ConfiguracionAgentes = lazy(() => import('./features/configuracion/components/ConfiguracionAgentes').then(m => ({ default: m.ConfiguracionAgentes })));
+const ConfiguracionAgencias = lazy(() => import('./features/configuracion/components/ConfiguracionAgencias').then(m => ({ default: m.ConfiguracionAgencias })));
 const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad })));
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
 
@@ -111,6 +112,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="integracion-ia" element={<ConfiguracionIntegracionIA />} />
                 <Route path="organizacion" element={<AdminRoute><ConfiguracionOrganizacion /></AdminRoute>} />
                 <Route path="agentes" element={<AdminRoute><ConfiguracionAgentes /></AdminRoute>} />
+                <Route path="agencias" element={<AdminRoute><ConfiguracionAgencias /></AdminRoute>} />
                 <Route path="seguridad" element={<AdminRoute><ConfiguracionSeguridad /></AdminRoute>} />
               </Route>
               <Route path="/confirmar-password" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />

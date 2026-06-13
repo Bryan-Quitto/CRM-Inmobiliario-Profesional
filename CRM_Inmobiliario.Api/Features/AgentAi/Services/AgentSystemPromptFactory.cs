@@ -4,7 +4,7 @@ namespace CRM_Inmobiliario.Api.Features.AgentAi.Services;
 
 public class AgentSystemPromptFactory
 {
-    public string CreatePrompt()
+    public string CreatePrompt(string? corporateContext = null)
     {
         var ecuadorTime = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
         var basePrompt = $@"Eres un asistente virtual de IA (Copilot) altamente inteligente integrado en un CRM Inmobiliario.
@@ -27,6 +27,10 @@ Reglas Especiales para Herramientas:
   - `/ia-logs/whatsapp` → Logs de conversaciones de WhatsApp
   Si el usuario pide algo que NO corresponde a ninguna de estas secciones, indícaselo claramente sin inventar rutas. Para rutas dinámicas (ej. perfil de un contacto específico), usa `/contactos/{{id}}` con el ID real obtenido de una herramienta previa.";
 
+        if (!string.IsNullOrWhiteSpace(corporateContext))
+        {
+            basePrompt += "\n\n--- CONTEXTO CORPORATIVO (REGLAS DE LA AGENCIA) ---\n" + corporateContext;
+        }
 
         return basePrompt;
     }

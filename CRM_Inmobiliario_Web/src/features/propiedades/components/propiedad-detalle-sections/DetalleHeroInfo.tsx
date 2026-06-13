@@ -1,4 +1,4 @@
-import { MapPin, Handshake, User } from 'lucide-react';
+import { MapPin, Handshake, User, ExternalLink } from 'lucide-react';
 import type { Propiedad } from '../../types';
 
 interface DetalleHeroInfoProps {
@@ -33,6 +33,17 @@ export const DetalleHeroInfo = ({ propiedad, formatCurrency }: DetalleHeroInfoPr
               <User className="h-3 w-3 text-amber-500" />
               Propietario: {propiedad.propietarioNombre || 'No asignado'}
             </span>
+          )}
+          {propiedad.urlRemax && (
+            <a 
+              href={propiedad.urlRemax} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest flex items-center gap-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
+            >
+              <ExternalLink className="h-3 w-3 text-rose-500" />
+              Ver en RE/MAX
+            </a>
           )}
         </div>
         <h1 className="text-4xl font-black text-slate-900 contactoing-tight tracking-tight">{propiedad.titulo}</h1>

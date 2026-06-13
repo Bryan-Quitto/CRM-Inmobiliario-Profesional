@@ -70,6 +70,33 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
               />
             </div>
 
+            {/* Dirección Física */}
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Dirección Física (Sucursal)</label>
+              <input
+                type="text"
+                value={formData.direccionFisica}
+                onChange={(e) => setFormData({ ...formData, direccionFisica: e.target.value })}
+                className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                placeholder="Dirección de la sucursal donde trabajas"
+              />
+            </div>
+
+            {/* Prompt Personal IA */}
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Personalidad de tu IA (Prompt Personal)</label>
+              <textarea
+                value={formData.promptPersonalIA}
+                onChange={(e) => setFormData({ ...formData, promptPersonalIA: e.target.value })}
+                rows={3}
+                className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700 resize-none"
+                placeholder="Ej. Soy Juan Pérez. Uso emojis amigables. Siempre intento agendar una visita antes del viernes."
+              />
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider ml-1 mt-1">
+                * Tu IA unirá esto a las reglas corporativas globales.
+              </p>
+            </div>
+
             {/* Agencia (Solo lectura) */}
             <div className="md:col-span-2 space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Agencia Asociada</label>

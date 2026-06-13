@@ -36,6 +36,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<AgentMessage> AgentMessages => Set<AgentMessage>();
     public DbSet<FacebookConversation> FacebookConversations => Set<FacebookConversation>();
     public DbSet<FacebookMessage> FacebookMessages => Set<FacebookMessage>();
+    public DbSet<AgentPushSubscription> AgentPushSubscriptions => Set<AgentPushSubscription>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

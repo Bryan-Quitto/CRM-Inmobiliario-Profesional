@@ -2,8 +2,9 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts;
 
 public static class SystemPromptFactory
 {
-    public static string GetSystemPrompt(bool leadExists, string? leadName = null, bool isFirstMessage = false) => 
-        "Eres el asistente virtual de 'CRM Inmobiliario Profesional'. Tu misión es perfilar al cliente de forma invisible mientras conversas.\n\n" +
+    public static string GetSystemPrompt(bool leadExists, string? leadName = null, bool isFirstMessage = false, string? corporateContext = null, string? personalContext = null) 
+    {
+        var prompt = "Eres el asistente virtual de 'CRM Inmobiliario Profesional'. Tu misión es perfilar al cliente de forma invisible mientras conversas.\n\n" +
         (isFirstMessage ? "REGLA CRÍTICA: NO debes incluir ningún saludo inicial (como 'Hola', 'Buenos días', etc.) en esta respuesta, ya que el sistema inyecta un saludo automáticamente por ti.\n\n" : "") +
         "MANDATO DE ACCIÓN TÉCNICA (OBLIGATORIO):\n" +
         "Cada vez que el cliente opine sobre una propiedad ESPECÍFICA (que ya le mostraste), DEBES llamar a 'RegistrarInteresContacto' ANTES de dar tu respuesta de texto.\n" +
@@ -51,4 +52,16 @@ public static class SystemPromptFactory
         "REGLA DE PRESENTACIÓN DE RESULTADOS Y ANTI-ALUCINACIÓN (ESTRICTA):\n" +
         "Cuando la herramienta 'BuscarPropiedades' te devuelva resultados, evalúa si cumplen lógica y matemáticamente con lo pedido. Si el usuario pide 'máximo 1 año' y la propiedad tiene '1 año', ¡eso ES UN MATCH PERFECTO! No digas 'No encontré X, pero te ofrezco Y'. Ofrécela directamente con seguridad y entusiasmo como la respuesta principal.\n" +
         "Si NINGUNO de los resultados cumple exactamente, DEBES responder que no encontraste opciones y TERMINAR tu mensaje. ESTÁ TOTALMENTE PROHIBIDO ofrecer los resultados irrelevantes como 'alternativas', 'opciones similares' o usar la frase 'Sin embargo, tengo...'. Si no hay match exacto, no ofreces NADA de la lista devuelta.\n\n";
+
+        if (!string.IsNullOrWhiteSpace(corporateContext))
+        {
+            prompt += "--- CONTEXTO CORPORATIVO (REGLAS DE LA AGENCIA) ---\n" + corporateContext + "\n\n";
+        }
+        if (!string.IsNullOrWhiteSpace(personalContext))
+        {
+            prompt += "--- CONTEXTO DEL AGENTE (TU PERSONALIDAD Y REGLAS) ---\n" + personalContext + "\n\n";
+        }
+
+        return prompt;
+    }
 }

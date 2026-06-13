@@ -43,7 +43,7 @@ public sealed class FacebookAiService
         try
         {
             await using var dbContextCheck = await _dbFactory.CreateDbContextAsync(ct);
-            var agente = await dbContextCheck.Agents.FirstOrDefaultAsync(a => a.FacebookPageId == pageId, ct);
+            var agente = await dbContextCheck.Agents.Include(a => a.Agencia).FirstOrDefaultAsync(a => a.FacebookPageId == pageId, ct);
             if (agente is null)
             {
                 _logger.LogWarning("No hay agente configurado para la página de Facebook {PageId}.", pageId);
@@ -99,7 +99,7 @@ public sealed class FacebookAiService
             var provider = _providerFactory.GetProvider(providerName, apiKey);
 
             var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools("Facebook");
-            var aiMessages = BuildAiMessages(ctx.Agente.Nombre, ctx.Agente.Apellido, history);
+            var aiMessages = BuildAiMessages(ctx.Agente.Nombre, ctx.Agente.Apellido, history, ctx.Agente.Agencia?.ContextoCorporativoIA, ctx.Agente.PromptPersonalIA);
 
             var (response, streamTotalTokens, streamInputTokens, streamOutputTokens) = await FacebookAiLoopHelper.RunLoopAsync(
                 provider,
@@ -243,7 +243,8 @@ public sealed class FacebookAiService
 
     private static List<AiMessage> BuildAiMessages(
         string nombre, string apellido,
-        List<(string Role, string Content)> history)
+        List<(string Role, string Content)> history,
+        string? corporateContext, string? personalContext)
     {
         var agentName = $"{nombre} {apellido}".Trim();
         var systemPrompt = $"Eres el asistente virtual de {agentName}, especializado en bienes raíces. " +
@@ -264,6 +265,15 @@ public sealed class FacebookAiService
             "📅 Antigüedad: X años\n" +
             "📝 Nota: _[Si el cliente preguntó por algo específico como mascotas, alícuota o insonorización, saca ese dato de la Descripción de la propiedad y ponlo aquí en cursiva. Si no preguntó nada, omite esta línea completa]_\n" +
             "🔗 [Ver más detalles aquí](UrlRemax)";
+
+        if (!string.IsNullOrWhiteSpace(corporateContext))
+        {
+            systemPrompt += "\n\n--- CONTEXTO CORPORATIVO (REGLAS DE LA AGENCIA) ---\n" + corporateContext;
+        }
+        if (!string.IsNullOrWhiteSpace(personalContext))
+        {
+            systemPrompt += "\n\n--- CONTEXTO DEL AGENTE (TU PERSONALIDAD Y REGLAS) ---\n" + personalContext;
+        }
 
         if (history.Count == 1)
         {

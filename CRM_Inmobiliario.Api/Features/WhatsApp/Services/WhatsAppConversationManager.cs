@@ -48,6 +48,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         string searchPhone = phone.StartsWith("+") ? phone : "+" + phone;
         var contacto = await _context.Contactos
             .Include(c => c.Agente)
+            .ThenInclude(a => a!.Agencia)
             .FirstOrDefaultAsync(l => (l.Telefono == phone || l.Telefono == searchPhone) && l.AgenteId == agente!.Id, cancellationToken);
         
         if (contacto == null && agente != null && autoCreate)
@@ -169,7 +170,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
 
         if (isFirstMessage)
         {
-            history = new List<ChatMessage> { new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage)) };
+            history = new List<ChatMessage> { new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage, contacto?.Agente?.Agencia?.ContextoCorporativoIA, contacto?.Agente?.PromptPersonalIA)) };
             conversation = new WhatsappConversation
             {
                 Id = Guid.NewGuid(),
@@ -182,12 +183,12 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         }
         else
         {
-            history = _promptBuilder.DeserializeHistory(conversation!.HistorialJson ?? "[]", contactExists, contacto?.Nombre, isFirstMessage);
+            history = _promptBuilder.DeserializeHistory(conversation!.HistorialJson ?? "[]", contactExists, contacto?.Nombre, isFirstMessage, contacto?.Agente?.Agencia?.ContextoCorporativoIA, contacto?.Agente?.PromptPersonalIA);
             
             // Reemplazar siempre el prompt del sistema antiguo con la versión más reciente del código
             if (history.Count > 0 && history[0].Role == ChatRole.System)
             {
-                history[0] = new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage));
+                history[0] = new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage, contacto?.Agente?.Agencia?.ContextoCorporativoIA, contacto?.Agente?.PromptPersonalIA));
             }
         }
 
@@ -209,7 +210,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         if (history.Count > 12) 
         {
             var systemMessage = history.FirstOrDefault(m => m.Role == ChatRole.System) 
-                                ?? new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage));
+                                ?? new ChatMessage(ChatRole.System, _promptBuilder.GetSystemPrompt(contactExists, contacto?.Nombre, isFirstMessage, contacto?.Agente?.Agencia?.ContextoCorporativoIA, contacto?.Agente?.PromptPersonalIA));
             
             var transactionalMessages = history.Where(m => m.Role != ChatRole.System).ToList();
             var messagesToCompress = transactionalMessages.Take(6).ToList();

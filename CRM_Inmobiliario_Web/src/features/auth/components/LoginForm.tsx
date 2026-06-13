@@ -52,14 +52,12 @@ export const LoginForm: React.FC = () => {
       <div className="w-full max-w-md animate-in fade-in zoom-in duration-700">
         {/* Logo y Encabezado */}
         <div className="flex flex-col items-center mb-10">
-          <div className="h-16 w-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-blue-600/40 mb-6">
-            C
-          </div>
+          <img src="/logo.png" alt="Lúmina Logo" className="h-20 w-20 object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.5)] mb-4" />
           <h1 className="text-3xl font-black text-white tracking-tight text-center">
-            CRM<span className="text-blue-500">Pro</span>
+            Lúmina
           </h1>
           <p className="text-slate-400 mt-2 font-bold uppercase tracking-[0.2em] text-[10px]">
-            Inmobiliaria Profesional
+            CRM Inmobiliario
           </p>
         </div>
 
@@ -133,7 +131,7 @@ export const LoginForm: React.FC = () => {
 
         {/* Footer */}
         <p className="mt-8 text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-          © 2026 CRM Inmobiliario Profesional • v1.1.0-Elite
+          © 2026 Lúmina CRM • v1.1.0-Elite
         </p>
       </div>
     </div>

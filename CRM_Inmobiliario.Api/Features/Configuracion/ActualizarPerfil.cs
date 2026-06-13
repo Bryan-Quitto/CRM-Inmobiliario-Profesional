@@ -17,7 +17,9 @@ public static class ActualizarPerfil
         string Telefono,
         Guid? AgenciaId,
         string? FotoUrl,
-        string? LogoUrl);
+        string? LogoUrl,
+        string? DireccionFisica,
+        string? PromptPersonalIA);
 
     public static IEndpointRouteBuilder MapActualizarPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
@@ -37,7 +39,9 @@ public static class ActualizarPerfil
                     .SetProperty(a => a.Telefono, request.Telefono.NormalizePhoneE164() ?? request.Telefono)
                     .SetProperty(a => a.AgenciaId, request.AgenciaId)
                     .SetProperty(a => a.FotoUrl, request.FotoUrl)
-                    .SetProperty(a => a.LogoUrl, request.LogoUrl));
+                    .SetProperty(a => a.LogoUrl, request.LogoUrl)
+                    .SetProperty(a => a.DireccionFisica, request.DireccionFisica)
+                    .SetProperty(a => a.PromptPersonalIA, request.PromptPersonalIA));
 
             // Si no se afectaron filas, es que el agente no existe en la tabla public.Agents
             if (rowsAffected == 0)
@@ -52,6 +56,8 @@ public static class ActualizarPerfil
                     AgenciaId = request.AgenciaId,
                     FotoUrl = request.FotoUrl,
                     LogoUrl = request.LogoUrl,
+                    DireccionFisica = request.DireccionFisica,
+                    PromptPersonalIA = request.PromptPersonalIA,
                     Rol = "Agente",
                     Activo = true,
                     FechaCreacion = DateTimeOffset.UtcNow

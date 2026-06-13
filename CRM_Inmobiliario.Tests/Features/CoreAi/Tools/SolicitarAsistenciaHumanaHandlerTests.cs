@@ -45,7 +45,8 @@ public class SolicitarAsistenciaHumanaHandlerTests
             await context.SaveChangesAsync();
         }
 
-        var handler = new SolicitarAsistenciaHumanaHandler(_mockDbContextFactory.Object, _mockLogger.Object);
+        var mockPushNotificationService = new Mock<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService>();
+        var handler = new SolicitarAsistenciaHumanaHandler(_mockDbContextFactory.Object, _mockLogger.Object, mockPushNotificationService.Object);
         var args = JsonDocument.Parse("{\"motivo\":\"Estoy muy molesto\"}");
         var execContext = new ToolExecutionContext { ContactoId = contactoId, CustomerPhone = "+1234567" };
 
@@ -61,5 +62,12 @@ public class SolicitarAsistenciaHumanaHandlerTests
         Assert.Contains("Escalamiento: Estoy muy molesto", contact.Notas);
         Assert.False(contact.BotActivoWA);
         Assert.Equal("Escalado", contact.EstadoIA_WA);
+
+        mockPushNotificationService.Verify(s => s.SendNotificationToAgentAsync(
+            agentId,
+            "🚨 Asistencia Humana Solicitada",
+            It.Is<string>(msg => msg.Contains("Estoy muy molesto")),
+            $"/contactos/{contactoId}",
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -15,6 +15,7 @@ using CRM_Inmobiliario.Api.Features.Admin;
 using CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
 using CRM_Inmobiliario.Api.Features.AgentAi.Endpoints;
 using CRM_Inmobiliario.Api.Features.FinOps.GetAgentTokenUsage;
+using CRM_Inmobiliario.Api.Features.PushNotifications;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -130,5 +131,8 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapGetConversationMessagesEndpoint();
         apiGroup.MapUpdateConversationTitleEndpoint();
         apiGroup.MapDeleteConversationEndpoint();
+
+        // Push Notifications
+        apiGroup.MapPushNotificationsEndpoints();
     }
 }

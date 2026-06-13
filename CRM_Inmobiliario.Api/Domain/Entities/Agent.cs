@@ -22,6 +22,12 @@ public sealed class Agent
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
 
+    [MaxLength(500)]
+    public string? DireccionFisica { get; set; }
+
+    [MaxLength(2000)]
+    public string? PromptPersonalIA { get; set; }
+
     [MaxLength(20)]
     public string? Telefono { get; set; }
 
@@ -89,4 +95,5 @@ public sealed class Agent
     public ICollection<Property> Properties { get; set; } = new List<Property>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public ICollection<Interaction> Interactions { get; set; } = new List<Interaction>();
+    public ICollection<AgentPushSubscription> PushSubscriptions { get; set; } = new List<AgentPushSubscription>();
 }

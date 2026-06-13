@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import basicSsl from '@vitejs/plugin-basic-ssl'
+import mkcert from 'vite-plugin-mkcert'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,7 +20,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    basicSsl(),
+    mkcert(),
     react({
       // @ts-expect-error - React Compiler es experimental y puede no estar en los tipos estables del plugin v6 todavía
       babel: {

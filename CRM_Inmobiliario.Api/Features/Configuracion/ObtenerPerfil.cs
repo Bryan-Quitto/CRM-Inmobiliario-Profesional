@@ -20,6 +20,8 @@ public static class ObtenerPerfil
         Guid? AgenciaId,
         string? FotoUrl,
         string? LogoUrl,
+        string? DireccionFisica,
+        string? PromptPersonalIA,
         string Rol,
         DateTimeOffset FechaCreacion);
 
@@ -46,6 +48,8 @@ public static class ObtenerPerfil
                     a.AgenciaId,
                     a.FotoUrl,
                     a.LogoUrl,
+                    a.DireccionFisica,
+                    a.PromptPersonalIA,
                     a.Rol,
                     a.FechaCreacion))
                 .FirstOrDefaultAsync();
@@ -58,6 +62,8 @@ public static class ObtenerPerfil
                     "",
                     "",
                     email,
+                    null,
+                    null,
                     null,
                     null,
                     null,

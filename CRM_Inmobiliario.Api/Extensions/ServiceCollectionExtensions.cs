@@ -154,7 +154,7 @@ public static class ServiceCollectionExtensions
             .ToArray();
 
         services.AddCors(options => options.AddDefaultPolicy(p =>
-            p.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader()));
+            p.SetIsOriginAllowed(_ => true).AllowAnyMethod().AllowAnyHeader()));
 
 
         return services;

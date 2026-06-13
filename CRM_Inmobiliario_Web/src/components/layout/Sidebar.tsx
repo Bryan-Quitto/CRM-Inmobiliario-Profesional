@@ -55,12 +55,10 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     >
       <div className="h-20 flex items-center px-6 border-b border-slate-800/50">
         <div className="flex items-center gap-3">
-          <div className="min-w-[36px] h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-600/20">
-            C
-          </div>
+          <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
           {isOpen && (
             <span className="text-lg font-black tracking-tight text-white animate-in fade-in duration-500">
-              CRM<span className="text-blue-500">Pro</span>
+              Lúmina
             </span>
           )}
         </div>

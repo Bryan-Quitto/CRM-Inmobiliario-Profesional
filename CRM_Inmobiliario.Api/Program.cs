@@ -103,6 +103,7 @@ builder.Services.AddHostedService<PdfWorker>();
 builder.Services.AddHostedService<PdfCleanupWorker>();
 builder.Services.AddHostedService<KpiWarmingBackgroundService>();
 builder.Services.AddScoped<TokenLimitResetJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService, CRM_Inmobiliario.Api.Features.PushNotifications.Services.PushNotificationService>();
 
 builder.Services.AddProblemDetails(); // RFC 7807 (ProblemDetails)
 

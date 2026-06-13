@@ -12,8 +12,8 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 /// </summary>
 public sealed class WhatsAppPromptBuilder : IWhatsAppPromptBuilder
 {
-    public string GetSystemPrompt(bool leadExists, string? leadName = null, bool isFirstMessage = false) 
-        => SystemPromptFactory.GetSystemPrompt(leadExists, leadName, isFirstMessage);
+    public string GetSystemPrompt(bool leadExists, string? leadName = null, bool isFirstMessage = false, string? corporateContext = null, string? personalContext = null) 
+        => SystemPromptFactory.GetSystemPrompt(leadExists, leadName, isFirstMessage, corporateContext, personalContext);
 
     public ChatOptions GetChatOptions()
     {
@@ -57,9 +57,9 @@ public sealed class WhatsAppPromptBuilder : IWhatsAppPromptBuilder
         return ChatSerializer.SerializeHistory(aiHistory);
     }
 
-    public List<ChatMessage> DeserializeHistory(string json, bool leadExists, string? leadName, bool isFirstMessage = false) 
+    public List<ChatMessage> DeserializeHistory(string json, bool leadExists, string? leadName, bool isFirstMessage = false, string? corporateContext = null, string? personalContext = null) 
     {
-        var aiHistory = ChatSerializer.DeserializeHistory(json, leadExists, leadName, isFirstMessage);
+        var aiHistory = ChatSerializer.DeserializeHistory(json, leadExists, leadName, isFirstMessage, corporateContext, personalContext);
         var history = new List<ChatMessage>();
         foreach (var m in aiHistory)
         {

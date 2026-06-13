@@ -10,8 +10,13 @@ namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
 {
-    public SolicitarAsistenciaHumanaHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<SolicitarAsistenciaHumanaHandler> logger) 
-        : base(dbContextFactory, logger) { }
+    private readonly CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService _pushNotificationService;
+
+    public SolicitarAsistenciaHumanaHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<SolicitarAsistenciaHumanaHandler> logger, CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService pushNotificationService) 
+        : base(dbContextFactory, logger) 
+    {
+        _pushNotificationService = pushNotificationService;
+    }
 
     public override string ToolName => "SolicitarAsistenciaHumana";
 
@@ -66,6 +71,21 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
         }
         
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (contacto.AgenteId != Guid.Empty)
+        {
+            _logger.LogInformation($"[PUSH] Intentando notificar a AgentId {contacto.AgenteId} sobre el contacto {contacto.Id}");
+            await _pushNotificationService.SendNotificationToAgentAsync(
+                contacto.AgenteId,
+                "🚨 Asistencia Humana Solicitada",
+                $"El cliente {contacto.Nombre} requiere intervención inmediata. Motivo: {motivo}",
+                $"/contactos/{contacto.Id}",
+                cancellationToken);
+        }
+        else
+        {
+            _logger.LogWarning($"[PUSH] No se pudo notificar porque contacto.AgenteId está vacío para contacto {contacto.Id}");
+        }
 
         return "Solicitud de asistencia enviada al equipo humano.";
     }

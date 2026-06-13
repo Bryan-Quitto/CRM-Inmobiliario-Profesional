@@ -7,10 +7,13 @@ import { useDashboardKpis } from '../hooks/useDashboardKpis';
 import { KpiCards } from './KpiCards';
 import { SeguimientoCritico } from './SeguimientoCritico';
 import { EmbudoVentas } from './EmbudoVentas';
+import { usePushNotifications } from '../../../hooks/usePushNotifications';
+import { BellRing } from 'lucide-react';
 
 const DashboardContent: React.FC = () => {
   const { perfil } = usePerfil();
   const { data, syncing } = useDashboardKpis();
+  const { isSupported, isSubscribed, isSubscribing, subscribeToPush } = usePushNotifications();
 
   if (!data) {
     return (
@@ -37,12 +40,45 @@ const DashboardContent: React.FC = () => {
         </div>
       )}
 
-      {/* Welcome Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-          Hola de nuevo, <span className="text-blue-600">{greeting}</span>.
-        </h1>
-        <p className="text-slate-500 font-medium">Aquí está el resumen estratégico de tu negocio hoy.</p>
+      {/* Banner de Notificaciones */}
+      {isSupported && !isSubscribed && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 flex items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in zoom-in-95 duration-500">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-blue-100 text-blue-700 rounded-xl">
+              <BellRing className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">Activa las notificaciones en tiempo real</h3>
+              <p className="text-sm text-slate-600 mt-0.5">Recibe alertas inmediatas cuando un lead requiera asistencia humana.</p>
+            </div>
+          </div>
+          <button 
+            onClick={subscribeToPush}
+            disabled={isSubscribing}
+            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isSubscribing && <Loader2 className="w-3 h-3 animate-spin" />}
+            {isSubscribing ? 'Activando...' : 'Activar'}
+          </button>
+        </div>
+      )}
+
+      {/* Welcome Header (Hero Card) */}
+      <div className="relative bg-slate-900 rounded-3xl p-8 sm:p-10 shadow-2xl overflow-hidden flex items-center justify-between border border-slate-800">
+        <div className="relative z-10 flex flex-col gap-2 max-w-lg">
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            Hola de nuevo, <span className="text-blue-500">{greeting}</span>.
+          </h1>
+          <p className="text-slate-400 font-medium text-sm sm:text-base">Aquí está el resumen estratégico de tu negocio hoy.</p>
+        </div>
+        {/* Imagen de fondo difuminada para que encaje perfecto sin verse cuadrada */}
+        <div className="absolute right-0 top-0 bottom-0 w-2/3 md:w-1/2 pointer-events-none">
+          {/* Degradado lateral para fundir la imagen con el fondo azul oscuro */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/60 to-transparent z-10"></div>
+          {/* Degradado vertical para suavizar cortes arriba/abajo */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900 z-10"></div>
+          <img src="/ivisual.png" alt="Smart Building" className="w-full h-full object-cover object-center opacity-80" />
+        </div>
       </div>
 
       {/* KPI Cards Grid */}

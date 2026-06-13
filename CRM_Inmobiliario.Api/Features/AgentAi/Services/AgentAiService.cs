@@ -69,7 +69,7 @@ public class AgentAiService
                 
                 await using (var _dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken))
                 {
-                    agent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
+                    agent = await _dbContext.Agents.Include(a => a.Agencia).FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
                     if (agent == null) throw new InvalidOperationException("Agente no encontrado");
 
                     var today = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
@@ -87,7 +87,7 @@ public class AgentAiService
 
                 var messages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
                 {
-                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = _promptFactory.CreatePrompt() },
+                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = _promptFactory.CreatePrompt(agent.Agencia?.ContextoCorporativoIA) },
                     new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "user", Content = message }
                 };
 
@@ -179,7 +179,7 @@ public class AgentAiService
 
                 await using (var _dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken))
                 {
-                    agent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
+                    agent = await _dbContext.Agents.Include(a => a.Agencia).FirstOrDefaultAsync(a => a.Id == agentId, cancellationToken);
                     if (agent == null) throw new InvalidOperationException("Agente no encontrado");
 
                     var today = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).Date;
@@ -205,7 +205,7 @@ public class AgentAiService
 
                 var messages = new List<CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage>
                 {
-                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = _promptFactory.CreatePrompt() }
+                    new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiMessage { Role = "system", Content = _promptFactory.CreatePrompt(agent.Agencia?.ContextoCorporativoIA) }
                 };
 
                 foreach (var msg in history)
