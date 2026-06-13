@@ -62,10 +62,6 @@ public static class GetDropdownContactosFeature
                 .Take(50)
                 .ToListAsync(cancellationToken);
 
-            foreach (var item in tempResult)
-            {
-                Console.WriteLine($"[DEBUG] GetDropdownContactos Item - Id: {item.Id}, AgenteId: {item.AgenteId}, Referencia: {item.Referencia}");
-            }
 
             var result = tempResult.Select(x => new DropdownContactoResponse(
                 x.Id, 

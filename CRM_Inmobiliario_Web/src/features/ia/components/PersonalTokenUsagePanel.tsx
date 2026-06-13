@@ -122,7 +122,7 @@ export const PersonalTokenUsagePanel = () => {
             <div className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">
               <div className="flex flex-col">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tokens Totales</span>
-                <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Input + Output</span>
+                <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Entrada + Salida</span>
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-sm font-black text-slate-800">
@@ -137,14 +137,14 @@ export const PersonalTokenUsagePanel = () => {
             <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-indigo-50/50 border border-indigo-100/50 transition-colors">
               <div className="flex flex-col">
                 <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-wide">Desglose</span>
-                <span className="text-[10px] text-indigo-500/80 font-medium leading-none mt-0.5">Input / Output</span>
+                <span className="text-[10px] text-indigo-500/80 font-medium leading-none mt-0.5">Entrada / Salida</span>
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-sm font-black text-indigo-700">
-                  {inputTokens.toLocaleString('es-EC')} <span className="text-[10px] font-bold text-indigo-500/70 uppercase">in</span>
+                  {inputTokens.toLocaleString('es-EC')} <span className="text-[10px] font-bold text-indigo-500/70 uppercase">ent</span>
                 </span>
                 <span className="text-[10px] font-bold text-indigo-600">
-                  {outputTokens.toLocaleString('es-EC')} <span className="text-[8px] uppercase">out</span>
+                  {outputTokens.toLocaleString('es-EC')} <span className="text-[8px] uppercase">sal</span>
                 </span>
               </div>
             </div>

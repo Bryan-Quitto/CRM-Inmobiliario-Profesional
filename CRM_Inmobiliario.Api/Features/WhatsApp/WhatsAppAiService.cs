@@ -174,7 +174,7 @@ public sealed class WhatsAppAiService
                         PhoneNumberId = phoneNumberId,
                         ContactoId = context.Contacto?.Id
                     };
-                    var fallbackToolCall = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"Activación de Circuit Breaker (Límite de iteraciones de IA excedido)\"}" };
+                    var fallbackToolCall = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"La Inteligencia Artificial se atascó procesando este mensaje y requiere tu ayuda.\"}" };
                     await _toolExecutor.HandleToolCallAsync(fallbackToolCall, execContextCb, cancellationToken);
                     
                     history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
@@ -352,7 +352,7 @@ public sealed class WhatsAppAiService
                                     finalResponse = "Ha ocurrido un fallo inesperado, le pido una disculpa por las molestias. Un agente humano le ayudará en unos momentos.";
                                     
                                     // Invocar Asistencia Humana automáticamente
-                                    var fallbackToolCall = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"Activación de Circuit Breaker (Errores críticos continuos de IA)\"}" };
+                                    var fallbackToolCall = new CRM_Inmobiliario.Api.Features.WhatsApp.Services.Models.AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"La IA experimentó múltiples errores críticos y necesita que retomes la conversación.\"}" };
                                     await _toolExecutor.HandleToolCallAsync(fallbackToolCall, res.ExecContext, linkedCts.Token);
 
                                     history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));

@@ -186,7 +186,7 @@ public class AgentAiService
                     var usage = await _dbContext.AgentDailyTokenUsages.FirstOrDefaultAsync(u => u.AgentId == agentId && u.Date == today, cancellationToken);
                     if (usage != null && usage.TokensUsed >= agent.DailyTokenLimitPersonal)
                     {
-                        yield return "Has alcanzado tu límite diario de tokens personales. Por favor, aumenta tu límite o reinicia el contador en Configuración para continuar.";
+                        yield return "Has alcanzado tu cuota diaria de consultas de Inteligencia Artificial. Por favor, aumenta tu límite o reinicia el contador en Configuración para continuar.";
                         yield break;
                     }
 
@@ -238,7 +238,7 @@ public class AgentAiService
                     if (iterationCount > 5)
                     {
                         _logger.LogWarning("Límite de iteraciones excedido para Copilot. Agente {AgentId}. Activando Circuit Breaker.", agentId);
-                        yield return "\n\nHa ocurrido un fallo inesperado (demasiadas iteraciones), por favor, vuelva a intentarlo y si el error persiste contáctese con administración.";
+                        yield return "\n\nHa ocurrido un fallo inesperado (el proceso se atascó o fue muy largo), por favor, vuelva a intentarlo y si el error persiste contáctese con administración.";
                         break;
                     }
 

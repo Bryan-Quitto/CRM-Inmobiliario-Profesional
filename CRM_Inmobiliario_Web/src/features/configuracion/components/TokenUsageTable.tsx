@@ -75,11 +75,11 @@ export const TokenUsageTable = ({ channel = 'Copilot' }: Props) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tokens Input</span>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tokens de Entrada</span>
           <span className="text-2xl font-black text-slate-900 font-mono">{totalInputTokens.toLocaleString('es-EC')}</span>
         </div>
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tokens Output</span>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tokens de Salida</span>
           <span className="text-2xl font-black text-slate-900 font-mono">{totalOutputTokens.toLocaleString('es-EC')}</span>
         </div>
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
@@ -94,8 +94,8 @@ export const TokenUsageTable = ({ channel = 'Copilot' }: Props) => {
             <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
               <tr>
                 <th scope="col" className="px-6 py-4 font-medium tracking-wider">Fecha</th>
-                <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Tokens Input</th>
-                <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Tokens Output</th>
+                <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Tokens de Entrada</th>
+                <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Tokens de Salida</th>
                 <th scope="col" className="px-6 py-4 font-medium tracking-wider text-right">Costo Total ($ USD)</th>
               </tr>
             </thead>

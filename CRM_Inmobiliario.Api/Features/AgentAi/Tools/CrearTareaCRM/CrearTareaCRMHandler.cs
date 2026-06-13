@@ -7,7 +7,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Tools.CrearTareaCRM;
+namespace CRM_Inmobiliario.Api.Features.AgentAi.Tools.CrearTareaCRM;
 
 public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
 {
@@ -18,6 +18,11 @@ public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
 
     public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
+        if (!string.Equals(context.Channel, "Copilot", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Error: Acceso denegado. Esta herramienta es de uso exclusivo para el agente interno (Copilot).";
+        }
+
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string titulo = ExtractSafeString(args.RootElement, "titulo", 100, string.Empty);
         string descripcion = ExtractSafeString(args.RootElement, "descripcion", 1000, string.Empty);
@@ -60,7 +65,8 @@ public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
                     (c.Nombre != null && c.Nombre.ToLower().Contains(contactoBusquedaLower)) ||
                     (c.Apellido != null && c.Apellido.ToLower().Contains(contactoBusquedaLower)) ||
                     ((c.Nombre ?? "") + " " + (c.Apellido ?? "")).ToLower().Contains(contactoBusquedaLower) ||
-                    (c.Telefono != null && c.Telefono.Contains(contactoBusqueda))
+                    (c.Telefono != null && c.Telefono.Contains(contactoBusqueda)) ||
+                    c.Id.ToString() == contactoBusqueda
                 ))
                 .FirstOrDefaultAsync(cancellationToken);
             
@@ -78,7 +84,7 @@ public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
         {
             needsConfirmation = true;
             var matchPropiedad = await _context.Properties
-                .Where(p => p.AgenciaId == agent.AgenciaId && p.Titulo.ToLower().Contains(propiedadBusqueda.ToLower()))
+                .Where(p => p.AgenciaId == agent.AgenciaId && (p.Titulo.ToLower().Contains(propiedadBusqueda.ToLower()) || p.Id.ToString() == propiedadBusqueda))
                 .FirstOrDefaultAsync(cancellationToken);
             
             if (matchPropiedad != null)

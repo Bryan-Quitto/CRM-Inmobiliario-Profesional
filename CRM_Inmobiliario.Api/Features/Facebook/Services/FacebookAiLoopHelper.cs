@@ -49,7 +49,7 @@ public static class FacebookAiLoopHelper
                     PhoneNumberId = pageId,
                     ContactoId = contactoId
                 };
-                var fallbackToolCall = new AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"Activación de Circuit Breaker (Límite de iteraciones excedido)\"}" };
+                var fallbackToolCall = new AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"La Inteligencia Artificial se atascó procesando este mensaje y requiere tu ayuda.\"}" };
                 
                 await using var scopeCb = scopeFactory.CreateAsyncScope();
                 var executorCb = scopeCb.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Features.CoreAi.Services.ICoreAiToolExecutor>();
@@ -181,7 +181,7 @@ public static class FacebookAiLoopHelper
                                 logger.LogWarning("Circuit Breaker activado para FB {SenderId}. Demasiados errores críticos de la IA.", senderId);
                                 finalResponse = "Ha ocurrido un fallo inesperado, le pido una disculpa por las molestias. Un agente humano le ayudará en unos momentos.";
                                 
-                                var fallbackToolCall = new AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"Activación de Circuit Breaker FB\"}" };
+                                var fallbackToolCall = new AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"La IA no pudo generar una respuesta válida y requiere tu ayuda.\"}" };
                                 
                                 await using var scopeCb = scopeFactory.CreateAsyncScope();
                                 var executorCb = scopeCb.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Features.CoreAi.Services.ICoreAiToolExecutor>();

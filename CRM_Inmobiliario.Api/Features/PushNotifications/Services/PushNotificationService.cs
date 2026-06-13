@@ -94,7 +94,6 @@ public sealed class PushNotificationService : IPushNotificationService
             {
                 await webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
                 sub.LastUsedAt = DateTimeOffset.UtcNow;
-                _logger.LogInformation($"[PUSH] Notificación enviada con éxito a {sub.Endpoint} para Agent {agentId}");
             }
             catch (WebPushException ex)
             {

@@ -199,11 +199,11 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
                 <span className="text-xs text-slate-400 animate-pulse text-center py-4">Cargando métricas...</span>
               ) : (
                 <>
-                  {/* 1. Tokens Totales */}
+                  {/* Tokens Totales */}
                   <div className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tokens Totales</span>
-                      <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Input + Output</span>
+                      <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">Entrada + Salida</span>
                     </div>
                     <div className="flex flex-col items-end">
                       <span className="text-sm font-black text-slate-800">
@@ -211,22 +211,6 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
                       </span>
                       <span className="text-[10px] font-bold text-slate-500">
                         ≈ ${(usage?.costoUSD || 0).toFixed(4)} USD <span className="text-[8px] uppercase">(Valor)</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* 2. Tokens del Límite (Input + Output) */}
-                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-indigo-50/50 border border-indigo-100/50 transition-colors">
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-wide">Consumo Límite</span>
-                      <span className="text-[10px] text-indigo-500/80 font-medium leading-none mt-0.5">Solo Input + Output</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-sm font-black text-indigo-700">
-                        {((usage?.inputTokens || 0) + (usage?.outputTokens || 0)).toLocaleString()} <span className="text-[10px] font-bold text-indigo-500/70 uppercase">tkns</span>
-                      </span>
-                      <span className="text-[10px] font-bold text-indigo-600">
-                        ${usage?.costoUSD?.toFixed(4) || '0.0000'} USD <span className="text-[8px] uppercase">(Cobrado)</span>
                       </span>
                     </div>
                   </div>

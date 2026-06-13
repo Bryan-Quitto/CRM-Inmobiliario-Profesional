@@ -6,7 +6,7 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace CRM_Inmobiliario.Api.Features.WhatsApp.Tools.ResumirHistorialContacto;
+namespace CRM_Inmobiliario.Api.Features.AgentAi.Tools.ResumirHistorialContacto;
 
 public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
 {
@@ -17,6 +17,11 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
 
     public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
+        if (!string.Equals(context.Channel, "Copilot", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Error: Acceso denegado. Esta herramienta es de uso exclusivo para el agente interno (Copilot).";
+        }
+
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string searchTerm = ExtractSafeString(args.RootElement, "searchTerm", 100, string.Empty);
 
@@ -32,7 +37,8 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
                                   ((c.Nombre != null && c.Nombre.ToLower().Contains(searchTermLower)) || 
                                    (c.Apellido != null && c.Apellido.ToLower().Contains(searchTermLower)) || 
                                    ((c.Nombre ?? "") + " " + (c.Apellido ?? "")).ToLower().Contains(searchTermLower) ||
-                                   (c.Telefono != null && c.Telefono.Contains(searchTerm)))
+                                   (c.Telefono != null && c.Telefono.Contains(searchTerm)) ||
+                                   c.Id.ToString() == searchTerm)
                             let whatsapp = _context.WhatsappConversations
                                 .OrderByDescending(w => w.UltimaActualizacion)
                                 .FirstOrDefault(w => w.ContactoId == c.Id)

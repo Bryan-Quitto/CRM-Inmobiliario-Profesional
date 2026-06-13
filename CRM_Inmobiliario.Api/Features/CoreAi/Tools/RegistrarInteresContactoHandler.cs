@@ -37,9 +37,9 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
         string pNameStr = pNameProp.GetString() ?? string.Empty;
         Guid propiedadId;
 
-        // Búsqueda robusta por título o slug
-        string searchTerm = pNameStr.ToLower().Replace("-", " ").Trim();
-        var propertyByTitle = await _context.Properties.FirstOrDefaultAsync(p => p.Titulo.ToLower().Contains(searchTerm));
+        // Búsqueda robusta por título o ID
+        string searchTerm = pNameStr.ToLower().Trim();
+        var propertyByTitle = await _context.Properties.FirstOrDefaultAsync(p => p.Titulo.ToLower().Contains(searchTerm) || p.Id.ToString() == searchTerm);
         
         if (propertyByTitle != null)
         {

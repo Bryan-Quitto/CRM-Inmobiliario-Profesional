@@ -22,6 +22,11 @@ public sealed class GenerarCotizacionRapidaHandler : ICoreAiToolHandler
 
     public async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
+        if (!string.Equals(context.Channel, "Copilot", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Error: Acceso denegado. Esta herramienta es de uso exclusivo para el agente interno (Copilot).";
+        }
+
         _logger.LogInformation("Iniciando generación de cotización rápida. Argumentos RAW: {Args}", args.RootElement.GetRawText());
 
         decimal montoPropiedad = 0;
