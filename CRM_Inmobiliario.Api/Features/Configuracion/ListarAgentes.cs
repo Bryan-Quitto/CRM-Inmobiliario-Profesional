@@ -96,8 +96,8 @@ public static class ListarAgentesFeature
 
                 foreach(var c in contactosAgencia)
                 {
-                    var cleanContactPhone = new string(c.Telefono.Where(char.IsDigit).ToArray());
-                    if (cleanContactPhone == cleanPhoneToShare || c.Telefono == contactPhoneToShare)
+                    var cleanContactPhone = string.IsNullOrEmpty(c.Telefono) ? null : new string(c.Telefono.Where(char.IsDigit).ToArray());
+                    if (cleanContactPhone != null && cleanContactPhone == cleanPhoneToShare || c.Telefono == contactPhoneToShare)
                     {
                         var index = agentes.FindIndex(x => x.Id == c.AgenteId);
                         if (index >= 0) agentes[index] = agentes[index] switch { var ag => new AgentResponse(ag.Id, ag.Nombre, ag.Apellido, ag.Telefono, ag.Email, ag.Activo, ag.FotoUrl, true) };

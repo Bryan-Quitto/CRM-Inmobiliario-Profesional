@@ -7,7 +7,7 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class BuscarContactosFeature
 {
-    public record ContactoBusquedaResponse(Guid Id, string NombreCompleto, string Telefono, bool EsContacto);
+    public record ContactoBusquedaResponse(Guid Id, string NombreCompleto, string? Telefono, bool EsContacto);
 
     public static void MapBuscarContactosEndpoint(this IEndpointRouteBuilder app)
     {
@@ -26,7 +26,7 @@ public static class BuscarContactosFeature
                 .Where(l => (l.AgenteId == agenteId || l.CompartidoCon.Any(c => c.AgenteId == agenteId)) &&
                            (EF.Functions.ILike(l.Nombre, searchTerm) ||
                             EF.Functions.ILike(l.Apellido ?? "", searchTerm) ||
-                            EF.Functions.ILike(l.Telefono, searchTerm)))
+                            EF.Functions.ILike(l.Telefono ?? "", searchTerm)))
                 .Take(10)
                 .Select(l => new ContactoBusquedaResponse(
                     l.Id,

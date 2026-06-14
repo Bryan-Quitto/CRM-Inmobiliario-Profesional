@@ -19,6 +19,7 @@ export const AuditoriaLogsView = ({ canal = 'WhatsApp' }: { canal?: string }) =>
     contactoEnEdicion,
     setContactoEnEdicion,
     handleEditClick,
+    isEditingId,
     mutate,
     globalMutate
   } = useAuditoriaLogs(canal);
@@ -66,6 +67,7 @@ export const AuditoriaLogsView = ({ canal = 'WhatsApp' }: { canal?: string }) =>
               isExpanded={expandedClientId === group.telefono}
               onToggle={() => toggleClientExpansion(group.telefono)}
               handleEditClick={handleEditClick}
+              isEditingId={isEditingId}
               mutate={mutate}
               canal={canal}
             />

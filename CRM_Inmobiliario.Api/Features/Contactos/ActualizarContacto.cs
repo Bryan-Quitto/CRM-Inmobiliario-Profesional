@@ -13,7 +13,7 @@ public static class ActualizarContactoFeature
         string Nombre,
         string Apellido,
         string? Email,
-        string Telefono,
+        string? Telefono,
         string Origen,
         bool EsContacto,
         bool EsPropietario);
@@ -22,6 +22,12 @@ public static class ActualizarContactoFeature
     {
         app.MapPut("/contactos/{id:guid}", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, CancellationToken ct) =>
         {
+            var isWhatsAppOrigin = command.Origen.Contains("WhatsApp", StringComparison.OrdinalIgnoreCase);
+            if (isWhatsAppOrigin && string.IsNullOrWhiteSpace(command.Telefono))
+            {
+                return Results.BadRequest(new { error = "El teléfono es obligatorio para contactos provenientes de WhatsApp." });
+            }
+
             var agenteId = user.GetRequiredUserId();
             var contacto = await context.Contactos
                 .FirstOrDefaultAsync(l => l.Id == id && l.AgenteId == agenteId, ct);
@@ -34,7 +40,7 @@ public static class ActualizarContactoFeature
             contacto.Nombre = command.Nombre;
             contacto.Apellido = command.Apellido;
             contacto.Email = command.Email;
-            contacto.Telefono = command.Telefono.NormalizePhoneE164() ?? command.Telefono;
+            contacto.Telefono = string.IsNullOrWhiteSpace(command.Telefono) ? null : (command.Telefono.NormalizePhoneE164() ?? command.Telefono);
             contacto.Origen = command.Origen;
             contacto.EsProspecto = command.EsContacto;
             contacto.EsPropietario = command.EsPropietario;

@@ -20,9 +20,8 @@ public sealed class Contacto
     [MaxLength(150)]
     public string? Email { get; set; }
 
-    [Required]
     [MaxLength(20)]
-    public string Telefono { get; set; } = string.Empty;
+    public string? Telefono { get; set; }
 
     [MaxLength(50)]
     public string Origen { get; set; } = "Directo";

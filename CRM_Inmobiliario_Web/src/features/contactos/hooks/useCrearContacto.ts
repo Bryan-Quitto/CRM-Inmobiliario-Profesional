@@ -139,8 +139,13 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
       onSuccess();
     }, 600);
 
+    const telefonoLimpio = data.telefono?.replace(/\s+/g, '') || '';
+    const isJustPrefixSubmit = /^\+\d{1,4}$/.test(telefonoLimpio);
+    const telefonoFinal = (!telefonoLimpio || isJustPrefixSubmit) ? '' : data.telefono;
+
     const dataToSend = {
       ...data,
+      telefono: telefonoFinal,
       esContacto: !!data.esContacto,
       esPropietario: !!data.esPropietario
     };
@@ -161,8 +166,14 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
   };
 
   const validateTelefono = async (value: string) => {
-    if (!value) return true;
-    const normalized = value.trim().replace(/\s+/g, '');
+    const isWhatsApp = currentValues.origen?.toLowerCase().includes('whatsapp');
+    const normalized = value ? value.trim().replace(/\s+/g, '') : '';
+    const isJustPrefix = /^\+\d{1,4}$/.test(normalized);
+    
+    if (!normalized || isJustPrefix) {
+      if (isWhatsApp) return 'El teléfono es obligatorio para contactos de WhatsApp';
+      return true;
+    }
     
     // Nueva validación básica de longitud
     if (normalized.length < 8) {

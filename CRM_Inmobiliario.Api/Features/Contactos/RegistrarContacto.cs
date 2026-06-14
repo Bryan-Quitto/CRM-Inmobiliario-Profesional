@@ -9,12 +9,18 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class RegistrarContactoFeature
 {
-    public record Command(string Nombre, string Apellido, string? Email, string Telefono, string Origen, bool EsContacto, bool EsPropietario);
+    public record Command(string Nombre, string Apellido, string? Email, string? Telefono, string Origen, bool EsContacto, bool EsPropietario);
 
     public static void MapRegistrarContactoEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapPost("/contactos", async (Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, CancellationToken ct) =>
         {
+            var isWhatsAppOrigin = command.Origen.Contains("WhatsApp", StringComparison.OrdinalIgnoreCase);
+            if (isWhatsAppOrigin && string.IsNullOrWhiteSpace(command.Telefono))
+            {
+                return Results.BadRequest(new { error = "El teléfono es obligatorio para contactos provenientes de WhatsApp." });
+            }
+
             var agenteId = user.GetRequiredUserId();
 
             var contacto = new Contacto
@@ -23,7 +29,7 @@ public static class RegistrarContactoFeature
                 Nombre = command.Nombre,
                 Apellido = command.Apellido,
                 Email = command.Email,
-                Telefono = command.Telefono.NormalizePhoneE164() ?? command.Telefono,
+                Telefono = string.IsNullOrWhiteSpace(command.Telefono) ? null : (command.Telefono.NormalizePhoneE164() ?? command.Telefono),
                 Origen = command.Origen,
                 EsProspecto = command.EsContacto,
                 EsPropietario = command.EsPropietario,

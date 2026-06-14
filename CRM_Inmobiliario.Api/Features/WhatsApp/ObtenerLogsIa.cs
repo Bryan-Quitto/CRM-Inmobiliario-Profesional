@@ -55,7 +55,7 @@ public static class ObtenerLogsIa
 
                 var contactos = await context.Contactos
                     .AsNoTracking()
-                    .Where(l => telefonos.Contains(l.Telefono) || contactoIds.Contains(l.Id))
+                    .Where(l => (l.Telefono != null && telefonos.Contains(l.Telefono)) || contactoIds.Contains(l.Id))
                     .Include(l => l.PropertyInterests)
                         .ThenInclude(i => i.Propiedad)
                             .ThenInclude(p => p!.Media)

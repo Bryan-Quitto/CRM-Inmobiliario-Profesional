@@ -1,15 +1,17 @@
-import { Bot, User, Pencil, Calendar } from 'lucide-react';
+import { Bot, User, Pencil, Calendar, Loader2 } from 'lucide-react';
 
 interface SectionRegistradoProps {
   registradoPorIA: boolean;
   contactoId?: string;
   handleEditClick: (id: string) => void;
+  isEditingId: string | null;
 }
 
 export const AuditoriaSectionRegistrado = ({
   registradoPorIA,
   contactoId,
-  handleEditClick
+  handleEditClick,
+  isEditingId
 }: SectionRegistradoProps) => {
   return (
     <div className="px-6 py-8 bg-blue-50/30 rounded-[2rem] border border-blue-100/50 animate-in zoom-in-95 duration-300">
@@ -50,10 +52,15 @@ export const AuditoriaSectionRegistrado = ({
 
         <div className="flex items-center gap-3">
           <button 
+            disabled={isEditingId === contactoId}
             onClick={() => contactoId && handleEditClick(contactoId)}
-            className="h-14 w-14 bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl flex items-center justify-center transition-all shadow-sm border border-slate-100 hover:border-blue-200 cursor-pointer group/btn"
+            className="h-14 w-14 bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl flex items-center justify-center transition-all shadow-sm border border-slate-100 hover:border-blue-200 cursor-pointer group/btn disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Pencil className="h-6 w-6 group-hover/btn:scale-110 transition-transform" />
+            {isEditingId === contactoId ? (
+              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            ) : (
+              <Pencil className="h-6 w-6 group-hover/btn:scale-110 transition-transform" />
+            )}
           </button>
         </div>
       </div>

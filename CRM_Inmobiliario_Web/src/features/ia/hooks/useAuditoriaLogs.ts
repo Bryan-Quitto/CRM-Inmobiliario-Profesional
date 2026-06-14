@@ -17,6 +17,7 @@ export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
   
   // Estados para Edición y Borrado de Contacto
   const [contactoEnEdicion, setContactoEnEdicion] = useState<Contacto | null>(null);
+  const [isEditingId, setIsEditingId] = useState<string | null>(null);
 
   const filteredGroups = useMemo(() => {
     if (!clientGroups) return [];
@@ -35,10 +36,13 @@ export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
 
   const handleEditClick = async (contactoId: string) => {
     try {
+      setIsEditingId(contactoId);
       const fullContacto = await getContactoById(contactoId);
       setContactoEnEdicion(fullContacto);
     } catch {
       toast.error('No se pudo cargar la información del contacto para editar.');
+    } finally {
+      setIsEditingId(null);
     }
   };
 
@@ -59,6 +63,7 @@ export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
     contactoEnEdicion,
     setContactoEnEdicion,
     handleEditClick,
+    isEditingId,
     mutate,
     globalMutate
   };

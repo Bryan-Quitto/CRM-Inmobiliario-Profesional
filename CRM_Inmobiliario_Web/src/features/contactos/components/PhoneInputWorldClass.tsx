@@ -4,7 +4,7 @@ import { Phone } from 'lucide-react';
 import { CustomCountryDropdown } from './CustomCountryDropdown';
 
 interface PhoneInputWorldClassProps {
-  value: string;
+  value: string | null;
   onChange: (phone: string) => void;
   onBlur?: () => void;
   disabled?: boolean;
@@ -26,7 +26,7 @@ export const PhoneInputWorldClass = forwardRef<HTMLInputElement, PhoneInputWorld
     setCountry,
   } = usePhoneInput({
     defaultCountry: 'ec',
-    value,
+    value: value || '',
     countries: defaultCountries,
     disableDialCodeAndPrefix: true,
     onChange: (data) => {
@@ -38,7 +38,7 @@ export const PhoneInputWorldClass = forwardRef<HTMLInputElement, PhoneInputWorld
       // En muchos países (como Ecuador), la gente escribe el 0 inicial (099...), 
       // pero el estándar internacional no lo lleva (+59399...).
       // Si el input original empieza por 0 y la librería lo concatenó, lo corregimos.
-      const rawInput = data.inputValue.replace(/\D/g, '');
+      const rawInput = (data.inputValue || '').replace(/\D/g, '');
       if (rawInput.startsWith('0')) {
         // Formamos el número sin el primer cero
         finalPhone = `+${country.dialCode}${rawInput.substring(1)}`;

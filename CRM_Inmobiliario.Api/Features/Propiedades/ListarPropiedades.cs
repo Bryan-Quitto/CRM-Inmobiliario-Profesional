@@ -244,8 +244,8 @@ public static class ListarPropiedadesFeature
                     
                 foreach(var c in contactosGestores)
                 {
-                    var cleanContactPhone = new string(c.Telefono.Where(char.IsDigit).ToArray());
-                    if (cleanContactPhone == cleanPhoneToShare || c.Telefono == contactPhoneToShare)
+                    var cleanContactPhone = string.IsNullOrEmpty(c.Telefono) ? null : new string(c.Telefono.Where(char.IsDigit).ToArray());
+                    if (cleanContactPhone != null && cleanContactPhone == cleanPhoneToShare || c.Telefono == contactPhoneToShare)
                     {
                         for (int i = 0; i < propiedades.Count; i++)
                         {

@@ -50,7 +50,7 @@ public static class GetDropdownContactosFeature
                     c.Id,
                     c.Nombre,
                     Referencia = c.AgenteId == currentUserId 
-                        ? (string.IsNullOrEmpty(c.Email) ? c.Telefono : c.Email)
+                        ? (string.IsNullOrEmpty(c.Email) ? (c.Telefono ?? "") : c.Email)
                         : (c.Agente != null ? "Compartido por " + c.Agente.Nombre : "Compartido"),
                     c.AgenteId,
                     c.Apellido,

@@ -39,6 +39,7 @@ export interface Contacto {
   botActivoFB?: boolean;
   estadoIA_WA?: string | null;
   estadoIA_FB?: string | null;
+  facebookSenderId?: string | null;
   notas?: string;
   fechaCreacion: string;
   fechaCierre?: string;

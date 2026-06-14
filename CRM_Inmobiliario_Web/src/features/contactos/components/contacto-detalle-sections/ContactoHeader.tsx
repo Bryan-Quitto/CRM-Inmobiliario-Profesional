@@ -1,4 +1,4 @@
-import { ChevronLeft, Loader2, ChevronDown, Check, PhoneCall, UserCheck, Search } from 'lucide-react';
+import { ChevronLeft, Loader2, ChevronDown, Check, UserCheck, Search, MessageSquare, MessageCircle, Pencil } from 'lucide-react';
 import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/contactos';
 import { useLocation } from 'react-router-dom';
 import type { Contacto } from '../../types';
@@ -10,6 +10,7 @@ interface ContactoHeaderProps {
   setActiveDropdown: (show: 'cliente' | 'propietario' | null) => void;
   handleStageChange: (etapa: string, tipo?: 'cliente' | 'propietario') => void;
   navigate: (path: string) => void;
+  onEdit: () => void;
 }
 
 export const ContactoHeader = ({
@@ -18,7 +19,8 @@ export const ContactoHeader = ({
   activeDropdown,
   setActiveDropdown,
   handleStageChange,
-  navigate
+  navigate,
+  onEdit
 }: ContactoHeaderProps) => {
   const { pathname } = useLocation();
   const isFromOwners = pathname.includes('/propietarios');
@@ -122,14 +124,36 @@ export const ContactoHeader = ({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <a 
-          href={`tel:${contacto.telefono}`}
-          className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm border border-emerald-100 cursor-pointer"
+        {contacto.telefono && (
+          <a 
+            href={`https://wa.me/${contacto.telefono.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="WhatsApp Directo"
+            className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm border border-emerald-100 cursor-pointer"
+          >
+            <MessageSquare className="h-5 w-5" />
+          </a>
+        )}
+
+        {contacto.facebookSenderId && (
+          <a 
+            href={`https://m.me/${contacto.facebookSenderId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Facebook Messenger"
+            className="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100 cursor-pointer"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </a>
+        )}
+
+        <button 
+          onClick={onEdit}
+          className="h-10 px-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2 cursor-pointer"
         >
-          <PhoneCall className="h-5 w-5" />
-        </a>
-        <button className="h-10 px-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 cursor-pointer">
-          Acciones
+          <Pencil className="h-4 w-4" />
+          Editar
         </button>
       </div>
     </div>

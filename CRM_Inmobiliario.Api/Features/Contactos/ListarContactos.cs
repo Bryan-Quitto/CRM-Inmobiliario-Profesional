@@ -17,7 +17,7 @@ public static class ListarContactosFeature
         string Nombre,
         string? Apellido,
         string? Email,
-        string Telefono,
+        string? Telefono,
         string Origen,
         string EtapaEmbudo,
         string EstadoPropietario,

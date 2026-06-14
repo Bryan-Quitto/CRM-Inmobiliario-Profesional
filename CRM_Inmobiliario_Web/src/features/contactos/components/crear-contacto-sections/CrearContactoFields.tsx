@@ -24,6 +24,8 @@ export const CrearContactoFields = ({
 }: CrearContactoFieldsProps) => {
   const esContacto = useWatch({ control, name: 'esContacto' });
   const esPropietario = useWatch({ control, name: 'esPropietario' });
+  const origen = useWatch({ control, name: 'origen' });
+  const isWhatsApp = origen?.toLowerCase().includes('whatsapp');
 
   return (
     <div className="space-y-8">
@@ -129,12 +131,13 @@ export const CrearContactoFields = ({
       </div>
 
       <div className="space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Teléfono</label>
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+          Teléfono {isWhatsApp && <span className="text-rose-500">*</span>}
+        </label>
         <Controller
           name="telefono"
           control={control}
           rules={{ 
-            required: 'El teléfono es obligatorio',
             validate: validateTelefono
           }}
           render={({ field: { onChange, onBlur, value, ref } }) => (

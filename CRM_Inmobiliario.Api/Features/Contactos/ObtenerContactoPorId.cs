@@ -12,7 +12,7 @@ public static class ObtenerContactoPorIdFeature
         string Nombre,
         string? Apellido,
         string? Email,
-        string Telefono,
+        string? Telefono,
         string Origen,
         string EtapaEmbudo,
         string EstadoPropietario,
@@ -20,6 +20,7 @@ public static class ObtenerContactoPorIdFeature
         bool EsPropietario,
         DateTimeOffset FechaCreacion,
         bool EsCompartido,
+        string? FacebookSenderId,
         List<InteraccionResponse> Interacciones,
         List<InteresPropiedadResponse> Intereses,
         List<PropiedadCaptadaResponse> PropiedadesCaptadas,
@@ -71,6 +72,7 @@ public static class ObtenerContactoPorIdFeature
                     c.EsPropietario,
                     c.FechaCreacion,
                     c.AgenteId != agenteId,
+                    c.FacebookSenderId,
                     c.Interactions
                         .OrderByDescending(i => i.FechaInteraccion)
                         .Select(i => new InteraccionResponse(i.Id, i.TipoInteraccion, i.Notas, i.FechaInteraccion))

@@ -13,6 +13,7 @@ interface AuditoriaClientItemProps {
   isExpanded: boolean;
   onToggle: () => void;
   handleEditClick: (id: string) => void;
+  isEditingId: string | null;
   // Mutate para intereses
   mutate: () => Promise<ClientGroup[] | undefined>;
   canal?: string;
@@ -23,6 +24,7 @@ export const AuditoriaClientItem = ({
   isExpanded,
   onToggle,
   handleEditClick,
+  isEditingId,
   mutate,
   canal = 'WhatsApp'
 }: AuditoriaClientItemProps) => {
@@ -131,6 +133,7 @@ export const AuditoriaClientItem = ({
                 registradoPorIA={group.registradoPorIA}
                 contactoId={group.contactoId ?? undefined}
                 handleEditClick={handleEditClick}
+                isEditingId={isEditingId}
               />
             )}
           </div>

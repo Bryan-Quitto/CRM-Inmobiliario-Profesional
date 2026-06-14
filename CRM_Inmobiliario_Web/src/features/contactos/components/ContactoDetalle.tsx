@@ -1,4 +1,7 @@
 import { Loader2, X, WifiOff } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { CrearContactoForm } from './CrearContactoForm';
 import { useContactoDetalle } from '../hooks/useContactoDetalle';
 
 // Sections
@@ -11,6 +14,7 @@ import { ContactoModalsOrchestrator } from './contacto-detalle-sections/Contacto
 import { ContactoTransactions } from './contacto-detalle-sections/ContactoTransactions';
 
 export const ContactoDetalle = () => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const {
     contacto,
     isLoading,
@@ -54,7 +58,8 @@ export const ContactoDetalle = () => {
     handleUpdateNivelInteres,
     handleDesvincular,
     historialFiltrado,
-    navigate
+    navigate,
+    mutate
   } = useContactoDetalle();
 
   if (isLoading) {
@@ -105,6 +110,7 @@ export const ContactoDetalle = () => {
         setActiveDropdown={setActiveDropdown}
         handleStageChange={handleStageChange}
         navigate={navigate}
+        onEdit={() => setIsEditModalOpen(true)}
       />
 
       <div className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -170,6 +176,20 @@ export const ContactoDetalle = () => {
         setNewCycleConfirmation={setNewCycleConfirmation}
         executeStageChange={executeStageChange}
       />
+
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
+          <CrearContactoForm 
+            initialData={contacto}
+            onSuccess={() => {
+              mutate();
+              setIsEditModalOpen(false);
+              toast.success('Contacto actualizado con éxito.');
+            }}
+            onCancel={() => setIsEditModalOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
