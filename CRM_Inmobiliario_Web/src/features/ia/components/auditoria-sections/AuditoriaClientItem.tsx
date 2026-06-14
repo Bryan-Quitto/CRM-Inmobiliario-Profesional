@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { ChevronDown, User, ExternalLink, Clock, Settings, MessageSquare, Heart } from 'lucide-react';
 import { AuditoriaSectionRegistrado } from './AuditoriaSectionRegistrado';
 import { AuditoriaSectionConversacion } from './AuditoriaSectionConversacion';
+import { AuditoriaSectionFacebookConversacion } from './AuditoriaSectionFacebookConversacion';
 import { AuditoriaSectionIntereses } from './AuditoriaSectionIntereses';
 import { dateFormatter, timeFormatter } from '../../constants/auditoriaConstants';
 import type { ClientGroup } from '../../types/auditoria';
@@ -14,6 +15,7 @@ interface AuditoriaClientItemProps {
   handleEditClick: (id: string) => void;
   // Mutate para intereses
   mutate: () => Promise<ClientGroup[] | undefined>;
+  canal?: string;
 }
 
 export const AuditoriaClientItem = ({
@@ -21,9 +23,9 @@ export const AuditoriaClientItem = ({
   isExpanded,
   onToggle,
   handleEditClick,
-  mutate
+  mutate,
+  canal = 'WhatsApp'
 }: AuditoriaClientItemProps) => {
-  const navigate = useNavigate();
   const [expandedSection, setExpandedSection] = useState<'registrado' | 'conversacion' | 'intereses' | null>(null);
 
   const handleToggleSection = (section: 'registrado' | 'conversacion' | 'intereses') => {
@@ -65,7 +67,7 @@ export const AuditoriaClientItem = ({
               <span className="h-1 w-1 bg-slate-200 rounded-full"></span>
               <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {dateFormatter.format(new Date(group.ultimaActividad))} @ {timeFormatter.format(new Date(group.ultimaActividad))}
+                {dateFormatter.format(new Date(group.ultimaActividad))} a las {timeFormatter.format(new Date(group.ultimaActividad))}
               </p>
             </div>
           </div>
@@ -74,7 +76,7 @@ export const AuditoriaClientItem = ({
         <div className="flex items-center gap-3">
           {group.contactoId && (
             <button 
-              onClick={() => navigate(`/contactos/${group.contactoId}`)}
+              onClick={() => window.open(`/contactos/${group.contactoId}`, '_blank')}
               className="hidden sm:flex items-center gap-3 bg-slate-50 hover:bg-slate-900 hover:text-white p-3 pr-5 rounded-2xl transition-all group cursor-pointer border border-slate-100 hover:border-slate-900"
             >
               <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-500 shadow-sm transition-colors">
@@ -153,10 +155,17 @@ export const AuditoriaClientItem = ({
             </button>
 
             {expandedSection === 'conversacion' && (
-              <AuditoriaSectionConversacion 
-                telefono={group.telefono}
-                isActive={expandedSection === 'conversacion'}
-              />
+              canal === 'Facebook' ? (
+                <AuditoriaSectionFacebookConversacion 
+                  psid={group.telefono}
+                  isActive={expandedSection === 'conversacion'}
+                />
+              ) : (
+                <AuditoriaSectionConversacion 
+                  telefono={group.telefono}
+                  isActive={expandedSection === 'conversacion'}
+                />
+              )
             )}
           </div>
 

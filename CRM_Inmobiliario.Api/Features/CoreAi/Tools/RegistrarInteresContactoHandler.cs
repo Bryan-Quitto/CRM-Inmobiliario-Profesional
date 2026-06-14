@@ -118,7 +118,13 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        await LogAiActionAsync("RegistroInteres", args.RootElement.GetRawText(), context);
+        var customDetalle = new 
+        { 
+            nombrePropiedad = pNameStr, 
+            nivelInteres = nivel, 
+            propiedadId = propiedadId 
+        };
+        await LogAiActionAsync("RegistroInteres", JsonSerializer.Serialize(customDetalle), context);
         
         return $"Interés registrado correctamente como '{nivel}'.";
     }

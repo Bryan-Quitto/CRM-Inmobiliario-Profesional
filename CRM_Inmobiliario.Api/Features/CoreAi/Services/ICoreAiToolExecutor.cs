@@ -9,9 +9,9 @@ namespace CRM_Inmobiliario.Api.Features.CoreAi.Services;
 public class ToolExecutionContext
 {
     public Guid UserId { get; set; } // Puede ser ContactoId o AgentId
-    public string Channel { get; set; } = null!; // "WhatsApp" o "Copilot"
-    public string TriggerMessage { get; set; } = null!;
-    public string? CustomerPhone { get; set; } // Si es WhatsApp
+    public string? Channel { get; set; } // Ej: "WhatsApp", "Facebook"
+    public string? ChannelIdentifier { get; set; } // El PSID, Número, etc.
+    public string? TriggerMessage { get; set; }
     public string? PhoneNumberId { get; set; } // Si es WhatsApp
     public Guid? ContactoId { get; set; } // Opcional, si estamos en contexto WhatsApp
 }

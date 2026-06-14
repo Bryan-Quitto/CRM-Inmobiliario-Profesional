@@ -18,6 +18,7 @@ public class DerivarCaptacionPropietarioHandlerTests
     private readonly Mock<ILogger<DerivarCaptacionPropietarioHandler>> _mockLogger;
     private readonly DbContextOptions<CrmDbContext> _dbContextOptions;
     private readonly Mock<IDbContextFactory<CrmDbContext>> _mockDbContextFactory;
+    private readonly Mock<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService> _mockPushService;
 
     public DerivarCaptacionPropietarioHandlerTests()
     {
@@ -30,6 +31,8 @@ public class DerivarCaptacionPropietarioHandlerTests
         _mockDbContextFactory = new Mock<IDbContextFactory<CrmDbContext>>();
         _mockDbContextFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => new CrmDbContext(_dbContextOptions));
+
+        _mockPushService = new Mock<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService>();
     }
 
     [Fact]
@@ -45,7 +48,7 @@ public class DerivarCaptacionPropietarioHandlerTests
             await context.SaveChangesAsync();
         }
 
-        var handler = new DerivarCaptacionPropietarioHandler(_mockDbContextFactory.Object, _mockLogger.Object);
+        var handler = new DerivarCaptacionPropietarioHandler(_mockDbContextFactory.Object, _mockLogger.Object, _mockPushService.Object);
         var args = JsonDocument.Parse("{\"nombre\":\"Juan\"}");
         var execContext = new ToolExecutionContext { ContactoId = contactoId, CustomerPhone = "+1234567" };
 

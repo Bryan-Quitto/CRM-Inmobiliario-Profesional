@@ -1,4 +1,4 @@
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, WifiOff } from 'lucide-react';
 import { useContactoDetalle } from '../hooks/useContactoDetalle';
 
 // Sections
@@ -67,18 +67,30 @@ export const ContactoDetalle = () => {
   }
 
   if (error || !contacto) {
+    const isNetworkError = error && (!error.response || error.code === 'ERR_NETWORK' || error.message === 'Network Error');
+
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
-        <div className="h-20 w-20 bg-rose-50 rounded-full flex items-center justify-center mb-6">
-          <X className="h-10 w-10 text-rose-500" />
+        <div className={`h-20 w-20 ${isNetworkError ? 'bg-amber-50' : 'bg-rose-50'} rounded-full flex items-center justify-center mb-6`}>
+          {isNetworkError ? (
+            <WifiOff className="h-10 w-10 text-amber-500" />
+          ) : (
+            <X className="h-10 w-10 text-rose-500" />
+          )}
         </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2">Expediente no encontrado</h2>
-        <p className="text-slate-500 max-w-xs mb-8">El contacto que buscas no existe o ha sido eliminado.</p>
+        <h2 className="text-2xl font-black text-slate-900 mb-2">
+          {isNetworkError ? 'Pérdida de conexión' : 'Expediente no encontrado'}
+        </h2>
+        <p className="text-slate-500 max-w-xs mb-8">
+          {isNetworkError 
+            ? 'No se pudo cargar la información del contacto. Verifica tu conexión a internet.' 
+            : 'El contacto que buscas no existe o ha sido eliminado.'}
+        </p>
         <button 
-          onClick={() => navigate('/contactos')}
+          onClick={() => isNetworkError ? window.location.reload() : navigate('/contactos')}
           className="px-8 py-3 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
         >
-          Volver a Cartera
+          {isNetworkError ? 'Reintentar' : 'Volver a Cartera'}
         </button>
       </div>
     );

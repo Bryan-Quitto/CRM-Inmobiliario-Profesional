@@ -33,14 +33,19 @@ public static class AiToolDefinitions
             new AiToolDefinition
             {
                 Name = "ConsultarDetallesPropiedad",
-                Description = "Consulta todos los detalles profundos (antigüedad, parqueos, dirección exacta, descripción larga) de una propiedad específica. Usa esta herramienta OBLIGATORIAMENTE cuando el cliente pregunte detalles sobre una propiedad de la que ya están hablando, ANTES de decirle que no tienes esa información.",
+                Description = "Consulta todos los detalles profundos (antigüedad, parqueos, dirección exacta, descripción larga) de una propiedad específica. Usa esta herramienta OBLIGATORIAMENTE cuando el cliente pregunte detalles sobre una propiedad específica por su nombre exacto o ID, sin importar si recién la menciona o si ya estaban hablando de ella.",
                 ParametersSchema = """
                 {
                     "type": "object",
                     "properties": {
-                        "nombrePropiedad": { "type": "string", "description": "El nombre completo de la propiedad (ej. Departamento Duplex Compañero)." }
+                        "nombrePropiedad": { "type": "string", "description": "El nombre completo de la propiedad (ej. Departamento Duplex Compañero)." },
+                        "nivelInteres": { 
+                            "type": "string", 
+                            "enum": ["Bajo", "Medio", "Alto", "Descartada"],
+                            "description": "Nivel de interés. 'Alto' (visitar/comprar), 'Medio' (técnico), 'Bajo' (básico), 'Descartada' (Rechazo). DEBES incluir este parámetro OBLIGATORIAMENTE para registrar el interés del usuario al mismo tiempo que consultas." 
+                        }
                     },
-                    "required": ["nombrePropiedad"]
+                    "required": ["nombrePropiedad", "nivelInteres"]
                 }
                 """
             },
@@ -99,7 +104,7 @@ public static class AiToolDefinitions
             tools.Add(new AiToolDefinition
             {
                 Name = "RegistrarInteresContacto",
-                Description = "Registra el interés del cliente. REGLAS: 'Alto' (Quiere visitar o comprar), 'Medio' (Preguntas técnicas: alícuota, financiamiento, fotos detalladas), 'Bajo' (Preguntas básicas: precio, negociabilidad, ubicación general), 'Descartada' (Rechazo).",
+                Description = "Registra el interés del cliente. REGLAS: 'Alto' (Quiere visitar o comprar), 'Medio' (Preguntas técnicas...), 'Bajo' (básico), 'Descartada' (Rechazo). OBLIGATORIO: DEBES invocar esta herramienta INCLUSO SI TAMBIÉN llamas a ConsultarDetallesPropiedad en este mismo turno.",
                 ParametersSchema = """
                 {
                     "type": "object",

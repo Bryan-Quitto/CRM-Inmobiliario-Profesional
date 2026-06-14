@@ -38,8 +38,9 @@ public abstract class BaseCoreAiToolHandler : ICoreAiToolHandler
         var log = new AiActionLog
         {
             Id = Guid.NewGuid(),
-            TelefonoContacto = context.CustomerPhone ?? "N/A",
+            TelefonoContacto = context.ChannelIdentifier ?? "N/A",
             ContactoId = context.ContactoId,
+            Canal = context.Channel ?? "WhatsApp",
             Accion = accion,
             DetalleJson = safeDetalle,
             TriggerMessage = context.TriggerMessage,

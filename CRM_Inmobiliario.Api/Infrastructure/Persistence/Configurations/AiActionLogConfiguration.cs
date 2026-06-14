@@ -11,8 +11,10 @@ public class AiActionLogConfiguration : IEntityTypeConfiguration<AiActionLog>
         builder.Property(e => e.TelefonoContacto).HasMaxLength(20);
         builder.Property(e => e.Accion).HasMaxLength(100);
 
-        // Index por teléfono y fecha para auditorías
-        builder.HasIndex(e => new { e.TelefonoContacto, e.Fecha })
-              .HasDatabaseName("IX_AiActionLogs_TelefonoFecha");
+        builder.Property(e => e.Canal).HasMaxLength(20);
+
+        // Index por teléfono, fecha y canal para auditorías
+        builder.HasIndex(e => new { e.Canal, e.TelefonoContacto, e.Fecha })
+              .HasDatabaseName("IX_AiActionLogs_CanalTelefonoFecha");
     }
 }

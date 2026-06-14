@@ -140,7 +140,7 @@ export const AuditoriaSectionIntereses = ({ contactoId, intereses, logs, mutate 
                         Ver Disparador
                       </button>
                       <button 
-                        onClick={() => window.location.href = `/propiedades?id=${interes.propiedadId}`}
+                        onClick={() => window.open(`/propiedades?id=${interes.propiedadId}`, '_blank')}
                         className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-400 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer"
                       >
                         <ExternalLink size={12} />
@@ -188,7 +188,7 @@ export const AuditoriaSectionIntereses = ({ contactoId, intereses, logs, mutate 
                     {(() => {
                       const logInteres = logs.find(l => 
                         l.accion === 'RegistroInteres' && 
-                        l.detalleJson?.includes(interes.propiedadId)
+                        l.detalleJson?.toLowerCase().includes(interes.propiedadId.toLowerCase())
                       );
                       return (
                         <p className="text-xs font-bold text-slate-600 contactoing-relaxed italic border-l-4 border-blue-200 pl-4">
@@ -198,7 +198,7 @@ export const AuditoriaSectionIntereses = ({ contactoId, intereses, logs, mutate 
                     })()}
                     <div className="mt-4 flex items-center justify-end text-[8px] font-black text-slate-300 uppercase tracking-widest gap-2">
                       <Clock size={10} />
-                      Detectado el {dateFormatter.format(new Date(interes.fecha))}
+                      Detectado el {dateFormatter.format(new Date(interes.fecha))} a las {new Intl.DateTimeFormat('es-EC', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(interes.fecha))}
                     </div>
                   </div>
                 )}

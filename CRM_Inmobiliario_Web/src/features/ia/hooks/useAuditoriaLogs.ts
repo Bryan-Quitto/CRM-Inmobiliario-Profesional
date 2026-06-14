@@ -5,9 +5,9 @@ import { getContactoById } from '../../contactos/api/getContactoById';
 import type { Contacto } from '../../contactos/types';
 import type { ClientGroup } from '../types/auditoria';
 
-export const useAuditoriaLogs = () => {
+export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
   const { mutate: globalMutate } = useSWRConfig();
-  const { data: clientGroups, error, isLoading, mutate } = useSWR<ClientGroup[]>('/ia/logs', {
+  const { data: clientGroups, error, isLoading, mutate } = useSWR<ClientGroup[]>(`/ia/logs?canal=${canal}`, {
     revalidateOnFocus: true,
     dedupingInterval: 0
   });

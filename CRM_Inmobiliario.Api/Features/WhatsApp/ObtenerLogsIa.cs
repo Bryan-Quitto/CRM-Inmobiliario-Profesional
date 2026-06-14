@@ -36,14 +36,16 @@ public static class ObtenerLogsIa
 
     public static void MapObtenerLogsIa(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/ia/logs", async (CrmDbContext context, ILogger<CrmDbContext> logger) =>
+        app.MapGet("/ia/logs", async ([Microsoft.AspNetCore.Mvc.FromQuery] string canal, CrmDbContext context, ILogger<CrmDbContext> logger) =>
         {
-            logger.LogInformation("--- OBTENIENDO AUDITORÍA IA AGRUPADA ---");
+            canal ??= "WhatsApp";
+            logger.LogInformation("--- OBTENIENDO AUDITORÍA IA AGRUPADA PARA {Canal} ---", canal);
             
             try 
             {
                 var rawLogs = await context.AiActionLogs
                     .AsNoTracking()
+                    .Where(l => l.Canal == canal)
                     .OrderByDescending(l => l.Fecha)
                     .Take(400)
                     .ToListAsync();
@@ -71,7 +73,10 @@ public static class ObtenerLogsIa
                         ? contactos.FirstOrDefault(l => l.Id == specificContactId)
                         : contactos.FirstOrDefault(l => l.Telefono == tel);
                     
-                    bool registradoPorIA = clientLogs.Any(l => l.Accion == "Registro Lead" || l.Accion == "Registro de Contacto" || l.Accion == "Registro de Prospecto");
+                    bool registradoPorIA = contacto != null && 
+                        (contacto.Origen == "IA WhatsApp" || 
+                         contacto.Origen == "Aut. WhatsApp" || 
+                         contacto.Origen == "Aut. Facebook");
 
                     var intereses = contacto?.PropertyInterests
                         .Where(i => i.Propiedad != null)

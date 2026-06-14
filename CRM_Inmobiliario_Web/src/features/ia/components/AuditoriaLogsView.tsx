@@ -5,7 +5,7 @@ import { useAuditoriaLogs } from '../hooks/useAuditoriaLogs';
 import { AuditoriaHeader } from './auditoria-sections/AuditoriaHeader';
 import { AuditoriaClientItem } from './auditoria-sections/AuditoriaClientItem';
 
-export const AuditoriaLogsView = () => {
+export const AuditoriaLogsView = ({ canal = 'WhatsApp' }: { canal?: string }) => {
   const {
     clientGroups,
     isLoading,
@@ -21,7 +21,7 @@ export const AuditoriaLogsView = () => {
     handleEditClick,
     mutate,
     globalMutate
-  } = useAuditoriaLogs();
+  } = useAuditoriaLogs(canal);
 
   if (error) return (
     <div className="bg-rose-50 border border-rose-100 p-12 rounded-[2rem] text-center max-w-2xl mx-auto mt-10 shadow-xl shadow-rose-500/5 animate-in zoom-in-95 duration-500">
@@ -67,6 +67,7 @@ export const AuditoriaLogsView = () => {
               onToggle={() => toggleClientExpansion(group.telefono)}
               handleEditClick={handleEditClick}
               mutate={mutate}
+              canal={canal}
             />
           ))
         )}

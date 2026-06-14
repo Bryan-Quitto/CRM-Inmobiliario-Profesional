@@ -21,7 +21,20 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
     public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        string? pNameStr = args.RootElement.TryGetProperty("nombrePropiedad", out var pName) ? pName.GetString() : null;
+        string? pNameStr = null;
+        string? nivelStr = null;
+
+        foreach (var prop in args.RootElement.EnumerateObject())
+        {
+            if (string.Equals(prop.Name, "nombrePropiedad", StringComparison.OrdinalIgnoreCase) && prop.Value.ValueKind == JsonValueKind.String)
+            {
+                pNameStr = prop.Value.GetString();
+            }
+            else if (string.Equals(prop.Name, "nivelInteres", StringComparison.OrdinalIgnoreCase) && prop.Value.ValueKind == JsonValueKind.String)
+            {
+                nivelStr = prop.Value.GetString();
+            }
+        }
 
         _logger.LogInformation("Iniciando consulta profunda de propiedad: Nombre={NombrePropiedad}", pNameStr ?? "Ninguno");
 
@@ -67,6 +80,43 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
         }
 
         await LogAiActionAsync("ConsultaDetallesPropiedad", args.RootElement.GetRawText(), context);
+
+        if (!string.IsNullOrWhiteSpace(nivelStr))
+        {
+            var customDetalle = new 
+            { 
+                nombrePropiedad = propiedad.Titulo, 
+                nivelInteres = nivelStr, 
+                propiedadId = propiedad.Id 
+            };
+            await LogAiActionAsync("RegistroInteres", JsonSerializer.Serialize(customDetalle), context);
+            _logger.LogInformation("INTERÉS REGISTRADO AUTOMÁTICAMENTE: Contacto {ContactoId} - Propiedad {Propiedad} - Nivel {Nivel}", context.ContactoId, propiedad.Titulo, nivelStr);
+
+            if (context.ContactoId.HasValue)
+            {
+                var interest = await _context.ContactoInteresPropiedades
+                    .FirstOrDefaultAsync(i => i.ContactoId == context.ContactoId.Value && i.PropiedadId == propiedadId, cancellationToken);
+
+                if (interest == null)
+                {
+                    interest = new ContactoInteresPropiedad
+                    {
+                        ContactoId = context.ContactoId.Value,
+                        PropiedadId = propiedadId,
+                        NivelInteres = nivelStr,
+                        FechaRegistro = DateTimeOffset.UtcNow
+                    };
+                    _context.ContactoInteresPropiedades.Add(interest);
+                }
+                else
+                {
+                    interest.NivelInteres = nivelStr;
+                    interest.FechaRegistro = DateTimeOffset.UtcNow;
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+        }
 
         var sb = new StringBuilder();
         sb.AppendLine($"--- DETALLES PROFUNDOS DE LA PROPIEDAD: {propiedad.Id} ---");

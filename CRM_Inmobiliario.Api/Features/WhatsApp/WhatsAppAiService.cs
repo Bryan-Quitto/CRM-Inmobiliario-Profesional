@@ -170,7 +170,7 @@ public sealed class WhatsAppAiService
                         UserId = context.Contacto?.Id ?? Guid.Empty,
                         Channel = "WhatsApp",
                         TriggerMessage = messageText,
-                        CustomerPhone = phone,
+                        ChannelIdentifier = phone,
                         PhoneNumberId = phoneNumberId,
                         ContactoId = context.Contacto?.Id
                     };
@@ -315,7 +315,7 @@ public sealed class WhatsAppAiService
                                 UserId = context.Contacto?.Id ?? Guid.Empty,
                                 Channel = "WhatsApp",
                                 TriggerMessage = messageText,
-                                CustomerPhone = phone,
+                                ChannelIdentifier = phone,
                                 PhoneNumberId = phoneNumberId,
                                 ContactoId = context.Contacto?.Id
                             };

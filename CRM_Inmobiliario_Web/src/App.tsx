@@ -101,7 +101,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route index element={<Navigate to="whatsapp" replace />} />
                 <Route path="whatsapp" element={<AuditoriaLogsView />} />
                 <Route path="personal" element={<Suspense fallback={<PageLoader />}><PersonalLogsView /></Suspense>} />
-                <Route path="facebook" element={<Navigate to="whatsapp" replace />} />
+                <Route path="facebook" element={<AuditoriaLogsView canal="Facebook" />} />
                 <Route path="general" element={<Navigate to="whatsapp" replace />} />
               </Route>
               <Route path="/kpis" element={<AnaliticaView />} />

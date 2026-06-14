@@ -49,8 +49,8 @@ const DashboardContent: React.FC = () => {
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-800">Activa las notificaciones en tiempo real</h3>
-              <p className="text-sm text-slate-600 mt-0.5">Recibe alertas inmediatas cuando un lead requiera asistencia humana.</p>
-            </div>
+              <p className="text-sm text-slate-600 mt-0.5">Recibe alertas inmediatas cuando un cliente requiera asistencia humana.</p>
+            </div> 
           </div>
           <button 
             onClick={subscribeToPush}

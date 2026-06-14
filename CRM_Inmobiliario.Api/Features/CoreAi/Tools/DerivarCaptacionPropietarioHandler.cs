@@ -10,8 +10,13 @@ namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
 public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
 {
-    public DerivarCaptacionPropietarioHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<DerivarCaptacionPropietarioHandler> logger) 
-        : base(dbContextFactory, logger) { }
+    private readonly CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService _pushNotificationService;
+
+    public DerivarCaptacionPropietarioHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<DerivarCaptacionPropietarioHandler> logger, CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService pushNotificationService) 
+        : base(dbContextFactory, logger) 
+    {
+        _pushNotificationService = pushNotificationService;
+    }
 
     public override string ToolName => "DerivarCaptacionPropietario";
 
@@ -29,10 +34,10 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
             existing = await _context.Contactos.FindAsync(new object[] { context.ContactoId.Value }, cancellationToken);
         }
 
-        if (existing == null && !string.IsNullOrWhiteSpace(context.CustomerPhone))
+        if (existing == null && !string.IsNullOrWhiteSpace(context.ChannelIdentifier))
         {
-            string searchPhone = context.CustomerPhone.StartsWith("+") ? context.CustomerPhone : "+" + context.CustomerPhone;
-            existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.CustomerPhone || l.Telefono == searchPhone, cancellationToken);
+            string searchPhone = context.ChannelIdentifier.StartsWith("+") ? context.ChannelIdentifier : "+" + context.ChannelIdentifier;
+            existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.ChannelIdentifier || l.Telefono == searchPhone, cancellationToken);
         }
         
         if (existing == null)
@@ -46,7 +51,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                 {
                     Id = Guid.NewGuid(),
                     Nombre = nombre,
-                    Telefono = context.CustomerPhone ?? string.Empty,
+                    Telefono = context.ChannelIdentifier ?? string.Empty,
                     Origen = "IA WhatsApp",
                     AgenteId = agentIdToUse.Value,
                     FechaCreacion = DateTimeOffset.UtcNow,
@@ -60,6 +65,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                 };
                 _context.Contactos.Add(newPropietario);
                 await LogAiActionAsync("Registro Propietario Captacion", args.RootElement.GetRawText(), context);
+                existing = newPropietario;
             }
         }
         else
@@ -77,7 +83,36 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         
         await _context.SaveChangesAsync(cancellationToken);
         
-        return "INSTRUCCIÓN PARA LA IA: Dile al cliente textualmente: 'Excelente [Nombre], un agente especializado en captación de propiedades se comunicará contigo en breve para asesorarte de manera personalizada con tu inmueble. ¡Gracias por confiar en nosotros!'";
+        if (existing != null && existing.AgenteId != Guid.Empty)
+        {
+            string displayIdentifier = (existing.Nombre == "Cliente WA" || existing.Nombre == "Usuario Desconocido" || existing.Nombre == "Desconocido")
+                ? (!string.IsNullOrWhiteSpace(existing.Telefono) ? existing.Telefono : "Desconocido")
+                : existing.Nombre;
+
+            string tipoInmueble = ExtractSafeString(args.RootElement, "tipoInmueble", 100, "inmueble");
+            string ubicacion = ExtractSafeString(args.RootElement, "ubicacion", 200, "");
+            string ubicacionText = string.IsNullOrWhiteSpace(ubicacion) || ubicacion.ToLower() == "ubicación no especificada" 
+                ? "" 
+                : $" en {ubicacion}";
+            
+            _logger.LogInformation($"[PUSH] Intentando notificar a AgentId {existing.AgenteId} sobre el contacto {existing.Id}");
+            await _pushNotificationService.SendNotificationToAgentAsync(
+                existing.AgenteId,
+                "🏡 Nueva Captación de Propiedad",
+                $"El cliente {displayIdentifier} está interesado en poner a la venta/alquiler su {tipoInmueble}{ubicacionText}. ¡Comunícate pronto!",
+                $"/contactos/{existing.Id}",
+                cancellationToken);
+        }
+
+        string nombreParaSaludo = (existing != null && (existing.Nombre == "Cliente WA" || existing.Nombre == "Usuario Desconocido" || existing.Nombre == "Desconocido" || existing.Nombre == existing.FacebookSenderId)) 
+            ? "" 
+            : (existing?.Nombre ?? "");
+
+        string saludo = string.IsNullOrWhiteSpace(nombreParaSaludo) 
+            ? "Excelente," 
+            : $"Excelente {nombreParaSaludo},";
+
+        return $"INSTRUCCIÓN PARA LA IA: Dile al cliente textualmente: '{saludo} un agente especializado en captación de propiedades se comunicará contigo en breve para asesorarte de manera personalizada con tu inmueble. ¡Gracias por confiar en nosotros!'";
     }
 }
 

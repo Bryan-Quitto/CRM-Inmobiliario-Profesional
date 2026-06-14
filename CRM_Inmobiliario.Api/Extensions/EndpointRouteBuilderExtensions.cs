@@ -116,6 +116,7 @@ public static class EndpointRouteBuilderExtensions
         // IA Auditoría
         apiGroup.MapObtenerLogsIa();
         apiGroup.MapObtenerConversacionIa();
+        apiGroup.MapObtenerConversacionFacebookIa();
 
         // Webhooks (Sin Auth)
         endpoints.MapWhatsAppWebhooksEndpoints();

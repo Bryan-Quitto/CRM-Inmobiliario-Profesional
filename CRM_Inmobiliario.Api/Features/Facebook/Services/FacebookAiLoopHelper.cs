@@ -47,7 +47,8 @@ public static class FacebookAiLoopHelper
                     Channel = "Facebook",
                     TriggerMessage = messageText,
                     PhoneNumberId = pageId,
-                    ContactoId = contactoId
+                    ContactoId = contactoId,
+                    ChannelIdentifier = senderId
                 };
                 var fallbackToolCall = new AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"La Inteligencia Artificial se atascó procesando este mensaje y requiere tu ayuda.\"}" };
                 
@@ -147,7 +148,8 @@ public static class FacebookAiLoopHelper
                             Channel = "Facebook",
                             TriggerMessage = messageText,
                             PhoneNumberId = pageId,
-                            ContactoId = contactoId
+                            ContactoId = contactoId,
+                            ChannelIdentifier = senderId
                         };
                         
                         if (!jsonError)

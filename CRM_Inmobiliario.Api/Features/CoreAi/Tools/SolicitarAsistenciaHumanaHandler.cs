@@ -44,7 +44,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
             {
                 Id = Guid.NewGuid(),
                 Nombre = "Usuario Desconocido",
-                Telefono = context.CustomerPhone ?? string.Empty,
+                Telefono = context.ChannelIdentifier ?? string.Empty,
                 Origen = "IA WhatsApp",
                 AgenteId = agentIdToUse ?? Guid.Empty,
                 FechaCreacion = DateTimeOffset.UtcNow,
@@ -74,11 +74,15 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
 
         if (contacto.AgenteId != Guid.Empty)
         {
+            string displayIdentifier = (contacto.Nombre == "Cliente WA" || contacto.Nombre == "Usuario Desconocido" || contacto.Nombre == "Desconocido")
+                ? (!string.IsNullOrWhiteSpace(contacto.Telefono) ? contacto.Telefono : "Desconocido")
+                : contacto.Nombre;
+
             _logger.LogInformation($"[PUSH] Intentando notificar a AgentId {contacto.AgenteId} sobre el contacto {contacto.Id}");
             await _pushNotificationService.SendNotificationToAgentAsync(
                 contacto.AgenteId,
                 "🚨 Asistencia Humana Solicitada",
-                $"El cliente {contacto.Nombre} requiere intervención inmediata. Motivo: {motivo}",
+                $"El cliente {displayIdentifier} requiere intervención inmediata. Motivo: {motivo}",
                 $"/contactos/{contacto.Id}",
                 cancellationToken);
         }

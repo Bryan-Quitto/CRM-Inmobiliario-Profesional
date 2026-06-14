@@ -20,5 +20,9 @@ public sealed class AiActionLog
 
     public string? TriggerMessage { get; set; } // El mensaje del usuario que disparó esto
 
+    [Required]
+    [MaxLength(20)]
+    public string Canal { get; set; } = "WhatsApp";
+
     public DateTimeOffset Fecha { get; set; } = DateTimeOffset.UtcNow;
 }
