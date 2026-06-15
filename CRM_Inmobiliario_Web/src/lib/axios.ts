@@ -72,6 +72,12 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Peticiones canceladas por AbortSignal (SWR cancela al cambiar de página rápido)
+    // NO son errores reales — ignorar silenciosamente sin mostrar toast
+    if (error.code === 'ERR_CANCELED' || error.name === 'CanceledError') {
+      return Promise.reject(error);
+    }
+
     // Si no hay respuesta del servidor (Error de Red)
     if (!error.response) {
       toast.error('Error de comunicación con el servidor', {
@@ -80,7 +86,7 @@ api.interceptors.response.use(
       });
     }
 
-    // Errores de Timeout
+    // Errores de Timeout (solo timeouts reales, no cancelaciones)
     if (error.code === 'ECONNABORTED') {
       toast.error('La petición ha tardado demasiado', {
         description: 'El servidor está tardando en responder. Intenta de nuevo.',

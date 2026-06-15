@@ -28,15 +28,12 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
         var agent = await ResolveIdentityAsync(context, cancellationToken);
         if (agent == null) return "{\"error\": \"Acceso denegado: No se pudo identificar al agente.\"}";
 
-        string searchTermLower = searchTerm.ToLower();
+        string searchTermLower = searchTerm.ToLower(); // Solo para comparación de teléfono (ya es string en C#)
+        var searchPattern = $"%{CrmDbContext.NormalizeText(searchTerm.Trim())}%";
 
         var result = await (from c in _context.Contactos
-                                .Include(c => c.Tasks)
-                                .Include(c => c.Interactions)
-                            where c.AgenteId == agent.Id && 
-                                  ((c.Nombre != null && c.Nombre.ToLower().Contains(searchTermLower)) || 
-                                   (c.Apellido != null && c.Apellido.ToLower().Contains(searchTermLower)) || 
-                                   ((c.Nombre ?? "") + " " + (c.Apellido ?? "")).ToLower().Contains(searchTermLower) ||
+                            where c.AgenteId == agent.Id &&
+                                  (EF.Functions.ILike(c.NormalizedSearchText, searchPattern) ||
                                    (c.Telefono != null && c.Telefono.Contains(searchTerm)) ||
                                    c.Id.ToString() == searchTerm)
                             let whatsapp = _context.WhatsappConversations
@@ -50,11 +47,13 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
                                 EtapaEmbudo = c.EtapaEmbudo,
                                 EsProspecto = c.EsProspecto,
                                 EsPropietario = c.EsPropietario,
-                                UltimasTareas = c.Tasks
+                                UltimasTareas = _context.Tasks
+                                    .Where(t => t.ContactoId == c.Id)
                                     .OrderByDescending(t => t.FechaInicio)
                                     .Take(3)
                                     .Select(t => new { t.Titulo, t.Estado, t.FechaInicio }),
-                                UltimasNotas = c.Interactions
+                                UltimasNotas = _context.Interactions
+                                    .Where(i => i.ContactoId == c.Id)
                                     .OrderByDescending(i => i.FechaInteraccion)
                                     .Take(3)
                                     .Select(i => new { i.TipoInteraccion, i.Notas, i.FechaInteraccion }),

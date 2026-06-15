@@ -38,8 +38,11 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
         Guid propiedadId;
 
         // Búsqueda robusta por título o ID
-        string searchTerm = pNameStr.ToLower().Trim();
-        var propertyByTitle = await _context.Properties.FirstOrDefaultAsync(p => p.Titulo.ToLower().Contains(searchTerm) || p.Id.ToString() == searchTerm);
+        string searchTerm = pNameStr.Trim();
+        var searchPattern = $"%{CrmDbContext.NormalizeText(searchTerm)}%";
+        var propertyByTitle = await _context.Properties
+            .Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern) || p.Id.ToString() == searchTerm)
+            .FirstOrDefaultAsync();
         
         if (propertyByTitle != null)
         {

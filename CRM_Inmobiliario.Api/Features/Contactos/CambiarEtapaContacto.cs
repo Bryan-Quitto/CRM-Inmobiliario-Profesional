@@ -88,15 +88,15 @@ public static class CambiarEtapaContactoFeature
                         return Results.BadRequest(new { Message = "El propietario tiene transacciones activas. Por favor, gestione estas transacciones desde el catálogo de propiedades para poder pasarlo a inactivo." });
                     }
 
-                    // Pasar propiedades Disponibles a Inactiva
-                    var propiedadesAInactivar = await context.Properties
-                        .Where(p => p.PropietarioId == id && p.EstadoComercial == "Disponible")
-                        .ToListAsync(ct);
+                    // Pasar propiedades Disponibles a Inactiva — bulk update directo en DB (patrón FusionarContactos)
+                    await context.Database.ExecuteSqlRawAsync(
+                        """
+                        UPDATE "Properties"
+                        SET "EstadoComercial" = 'Inactiva'
+                        WHERE "PropietarioId" = {0} AND "EstadoComercial" = 'Disponible'
+                        """,
+                        id);
 
-                    foreach (var p in propiedadesAInactivar)
-                    {
-                        p.EstadoComercial = "Inactiva";
-                    }
                 }
 
                 // Actualizar etapa según el tipo

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Concurrent;
 
 using CRM_Inmobiliario.Api.Infrastructure.Caching;
 
@@ -49,6 +50,9 @@ public static class ListarContactosFeature
         int TotalCount,
         int Nuevos,
         int EnNegociacion);
+
+    // Semáforos por clave para evitar Cache Stampede: garantiza un solo writer por cache key
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _countLocks = new();
 
     public static RouteHandlerBuilder MapListarContactosEndpoint(this IEndpointRouteBuilder app)
     {
@@ -105,23 +109,45 @@ public static class ListarContactosFeature
 
             var countsCacheKey = $"Contactos_Counts_{agenteId}_{request.Search}_{request.Estado}_{request.Segmento}_{request.Visibilidad}_{request.Origen}_{request.EstadoPropietario}";
             
-            var counts = await serviceProvider.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>().GetOrCreateAsync(countsCacheKey, async entry => 
+            var memCache = serviceProvider.GetRequiredService<IMemoryCache>();
+
+            // Anti-stampede: si el cache falla, solo UN hilo computa el count por clave simultáneamente
+            (int TotalCount, int NuevosCount, int EnNegociacionCount) counts;
+            if (!memCache.TryGetValue(countsCacheKey, out counts))
             {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
-                var swCount = Stopwatch.StartNew();
-                // Implementación The One Trip Pattern: Consolidar conteos en un solo viaje
-                var result = await baseQuery
-                    .GroupBy(c => 1)
-                    .Select(g => new {
-                        TotalCount = g.Count(),
-                        NuevosCount = g.Count(c => c.EtapaEmbudo == "Nuevo"),
-                        EnNegociacionCount = g.Count(c => c.EtapaEmbudo == "En Negociacion")
-                    })
-                    .FirstOrDefaultAsync(cancellationToken) ?? new { TotalCount = 0, NuevosCount = 0, EnNegociacionCount = 0 };
-                swCount.Stop();
-                Console.WriteLine($"[API] Calculó Counts en {swCount.ElapsedMilliseconds}ms (Caché Miss)");
-                return result;
-            });
+                var sem = _countLocks.GetOrAdd(countsCacheKey, _ => new SemaphoreSlim(1, 1));
+                await sem.WaitAsync(cancellationToken);
+                try
+                {
+                    // Double-check: otro hilo pudo haber llenado el cache mientras esperábamos
+                    if (!memCache.TryGetValue(countsCacheKey, out counts))
+                    {
+                        var swCount = Stopwatch.StartNew();
+                        // .OrderBy suprime el EF Core warning [10103] sobre First sin OrderBy
+                        var countData = await baseQuery
+                            .GroupBy(c => 1)
+                            .Select(g => new {
+                                TotalCount = g.Count(),
+                                NuevosCount = g.Count(c => c.EtapaEmbudo == "Nuevo"),
+                                EnNegociacionCount = g.Count(c => c.EtapaEmbudo == "En Negociacion")
+                            })
+                            .OrderBy(g => g.TotalCount) // Suprime warning [10103]
+                            .FirstOrDefaultAsync(cancellationToken);
+                        swCount.Stop();
+                        Console.WriteLine($"[API] Calculó Counts en {swCount.ElapsedMilliseconds}ms (Caché Miss)");
+                        counts = (
+                            countData?.TotalCount ?? 0,
+                            countData?.NuevosCount ?? 0,
+                            countData?.EnNegociacionCount ?? 0
+                        );
+                        memCache.Set(countsCacheKey, counts, TimeSpan.FromMinutes(5));
+                    }
+                }
+                finally
+                {
+                    sem.Release();
+                }
+            }
 
             var totalCount = counts!.TotalCount;
             var nuevosCount = counts.NuevosCount;

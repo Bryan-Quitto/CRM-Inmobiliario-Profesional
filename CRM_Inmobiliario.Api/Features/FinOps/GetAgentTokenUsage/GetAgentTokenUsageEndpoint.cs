@@ -29,7 +29,7 @@ public static class GetAgentTokenUsageEndpoint
                     CostoTotalUsd = t.CostoUSD
                 });
 
-            var result = await query.ToListAsync();
+            var result = await query.Take(90).ToListAsync(); // Máximo 90 días — el frontend no necesita más para el chart
 
             return Results.Ok(result);
         });

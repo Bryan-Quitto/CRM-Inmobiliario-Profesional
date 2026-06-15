@@ -32,6 +32,7 @@ public static class ObtenerHistorialPropiedadFeature
                 .AsNoTracking()
                 .Where(t => t.PropertyId == id && (t.Property!.AgenteId == agenteId || t.CreatedById == agenteId))
                 .OrderByDescending(t => t.TransactionDate)
+                .Take(200) // Límite de seguridad — una propiedad no debería tener más de 200 transacciones
                 .Select(t => new Response(
                     t.Id,
                     t.TransactionType,

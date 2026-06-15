@@ -43,8 +43,11 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
             return "No se especificó un nombre válido de la propiedad a consultar.";
         }
 
-        string searchTerm = pNameStr.ToLower().Trim();
-        var propiedadBase = await _context.Properties.FirstOrDefaultAsync(p => p.Titulo.ToLower().Contains(searchTerm) || p.Id.ToString() == searchTerm);
+        string searchTerm = pNameStr.Trim();
+        var searchPattern = $"%{CrmDbContext.NormalizeText(searchTerm)}%";
+        var propiedadBase = await _context.Properties
+            .Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern) || p.Id.ToString() == searchTerm)
+            .FirstOrDefaultAsync();
 
         if (propiedadBase == null)
         {

@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
@@ -66,9 +69,12 @@ public static class ListarPropiedadesFeature
         Guid AgenteId,
         string AgenteNombre);
 
+    // Semáforos por clave para evitar Cache Stampede
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _countLocks = new();
+
     public static RouteHandlerBuilder MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapGet("/propiedades", async ([AsParameters] GetPropiedadesRequest request, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapGet("/propiedades", async ([AsParameters] GetPropiedadesRequest request, ClaimsPrincipal user, CrmDbContext context, IServiceProvider serviceProvider, CancellationToken cancellationToken) =>
         {
             var actualPageNumber = request.PageNumber ?? 1;
             var actualPageSize = request.PageSize ?? 50;
@@ -153,21 +159,50 @@ public static class ListarPropiedadesFeature
             if (request.EsCaptacionPropia.HasValue)
                 query = query.Where(p => p.EsCaptacionPropia == request.EsCaptacionPropia.Value);
 
-            var stats = await query
-                .GroupBy(p => 1)
-                .Select(g => new
-                {
-                    Key = g.Key,
-                    TotalCount = g.Count(),
-                    CountVentas = g.Count(p => p.Operacion == "Venta"),
-                    CountAlquiler = g.Count(p => p.Operacion == "Alquiler")
-                })
-                .OrderBy(g => g.Key)
-                .FirstOrDefaultAsync();
+            var memCache = serviceProvider.GetRequiredService<IMemoryCache>();
+            var countsCacheKey = $"Propiedades_Counts_{currentUserId}_{agenciaId}_{request.SearchQuery}_{request.EstadoComercial}_{request.TipoPropiedad}_{request.Operacion}_{request.PrecioMin}_{request.PrecioMax}_{request.AreaTotalMin}_{request.AreaTotalMax}_{request.HabitacionesMin}_{request.HabitacionesMax}_{request.AniosAntiguedadMin}_{request.AniosAntiguedadMax}_{request.EsCaptacionPropia}";
 
-            var totalCount = stats?.TotalCount ?? 0;
-            var countVentas = stats?.CountVentas ?? 0;
-            var countAlquiler = stats?.CountAlquiler ?? 0;
+            (int TotalCount, int CountVentas, int CountAlquiler) counts;
+            if (!memCache.TryGetValue(countsCacheKey, out counts))
+            {
+                var sem = _countLocks.GetOrAdd(countsCacheKey, _ => new SemaphoreSlim(1, 1));
+                await sem.WaitAsync(cancellationToken);
+                try
+                {
+                    if (!memCache.TryGetValue(countsCacheKey, out counts))
+                    {
+                        var swCount = Stopwatch.StartNew();
+                        var stats = await query
+                            .GroupBy(p => 1)
+                            .Select(g => new
+                            {
+                                TotalCount = g.Count(),
+                                CountVentas = g.Count(p => p.Operacion == "Venta"),
+                                CountAlquiler = g.Count(p => p.Operacion == "Alquiler")
+                            })
+                            .OrderBy(g => g.TotalCount)
+                            .FirstOrDefaultAsync(cancellationToken);
+                        
+                        swCount.Stop();
+                        Console.WriteLine($"[API] Calculó Counts Propiedades en {swCount.ElapsedMilliseconds}ms (Caché Miss)");
+                        
+                        counts = (
+                            stats?.TotalCount ?? 0,
+                            stats?.CountVentas ?? 0,
+                            stats?.CountAlquiler ?? 0
+                        );
+                        memCache.Set(countsCacheKey, counts, TimeSpan.FromMinutes(5));
+                    }
+                }
+                finally
+                {
+                    sem.Release();
+                }
+            }
+
+            var totalCount = counts.TotalCount;
+            var countVentas = counts.CountVentas;
+            var countAlquiler = counts.CountAlquiler;
 
             // Ordenamiento dinámico
             var sortBy = request.SortBy?.ToLowerInvariant() ?? "fechaingreso";
@@ -231,7 +266,7 @@ public static class ListarPropiedadesFeature
                     x.Property.AreaTotal,
                     x.Property.AniosAntiguedad,
                     false)) // Lo calcularemos a continuación
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             if (cleanPhoneToShare != null)
             {

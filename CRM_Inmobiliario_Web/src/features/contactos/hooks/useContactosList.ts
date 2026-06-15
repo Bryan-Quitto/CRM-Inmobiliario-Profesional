@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import useSWR, { preload } from 'swr';
-import { getContactos, type GetContactosResponse } from '../api/getContactos';
+import { getContactos, type GetContactosParams, type GetContactosResponse } from '../api/getContactos';
 import { swrDefaultConfig } from '@/lib/swr';
 import { useContactosFiltering } from './useContactosFiltering';
 import { useContactoCommercialLogic } from './useContactoCommercialLogic';
@@ -49,8 +49,9 @@ export const useContactosList = () => {
 
   const { data: responseData, isLoading, isValidating, mutate } = useSWR<GetContactosResponse>(
     ['/contactos', params],
-    // SWR 2.x extraArgs podría ser undefined si no está habilitado, prevenir TypeError
-    ([, p]: [string, Record<string, unknown>], extraArgs?: { signal?: AbortSignal }) => getContactos({ ...p, signal: extraArgs?.signal }),
+    // SWR 2.x pasa AbortSignal como segundo argumento del fetcher, NO como extraArgs
+    ([, p]: [string, Record<string, unknown>], { signal }: { signal?: AbortSignal } = {}) =>
+      getContactos({ ...p as GetContactosParams, signal }),
     { ...swrDefaultConfig, keepPreviousData: true }
   );
 
@@ -95,10 +96,15 @@ export const useContactosList = () => {
   const totalPages = Math.ceil((responseData?.totalCount || 0) / 20);
 
   // Prefetch de la siguiente página para zero-wait
+  // Debounce de 300ms: evita disparar prefetches durante navegación rápida
   useEffect(() => {
-    if (responseData && page < totalPages) {
-      preload(['/contactos', { ...params, page: page + 1 }], ([, p]: [string, Record<string, unknown>]) => getContactos(p as Record<string, unknown>));
-    }
+    if (!responseData || page >= totalPages) return;
+    const timer = setTimeout(() => {
+      preload(['/contactos', { ...params, page: page + 1 }], ([, p]: [string, Record<string, unknown>]) =>
+        getContactos(p as GetContactosParams)
+      );
+    }, 300);
+    return () => clearTimeout(timer);
   }, [page, totalPages, params, responseData]);
 
   const handleStageChange = (id: string, nuevaEtapa: string, tipo: 'contacto' | 'propietario' = 'contacto') => {

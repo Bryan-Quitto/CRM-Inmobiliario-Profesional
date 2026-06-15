@@ -44,12 +44,12 @@ public static class BuscarPropiedadesFeature
                 return Results.Ok(Enumerable.Empty<PropiedadBusquedaResponse>());
             }
 
-            var normalizedQuery = query.Trim().ToLower();
+            var searchPattern = $"%{CrmDbContext.NormalizeText(query.Trim())}%";
 
             var results = await context.Properties
                 .AsNoTracking()
                 .Where(p => p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId)
-                .Where(p => p.Titulo.ToLower().Contains(normalizedQuery))
+                .Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern))
                 .OrderBy(p => p.Titulo)
                 .Take(20)
                 .Select(p => new

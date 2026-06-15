@@ -59,12 +59,10 @@ public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
         if (!contactoId.HasValue && !string.IsNullOrEmpty(contactoBusqueda))
         {
             needsConfirmation = true;
-            string contactoBusquedaLower = contactoBusqueda.ToLower();
+            var searchPattern = $"%{CrmDbContext.NormalizeText(contactoBusqueda.Trim())}%";
             var matchContacto = await _context.Contactos
                 .Where(c => c.AgenteId == agenteId && (
-                    (c.Nombre != null && c.Nombre.ToLower().Contains(contactoBusquedaLower)) ||
-                    (c.Apellido != null && c.Apellido.ToLower().Contains(contactoBusquedaLower)) ||
-                    ((c.Nombre ?? "") + " " + (c.Apellido ?? "")).ToLower().Contains(contactoBusquedaLower) ||
+                    EF.Functions.ILike(c.NormalizedSearchText, searchPattern) ||
                     (c.Telefono != null && c.Telefono.Contains(contactoBusqueda)) ||
                     c.Id.ToString() == contactoBusqueda
                 ))
@@ -83,8 +81,10 @@ public sealed class CrearTareaCRMHandler : BaseCoreAiToolHandler
         if (!propiedadId.HasValue && !string.IsNullOrEmpty(propiedadBusqueda))
         {
             needsConfirmation = true;
+            var propSearchPattern = $"%{CrmDbContext.NormalizeText(propiedadBusqueda.Trim())}%";
             var matchPropiedad = await _context.Properties
-                .Where(p => p.AgenciaId == agent.AgenciaId && (p.Titulo.ToLower().Contains(propiedadBusqueda.ToLower()) || p.Id.ToString() == propiedadBusqueda))
+                .Where(p => p.AgenciaId == agent.AgenciaId && (
+                    EF.Functions.ILike(p.NormalizedSearchText, propSearchPattern) || p.Id.ToString() == propiedadBusqueda))
                 .FirstOrDefaultAsync(cancellationToken);
             
             if (matchPropiedad != null)

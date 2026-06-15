@@ -55,18 +55,6 @@ public static class ObtenerTokenUsageContactoFeature
 
             logger.LogInformation("LimitDate calculado: {LimitDate}", limitDate);
 
-            // LOG DB RAW DATA (For debugging)
-            var allTokens = await context.Set<CRM_Inmobiliario.Api.Domain.Entities.ContactDailyTokenUsage>()
-                .Where(u => u.ContactoId == id)
-                .Select(u => new { u.Date, u.TokensUsed, u.InputTokens, u.CachedTokens, u.OutputTokens, u.CostoUSD, u.AhorroUSD })
-                .ToListAsync(ct);
-            logger.LogInformation("Tokens brutos en DB para contacto {Id}: {Count} registros", id, allTokens.Count);
-            foreach(var t in allTokens) 
-            {
-                logger.LogInformation(" - DB Registro: Date={Date} (UTC: {IsUtc}), Total={Total}, Input={In}, Cached={Cached}, Output={Out}, CostoUSD={Costo}, AhorroUSD={Ahorro}", 
-                    t.Date, t.Date.Offset, t.TokensUsed, t.InputTokens, t.CachedTokens, t.OutputTokens, t.CostoUSD, t.AhorroUSD);
-            }
-
             string? dbChannel = channel == "facebook" ? "Facebook" : (channel == "whatsapp" ? "WhatsApp" : null);
 
             var queryResult = await context.Contactos

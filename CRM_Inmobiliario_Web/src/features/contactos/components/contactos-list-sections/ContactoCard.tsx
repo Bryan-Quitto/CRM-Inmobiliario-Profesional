@@ -372,11 +372,13 @@ export const ContactoCard = ({
 
       {!contacto.esCompartido && (
         <>
-          <CompartirContactoModal 
-            isOpen={isShareModalOpen}
-            onClose={() => setIsShareModalOpen(false)}
-            contacto={contacto}
-          />
+          {isShareModalOpen && (
+            <CompartirContactoModal 
+              isOpen={isShareModalOpen}
+              onClose={() => setIsShareModalOpen(false)}
+              contacto={contacto}
+            />
+          )}
           <ConfirmModal
             isOpen={waToggle.showOverrideModal}
             onClose={waToggle.cancelOverride}

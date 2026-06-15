@@ -23,7 +23,8 @@ export const usePropiedadesData = (queryParams: URLSearchParams, checkContactoId
   
   const { data, isLoading, isValidating: syncing, mutate } = useSWR<PaginatedResponse<Propiedad>>(
     ['/propiedades', paramsObj],
-    ([, p]: [string, Record<string, unknown>], extraArgs?: { signal?: AbortSignal }) => getPropiedadesPaginated({ ...p, signal: extraArgs?.signal }),
+    ([, p]: [string, Record<string, unknown>], { signal }: { signal?: AbortSignal } = {}) =>
+      getPropiedadesPaginated({ ...p, signal }),
     { ...swrDefaultConfig, keepPreviousData: true }
   );
 
@@ -36,12 +37,17 @@ export const usePropiedadesData = (queryParams: URLSearchParams, checkContactoId
   const currentPage = Number(urlParams.get('pageNumber')) || 1;
 
   // Prefetch de la siguiente página para zero-wait
+  // Debounce de 300ms: evita disparar prefetches durante navegación rápida
   useEffect(() => {
-    if (data && currentPage < totalPages) {
+    if (!data || currentPage >= totalPages) return;
+    const timer = setTimeout(() => {
       import('swr').then(({ preload }) => {
-        preload(['/propiedades', { ...paramsObj, pageNumber: currentPage + 1 }], ([, p]: [string, Record<string, unknown>]) => getPropiedadesPaginated(p as Record<string, unknown>));
+        preload(['/propiedades', { ...paramsObj, pageNumber: currentPage + 1 }], ([, p]: [string, Record<string, unknown>]) =>
+          getPropiedadesPaginated(p as Record<string, unknown>)
+        );
       });
-    }
+    }, 300);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, totalPages, JSON.stringify(paramsObj), data]);
 
