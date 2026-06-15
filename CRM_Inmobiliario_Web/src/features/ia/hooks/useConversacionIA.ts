@@ -1,15 +1,9 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '@/lib/axios';
 import { toast } from 'sonner';
 import type { MensajeChat } from '../types/auditoria';
-import { calculateMessageCost, type AIModel } from '@/entities/ai-pricing';
 
-export interface MensajeChatWithCost extends MensajeChat {
-  tokens: number;
-  estimatedCost: number;
-}
-
-export const useConversacionIA = (telefono: string | null, isActive: boolean, model: AIModel = (import.meta.env.VITE_DEFAULT_AI_MODEL as AIModel) || 'gemini-1.5-flash') => {
+export const useConversacionIA = (telefono: string | null, isActive: boolean) => {
   const [mensajesRaw, setMensajesRaw] = useState<MensajeChat[]>([]);
   const [totalMensajes, setTotalMensajes] = useState(0);
   const [loadingChat, setLoadingChat] = useState(false);
@@ -44,18 +38,7 @@ export const useConversacionIA = (telefono: string | null, isActive: boolean, mo
     }
   }, [isActive, telefono, loadConversation]);
 
-  // Compute costs dynamically
-  const mensajes = useMemo<MensajeChatWithCost[]>(() => {
-    return mensajesRaw.map(msg => {
-      const isInput = msg.rol === 'contacto'; // User messages are input to AI
-      const { tokens, estimatedCost } = calculateMessageCost(msg.contenido, model, isInput);
-      return { ...msg, tokens, estimatedCost };
-    });
-  }, [mensajesRaw, model]);
-
-  const totalCost = useMemo(() => {
-    return mensajes.reduce((sum, msg) => sum + msg.estimatedCost, 0);
-  }, [mensajes]);
+  const totalCost = 0; // Removed local estimation
 
   useEffect(() => {
     if (isActive && !loadingMore && scrollRef.current) {
@@ -64,7 +47,7 @@ export const useConversacionIA = (telefono: string | null, isActive: boolean, mo
   }, [mensajesRaw, isActive, loadingMore]);
 
   return {
-    mensajes,
+    mensajes: mensajesRaw,
     totalMensajes,
     totalCost,
     loadingChat,

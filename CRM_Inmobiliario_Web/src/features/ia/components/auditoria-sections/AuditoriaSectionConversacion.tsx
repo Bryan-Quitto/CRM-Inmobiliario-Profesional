@@ -81,15 +81,7 @@ export const AuditoriaSectionConversacion = ({ telefono, isActive }: SectionConv
                         </div>
                       )}
                       <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200/50 border-dashed">
-                        <div className="flex items-center gap-1.5 opacity-60">
-                          <span className="text-[9px] font-black tracking-wider text-emerald-700 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
-                            ~{msg.tokens} tkns
-                          </span>
-                          <span className="text-[9px] font-black tracking-wider text-amber-700 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
-                            ${msg.estimatedCost.toFixed(4)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 opacity-50">
+                        <div className="flex items-center gap-1.5 opacity-50 ml-auto">
                           <span className="text-[9px] font-bold uppercase">{timeFormatter.format(new Date(msg.fecha))}</span>
                           {msg.rol === 'ia' && <CheckCheck size={12} className="text-blue-500" />}
                         </div>

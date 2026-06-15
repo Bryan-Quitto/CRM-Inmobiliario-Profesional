@@ -52,8 +52,53 @@ public static class ObtenerLogsIa
                     .Take(400)
                     .ToListAsync();
 
-                var contactoIds = rawLogs.Where(l => l.ContactoId.HasValue).Select(l => l.ContactoId!.Value).Distinct().ToList();
-                var telefonos = rawLogs.Where(l => !string.IsNullOrWhiteSpace(l.TelefonoContacto)).Select(l => l.TelefonoContacto).Distinct().ToList();
+                var activities = rawLogs.Select(l => new { 
+                    l.ContactoId, 
+                    TelefonoContacto = l.TelefonoContacto, 
+                    l.Fecha, 
+                    LogId = (Guid?)l.Id, 
+                    l.Accion, 
+                    l.DetalleJson, 
+                    l.TriggerMessage 
+                }).ToList();
+
+                if (canal == "WhatsApp")
+                {
+                    var recentWa = await context.WhatsappMessages.AsNoTracking().OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
+                    activities.AddRange(recentWa.Select(m => new { 
+                        ContactoId = (Guid?)m.ContactoId, 
+                        TelefonoContacto = m.Telefono, 
+                        m.Fecha, 
+                        LogId = (Guid?)null, 
+                        Accion = "Chat", 
+                        DetalleJson = (string?)null, 
+                        TriggerMessage = (string?)null 
+                    }));
+                }
+                else if (canal == "Facebook")
+                {
+                    var recentFb = await context.FacebookMessages.AsNoTracking().OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
+                    activities.AddRange(recentFb.Select(m => new { 
+                        ContactoId = (Guid?)m.ContactoId, 
+                        TelefonoContacto = m.FacebookSenderId, 
+                        m.Fecha, 
+                        LogId = (Guid?)null, 
+                        Accion = "Chat", 
+                        DetalleJson = (string?)null, 
+                        TriggerMessage = (string?)null 
+                    }));
+                }
+
+                var groupedActivities = activities
+                    .OrderByDescending(a => a.Fecha)
+                    .GroupBy(a => new { 
+                        ContactoId = a.ContactoId, 
+                        TelefonoContacto = a.ContactoId.HasValue ? null : a.TelefonoContacto
+                    })
+                    .ToList();
+
+                var contactoIds = groupedActivities.Where(g => g.Key.ContactoId.HasValue).Select(g => g.Key.ContactoId!.Value).Distinct().ToList();
+                var telefonos = groupedActivities.Where(g => !string.IsNullOrWhiteSpace(g.Key.TelefonoContacto)).Select(g => g.Key.TelefonoContacto!).Distinct().ToList();
 
                 var contactos = await context.Contactos
                     .AsNoTracking()
@@ -87,28 +132,23 @@ public static class ObtenerLogsIa
                     ? contactos.Where(c => !string.IsNullOrWhiteSpace(c.Telefono)).OrderByDescending(c => c.FechaCreacion).GroupBy(c => c.Telefono!).ToDictionary(g => g.Key, g => g.First())
                     : contactos.Where(c => !string.IsNullOrWhiteSpace(c.FacebookSenderId)).OrderByDescending(c => c.FechaCreacion).GroupBy(c => c.FacebookSenderId!).ToDictionary(g => g.Key, g => g.First());
 
-                var response = rawLogs
-                    .GroupBy(l => new { 
-                        ContactoId = l.ContactoId, 
-                        TelefonoContacto = l.ContactoId.HasValue ? null : l.TelefonoContacto,
-                        OrphanId = (!l.ContactoId.HasValue && string.IsNullOrWhiteSpace(l.TelefonoContacto)) ? (Guid?)l.Id : null
-                    })
+                var response = groupedActivities
                     .Select(g => {
-                        var firstLog = g.First();
-                        var cid = firstLog.ContactoId;
-                        var phone = firstLog.TelefonoContacto;
+                        var firstActivity = g.First();
+                        var cid = g.Key.ContactoId;
+                        var phone = g.Key.TelefonoContacto;
                         
                         var contact = cid.HasValue && contactsById.ContainsKey(cid.Value) 
                             ? contactsById[cid.Value] 
-                            : (!string.IsNullOrWhiteSpace(phone) && contactsByPhone.ContainsKey(phone!) ? contactsByPhone[phone!] : null);
+                            : (!string.IsNullOrWhiteSpace(phone) && contactsByPhone.ContainsKey(phone) ? contactsByPhone[phone] : null);
 
                         bool registradoPorIA = contact != null && (contact.Origen == "IA WhatsApp" || 
                                                contact.Origen == "Aut. WhatsApp" || 
                                                contact.Origen == "Aut. Facebook");
 
-                        var ultimaActividad = firstLog.Fecha;
+                        var ultimaActividad = firstActivity.Fecha;
                         
-                        var logs = g.Select(l => new LogResponse(l.Id, l.Accion, l.DetalleJson, l.TriggerMessage, l.Fecha)).ToList();
+                        var logs = g.Where(a => a.LogId.HasValue).Select(a => new LogResponse(a.LogId!.Value, a.Accion, a.DetalleJson, a.TriggerMessage, a.Fecha)).ToList();
                         
                         string nombreAMostrar = contact != null 
                             ? $"{contact.Nombre} {contact.Apellido}".Trim() 
