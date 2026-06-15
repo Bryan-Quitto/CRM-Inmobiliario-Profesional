@@ -25,14 +25,14 @@ export const AuditoriaSectionRegistrado = ({
               <div>
                 <div className="flex items-center gap-3">
                   <span className="px-3 py-1 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-blue-600/20">
-                    IA-Nativo
+                    Sistema-Nativo
                   </span>
-                  <h4 className="text-lg font-black text-slate-900">Registrado por IA</h4>
+                  <h4 className="text-lg font-black text-slate-900">Registro automático del sistema</h4>
                 </div>
                 <div className="flex items-center gap-4 mt-2">
                   <p className="text-[11px] font-bold text-slate-400 flex items-center gap-2">
                     <Calendar className="h-3 w-3" />
-                    Historial de registro IA confirmado
+                    Historial de registro del sistema confirmado
                   </p>
                 </div>
               </div>

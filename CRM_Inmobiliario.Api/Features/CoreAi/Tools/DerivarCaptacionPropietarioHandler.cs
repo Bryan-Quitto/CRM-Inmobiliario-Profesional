@@ -36,8 +36,15 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
 
         if (existing == null && !string.IsNullOrWhiteSpace(context.ChannelIdentifier))
         {
-            string searchPhone = context.ChannelIdentifier.StartsWith("+") ? context.ChannelIdentifier : "+" + context.ChannelIdentifier;
-            existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.ChannelIdentifier || l.Telefono == searchPhone, cancellationToken);
+            if (context.Channel == "Facebook")
+            {
+                existing = await _context.Contactos.FirstOrDefaultAsync(l => l.FacebookSenderId == context.ChannelIdentifier, cancellationToken);
+            }
+            else
+            {
+                string searchPhone = context.ChannelIdentifier.StartsWith("+") ? context.ChannelIdentifier : "+" + context.ChannelIdentifier;
+                existing = await _context.Contactos.FirstOrDefaultAsync(l => l.Telefono == context.ChannelIdentifier || l.Telefono == searchPhone, cancellationToken);
+            }
         }
         
         if (existing == null)
@@ -47,20 +54,24 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
 
             if (agentIdToUse != null)
             {
+                var isFacebook = context.Channel == "Facebook";
                 var newPropietario = new Contacto
                 {
                     Id = Guid.NewGuid(),
                     Nombre = nombre,
-                    Telefono = context.ChannelIdentifier ?? string.Empty,
-                    Origen = "IA WhatsApp",
+                    Telefono = isFacebook ? string.Empty : (context.ChannelIdentifier ?? string.Empty),
+                    FacebookSenderId = isFacebook ? context.ChannelIdentifier : null,
+                    Origen = isFacebook ? "IA Facebook" : "IA WhatsApp",
                     AgenteId = agentIdToUse.Value,
                     FechaCreacion = DateTimeOffset.UtcNow,
                     EtapaEmbudo = "Nuevo",
                     EsProspecto = false,
                     EsPropietario = true,
-                    BotActivoWA = false,
+                    BotActivoWA = !isFacebook ? false : true,
+                    BotActivoFB = isFacebook ? false : true,
                     TransferenciaNotificada = true,
-                    EstadoIA_WA = "Derivado a Captacion",
+                    EstadoIA_WA = isFacebook ? null : "Derivado a Captacion",
+                    EstadoIA_FB = isFacebook ? "Derivado a Captacion" : null,
                     Notas = "Derivado automáticamente para captación de propiedad."
                 };
                 _context.Contactos.Add(newPropietario);
@@ -70,11 +81,22 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         }
         else
         {
+            var isFacebook = context.Channel == "Facebook";
             existing.EsPropietario = true;
             existing.EsProspecto = false;
-            existing.BotActivoWA = false;
+            
+            if (isFacebook)
+            {
+                existing.BotActivoFB = false;
+                existing.EstadoIA_FB = "Derivado a Captacion";
+            }
+            else
+            {
+                existing.BotActivoWA = false;
+                existing.EstadoIA_WA = "Derivado a Captacion";
+            }
+            
             existing.TransferenciaNotificada = true;
-            existing.EstadoIA_WA = "Derivado a Captacion";
             existing.Notas = string.IsNullOrWhiteSpace(existing.Notas) 
                 ? "Derivado automáticamente para captación de propiedad." 
                 : $"{existing.Notas}\nDerivado automáticamente para captación de propiedad.";
@@ -85,8 +107,8 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         
         if (existing != null && existing.AgenteId != Guid.Empty)
         {
-            string displayIdentifier = (existing.Nombre == "Cliente WA" || existing.Nombre == "Usuario Desconocido" || existing.Nombre == "Desconocido")
-                ? (!string.IsNullOrWhiteSpace(existing.Telefono) ? existing.Telefono : "Desconocido")
+            string displayIdentifier = (existing.Nombre == "Cliente WA" || existing.Nombre == "Cliente FB" || existing.Nombre == "Usuario Desconocido" || existing.Nombre == "Desconocido")
+                ? (!string.IsNullOrWhiteSpace(existing.Telefono) ? existing.Telefono : (existing.FacebookSenderId ?? "Desconocido"))
                 : existing.Nombre;
 
             string tipoInmueble = ExtractSafeString(args.RootElement, "tipoInmueble", 100, "inmueble");
@@ -104,7 +126,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                 cancellationToken);
         }
 
-        string nombreParaSaludo = (existing != null && (existing.Nombre == "Cliente WA" || existing.Nombre == "Usuario Desconocido" || existing.Nombre == "Desconocido" || existing.Nombre == existing.FacebookSenderId)) 
+        string nombreParaSaludo = (existing != null && (existing.Nombre == "Cliente WA" || existing.Nombre == "Cliente FB" || existing.Nombre == "Usuario Desconocido" || existing.Nombre == "Desconocido" || existing.Nombre == existing.FacebookSenderId)) 
             ? "" 
             : (existing?.Nombre ?? "");
 

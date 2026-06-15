@@ -1,21 +1,12 @@
 import { MessageSquare, Loader2, CheckCheck } from 'lucide-react';
 import { useConversacionIA } from '../../hooks/useConversacionIA';
 import { fullDateFormatter, timeFormatter } from '../../constants/auditoriaConstants';
+import ReactMarkdown from 'react-markdown';
 
 interface SectionConversacionProps {
   telefono: string;
   isActive: boolean;
 }
-
-const formatWhatsAppText = (text: string) => {
-  const parts = text.split(/(\*[^*]+\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('*') && part.endsWith('*')) {
-      return <strong key={i} className="font-black">{part.slice(1, -1)}</strong>;
-    }
-    return part;
-  });
-};
 
 export const AuditoriaSectionConversacion = ({ telefono, isActive }: SectionConversacionProps) => {
   const { mensajes, totalMensajes, loadingChat, loadingMore, scrollRef, loadMore } = useConversacionIA(telefono, isActive);
@@ -79,11 +70,15 @@ export const AuditoriaSectionConversacion = ({ telefono, isActive }: SectionConv
                             <audio controls src={msg.audioUrl} className="max-w-[200px] md:max-w-xs h-10 rounded-full" />
                           )}
                           {msg.contenido && (
-                            <p className="text-[13px] opacity-80 italic">{formatWhatsAppText(msg.contenido)}</p>
+                            <div className="text-[13px] opacity-80 italic leading-relaxed whitespace-pre-wrap break-words prose prose-sm prose-p:my-0 prose-p:leading-tight">
+                              <ReactMarkdown>{msg.contenido}</ReactMarkdown>
+                            </div>
                           )}
                         </div>
                       ) : (
-                        <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{formatWhatsAppText(msg.contenido)}</p>
+                        <div className="text-[13px] leading-relaxed whitespace-pre-wrap break-words prose prose-sm prose-p:my-0 prose-p:leading-tight">
+                          <ReactMarkdown>{msg.contenido}</ReactMarkdown>
+                        </div>
                       )}
                       <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200/50 border-dashed">
                         <div className="flex items-center gap-1.5 opacity-60">

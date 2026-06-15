@@ -1,14 +1,16 @@
-import { Check, Pencil } from 'lucide-react';
+import { Check, Pencil, Loader2 } from 'lucide-react';
 
 interface CrearContactoFooterProps {
   isEditing: boolean;
   isSuccess: boolean;
+  isSubmitting?: boolean;
   onCancel: () => void;
 }
 
 export const CrearContactoFooter = ({
   isEditing,
   isSuccess,
+  isSubmitting,
   onCancel
 }: CrearContactoFooterProps) => {
   return (
@@ -23,7 +25,7 @@ export const CrearContactoFooter = ({
       </button>
       <button 
         type="submit"
-        disabled={isSuccess}
+        disabled={isSuccess || isSubmitting}
         className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:cursor-not-allowed ${
           isSuccess 
             ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
@@ -34,6 +36,11 @@ export const CrearContactoFooter = ({
           <div className="flex items-center gap-2 animate-in zoom-in duration-300">
             <Check className="h-5 w-5 stroke-[4px]" />
             <span>¡{isEditing ? 'Actualizado' : 'Registrado'}!</span>
+          </div>
+        ) : isSubmitting ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Guardando...</span>
           </div>
         ) : (
           <div className="flex items-center gap-2">

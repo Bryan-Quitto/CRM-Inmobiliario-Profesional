@@ -48,7 +48,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
     register, 
     handleSubmit, 
     watch, 
-    formState: { errors, isDirty, dirtyFields }, 
+    formState: { errors, isDirty, dirtyFields, isSubmitting }, 
     reset, 
     control, 
     setValue, 
@@ -130,15 +130,6 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
       return;
     }
 
-    setIsSuccess(true);
-    if (!isEditing) {
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
-    }
-
-    setTimeout(() => {
-      onSuccess();
-    }, 600);
-
     const telefonoLimpio = data.telefono?.replace(/\s+/g, '') || '';
     const isJustPrefixSubmit = /^\+\d{1,4}$/.test(telefonoLimpio);
     const telefonoFinal = (!telefonoLimpio || isJustPrefixSubmit) ? '' : data.telefono;
@@ -154,13 +145,41 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
       ? actualizarContacto(initialData.id, dataToSend)
       : crearContacto(dataToSend);
 
+    setIsSuccess(true);
+    setTimeout(() => {
+      onSuccess();
+    }, 600);
+
+    const toastId = toast.loading('Sincronizando contacto...');
+
     action.then(() => {
       mutate('/dashboard/kpis');
       mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-    }).catch((err) => {
+      mutate((key) => Array.isArray(key) && key[0] === '/contactos');
+      mutate((key) => typeof key === 'string' && key.startsWith('/ia/logs'));
+
+      if (!isEditing) {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
+      
+      toast.success(`Contacto ${isEditing ? 'actualizado' : 'registrado'}.`, { id: toastId });
+    }).catch((err: unknown) => {
       console.error('Error al guardar contacto en background:', err);
-      toast.error(`Error al ${isEditing ? 'actualizar' : 'registrar'} contacto`, {
-        description: 'Hubo un problema de conexión. Por favor revisa tu lista de contactos en unos momentos.'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorObj = err as any;
+      const errorMessage = errorObj?.response?.data?.error || 'Hubo un problema de conexión. Por favor revisa tu lista de contactos en unos momentos.';
+      toast.error("Error de Sincronización", {
+        id: toastId,
+        description: errorMessage,
+        duration: Infinity,
+        action: {
+          label: "Corregir",
+          onClick: () => {
+             window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { 
+               detail: { action: isEditing ? 'edit' : 'create', contacto: isEditing ? { ...initialData, ...dataToSend } : undefined } 
+             }));
+          }
+        }
       });
     });
   };
@@ -227,6 +246,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
     setValue,
     isEditing,
     isSuccess,
+    isSubmitting,
     hasData,
     isConfirmingClear,
     setIsConfirmingClear,

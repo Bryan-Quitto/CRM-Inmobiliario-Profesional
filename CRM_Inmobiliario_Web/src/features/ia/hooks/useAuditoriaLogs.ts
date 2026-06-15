@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
 import { getContactoById } from '../../contactos/api/getContactoById';
-import type { Contacto } from '../../contactos/types';
 import type { ClientGroup } from '../types/auditoria';
 
 export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
@@ -16,7 +15,6 @@ export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
   const [search, setSearch] = useState('');
   
   // Estados para Edición y Borrado de Contacto
-  const [contactoEnEdicion, setContactoEnEdicion] = useState<Contacto | null>(null);
   const [isEditingId, setIsEditingId] = useState<string | null>(null);
 
   const filteredGroups = useMemo(() => {
@@ -38,7 +36,7 @@ export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
     try {
       setIsEditingId(contactoId);
       const fullContacto = await getContactoById(contactoId);
-      setContactoEnEdicion(fullContacto);
+      window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action: 'edit', contacto: fullContacto } }));
     } catch {
       toast.error('No se pudo cargar la información del contacto para editar.');
     } finally {
@@ -59,9 +57,6 @@ export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
     expandedClientId,
     toggleClientExpansion,
     handleRetry,
-    // Modales
-    contactoEnEdicion,
-    setContactoEnEdicion,
     handleEditClick,
     isEditingId,
     mutate,

@@ -1,7 +1,6 @@
 import { Loader2, X, WifiOff } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { CrearContactoForm } from './CrearContactoForm';
+
 import { useContactoDetalle } from '../hooks/useContactoDetalle';
 
 // Sections
@@ -12,9 +11,11 @@ import { ContactoPropertiesOwned } from './contacto-detalle-sections/ContactoPro
 import { ContactoTimelineManager } from './contacto-detalle-sections/ContactoTimelineManager';
 import { ContactoModalsOrchestrator } from './contacto-detalle-sections/ContactoModalsOrchestrator';
 import { ContactoTransactions } from './contacto-detalle-sections/ContactoTransactions';
+import { MergeContactosModal } from './MergeContactosModal';
 
 export const ContactoDetalle = () => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+
   const {
     contacto,
     isLoading,
@@ -110,7 +111,8 @@ export const ContactoDetalle = () => {
         setActiveDropdown={setActiveDropdown}
         handleStageChange={handleStageChange}
         navigate={navigate}
-        onEdit={() => setIsEditModalOpen(true)}
+        onEdit={() => window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action: 'edit', contacto } }))}
+        onMerge={() => setIsMergeModalOpen(true)}
       />
 
       <div className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -177,18 +179,19 @@ export const ContactoDetalle = () => {
         executeStageChange={executeStageChange}
       />
 
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
-          <CrearContactoForm 
-            initialData={contacto}
-            onSuccess={() => {
+      {isMergeModalOpen && (
+        <MergeContactosModal 
+          contactoOriginal={contacto}
+          onClose={() => setIsMergeModalOpen(false)}
+          onSuccess={(nuevoPrincipalId) => {
+            setIsMergeModalOpen(false);
+            if (nuevoPrincipalId !== contacto.id) {
+              navigate(`/contactos/${nuevoPrincipalId}`);
+            } else {
               mutate();
-              setIsEditModalOpen(false);
-              toast.success('Contacto actualizado con éxito.');
-            }}
-            onCancel={() => setIsEditModalOpen(false)}
-          />
-        </div>
+            }
+          }}
+        />
       )}
     </div>
   );

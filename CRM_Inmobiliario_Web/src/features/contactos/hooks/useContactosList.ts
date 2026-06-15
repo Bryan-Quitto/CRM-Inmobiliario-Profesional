@@ -5,7 +5,7 @@ import { getContactos, type GetContactosResponse } from '../api/getContactos';
 import { swrDefaultConfig } from '@/lib/swr';
 import { useContactosFiltering } from './useContactosFiltering';
 import { useContactoCommercialLogic } from './useContactoCommercialLogic';
-import type { Contacto } from '../types';
+
 
 const VIEW_MODE_KEY = 'crm_contactos_view_mode';
 
@@ -59,10 +59,9 @@ export const useContactosList = () => {
   // Server-side filtered items
   const allContactos = useMemo(() => responseData?.items || [], [responseData?.items]);
   
-  const contactos = allContactos;
+  const isOwnersView = pathname.includes('/propietarios');
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedContactoForEdit, setSelectedContactoForEdit] = useState<Contacto | null>(null);
+  const contactos = allContactos;
 
   const [viewModeRaw, setViewModeRaw] = useState<'list' | 'kanban'>(() => {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
@@ -156,7 +155,7 @@ export const useContactosList = () => {
   };
 
   return {
-    isOwnersView: activeSegment === 'propietarios',
+    isOwnersView,
     activeSegment,
     setActiveSegment,
     contactos,
@@ -168,10 +167,6 @@ export const useContactosList = () => {
     stats,
     viewMode,
     setViewMode,
-    isModalOpen,
-    setIsModalOpen,
-    selectedContactoForEdit,
-    setSelectedContactoForEdit,
     newCycleConfirmation,
     setNewCycleConfirmation,
     handleStageChange,

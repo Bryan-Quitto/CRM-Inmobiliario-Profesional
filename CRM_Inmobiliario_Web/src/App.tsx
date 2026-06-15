@@ -39,6 +39,7 @@ const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/compo
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
 
 import { CopilotDrawer } from './features/copilot/components/CopilotDrawer';
+import { GlobalContactoModal } from './components/layout/GlobalContactoModal';
 
 function AppContent({ session }: { session: Session | null }) {
   const location = useLocation();
@@ -132,6 +133,7 @@ function AppContent({ session }: { session: Session | null }) {
       </aside>
 
       <CopilotDrawer />
+      <GlobalContactoModal />
     </div>
   );
 }

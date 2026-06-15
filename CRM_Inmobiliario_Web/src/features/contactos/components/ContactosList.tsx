@@ -44,15 +44,11 @@ const ContactosContent = () => {
     totalPages,
     viewMode,
     setViewMode,
-    isModalOpen,
-    setIsModalOpen,
-    selectedContactoForEdit,
-    setSelectedContactoForEdit,
+    isOwnersView,
     newCycleConfirmation,
     setNewCycleConfirmation,
     handleStageChange,
-    executeStageChange,
-    mutate
+    executeStageChange
   } = useContactosList();
 
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
@@ -60,7 +56,6 @@ const ContactosContent = () => {
   const activeAdvancedCount = Object.values(advancedFilters).filter(v => v !== undefined && v !== '').length;
 
   const basePath = '/contactos';
-  const isOwnersView = activeSegment === 'propietarios';
 
   return (
     <div className="bg-slate-50 min-h-screen relative font-sans antialiased space-y-6 pb-20">
@@ -85,7 +80,7 @@ const ContactosContent = () => {
         setSortDirection={setSortDirection}
         viewMode={viewMode}
         setViewMode={setViewMode}
-        onOpenCreateModal={() => setIsModalOpen(true)}
+        onOpenCreateModal={() => window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action: 'create', isOwnersView } }))}
         onOpenAdvancedFilters={() => setIsAdvancedFiltersOpen(true)}
         advancedFiltersCount={activeAdvancedCount}
       />
@@ -116,7 +111,7 @@ const ContactosContent = () => {
           viewMode={viewMode}
           syncing={syncing}
           onNavigate={(id) => navigate(`${basePath}/${id}`)}
-          onEdit={setSelectedContactoForEdit}
+          onEdit={(contacto) => window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action: 'edit', contacto } }))}
           onStageChange={handleStageChange}
         />
       )}
@@ -201,15 +196,9 @@ const ContactosContent = () => {
       </div>
 
       <ContactosListModals 
-        isCreateModalOpen={isModalOpen}
-        setIsCreateModalOpen={setIsModalOpen}
-        isOwnersView={isOwnersView}
-        selectedContactoForEdit={selectedContactoForEdit}
-        setSelectedContactoForEdit={setSelectedContactoForEdit}
         newCycleConfirmation={newCycleConfirmation}
         setNewCycleConfirmation={setNewCycleConfirmation}
         executeStageChange={executeStageChange}
-        mutate={mutate}
       />
     </div>
   );

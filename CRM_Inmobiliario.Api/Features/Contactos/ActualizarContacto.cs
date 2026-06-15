@@ -37,10 +37,24 @@ public static class ActualizarContactoFeature
                 return Results.NotFound();
             }
 
+            var telefonoNormalizado = string.IsNullOrWhiteSpace(command.Telefono) ? null : (command.Telefono.NormalizePhoneE164() ?? command.Telefono);
+
+            if (!string.IsNullOrWhiteSpace(telefonoNormalizado))
+            {
+                var contactoExistente = await context.Contactos
+                    .FirstOrDefaultAsync(c => c.AgenteId == agenteId && c.Id != id && c.Telefono == telefonoNormalizado, ct);
+
+                if (contactoExistente != null)
+                {
+                    var nombreCompleto = $"{contactoExistente.Nombre} {contactoExistente.Apellido}".Trim();
+                    return Results.BadRequest(new { error = $"El contacto {nombreCompleto} ya tiene asignado este número de teléfono." });
+                }
+            }
+
             contacto.Nombre = command.Nombre;
             contacto.Apellido = command.Apellido;
             contacto.Email = command.Email;
-            contacto.Telefono = string.IsNullOrWhiteSpace(command.Telefono) ? null : (command.Telefono.NormalizePhoneE164() ?? command.Telefono);
+            contacto.Telefono = telefonoNormalizado;
             contacto.Origen = command.Origen;
             contacto.EsProspecto = command.EsContacto;
             contacto.EsPropietario = command.EsPropietario;

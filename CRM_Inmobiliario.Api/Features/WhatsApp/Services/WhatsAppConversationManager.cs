@@ -195,17 +195,6 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         // 5. Añadir mensaje del usuario a la historia
         history.Add(new ChatMessage(ChatRole.User, messageText));
 
-        // Registrar el mensaje en BD asociado al Contacto
-        _context.WhatsappMessages.Add(new WhatsappMessage 
-        { 
-            Id = Guid.NewGuid(),
-            ContactoId = contacto!.Id,
-            Telefono = phone.NormalizePhoneE164() ?? phone, 
-            Rol = "user", 
-            Contenido = messageText, 
-            Fecha = DateTimeOffset.UtcNow 
-        });
-
         // 5. Compresión Semántica de Memoria (Largo Plazo)
         if (history.Count > 12) 
         {

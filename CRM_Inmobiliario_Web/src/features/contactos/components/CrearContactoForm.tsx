@@ -21,6 +21,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
     setValue,
     isEditing,
     isSuccess,
+    isSubmitting,
     hasData,
     isConfirmingClear,
     setIsConfirmingClear,
@@ -63,6 +64,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
           <CrearContactoFooter 
             isEditing={isEditing}
             isSuccess={isSuccess}
+            isSubmitting={isSubmitting}
             onCancel={onCancel}
           />
           

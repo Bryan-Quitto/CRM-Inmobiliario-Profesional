@@ -4,6 +4,7 @@ using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Contactos;
 
@@ -23,13 +24,27 @@ public static class RegistrarContactoFeature
 
             var agenteId = user.GetRequiredUserId();
 
+            var telefonoNormalizado = string.IsNullOrWhiteSpace(command.Telefono) ? null : (command.Telefono.NormalizePhoneE164() ?? command.Telefono);
+
+            if (!string.IsNullOrWhiteSpace(telefonoNormalizado))
+            {
+                var contactoExistente = await context.Contactos
+                    .FirstOrDefaultAsync(c => c.AgenteId == agenteId && c.Telefono == telefonoNormalizado, ct);
+
+                if (contactoExistente != null)
+                {
+                    var nombreCompleto = $"{contactoExistente.Nombre} {contactoExistente.Apellido}".Trim();
+                    return Results.BadRequest(new { error = $"El contacto {nombreCompleto} ya tiene asignado este número de teléfono." });
+                }
+            }
+
             var contacto = new Contacto
             {
                 AgenteId = agenteId,
                 Nombre = command.Nombre,
                 Apellido = command.Apellido,
                 Email = command.Email,
-                Telefono = string.IsNullOrWhiteSpace(command.Telefono) ? null : (command.Telefono.NormalizePhoneE164() ?? command.Telefono),
+                Telefono = telefonoNormalizado,
                 Origen = command.Origen,
                 EsProspecto = command.EsContacto,
                 EsPropietario = command.EsPropietario,

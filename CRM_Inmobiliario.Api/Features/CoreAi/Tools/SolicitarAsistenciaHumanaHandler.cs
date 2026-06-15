@@ -40,31 +40,45 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
             var agentIdToUse = currentAgentId ?? (await _context.Agents.FirstOrDefaultAsync(a => a.Rol == "Admin", cancellationToken))?.Id
                                ?? (await _context.Agents.OrderBy(a => a.FechaCreacion).FirstOrDefaultAsync(cancellationToken))?.Id;
 
+            var isFacebook = context.Channel == "Facebook";
             contacto = new Contacto
             {
                 Id = Guid.NewGuid(),
-                Nombre = "Usuario Desconocido",
-                Telefono = context.ChannelIdentifier ?? string.Empty,
-                Origen = "IA WhatsApp",
+                Nombre = isFacebook ? "Cliente FB" : "Usuario Desconocido",
+                Telefono = isFacebook ? string.Empty : (context.ChannelIdentifier ?? string.Empty),
+                FacebookSenderId = isFacebook ? context.ChannelIdentifier : null,
+                Origen = isFacebook ? "IA Facebook" : "IA WhatsApp",
                 AgenteId = agentIdToUse ?? Guid.Empty,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EtapaEmbudo = "Nuevo",
-                EstadoIA_WA = "Escalado",
+                EstadoIA_WA = isFacebook ? null : "Escalado",
+                EstadoIA_FB = isFacebook ? "Escalado" : null,
                 EsProspecto = true,
                 Notas = $"Escalamiento: {motivo}",
-                BotActivoWA = false,
+                BotActivoWA = !isFacebook ? false : true,
+                BotActivoFB = isFacebook ? false : true,
                 TransferenciaNotificada = true
             };
             _context.Contactos.Add(contacto);
         }
         else
         {
-            contacto.EstadoIA_WA = "Escalado";
+            var isFacebook = context.Channel == "Facebook";
+            if (isFacebook)
+            {
+                contacto.EstadoIA_FB = "Escalado";
+                contacto.BotActivoFB = false;
+            }
+            else
+            {
+                contacto.EstadoIA_WA = "Escalado";
+                contacto.BotActivoWA = false;
+            }
+            
             contacto.Notas = string.IsNullOrWhiteSpace(contacto.Notas) 
                 ? $"Escalamiento: {motivo}" 
                 : $"{contacto.Notas}\nEscalamiento: {motivo}";
             
-            contacto.BotActivoWA = false;
             contacto.TransferenciaNotificada = true;
             
             _context.Contactos.Update(contacto);
@@ -74,8 +88,8 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
 
         if (contacto.AgenteId != Guid.Empty)
         {
-            string displayIdentifier = (contacto.Nombre == "Cliente WA" || contacto.Nombre == "Usuario Desconocido" || contacto.Nombre == "Desconocido")
-                ? (!string.IsNullOrWhiteSpace(contacto.Telefono) ? contacto.Telefono : "Desconocido")
+            string displayIdentifier = (contacto.Nombre == "Cliente WA" || contacto.Nombre == "Cliente FB" || contacto.Nombre == "Usuario Desconocido" || contacto.Nombre == "Desconocido")
+                ? (!string.IsNullOrWhiteSpace(contacto.Telefono) ? contacto.Telefono : (contacto.FacebookSenderId ?? "Desconocido"))
                 : contacto.Nombre;
 
             _logger.LogInformation($"[PUSH] Intentando notificar a AgentId {contacto.AgenteId} sobre el contacto {contacto.Id}");

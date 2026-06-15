@@ -1,63 +1,19 @@
-import { toast } from 'sonner';
 import { RotateCcw, AlertTriangle } from 'lucide-react';
-import { CrearContactoForm } from '../CrearContactoForm';
-import type { Contacto } from '../../types';
 
 interface ContactosListModalsProps {
-  isCreateModalOpen: boolean;
-  setIsCreateModalOpen: (open: boolean) => void;
-  isOwnersView: boolean;
-  selectedContactoForEdit: Contacto | null;
-  setSelectedContactoForEdit: (contacto: Contacto | null) => void;
   newCycleConfirmation: { id: string; etapa: string; nombre: string } | null;
   setNewCycleConfirmation: (conf: { id: string; etapa: string; nombre: string } | null) => void;
   executeStageChange: (id: string, etapa: string) => void;
-  mutate: () => void;
 }
 
 export const ContactosListModals = ({
-  isCreateModalOpen,
-  setIsCreateModalOpen,
-  isOwnersView,
-  selectedContactoForEdit,
-  setSelectedContactoForEdit,
   newCycleConfirmation,
   setNewCycleConfirmation,
-  executeStageChange,
-  mutate
+  executeStageChange
 }: ContactosListModalsProps) => {
-  const label = 'Contacto';
 
   return (
     <>
-      {selectedContactoForEdit && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
-          <CrearContactoForm 
-            initialData={selectedContactoForEdit}
-            onSuccess={() => {
-              mutate();
-              setSelectedContactoForEdit(null);
-              toast.success(`${label} actualizado con éxito.`);
-            }}
-            onCancel={() => setSelectedContactoForEdit(null)}
-          />
-        </div>
-      )}
-
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <CrearContactoForm 
-            isOwnersView={isOwnersView}
-            onSuccess={() => { 
-              mutate(); 
-              setIsCreateModalOpen(false); 
-              toast.success(`${label} registrado.`); 
-            }} 
-            onCancel={() => setIsCreateModalOpen(false)} 
-          />
-        </div>
-      )}
-
       {newCycleConfirmation && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[500] flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">

@@ -1,4 +1,4 @@
-import { ChevronLeft, Loader2, ChevronDown, Check, UserCheck, Search, MessageSquare, MessageCircle, Pencil } from 'lucide-react';
+import { ChevronLeft, Loader2, ChevronDown, Check, UserCheck, Search, MessageSquare, MessageCircle, Pencil, Merge } from 'lucide-react';
 import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/contactos';
 import { useLocation } from 'react-router-dom';
 import type { Contacto } from '../../types';
@@ -11,6 +11,7 @@ interface ContactoHeaderProps {
   handleStageChange: (etapa: string, tipo?: 'cliente' | 'propietario') => void;
   navigate: (path: string) => void;
   onEdit: () => void;
+  onMerge: () => void;
 }
 
 export const ContactoHeader = ({
@@ -20,7 +21,8 @@ export const ContactoHeader = ({
   setActiveDropdown,
   handleStageChange,
   navigate,
-  onEdit
+  onEdit,
+  onMerge
 }: ContactoHeaderProps) => {
   const { pathname } = useLocation();
   const isFromOwners = pathname.includes('/propietarios');
@@ -147,6 +149,15 @@ export const ContactoHeader = ({
             <MessageCircle className="h-5 w-5" />
           </a>
         )}
+
+        <button 
+          onClick={onMerge}
+          title="Fusionar Contactos"
+          className="h-10 px-4 bg-white text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-sm border border-slate-200 flex items-center gap-2 cursor-pointer"
+        >
+          <Merge className="h-4 w-4 text-blue-500" />
+          Fusionar
+        </button>
 
         <button 
           onClick={onEdit}

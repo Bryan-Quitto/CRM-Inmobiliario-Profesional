@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { Pencil, Send, Loader2, Search, Filter as FilterIcon, Phone, MessageSquare, Clock, Check, X, Trash2 } from 'lucide-react';
 import { TIPO_NOTA_OPCIONES, formatDate } from '../../constants/contactos';
 import type { Interaccion } from '../../types';
@@ -41,6 +42,21 @@ export const ContactoTimelineManager = ({
   handleEditarNota,
   handleEliminarNota
 }: ContactoTimelineManagerProps) => {
+  const [isOpenFilter, setIsOpenFilter] = useState(false);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setIsOpenFilter(false);
+      }
+    };
+    if (isOpenFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpenFilter]);
+
   return (
     <div className="lg:col-span-8 space-y-8">
       {/* Editor de Notas */}
@@ -118,28 +134,34 @@ export const ContactoTimelineManager = ({
                 className="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-2 text-[10px] font-bold text-slate-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none w-40 sm:w-56"
               />
             </div>
-            <div className="relative group/filter">
-              <button className="h-9 w-9 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all shadow-sm cursor-pointer">
+            <div className="relative" ref={filterDropdownRef}>
+              <button 
+                onClick={() => setIsOpenFilter(!isOpenFilter)}
+                className={`h-9 w-9 bg-white border rounded-full flex items-center justify-center transition-all shadow-sm cursor-pointer ${isOpenFilter ? 'border-blue-400 text-blue-600 ring-2 ring-blue-100' : 'border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200'}`}
+              >
                 <FilterIcon className="h-4 w-4" />
               </button>
-              <div className="absolute right-0 top-full mt-2 hidden group-hover/filter:block z-50 bg-white border border-slate-100 rounded-2xl shadow-2xl p-2 w-40 animate-in fade-in zoom-in-95 duration-200">
-                <button 
-                  onClick={() => setFilterTipoTimeline('Todos')} 
-                  className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase rounded-xl transition-colors cursor-pointer ${filterTipoTimeline === 'Todos' ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50 text-slate-600'}`}
-                >
-                  Todos
-                </button>
-                {TIPO_NOTA_OPCIONES.map(opt => (
+              {isOpenFilter && (
+                <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-slate-100 rounded-2xl shadow-2xl p-2 w-40 animate-in fade-in zoom-in-95 duration-200">
                   <button 
-                    key={opt.value} 
-                    onClick={() => setFilterTipoTimeline(opt.value)} 
-                    className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase rounded-xl transition-colors cursor-pointer ${filterTipoTimeline === opt.value ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50 text-slate-600'}`}
+                    onClick={() => { setFilterTipoTimeline('Todos'); setIsOpenFilter(false); }} 
+                    className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase rounded-xl transition-colors cursor-pointer ${filterTipoTimeline === 'Todos' ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50 text-slate-600'}`}
                   >
-                    {opt.label}
+                    Todos
                   </button>
-                ))}
-              </div>
-            </div>          </div>
+                  {TIPO_NOTA_OPCIONES.map(opt => (
+                    <button 
+                      key={opt.value} 
+                      onClick={() => { setFilterTipoTimeline(opt.value); setIsOpenFilter(false); }} 
+                      className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase rounded-xl transition-colors cursor-pointer ${filterTipoTimeline === opt.value ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50 text-slate-600'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="relative space-y-10 before:absolute before:left-6 before:top-4 before:bottom-0 before:w-0.5 before:bg-slate-200 before:content-['']">

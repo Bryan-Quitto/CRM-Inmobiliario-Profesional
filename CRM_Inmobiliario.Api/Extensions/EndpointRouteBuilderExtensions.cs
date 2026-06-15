@@ -1,6 +1,7 @@
 using CRM_Inmobiliario.Api.Features.Analitica;
 using CRM_Inmobiliario.Api.Features.Calendario;
 using CRM_Inmobiliario.Api.Features.Contactos;
+using CRM_Inmobiliario.Api.Features.Contactos.FusionarContactos;
 using CRM_Inmobiliario.Api.Features.Configuracion;
 using CRM_Inmobiliario.Api.Features.Configuracion.Seguridad;
 using CRM_Inmobiliario.Api.Features.Dashboard;
@@ -41,6 +42,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapToggleBotActivoEndpoint();
         apiGroup.MapBotOverrideContactoEndpoint();
         apiGroup.MapObtenerTokenUsageContactoEndpoint();
+        apiGroup.MapFusionarContactosEndpoint();
 
         // Propiedades
         apiGroup.MapGetDropdownPropiedadesEndpoint();

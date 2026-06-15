@@ -1,6 +1,4 @@
 import { Bot, AlertCircle } from 'lucide-react';
-import { CrearContactoForm } from '../../contactos/components/CrearContactoForm';
-import { toast } from 'sonner';
 import { useAuditoriaLogs } from '../hooks/useAuditoriaLogs';
 import { AuditoriaHeader } from './auditoria-sections/AuditoriaHeader';
 import { AuditoriaClientItem } from './auditoria-sections/AuditoriaClientItem';
@@ -15,13 +13,9 @@ export const AuditoriaLogsView = ({ canal = 'WhatsApp' }: { canal?: string }) =>
     expandedClientId,
     toggleClientExpansion,
     handleRetry,
-    // Modales
-    contactoEnEdicion,
-    setContactoEnEdicion,
     handleEditClick,
     isEditingId,
-    mutate,
-    globalMutate
+    mutate
   } = useAuditoriaLogs(canal);
 
   if (error) return (
@@ -75,24 +69,7 @@ export const AuditoriaLogsView = ({ canal = 'WhatsApp' }: { canal?: string }) =>
         )}
       </div>
 
-      {/* Modal de Edición */}
-      {contactoEnEdicion && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full animate-in zoom-in-95 duration-300">
-            <CrearContactoForm 
-              initialData={contactoEnEdicion}
-              onSuccess={async () => {
-                await mutate();
-                globalMutate('/ia/logs');
-                globalMutate('/contactos');
-                setContactoEnEdicion(null);
-                toast.success('Información actualizada correctamente');
-              }}
-              onCancel={() => setContactoEnEdicion(null)}
-            />
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };
