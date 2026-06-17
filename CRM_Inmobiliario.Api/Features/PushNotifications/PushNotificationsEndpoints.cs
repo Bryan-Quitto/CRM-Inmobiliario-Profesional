@@ -21,5 +21,18 @@ public static class PushNotificationsEndpoints
             await service.SubscribeAgentAsync(agentId, req.Endpoint, req.P256dh, req.Auth, req.UserAgent, ct);
             return Results.Ok();
         });
+
+        endpoints.MapPost("/agente/dispositivos/verificar", async (
+            [FromBody] VerifySubscriptionRequest req,
+            ClaimsPrincipal user,
+            IPushNotificationService service,
+            CancellationToken ct) =>
+        {
+            var userIdString = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdString, out var agentId)) return Results.Unauthorized();
+
+            var isValid = await service.VerifySubscriptionAsync(agentId, req.Endpoint, ct);
+            return Results.Ok(new { isValid });
+        });
     }
 }

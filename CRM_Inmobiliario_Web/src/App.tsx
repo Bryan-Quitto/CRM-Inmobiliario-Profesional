@@ -37,6 +37,7 @@ const ConfiguracionAgentes = lazy(() => import('./features/configuracion/compone
 const ConfiguracionAgencias = lazy(() => import('./features/configuracion/components/ConfiguracionAgencias').then(m => ({ default: m.ConfiguracionAgencias })));
 const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad })));
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
+const ConfiguracionNotificaciones = lazy(() => import('./features/configuracion/components/ConfiguracionNotificaciones').then(m => ({ default: m.ConfiguracionNotificaciones })));
 
 import { CopilotDrawer } from './features/copilot/components/CopilotDrawer';
 import { GlobalContactoModal } from './components/layout/GlobalContactoModal';
@@ -53,6 +54,16 @@ function AppContent({ session }: { session: Session | null }) {
     const saved = localStorage.getItem('crm_agenda_state');
     return saved !== null ? JSON.parse(saved) : true;
   });
+
+  const searchParams = new URLSearchParams(location.search);
+  const urlTareaId = searchParams.get('tarea');
+
+  useEffect(() => {
+    if (urlTareaId && !isAgendaOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsAgendaOpen(true);
+    }
+  }, [urlTareaId, isAgendaOpen]);
 
   useEffect(() => {
     localStorage.setItem('crm_sidebar_state', JSON.stringify(isSidebarOpen));
@@ -111,6 +122,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="perfil" element={<ConfiguracionPerfil />} />
                 <Route path="ia" element={<AdminRoute><ConfiguracionIA /></AdminRoute>} />
                 <Route path="integracion-ia" element={<ConfiguracionIntegracionIA />} />
+                <Route path="notificaciones" element={<ConfiguracionNotificaciones />} />
                 <Route path="organizacion" element={<AdminRoute><ConfiguracionOrganizacion /></AdminRoute>} />
                 <Route path="agentes" element={<AdminRoute><ConfiguracionAgentes /></AdminRoute>} />
                 <Route path="agencias" element={<AdminRoute><ConfiguracionAgencias /></AdminRoute>} />

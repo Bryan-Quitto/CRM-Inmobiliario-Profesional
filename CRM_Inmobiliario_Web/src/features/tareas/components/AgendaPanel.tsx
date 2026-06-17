@@ -9,6 +9,8 @@ import { EditarTareaForm } from './EditarTareaForm';
 import { TareaDetalle } from './TareaDetalle';
 import ConfirmModal from '../../../components/ConfirmModal';
 
+import { useSearchParams } from 'react-router-dom';
+
 // Hooks
 import { useAgendaState } from '../hooks/useAgendaState';
 import { useAgendaFilters } from '../hooks/useAgendaFilters';
@@ -25,6 +27,7 @@ interface AgendaPanelProps {
 }
 
 export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { tareas: allTareas, loading, refreshTareas } = useTareas();
   
   // 1. State Hook
@@ -109,7 +112,23 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
           tarea={selectedTarea}
           onEdit={() => setView('edit')}
           onCancelTask={() => setIsConfirmingCancel(true)}
-          onBack={() => setView('list')}
+          onCompleteTask={() => {
+            if (selectedTareaId) {
+              handleCompletar(selectedTareaId);
+              setView('list');
+              if (searchParams.has('tarea')) {
+                searchParams.delete('tarea');
+                setSearchParams(searchParams);
+              }
+            }
+          }}
+          onBack={() => {
+            setView('list');
+            if (searchParams.has('tarea')) {
+              searchParams.delete('tarea');
+              setSearchParams(searchParams);
+            }
+          }}
         />
         <ConfirmModal 
           isOpen={isConfirmingCancel}
@@ -201,6 +220,8 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
         onSelectTask={(id) => {
           setSelectedTareaId(id);
           setView('detail');
+          searchParams.set('tarea', id);
+          setSearchParams(searchParams, { replace: true });
         }}
         onEditTask={(id) => {
           setSelectedTareaId(id);
@@ -217,6 +238,8 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
         onSelectTask={(id) => {
           setSelectedTareaId(id);
           setView('detail');
+          searchParams.set('tarea', id);
+          setSearchParams(searchParams, { replace: true });
         }}
       />
 

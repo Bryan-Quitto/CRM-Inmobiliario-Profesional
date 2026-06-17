@@ -83,7 +83,25 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
             
             _context.Contactos.Update(contacto);
         }
-        
+        if (contacto.AgenteId != Guid.Empty)
+        {
+            var nuevaTarea = new TaskItem
+            {
+                Id = Guid.NewGuid(),
+                AgenteId = contacto.AgenteId,
+                ContactoId = contacto.Id,
+                Titulo = "🚨 Intervención Inmediata IA",
+                Descripcion = $"La IA ha escalado este chat desde {context.Channel}. Motivo: {motivo}",
+                TipoTarea = "Asistencia Urgente",
+                ColorHex = "#EF4444",
+                Estado = "Pendiente",
+                DuracionMinutos = 15,
+                FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
+                FechaInicio = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).AddMinutes(1)
+            };
+            _context.Tasks.Add(nuevaTarea);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         if (contacto.AgenteId != Guid.Empty)

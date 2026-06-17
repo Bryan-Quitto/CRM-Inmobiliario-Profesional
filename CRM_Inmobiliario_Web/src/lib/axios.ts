@@ -6,7 +6,8 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://localhost:7046/api',
   headers: {
     'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true' // Necesario para saltar la pantalla de advertencia de ngrok en peticiones AJAX
+    'ngrok-skip-browser-warning': 'true', // Necesario para saltar la pantalla de advertencia de ngrok en peticiones AJAX
+    'bypass-tunnel-reminder': 'true' // Necesario para saltar la pantalla de advertencia de Localtunnel en peticiones AJAX
   },
   timeout: 15000, // 15 segundos de timeout
 });

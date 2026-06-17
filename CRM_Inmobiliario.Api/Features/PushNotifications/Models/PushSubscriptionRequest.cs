@@ -6,3 +6,7 @@ public sealed record PushSubscriptionRequest(
     string Auth,
     string? UserAgent
 );
+
+public sealed record VerifySubscriptionRequest(
+    string Endpoint
+);

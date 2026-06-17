@@ -35,6 +35,7 @@ const CalendarioContent: React.FC = () => {
     formKey,
     selectedTarea,
     handleCancelar,
+    handleCompletar,
     handleOpenCrear,
     toggleFullScreen,
     handleDatesSet,
@@ -175,6 +176,7 @@ const CalendarioContent: React.FC = () => {
         onCancelConfirm={handleCancelar}
         onEditRequest={() => { setEditingTareaId(viewingTareaId); setViewingTareaId(null); }}
         onCancelTaskRequest={() => setIsConfirmingCancel(true)}
+        onCompleteTaskRequest={handleCompletar}
         onBackFromDetail={() => setViewingTareaId(null)}
         onCloseConfirm={() => setIsConfirmingCancel(false)}
       />

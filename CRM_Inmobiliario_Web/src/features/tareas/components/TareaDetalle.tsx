@@ -23,6 +23,7 @@ interface Props {
   tarea: Tarea;
   onEdit: () => void;
   onCancelTask: () => void;
+  onCompleteTask: () => void;
   onBack: () => void;
 }
 
@@ -40,7 +41,7 @@ const TIPO_COLORES = {
   'Trámite': 'text-amber-600 bg-amber-50'
 };
 
-export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => {
+export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onCompleteTask, onBack }: Props) => {
   const navigate = useNavigate();
   const Icon = TIPO_ICONOS[tarea.tipoTarea] || Clock;
   const colorClass = TIPO_COLORES[tarea.tipoTarea] || 'text-slate-600 bg-slate-50';
@@ -88,18 +89,25 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onBack }: Props) => 
           {isPending && (
             <>
               <button 
+                onClick={onCompleteTask}
+                title="Completar Tarea"
+                className="p-2 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-transparent hover:border-emerald-100 cursor-pointer"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+              </button>
+              <button 
                 onClick={onCancelTask}
                 title="Cancelar Tarea"
-                className="p-2.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
+                className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
               >
-                <Trash2 className="h-5 w-5" />
+                <Trash2 className="h-4 w-4" />
               </button>
               <button 
                 onClick={onEdit}
                 title="Editar Tarea"
-                className="p-2.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100 cursor-pointer"
+                className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100 cursor-pointer"
               >
-                <Pencil className="h-5 w-5" />
+                <Pencil className="h-4 w-4" />
               </button>
             </>
           )}

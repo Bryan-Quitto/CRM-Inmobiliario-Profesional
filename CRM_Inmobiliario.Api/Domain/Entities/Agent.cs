@@ -87,7 +87,15 @@ public sealed class Agent
 
     public int DailyTokenLimitFacebook { get; set; } = 50000;
 
-    public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
+    // Configuración de Notificaciones
+    public int NotifyOverdueTasksIntervalMinutes { get; set; } = 60;
+    public int NotifyTodayTasksAdvanceMinutes { get; set; } = 180;
+    public int NotifyTodayTasksIntervalMinutes { get; set; } = 60;
+    public int NotifyAiHelpTasksIntervalMinutes { get; set; } = 1;
+    public int NotifyAiHelpTasksMaxRetries { get; set; } = 3;
+    public int NotifyOverdueTasksMaxHours { get; set; } = 24;
+
+    public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 
     // Relaciones de navegación
     public ICollection<ContactoAgenteCompartido> ContactosCompartidos { get; set; } = new List<ContactoAgenteCompartido>();

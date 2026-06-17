@@ -43,5 +43,8 @@ public sealed class TaskItem
     [MaxLength(50)]
     public string Estado { get; set; } = "Pendiente";
 
+    public int NotificacionesEnviadas { get; set; } = 0;
+    public DateTimeOffset? UltimaNotificacionEnviada { get; set; }
+
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow;
 }

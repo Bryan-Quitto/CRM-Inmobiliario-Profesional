@@ -50,7 +50,7 @@ public class DerivarCaptacionPropietarioHandlerTests
 
         var handler = new DerivarCaptacionPropietarioHandler(_mockDbContextFactory.Object, _mockLogger.Object, _mockPushService.Object);
         var args = JsonDocument.Parse("{\"nombre\":\"Juan\"}");
-        var execContext = new ToolExecutionContext { ContactoId = contactoId, CustomerPhone = "+1234567" };
+        var execContext = new ToolExecutionContext { ContactoId = contactoId, ChannelIdentifier = "+1234567" };
 
         // Act
         var result = await handler.ExecuteAsync(args, execContext);

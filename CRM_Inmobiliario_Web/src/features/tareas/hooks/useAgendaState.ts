@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { Tarea } from '../types';
 
 export type AgendaView = 'list' | 'create' | 'edit' | 'detail';
@@ -15,8 +16,20 @@ export interface PrefillResuelto {
 }
 
 export const useAgendaState = (allTareas: Tarea[]) => {
-  const [view, setView] = useState<AgendaView>('list');
-  const [selectedTareaId, setSelectedTareaId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const urlTareaId = searchParams.get('tarea');
+
+  const [view, setView] = useState<AgendaView>(urlTareaId ? 'detail' : 'list');
+  const [selectedTareaId, setSelectedTareaId] = useState<string | null>(urlTareaId || null);
+
+  // Sincronizar si la URL cambia estando el panel abierto
+  useEffect(() => {
+    if (urlTareaId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setView('detail');
+      setSelectedTareaId(urlTareaId);
+    }
+  }, [urlTareaId]);
   const [showHistory, setShowHistory] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
   const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);

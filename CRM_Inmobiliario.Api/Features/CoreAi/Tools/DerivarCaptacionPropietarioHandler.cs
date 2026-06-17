@@ -102,7 +102,25 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                 : $"{existing.Notas}\nDerivado automáticamente para captación de propiedad.";
             await LogAiActionAsync("Actualizacion a Propietario", args.RootElement.GetRawText(), context);
         }
-        
+        if (existing != null && existing.AgenteId != Guid.Empty)
+        {
+            var nuevaTarea = new TaskItem
+            {
+                Id = Guid.NewGuid(),
+                AgenteId = existing.AgenteId,
+                ContactoId = existing.Id,
+                Titulo = "🚨 Captación de Propietario (IA)",
+                Descripcion = $"La IA ha derivado a este usuario desde {context.Channel} para captación de propiedad.",
+                TipoTarea = "Asistencia Urgente",
+                ColorHex = "#EF4444",
+                Estado = "Pendiente",
+                DuracionMinutos = 15,
+                FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
+                FechaInicio = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)).AddMinutes(1)
+            };
+            _context.Tasks.Add(nuevaTarea);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
         
         if (existing != null && existing.AgenteId != Guid.Empty)

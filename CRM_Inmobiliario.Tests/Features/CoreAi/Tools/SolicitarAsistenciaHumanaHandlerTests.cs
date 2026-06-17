@@ -48,7 +48,7 @@ public class SolicitarAsistenciaHumanaHandlerTests
         var mockPushNotificationService = new Mock<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService>();
         var handler = new SolicitarAsistenciaHumanaHandler(_mockDbContextFactory.Object, _mockLogger.Object, mockPushNotificationService.Object);
         var args = JsonDocument.Parse("{\"motivo\":\"Estoy muy molesto\"}");
-        var execContext = new ToolExecutionContext { ContactoId = contactoId, CustomerPhone = "+1234567" };
+        var execContext = new ToolExecutionContext { ContactoId = contactoId, ChannelIdentifier = "+1234567" };
 
         // Act
         var result = await handler.ExecuteAsync(args, execContext);

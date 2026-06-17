@@ -21,6 +21,7 @@ interface CalendarioModalsProps {
   onCancelConfirm: () => void;
   onEditRequest: () => void;
   onCancelTaskRequest: () => void;
+  onCompleteTaskRequest: () => void;
   onBackFromDetail: () => void;
   onCloseConfirm: () => void;
 }
@@ -39,6 +40,7 @@ export const CalendarioModals: React.FC<CalendarioModalsProps> = ({
   onCancelConfirm,
   onEditRequest,
   onCancelTaskRequest,
+  onCompleteTaskRequest,
   onBackFromDetail,
   onCloseConfirm
 }) => {
@@ -62,6 +64,7 @@ export const CalendarioModals: React.FC<CalendarioModalsProps> = ({
                 tarea={selectedTarea}
                 onEdit={onEditRequest}
                 onCancelTask={onCancelTaskRequest}
+                onCompleteTask={onCompleteTaskRequest}
                 onBack={onBackFromDetail}
               />
             )}

@@ -103,6 +103,8 @@ builder.Services.AddHostedService<PdfWorker>();
 builder.Services.AddHostedService<PdfCleanupWorker>();
 builder.Services.AddHostedService<KpiWarmingBackgroundService>();
 builder.Services.AddScoped<TokenLimitResetJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.TaskNotificationJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.SendWebPushNotificationJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService, CRM_Inmobiliario.Api.Features.PushNotifications.Services.PushNotificationService>();
 
 builder.Services.AddProblemDetails(); // RFC 7807 (ProblemDetails)
@@ -172,6 +174,18 @@ app.Lifetime.ApplicationStarted.Register(() =>
         "reset-daily-token-limits", 
         job => job.ResetDailyLimitsAsync(), 
         "0 5 * * *" 
+    );
+
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Features.Tareas.Jobs.TaskNotificationJob>(
+        "notify-tasks", 
+        job => job.ProcessNotificationsAsync(), 
+        "* * * * *" 
+    );
+
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Features.Tareas.Jobs.SendWebPushNotificationJob>(
+        "send-web-push", 
+        job => job.ExecuteAsync(), 
+        "* * * * *" 
     );
 });
 

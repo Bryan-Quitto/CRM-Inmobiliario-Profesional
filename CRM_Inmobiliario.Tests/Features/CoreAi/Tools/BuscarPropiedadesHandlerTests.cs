@@ -78,7 +78,7 @@ public class BuscarPropiedadesHandlerTests
         var context = new ToolExecutionContext 
         { 
             Channel = "Copilot", 
-            CustomerPhone = "1234567890", 
+            ChannelIdentifier = "1234567890", 
             PhoneNumberId = "123" 
         };
 
@@ -126,7 +126,7 @@ public class BuscarPropiedadesHandlerTests
         var context = new ToolExecutionContext 
         { 
             Channel = "Copilot", 
-            CustomerPhone = "1234567890", 
+            ChannelIdentifier = "1234567890", 
             PhoneNumberId = "123" 
         };
 
@@ -179,7 +179,7 @@ public class BuscarPropiedadesHandlerTests
         var context = new ToolExecutionContext 
         { 
             Channel = "Copilot", 
-            CustomerPhone = "1234567890", 
+            ChannelIdentifier = "1234567890", 
             PhoneNumberId = "123" 
         };
 

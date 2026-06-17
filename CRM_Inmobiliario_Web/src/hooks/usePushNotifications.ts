@@ -13,7 +13,43 @@ export const usePushNotifications = () => {
       navigator.serviceWorker.ready.then(registration => {
         registration.pushManager.getSubscription().then(subscription => {
           if (subscription) {
-            setIsSubscribed(true);
+            // Verificar contra el backend si la suscripción sigue viva allí
+            api.post('/agente/dispositivos/verificar', { endpoint: subscription.endpoint })
+              .then(res => {
+                if (res.data?.isValid) {
+                  setIsSubscribed(true);
+                } else {
+                  // Zombie subscription detected! Auto-resync in background
+                  setIsSubscribed(false);
+                  subscription.unsubscribe().then(() => {
+                    const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+                    if (vapidPublicKey) {
+                      registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: vapidPublicKey
+                      }).then(newSub => {
+                        const p256dh = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(newSub.getKey('p256dh')!))))
+                          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                        const auth = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(newSub.getKey('auth')!))))
+                          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                        
+                        api.post('/agente/dispositivos/suscribir', {
+                          endpoint: newSub.endpoint,
+                          p256dh,
+                          auth,
+                          userAgent: navigator.userAgent
+                        }).then(() => {
+                          setIsSubscribed(true);
+                        }).catch(console.error);
+                      }).catch(console.error);
+                    }
+                  });
+                }
+              })
+              .catch(() => {
+                // If API fails, assume it's subscribed to not break UI aggressively
+                setIsSubscribed(true);
+              });
           }
         });
       });
@@ -72,5 +108,48 @@ export const usePushNotifications = () => {
     }
   }, [isSupported, isSubscribing]);
 
-  return { isSupported, isSubscribed, isSubscribing, subscribeToPush };
+  const resyncPushSubscription = useCallback(async () => {
+    if (!isSupported) return;
+    try {
+      setIsSubscribing(true);
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        await subscription.unsubscribe();
+      }
+      setIsSubscribed(false);
+      
+      // Request a new one directly by simulating the subscribeToPush without checking if isSubscribing since we're already handling it
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!vapidPublicKey) throw new Error('VAPID public key not found');
+
+      const newSubscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: vapidPublicKey
+      });
+
+      const p256dh = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(newSubscription.getKey('p256dh')!))))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const auth = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(newSubscription.getKey('auth')!))))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+      const payload = {
+        endpoint: newSubscription.endpoint,
+        p256dh: p256dh,
+        auth: auth,
+        userAgent: navigator.userAgent
+      };
+
+      await api.post('/agente/dispositivos/suscribir', payload);
+      setIsSubscribed(true);
+      toast.success('Dispositivo sincronizado correctamente.');
+    } catch (error) {
+      console.error('Error resyncing push notifications:', error);
+      toast.error('Error al sincronizar el dispositivo.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  }, [isSupported]);
+
+  return { isSupported, isSubscribed, isSubscribing, subscribeToPush, resyncPushSubscription };
 };

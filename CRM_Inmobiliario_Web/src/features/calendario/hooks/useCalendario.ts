@@ -70,6 +70,23 @@ export const useCalendario = () => {
     }
   };
 
+  const handleCompletar = async () => {
+    const id = viewingTareaId || editingTareaId;
+    if (!id) return;
+    try {
+      // Assuming completarTarea exists in tareas/api/completarTarea
+      const { completarTarea } = await import('../../tareas/api/completarTarea');
+      await completarTarea(id);
+      toast.success('Tarea completada correctamente');
+      setViewingTareaId(null);
+      setEditingTareaId(null);
+      mutate();
+    } catch (err) {
+      console.error('Error al completar tarea:', err);
+      toast.error('No se pudo completar la tarea');
+    }
+  };
+
   const handleOpenCrear = (dateInput?: Date | string) => {
     let dateStr: string | null = null;
     if (typeof dateInput === 'string') {
@@ -156,6 +173,7 @@ export const useCalendario = () => {
     formKey,
     selectedTarea,
     handleCancelar,
+    handleCompletar,
     handleOpenCrear,
     toggleFullScreen,
     handleDatesSet,

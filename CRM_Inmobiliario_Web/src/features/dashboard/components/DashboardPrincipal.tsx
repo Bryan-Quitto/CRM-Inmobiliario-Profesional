@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { SWRConfig } from 'swr';
 import { Loader2 } from 'lucide-react';
 import { localStorageProvider } from '@/lib/swr';
@@ -13,7 +14,7 @@ import { BellRing } from 'lucide-react';
 const DashboardContent: React.FC = () => {
   const { perfil } = usePerfil();
   const { data, syncing } = useDashboardKpis();
-  const { isSupported, isSubscribed, isSubscribing, subscribeToPush } = usePushNotifications();
+  const { isSupported, isSubscribed } = usePushNotifications();
 
   if (!data) {
     return (
@@ -49,17 +50,15 @@ const DashboardContent: React.FC = () => {
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-800">Activa las notificaciones en tiempo real</h3>
-              <p className="text-sm text-slate-600 mt-0.5">Recibe alertas inmediatas cuando un cliente requiera asistencia humana.</p>
+              <p className="text-sm text-slate-600 mt-0.5">Recibe alertas inmediatas cuando la IA requiera asistencia con un cliente o con las tareas de tu agenda.</p>
             </div> 
           </div>
-          <button 
-            onClick={subscribeToPush}
-            disabled={isSubscribing}
-            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          <Link 
+            to="/configuracion/notificaciones"
+            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer flex items-center gap-2"
           >
-            {isSubscribing && <Loader2 className="w-3 h-3 animate-spin" />}
-            {isSubscribing ? 'Activando...' : 'Activar'}
-          </button>
+            Configurar
+          </Link>
         </div>
       )}
 
