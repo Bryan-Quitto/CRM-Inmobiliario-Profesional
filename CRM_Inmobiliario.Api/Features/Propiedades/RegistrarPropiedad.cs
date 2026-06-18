@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using NanoidDotNet;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -100,9 +101,12 @@ public static class RegistrarPropiedadFeature
                 }
             }
 
+            var nanoId = await Nanoid.GenerateAsync("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 5);
+
             var propiedad = new Property
             {
                 Id = Guid.NewGuid(),
+                CodigoCorto = $"PRO-{nanoId}",
                 Titulo = command.Titulo,
                 Descripcion = command.Descripcion,
                 TipoPropiedad = command.TipoPropiedad,

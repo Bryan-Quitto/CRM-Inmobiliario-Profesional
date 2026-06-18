@@ -18,7 +18,7 @@ public sealed class FacebookJobProcessor : IFacebookJobProcessor
     }
 
     [Hangfire.AutomaticRetry(Attempts = 3, DelaysInSeconds = new[] { 15, 45, 120 })]
-    public async Task ProcessMessageAsync(string senderId, string text, string pageId, CancellationToken cancellationToken)
+    public async Task ProcessMessageAsync(string senderId, string text, string pageId, string? codigoCorto = null, CancellationToken cancellationToken = default)
     {
         // Serialización por PSID: mensajes del mismo usuario se procesan uno a la vez
         var semaphore = _cache.GetOrCreate(
@@ -30,7 +30,7 @@ public sealed class FacebookJobProcessor : IFacebookJobProcessor
         {
             using var scope = _scopeFactory.CreateScope();
             var aiService = scope.ServiceProvider.GetRequiredService<FacebookAiService>();
-            await aiService.ProcessMessageAsync(senderId, text, pageId, cancellationToken);
+            await aiService.ProcessMessageAsync(senderId, text, pageId, codigoCorto, cancellationToken);
         }
         catch (Polly.Timeout.TimeoutRejectedException)
         {

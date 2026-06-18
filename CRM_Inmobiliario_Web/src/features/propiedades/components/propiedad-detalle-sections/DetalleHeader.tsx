@@ -1,4 +1,5 @@
-import { X, Pencil, MessageSquare } from 'lucide-react';
+import { useState } from 'react';
+import { X, Pencil, MessageSquare, Copy, Check } from 'lucide-react';
 import PDFLinkInternal from '../PDFLinkInternal';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
 import type { Propiedad } from '../../types';
@@ -30,6 +31,15 @@ export const DetalleHeader = ({
   activeTab,
   onTabChange,
 }: DetalleHeaderProps) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCode = () => {
+    if (!propiedad.codigoCorto) return;
+    navigator.clipboard.writeText(propiedad.codigoCorto);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
       <div className="px-6 py-4 flex items-center justify-between">
@@ -39,7 +49,19 @@ export const DetalleHeader = ({
           </button>
           <div>
             <h2 className="text-xl font-black text-slate-900 tracking-tight contactoing-none">Detalles del Inmueble</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {id.split('-')[0]}</p>
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ID: {id.split('-')[0]}</p>
+              {propiedad.codigoCorto && (
+                <button
+                  onClick={handleCopyCode}
+                  className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded-md text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:bg-indigo-100 transition-colors cursor-pointer"
+                  title="Copiar para Anuncios de Meta (Payload)"
+                >
+                  Ref: {propiedad.codigoCorto}
+                  {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex gap-2">

@@ -30,6 +30,7 @@ export interface ActiveTransactionInfo {
 
 export interface Propiedad {
   id: string;
+  codigoCorto?: string;
   titulo: string;
   descripcion: string;
   tipoPropiedad: string;

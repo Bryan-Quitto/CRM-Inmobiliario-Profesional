@@ -14,6 +14,10 @@ public sealed class Property
     public string Titulo { get; set; } = string.Empty;
 
     [Required]
+    [MaxLength(15)]
+    public string CodigoCorto { get; set; } = string.Empty;
+
+    [Required]
     public string Descripcion { get; set; } = string.Empty;
 
     [Required]

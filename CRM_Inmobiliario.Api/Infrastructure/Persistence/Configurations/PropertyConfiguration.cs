@@ -9,6 +9,9 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
     public void Configure(EntityTypeBuilder<Property> builder)
     {
         builder.Property(e => e.Titulo).HasMaxLength(150);
+        
+        builder.Property(e => e.CodigoCorto).HasMaxLength(15).IsRequired();
+        builder.HasIndex(e => e.CodigoCorto).IsUnique();
         builder.Property(e => e.TipoPropiedad).HasMaxLength(50);
         builder.Property(e => e.Operacion).HasMaxLength(50);
         builder.Property(e => e.Direccion).HasMaxLength(255);

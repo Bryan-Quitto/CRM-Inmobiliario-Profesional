@@ -38,7 +38,7 @@ public sealed class FacebookAiService
         _scopeFactory = scopeFactory;
     }
 
-    public async Task ProcessMessageAsync(string senderId, string text, string pageId, CancellationToken ct = default)
+    public async Task ProcessMessageAsync(string senderId, string text, string pageId, string? codigoCorto = null, CancellationToken ct = default)
     {
         try
         {
@@ -66,6 +66,17 @@ public sealed class FacebookAiService
             var ctx = await builder.PrepareAsync(agente, contacto, senderId, pageId, ct);
             if (ctx is null) return;
 
+            var history = ctx.History;
+
+            if (!string.IsNullOrEmpty(codigoCorto))
+            {
+                var propertyContext = await dbContextCheck.Properties.FirstOrDefaultAsync(p => p.CodigoCorto == codigoCorto, ct);
+                if (propertyContext != null)
+                {
+                    history.Add(("system", $"[CONTEXTO AUTOMÁTICO] El cliente acaba de hacer clic en un anuncio de la propiedad: {propertyContext.Titulo} (Código: {propertyContext.CodigoCorto}, Precio: {propertyContext.Precio}). Asume que su consulta inicial es sobre esta propiedad."));
+                }
+            }
+
             // Si el bot está desactivado para este contacto, no responder
             if (ctx.ShouldSilence)
             {
@@ -78,8 +89,10 @@ public sealed class FacebookAiService
 
             await builder.LogMessageAsync(ctx.Agente.Id, ctx.Contacto?.Id, senderId, "user", text, ct);
 
-            var history = ctx.History;
-            history.Add(("user", text));
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                history.Add(("user", text));
+            }
 
             // Seleccionar proveedor LLM usando la misma lógica BYOK que WhatsApp
             var rawProvider = ctx.Agente.ActiveLLMProvider ?? "OpenAI";

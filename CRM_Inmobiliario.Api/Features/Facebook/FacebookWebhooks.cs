@@ -104,14 +104,34 @@ public static class FacebookWebhooksFeature
                             cache.Set($"fb_msg_{messageId}", true, TimeSpan.FromHours(1));
                         }
 
-                        // Ignorar likes, stickers, reacciones — solo texto
-                        if (!message.TryGetProperty("text", out var textProp)) continue;
-                        var text = textProp.GetString() ?? string.Empty;
-                        if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(senderId)) continue;
+                        // Ignorar likes, stickers, reacciones — solo texto o eventos optin/postback con referral
+                        string text = string.Empty;
+                        if (message.ValueKind != JsonValueKind.Undefined && message.TryGetProperty("text", out var textProp))
+                        {
+                            text = textProp.GetString() ?? string.Empty;
+                        }
+
+                        // Extraer referral (codigoCorto)
+                        string? codigoCorto = null;
+                        if (message.ValueKind != JsonValueKind.Undefined && message.TryGetProperty("referral", out var msgReferral) && msgReferral.TryGetProperty("ref", out var refProp))
+                        {
+                            codigoCorto = refProp.GetString();
+                        }
+                        else if (messagingEvent.TryGetProperty("postback", out var postback) && postback.TryGetProperty("referral", out var pbReferral) && pbReferral.TryGetProperty("ref", out var pbRefProp))
+                        {
+                            codigoCorto = pbRefProp.GetString();
+                        }
+                        else if (messagingEvent.TryGetProperty("optin", out var optin) && optin.TryGetProperty("ref", out var optinRefProp))
+                        {
+                            codigoCorto = optinRefProp.GetString();
+                        }
+
+                        if (string.IsNullOrWhiteSpace(text) && string.IsNullOrWhiteSpace(codigoCorto)) continue;
+                        if (string.IsNullOrWhiteSpace(senderId)) continue;
 
                         // Encolamiento en Hangfire para procesamiento IA asíncrono y resiliente
                         Hangfire.BackgroundJob.Enqueue<IFacebookJobProcessor>(
-                            x => x.ProcessMessageAsync(senderId, text, pageId, CancellationToken.None));
+                            x => x.ProcessMessageAsync(senderId, text, pageId, codigoCorto, CancellationToken.None));
                     }
                 }
             }
