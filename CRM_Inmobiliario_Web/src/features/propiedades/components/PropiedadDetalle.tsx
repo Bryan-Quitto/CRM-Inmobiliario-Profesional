@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { SWRConfig } from 'swr';
 import { Loader2 } from 'lucide-react';
 import type { DropResult } from '@hello-pangea/dnd';
 import { localStorageProvider } from '@/lib/swr';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { usePropiedadDetalle } from '../hooks/usePropiedadDetalle';
 import { DetalleHeader } from './propiedad-detalle-sections/DetalleHeader';
 import { DetalleHeroInfo } from './propiedad-detalle-sections/DetalleHeroInfo';
@@ -10,6 +12,7 @@ import { DetalleContentLayout } from './propiedad-detalle-sections/DetalleConten
 import { DetalleGalleryManager } from './propiedad-detalle-sections/DetalleGalleryManager';
 import { DetalleHistoryTimeline } from './propiedad-detalle-sections/DetalleHistoryTimeline';
 import { DetalleModalsOrchestrator } from './propiedad-detalle-sections/DetalleModalsOrchestrator';
+import { DetalleFaqManager } from './propiedad-detalle-sections/DetalleFaqManager';
 
 interface PropiedadDetalleProps {
   id: string;
@@ -37,6 +40,8 @@ const formatDate = (dateString: string) => {
 };
 
 const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetalleProps) => {
+  const [activeTab, setActiveTab] = useState<'detalle' | 'ia'>('detalle');
+  const { user } = useAuth();
   const {
     propiedad,
     historial,
@@ -125,6 +130,8 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
           isStatusDropdownOpen={isStatusDropdownOpen}
           setIsStatusDropdownOpen={setIsStatusDropdownOpen}
           handleStatusChange={handleStatusChange}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
           handleWhatsAppShare={() => {
             const emojiMap: Record<string, string> = {
               'Casa': '\u{1F3E0}', 'Departamento': '\u{1F3E2}', 'Oficina': '\u{1F4BC}', 
@@ -143,36 +150,48 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
         />
 
         <div className="p-8 space-y-12 pb-24">
-          <DetalleHeroInfo propiedad={propiedad} formatCurrency={formatCurrency} />
-          <DetalleStatsGrid propiedad={propiedad} formatDate={formatDate} />
-          <DetalleContentLayout propiedad={propiedad} />
-          
-          <DetalleGalleryManager
-            id={id}
-            propiedad={propiedad}
-            isCreatingInline={isCreatingInline}
-            isAddingSection={isAddingSection}
-            newSectionName={newSectionName}
-            setNewSectionName={setNewSectionName}
-            setIsCreatingInline={setIsCreatingInline}
-            handleAddSection={handleAddSection}
-            handleConfirmAddSection={handleConfirmAddSection}
-            handleSetCover={handleSetCover}
-            handleDeleteMedia={handleDeleteMedia}
-            handleClearGallery={handleClearGallery}
-            handleDeleteSection={handleDeleteSection}
-            handleRenameSection={handleRenameSection}
-            handleMoveSection={handleMoveSection}
-            handleDragEnd={handleDragEnd}
-            mutate={() => mutate()}
-          />
+          {activeTab === 'detalle' && (
+            <>
+              <DetalleHeroInfo propiedad={propiedad} formatCurrency={formatCurrency} />
+              <DetalleStatsGrid propiedad={propiedad} formatDate={formatDate} />
+              <DetalleContentLayout propiedad={propiedad} />
+              
+              <DetalleGalleryManager
+                id={id}
+                propiedad={propiedad}
+                isCreatingInline={isCreatingInline}
+                isAddingSection={isAddingSection}
+                newSectionName={newSectionName}
+                setNewSectionName={setNewSectionName}
+                setIsCreatingInline={setIsCreatingInline}
+                handleAddSection={handleAddSection}
+                handleConfirmAddSection={handleConfirmAddSection}
+                handleSetCover={handleSetCover}
+                handleDeleteMedia={handleDeleteMedia}
+                handleClearGallery={handleClearGallery}
+                handleDeleteSection={handleDeleteSection}
+                handleRenameSection={handleRenameSection}
+                handleMoveSection={handleMoveSection}
+                handleDragEnd={handleDragEnd}
+                mutate={() => mutate()}
+              />
 
-          <DetalleHistoryTimeline
-            historial={historial}
-            handleInlineUpdateNote={handleInlineUpdateNote}
-            formatDate={formatDate}
-            formatCurrency={formatCurrency}
-          />
+              <DetalleHistoryTimeline
+                historial={historial}
+                handleInlineUpdateNote={handleInlineUpdateNote}
+                formatDate={formatDate}
+                formatCurrency={formatCurrency}
+              />
+            </>
+          )}
+
+          {activeTab === 'ia' && (
+            <DetalleFaqManager
+              propiedadId={propiedad.id}
+              canManage={!!propiedad.permissions?.canEditMasterData}
+              currentAgenteId={user?.id ?? ''}
+            />
+          )}
         </div>
       </div>
 

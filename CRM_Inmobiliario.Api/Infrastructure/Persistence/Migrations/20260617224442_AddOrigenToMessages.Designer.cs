@@ -3,6 +3,7 @@ using System;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260617224442_AddOrigenToMessages")]
+    partial class AddOrigenToMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -523,12 +526,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<string>("PendingEscalamientoJobId")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("PendingEscalamientoTareaId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Telefono")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -978,50 +975,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_Properties_Performance_AgenteEstadoCaptacion");
 
                     b.ToTable("Properties");
-                });
-
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyFaq", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CreadoPorAgenteId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTimeOffset>("FechaActualizacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("FechaCreacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NotaRechazo")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Pregunta")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("PropiedadId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Respuesta")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreadoPorAgenteId");
-
-                    b.HasIndex("PropiedadId", "Estado")
-                        .HasDatabaseName("idx_property_faqs_propiedad_estado");
-
-                    b.ToTable("PropertyFaqs");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>
@@ -1576,25 +1529,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("CreatedByAgente");
 
                     b.Navigation("Propietario");
-                });
-
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyFaq", b =>
-                {
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "CreadoPorAgente")
-                        .WithMany()
-                        .HasForeignKey("CreadoPorAgenteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Propiedad")
-                        .WithMany()
-                        .HasForeignKey("PropiedadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CreadoPorAgente");
-
-                    b.Navigation("Propiedad");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.PropertyGallerySection", b =>

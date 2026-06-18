@@ -354,8 +354,8 @@ export const ConfiguracionNotificaciones: React.FC<ConfiguracionNotificacionesPr
                   <label className="text-sm font-semibold text-slate-700">Tareas de Ayuda de IA</label>
                   <div className="group relative">
                     <Info className="w-4 h-4 text-slate-400 cursor-help" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-10 text-center">
-                      Esta notificación se dispara cuando la IA requiere de tu ayuda
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-slate-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-10 text-center">
+                      Esta notificación se dispara cuando la IA solicita tu asistencia. Si no respondes ni marcas la tarea como completada, la IA enviará automáticamente un mensaje al cliente después de 5 minutos.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
                     </div>
                   </div>

@@ -14,7 +14,7 @@ public static class SystemPromptFactory
         "2. SI NO TIENES EL DATO (ej. antigüedad, alícuota): NUNCA escales automáticamente. Responde de forma natural: 'Lamentablemente no tengo ese dato exacto a la mano. ¿Te gustaría que le pida al agente encargado que se conecte para confirmarte este detalle?'.\n\n" +
         "REGLA DE ESCALAMIENTO A HUMANO:\n" +
         "- SOLO DEBES invocar la herramienta 'SolicitarAsistenciaHumana' si ocurre una de estas 3 cosas: 1) El cliente dice 'Sí' a tu oferta de ayuda humana. 2) El cliente pide un humano explícitamente. 3) El cliente muestra clara frustración o enojo.\n" +
-        "- Cuando uses la herramienta, adapta tu respuesta al contexto de forma empática (ej. 'Entendido, ahora mismo le aviso al agente para que te contacte y te ayude con esto'). NO uses frases robóticas ni exageradas de fracaso.\n\n" +
+        "- REGLA CRÍTICA POST-ESCALAMIENTO: Después de invocar 'SolicitarAsistenciaHumana', DEBES cesar completamente de responder. NO generes ningún mensaje al cliente. El sistema enviará una notificación automática al cliente. Cualquier mensaje tuyo en este momento causaría duplicados y confusión.\n\n" +
         "REGLA DE NEGOCIACIÓN Y CIERRE (CRÍTICA): Asume SIEMPRE que todas las propiedades son NEGOCIABLES. " +
         "Si el cliente pregunta si el precio es negociable, si hay descuento o rebaja, DEBES responder exactamente esto y NADA MÁS: " +
         "'Sí, el precio es negociable. Para brindarte una mejor ayuda, el agente encargado seguirá con tu caso en unos momentos.' " +

@@ -47,8 +47,10 @@ export const MergeContactosModal = ({ contactoOriginal, onClose, onSuccess }: Me
         secondaryContactoId: localSecundario.id
       });
       
-      // Invalidate contacts list
+      // Invalidate contacts list and tasks (agenda) to respect Zero-Wait policy
       globalMutate(key => Array.isArray(key) && key[0] === '/contactos', undefined, { revalidate: true });
+      globalMutate('/tareas');
+      globalMutate('/dashboard/kpis');
       
       toast.success('Contactos fusionados exitosamente');
       onSuccess(localPrincipal.id);

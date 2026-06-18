@@ -11,6 +11,7 @@ public static class ObtenerConversacionFacebookIa
     public record MensajeChat(
         string Rol,
         string Contenido,
+        string? OrigenMensaje,
         DateTimeOffset Fecha);
 
     public static void MapObtenerConversacionFacebookIa(this IEndpointRouteBuilder app)
@@ -32,6 +33,7 @@ public static class ObtenerConversacionFacebookIa
                 .Select(m => new MensajeChat(
                     m.Rol == "user" ? "cliente" : "ia",
                     m.Contenido,
+                    m.OrigenMensaje,
                     m.Fecha
                 ))
                 .ToListAsync();

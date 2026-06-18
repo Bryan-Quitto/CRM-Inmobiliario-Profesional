@@ -105,6 +105,7 @@ builder.Services.AddHostedService<KpiWarmingBackgroundService>();
 builder.Services.AddScoped<TokenLimitResetJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.TaskNotificationJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.SendWebPushNotificationJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService, CRM_Inmobiliario.Api.Features.PushNotifications.Services.PushNotificationService>();
 
 builder.Services.AddProblemDetails(); // RFC 7807 (ProblemDetails)

@@ -16,4 +16,20 @@ public static class PropertyPermissionsHelper
         return property.AgenteId == currentUserId ||
                ((property.Transactions?.Any(t => t.CreatedById == currentUserId) == true) && (property.Agente == null || !property.Agente.Activo));
     }
+
+    /// <summary>
+    /// Valida si el agente actual es el gestor autorizado de las FAQs de la propiedad.
+    /// Replica la regla de delegación de CanManage() aplicada al contexto de FAQs.
+    /// </summary>
+    public static bool CanManageFaq(Property property, Guid currentUserId, string currentUserRole)
+    {
+        // El rol Autorizado (AgenteId de la propiedad si el captador está activo) puede aprobar/rechazar directamente.
+        // Si el captador está inactivo, el creador de la transacción activa asume el control.
+        var isDirectManager = property.AgenteId == currentUserId && (property.Agente == null || property.Agente.Activo);
+        var isFallbackManager = !isDirectManager &&
+                                (property.Transactions?.Any(t => t.CreatedById == currentUserId) == true) &&
+                                (property.Agente == null || !property.Agente.Activo);
+
+        return isDirectManager || isFallbackManager;
+    }
 }

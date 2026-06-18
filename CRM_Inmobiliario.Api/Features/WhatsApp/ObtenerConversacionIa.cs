@@ -11,6 +11,7 @@ public static class ObtenerConversacionIa
     public record MensajeChat(
         string Rol,
         string Contenido,
+        string? OrigenMensaje,
         DateTimeOffset Fecha);
 
     public static void MapObtenerConversacionIa(this IEndpointRouteBuilder app)
@@ -32,6 +33,7 @@ public static class ObtenerConversacionIa
                 .Select(m => new MensajeChat(
                     m.Rol == "user" ? "cliente" : "ia",
                     m.Contenido,
+                    m.OrigenMensaje,
                     m.Fecha
                 ))
                 .ToListAsync();

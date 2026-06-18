@@ -13,9 +13,14 @@ public sealed class WhatsappMessage
     [MaxLength(20)]
     public string Telefono { get; set; } = string.Empty;
 
+    public Guid? AgenteId { get; set; }
+
     [Required]
     [MaxLength(20)]
     public string Rol { get; set; } = string.Empty; // "user" o "assistant"
+
+    [MaxLength(20)]
+    public string? OrigenMensaje { get; set; } // "Cliente", "IA", "AgenteHumano"
 
     [Required]
     public string Contenido { get; set; } = string.Empty;

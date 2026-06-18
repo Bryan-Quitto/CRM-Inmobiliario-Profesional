@@ -27,7 +27,8 @@ export interface ClientGroup {
 }
 
 export interface MensajeChat {
-  rol: 'contacto' | 'ia';
+  rol: 'contacto' | 'ia' | 'cliente';
+  origenMensaje?: string;
   tipo?: 'texto' | 'audio' | 'imagen';
   contenido: string;
   audioUrl?: string;

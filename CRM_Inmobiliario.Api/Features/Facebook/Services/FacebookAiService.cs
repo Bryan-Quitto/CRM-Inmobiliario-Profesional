@@ -135,11 +135,10 @@ public sealed class FacebookAiService
 
             history.Add(("assistant", response));
 
-            await builder.LogMessageAsync(ctx.Agente.Id, ctx.Contacto?.Id, senderId, "assistant", response, ct);
             await builder.SaveStateAsync(ctx.Conversation, history, ct);
 
             var pageToken = ctx.Agente.FacebookPageAccessToken ?? string.Empty;
-            await _messageSender.SendTextMessageAsync(senderId, response, pageToken, ct);
+            await _messageSender.SendTextMessageAsync(senderId, response, pageToken, isAiResponse: true, contactoId: ctx.Contacto?.Id, agenteId: ctx.Agente.Id, cancellationToken: ct);
 
             _logger.LogInformation("\n=== [Facebook AI] Respuesta de IA ===\nAgentId: {AgentId}\nTokens Totales: {TotalTokens} (Entrada: {InputTokens}, Salida: {OutputTokens})\nRespuesta: {Response}\n================================", 
                 ctx.Agente.Id, streamTotalTokens, streamInputTokens, streamOutputTokens, response);
@@ -255,6 +254,7 @@ public sealed class FacebookAiService
             "Si el cliente pregunta si el precio es negociable, si hay descuento o rebaja, DEBES responder exactamente esto y NADA MÁS: " +
             $"'Sí, el precio es negociable. Para brindarte una mejor ayuda, {agentName} seguirá con tu caso en unos momentos.' " +
             "E INMEDIATAMENTE después, ejecuta la función/herramienta 'SolicitarAsistenciaHumana'. NO agregues ninguna otra frase tuya.\n\n" +
+            "REGLA CRÍTICA POST-ESCALAMIENTO: Después de invocar 'SolicitarAsistenciaHumana', DEBES cesar completamente de responder. NO generes ningún mensaje al cliente. El sistema enviará una notificación automática. Cualquier mensaje tuyo causaría duplicados y confusión.\n\n" +
             "PLANTILLAS DE RESPUESTA (OBLIGATORIAS PARA TODAS LAS PROPIEDADES):\n" +
             "Escribe el nombre de la propiedad EN MAYÚSCULAS y sin formato markdown.\n" +
             "💰 Precio: $Valor\n\n" +

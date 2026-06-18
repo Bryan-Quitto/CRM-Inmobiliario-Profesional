@@ -17,6 +17,7 @@ using CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
 using CRM_Inmobiliario.Api.Features.AgentAi.Endpoints;
 using CRM_Inmobiliario.Api.Features.FinOps.GetAgentTokenUsage;
 using CRM_Inmobiliario.Api.Features.PushNotifications;
+using CRM_Inmobiliario.Api.Features.Faqs;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -138,5 +139,16 @@ public static class EndpointRouteBuilderExtensions
 
         // Push Notifications
         apiGroup.MapPushNotificationsEndpoints();
+
+        // FAQs
+        apiGroup.MapCrearFaqEndpoint();
+        apiGroup.MapListarFaqsEndpoint().CacheOutput(p => p.Expire(TimeSpan.FromSeconds(30)).SetVaryByHeader("Authorization").SetVaryByRouteValue("propiedadId"));
+        apiGroup.MapEditarFaqEndpoint();
+        apiGroup.MapEnviarARevisionEndpoint();
+        apiGroup.MapAprobarFaqEndpoint();
+        apiGroup.MapRechazarFaqEndpoint();
+        apiGroup.MapDesactivarFaqEndpoint();
+        apiGroup.MapReactivarFaqEndpoint();
+        apiGroup.MapEliminarBorradorEndpoint();
     }
 }

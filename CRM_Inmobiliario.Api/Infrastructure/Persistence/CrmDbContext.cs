@@ -38,6 +38,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<FacebookMessage> FacebookMessages => Set<FacebookMessage>();
     public DbSet<AgentPushSubscription> AgentPushSubscriptions => Set<AgentPushSubscription>();
     public DbSet<PushNotificationsOutbox> PushNotificationsOutbox => Set<PushNotificationsOutbox>();
+    public DbSet<PropertyFaq> PropertyFaqs => Set<PropertyFaq>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,6 +67,22 @@ public sealed class CrmDbContext : DbContext
             .HasDatabaseName("idx_properties_search")
             .HasMethod("gin")
             .HasOperators("gin_trgm_ops");
+
+        modelBuilder.Entity<PropertyFaq>(entity =>
+        {
+            entity.HasIndex(f => new { f.PropiedadId, f.Estado })
+                .HasDatabaseName("idx_property_faqs_propiedad_estado");
+
+            entity.HasOne(f => f.Propiedad)
+                .WithMany()
+                .HasForeignKey(f => f.PropiedadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(f => f.CreadoPorAgente)
+                .WithMany()
+                .HasForeignKey(f => f.CreadoPorAgenteId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         // Aplicar todas las configuraciones de IEntityTypeConfiguration encontradas en el ensamblado
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CrmDbContext).Assembly);

@@ -67,6 +67,11 @@ public sealed class Contacto
 
     public string NormalizedSearchText { get; set; } = string.Empty;
 
+    // ID del job Hangfire de escalación pendiente. Null si no hay escalación activa.
+    public string? PendingEscalamientoJobId { get; set; }
+    // ID de la TaskItem creada al escalar para poder auto-completarla cuando el agente responde.
+    public Guid? PendingEscalamientoTareaId { get; set; }
+
     // Relaciones de navegación
     public ICollection<ContactoAgenteCompartido> CompartidoCon { get; set; } = new List<ContactoAgenteCompartido>();
     public ICollection<Property> PropertiesOwned { get; set; } = new List<Property>();

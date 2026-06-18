@@ -11,6 +11,7 @@ public class FacebookMessage
     public string FacebookSenderId { get; set; } = string.Empty;
     public Guid AgenteId { get; set; }
     public string Rol { get; set; } = string.Empty; // "user" | "assistant"
+    public string? OrigenMensaje { get; set; } // "Cliente", "IA", "AgenteHumano"
     public string Contenido { get; set; } = string.Empty;
     public DateTimeOffset Fecha { get; set; } = DateTimeOffset.UtcNow;
 }

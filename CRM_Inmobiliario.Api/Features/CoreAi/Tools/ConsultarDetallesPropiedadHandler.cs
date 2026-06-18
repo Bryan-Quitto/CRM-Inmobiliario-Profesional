@@ -1,5 +1,6 @@
 using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
+using CRM_Inmobiliario.Api.Features.Propiedades;
 using System.Text.Json;
 using System.Text;
 using CRM_Inmobiliario.Api.Domain.Entities;
@@ -155,6 +156,17 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
             sb.AppendLine($"Es Captación Propia: {(propiedad.EsCaptacionPropia ? "Sí" : "No")}");
         }
         
+        // Cargar FAQs aprobadas y añadirlas al contexto para enriquecer la respuesta del LLM
+        var faqs = await _context.PropertyFaqs
+            .Where(f => f.PropiedadId == propiedadId && f.Estado == "Aprobada")
+            .Select(f => new { f.Pregunta, f.Respuesta })
+            .ToListAsync(cancellationToken);
+
+        var faqSection = PropertyFaqContextEnricher.BuildSection(
+            faqs.Select(f => (f.Pregunta, f.Respuesta)));
+        if (!string.IsNullOrEmpty(faqSection))
+            sb.AppendLine(faqSection);
+
         sb.AppendLine("\nINSTRUCCIÓN CRÍTICA PARA LA IA: Acabas de solicitar los detalles profundos de esta propiedad. Lee cuidadosamente la descripción de arriba. Si el dato que el cliente preguntó (ej. años, un árbol, parqueos) SÍ está en el texto, respóndele afirmativamente basándote en esta información. CONFÍA en estos datos, no te confundas con propiedades de las que hablaron antes.");
 
         return sb.ToString();

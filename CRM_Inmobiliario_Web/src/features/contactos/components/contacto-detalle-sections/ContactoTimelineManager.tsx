@@ -149,6 +149,12 @@ export const ContactoTimelineManager = ({
                   >
                     Todos
                   </button>
+                  <button 
+                    onClick={() => { setFilterTipoTimeline('Sistema'); setIsOpenFilter(false); }} 
+                    className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase rounded-xl transition-colors cursor-pointer ${filterTipoTimeline === 'Sistema' ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50 text-slate-600'}`}
+                  >
+                    Sistema
+                  </button>
                   {TIPO_NOTA_OPCIONES.map(opt => (
                     <button 
                       key={opt.value} 

@@ -136,6 +136,7 @@ public sealed class FacebookContextBuilder
             FacebookSenderId = senderId,
             AgenteId = agenteId,
             Rol = role,
+            OrigenMensaje = role == "user" ? "Cliente" : "IA",
             Contenido = content,
             Fecha = DateTimeOffset.UtcNow
         });

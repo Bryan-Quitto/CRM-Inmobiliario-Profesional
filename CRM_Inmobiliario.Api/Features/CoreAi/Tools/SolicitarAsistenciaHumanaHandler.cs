@@ -5,6 +5,7 @@ using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Hangfire;
 
 namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
@@ -83,9 +84,11 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
             
             _context.Contactos.Update(contacto);
         }
+
+        TaskItem? nuevaTarea = null;
         if (contacto.AgenteId != Guid.Empty)
         {
-            var nuevaTarea = new TaskItem
+            nuevaTarea = new TaskItem
             {
                 Id = Guid.NewGuid(),
                 AgenteId = contacto.AgenteId,
@@ -117,12 +120,36 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                 $"El cliente {displayIdentifier} requiere intervención inmediata. Motivo: {motivo}",
                 $"/contactos/{contacto.Id}",
                 cancellationToken);
+
+            // Programar timer diferido: si el agente no responde en 5 min, el job notifica al cliente
+            if (nuevaTarea != null)
+            {
+                var canal = context.Channel == "Facebook" ? "Facebook" : "WhatsApp";
+                var agente = await _context.Agents
+                    .Where(a => a.Id == contacto.AgenteId)
+                    .Select(a => new { a.Nombre })
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                var jobId = BackgroundJob.Schedule<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>(
+                    job => job.EjecutarAsync(contacto.Id, nuevaTarea.Id, agente!.Nombre, canal),
+                    TimeSpan.FromMinutes(5));
+
+                await _context.Contactos
+                    .Where(c => c.Id == contacto.Id)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(c => c.PendingEscalamientoJobId, jobId)
+                        .SetProperty(c => c.PendingEscalamientoTareaId, nuevaTarea.Id),
+                    cancellationToken);
+            }
         }
         else
         {
             _logger.LogWarning($"[PUSH] No se pudo notificar porque contacto.AgenteId está vacío para contacto {contacto.Id}");
         }
 
-        return "Solicitud de asistencia enviada al equipo humano.";
+        // Escalación silenciosa: el LLM NO debe generar respuesta al cliente.
+        // El job EscalamientoTimerJob enviará el mensaje al cliente después de 5 minutos
+        // si el agente no ha respondido antes.
+        return "[SISTEMA: Asistencia solicitada. NO respondas al cliente. El agente será notificado.]";
     }
 }

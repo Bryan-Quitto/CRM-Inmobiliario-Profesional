@@ -117,7 +117,22 @@ export const useContactoTimeline = ({ contacto, id, mutate, globalMutate }: Para
     return contacto.interacciones.filter(i => {
       const matchesSearch = i.notas.toLowerCase().includes(searchHistorial.toLowerCase()) || 
                            i.tipoInteraccion.toLowerCase().includes(searchHistorial.toLowerCase());
-      const matchesTipo = filterTipoTimeline === 'Todos' || i.tipoInteraccion === filterTipoTimeline;
+                           
+      const isSystemFilter = filterTipoTimeline === 'Sistema';
+      const systemTypes = ['Sistema', 'Reserva', 'Cierre', 'Cancelación'];
+      const isNotaFusion = i.tipoInteraccion === 'Nota' && i.notas.startsWith('Reporte de Fusión');
+
+      let matchesTipo = false;
+      if (filterTipoTimeline === 'Todos') {
+        matchesTipo = true;
+      } else if (isSystemFilter) {
+        matchesTipo = systemTypes.includes(i.tipoInteraccion) || isNotaFusion;
+      } else if (filterTipoTimeline === 'Nota') {
+        matchesTipo = i.tipoInteraccion === 'Nota' && !isNotaFusion;
+      } else {
+        matchesTipo = i.tipoInteraccion === filterTipoTimeline;
+      }
+      
       return matchesSearch && matchesTipo;
     });
   }, [contacto, searchHistorial, filterTipoTimeline]);

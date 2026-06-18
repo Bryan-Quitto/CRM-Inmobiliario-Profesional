@@ -276,6 +276,7 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             ContactoId = contactoId,
             Telefono = phone, 
             Rol = role, 
+            OrigenMensaje = role == "user" ? "Cliente" : "IA",
             Contenido = content, 
             Fecha = DateTimeOffset.UtcNow 
         });

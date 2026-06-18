@@ -106,11 +106,7 @@ public sealed class WhatsAppAiService
                 if (!string.IsNullOrEmpty(context.AutoResponse))
                 {
                     _logger.LogInformation("Contacto {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
-                    if (context.Contacto != null)
-                    {
-                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", context.AutoResponse, cancellationToken);
-                    }
-                    await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse, phoneNumberId, cancellationToken);
+                    await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse, phoneNumberId, isAiResponse: true, contactoId: context.Contacto?.Id, cancellationToken: cancellationToken);
                 }
                 else
                 {
@@ -178,10 +174,6 @@ public sealed class WhatsAppAiService
                     await _toolExecutor.HandleToolCallAsync(fallbackToolCall, execContextCb, cancellationToken);
                     
                     history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
-                    if (context.Contacto != null)
-                    {
-                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse, cancellationToken);
-                    }
                     requiresAction = false;
                     break;
                 }
@@ -356,10 +348,6 @@ public sealed class WhatsAppAiService
                                     await _toolExecutor.HandleToolCallAsync(fallbackToolCall, res.ExecContext, linkedCts.Token);
 
                                     history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
-                                    if (context.Contacto != null)
-                                    {
-                                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse, linkedCts.Token);
-                                    }
                                     requiresAction = false;
                                     break;
                                 }
@@ -393,10 +381,6 @@ public sealed class WhatsAppAiService
                         history.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
                     }
                     
-                    if (context.Contacto != null)
-                    {
-                        await _conversationManager.LogMessageAsync(context.Contacto.Id, phone, "assistant", finalResponse, cancellationToken);
-                    }
                     _logger.LogInformation("--- RESPUESTA FINAL IA: {Response} ---", finalResponse);
                 }
             }
@@ -444,7 +428,7 @@ public sealed class WhatsAppAiService
             if (!string.IsNullOrEmpty(finalResponse))
             {
                 finalResponse = Regex.Replace(finalResponse, @"\*+", "*");
-                await _messageSender.SendWhatsAppMessageAsync(phone, finalResponse, phoneNumberId, cancellationToken);
+                await _messageSender.SendWhatsAppMessageAsync(phone, finalResponse, phoneNumberId, isAiResponse: true, contactoId: context.Contacto?.Id, cancellationToken: cancellationToken);
             }
         }
         catch (Polly.Timeout.TimeoutRejectedException)
