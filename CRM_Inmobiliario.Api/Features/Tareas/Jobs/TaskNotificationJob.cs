@@ -117,7 +117,11 @@ public class TaskNotificationJob
                 {
                     title = "Recordatorio de Tarea",
                     body = message,
-                    data = new { url = $"/?tarea={task.Id}" }
+                    data = new { url = $"/?tarea={task.Id}", taskId = task.Id },
+                    actions = new[]
+                    {
+                        new { action = "marcar_completada", title = "✅ Completada" }
+                    }
                 }
             });
 

@@ -7,7 +7,8 @@ export const useAgendaFilters = (
   searchQuery: string = '',
   filterTipos: string[] = [],
   sortBy: 'fechaInicio' | 'fechaCreacion' = 'fechaInicio',
-  sortOrder: 'asc' | 'desc' = 'asc'
+  sortOrder: 'asc' | 'desc' = 'asc',
+  historySortOrder: 'asc' | 'desc' = 'desc'
 ) => {
   const tareasPendientes = useMemo(() => {
     let pendientes = allTareas.filter(t => t.estado === 'Pendiente');
@@ -35,13 +36,21 @@ export const useAgendaFilters = (
     return pendientes;
   }, [allTareas, searchQuery, filterTipos, sortBy, sortOrder]);
   
-  const filteredHistorial = useMemo(() => 
-    allTareas.filter(t => {
+  const filteredHistorial = useMemo(() => {
+    const history = allTareas.filter(t => {
       const isHistory = t.estado === 'Completada' || t.estado === 'Cancelada';
       const matchesSearch = t.titulo.toLowerCase().includes(historySearch.toLowerCase());
       return isHistory && matchesSearch;
-    }), 
-  [allTareas, historySearch]);
+    });
+
+    history.sort((a, b) => {
+      const dateA = new Date(a.fechaInicio).getTime();
+      const dateB = new Date(b.fechaInicio).getTime();
+      return historySortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
+    return history;
+  }, [allTareas, historySearch, historySortOrder]);
 
   const tareasAtrasadas = useMemo(() => {
     const ahora = new Date();

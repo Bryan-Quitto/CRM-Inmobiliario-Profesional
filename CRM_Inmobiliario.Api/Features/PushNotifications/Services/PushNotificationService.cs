@@ -10,6 +10,7 @@ public interface IPushNotificationService
     Task SubscribeAgentAsync(Guid agentId, string endpoint, string p256dh, string auth, string? userAgent, CancellationToken ct = default);
     Task<bool> VerifySubscriptionAsync(Guid agentId, string endpoint, CancellationToken ct = default);
     Task SendNotificationToAgentAsync(Guid agentId, string title, string body, string? url = null, CancellationToken ct = default);
+    Task UnsubscribeAgentAsync(Guid agentId, string endpoint, CancellationToken ct = default);
 }
 
 public sealed class PushNotificationService : IPushNotificationService
@@ -61,6 +62,18 @@ public sealed class PushNotificationService : IPushNotificationService
         var exists = await _dbContext.AgentPushSubscriptions
             .AnyAsync(s => s.AgentId == agentId && s.Endpoint == endpoint, ct);
         return exists;
+    }
+
+    public async Task UnsubscribeAgentAsync(Guid agentId, string endpoint, CancellationToken ct = default)
+    {
+        var subscription = await _dbContext.AgentPushSubscriptions
+            .FirstOrDefaultAsync(s => s.AgentId == agentId && s.Endpoint == endpoint, ct);
+
+        if (subscription is not null)
+        {
+            _dbContext.AgentPushSubscriptions.Remove(subscription);
+            await _dbContext.SaveChangesAsync(ct);
+        }
     }
 
     public async Task SendNotificationToAgentAsync(Guid agentId, string title, string body, string? url = null, CancellationToken ct = default)

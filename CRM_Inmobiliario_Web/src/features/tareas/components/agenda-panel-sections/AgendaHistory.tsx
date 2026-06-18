@@ -1,5 +1,5 @@
 import React from 'react';
-import { History, Search, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
+import { History, Search, CheckCircle2, XCircle, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Tarea } from '../../types';
 import { formatDateTime } from '../../utils';
 
@@ -10,6 +10,8 @@ interface AgendaHistoryProps {
   onSearchChange: (val: string) => void;
   filteredHistorial: Tarea[];
   onSelectTask: (id: string) => void;
+  historySortOrder: 'asc' | 'desc';
+  onToggleHistorySort: () => void;
 }
 
 export const AgendaHistory: React.FC<AgendaHistoryProps> = ({
@@ -18,7 +20,9 @@ export const AgendaHistory: React.FC<AgendaHistoryProps> = ({
   historySearch,
   onSearchChange,
   filteredHistorial,
-  onSelectTask
+  onSelectTask,
+  historySortOrder,
+  onToggleHistorySort
 }) => {
   return (
     <div className="mt-auto border-t border-slate-100 bg-slate-50/50">
@@ -39,18 +43,27 @@ export const AgendaHistory: React.FC<AgendaHistoryProps> = ({
 
       {showHistory && (
         <div className="px-4 pb-4 animate-in slide-in-from-bottom-2 duration-300">
-          {/* Buscador Historial */}
-          <div className="relative mb-3">
-            <label htmlFor="history-search" className="sr-only">Buscar en historial de tareas</label>
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" aria-hidden="true" />
-            <input 
-              id="history-search"
-              type="text"
-              placeholder="Buscar en historial..."
-              value={historySearch}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-medium outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
-            />
+          {/* Buscador Historial y Ordenar */}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="relative flex-1">
+              <label htmlFor="history-search" className="sr-only">Buscar en historial de tareas</label>
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" aria-hidden="true" />
+              <input 
+                id="history-search"
+                type="text"
+                placeholder="Buscar en historial..."
+                value={historySearch}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-medium outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+              />
+            </div>
+            <button 
+              onClick={onToggleHistorySort}
+              className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 transition-colors shrink-0 flex items-center justify-center shadow-sm cursor-pointer"
+              title={historySortOrder === 'desc' ? "Más recientes primero" : "Más antiguas primero"}
+            >
+              {historySortOrder === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+            </button>
           </div>
 
           <div className="max-h-[210px] overflow-y-auto space-y-2 scrollbar-hide pr-1">

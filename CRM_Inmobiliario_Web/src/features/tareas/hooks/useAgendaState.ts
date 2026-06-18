@@ -43,6 +43,7 @@ export const useAgendaState = (allTareas: Tarea[]) => {
   const [filterTipos, setFilterTipos] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'fechaInicio' | 'fechaCreacion'>('fechaInicio');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [historySortOrder, setHistorySortOrder] = useState<'desc' | 'asc'>('desc');
 
   const selectedTarea = useMemo(() => 
     allTareas.find(t => t.id === selectedTareaId), 
@@ -75,6 +76,8 @@ export const useAgendaState = (allTareas: Tarea[]) => {
     sortBy,
     setSortBy,
     sortOrder,
-    setSortOrder
+    setSortOrder,
+    historySortOrder,
+    setHistorySortOrder
   };
 };

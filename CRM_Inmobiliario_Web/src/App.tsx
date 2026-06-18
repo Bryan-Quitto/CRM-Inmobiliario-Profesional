@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, useEffect } from 'react';
+import { useState, lazy, Suspense, useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TareasProvider } from './features/tareas/context/TareasProvider';
@@ -9,6 +9,7 @@ import { supabase } from './lib/supabase';
 import { LoginForm } from './features/auth/components/LoginForm';
 import { Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
+import { api } from './lib/axios';
 
 // Layout Components
 import { Sidebar } from './components/layout/Sidebar';
@@ -55,7 +56,7 @@ function AppContent({ session }: { session: Session | null }) {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  const searchParams = new URLSearchParams(location.search);
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const urlTareaId = searchParams.get('tarea');
 
   useEffect(() => {
@@ -64,6 +65,43 @@ function AppContent({ session }: { session: Session | null }) {
       setIsAgendaOpen(true);
     }
   }, [urlTareaId, isAgendaOpen]);
+
+  // Manejar acción 'marcar_completada' desde Notificaciones Push
+  useEffect(() => {
+    const completeTask = async (id: string) => {
+      try {
+        await api.patch(`/features/tareas/${id}/estado`, { estado: 'Completada' });
+        toast.success('Tarea marcada como completada ✅');
+      } catch (error) {
+        console.error('Error al completar tarea desde SW:', error);
+      }
+    };
+
+    // 1. Vía Query String (si la app estaba cerrada)
+    const searchAction = searchParams.get('action');
+    if (searchAction === 'complete' && urlTareaId) {
+      // Limpiamos la URL para evitar loop
+      window.history.replaceState({}, '', window.location.pathname);
+      completeTask(urlTareaId);
+    }
+
+    // 2. Vía Mensaje Service Worker (si la app estaba abierta en background)
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'COMPLETE_TASK' && event.data.taskId) {
+        completeTask(event.data.taskId);
+      }
+    };
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleSwMessage);
+    }
+
+    return () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+      }
+    };
+  }, [urlTareaId, searchParams]);
 
   useEffect(() => {
     localStorage.setItem('crm_sidebar_state', JSON.stringify(isSidebarOpen));

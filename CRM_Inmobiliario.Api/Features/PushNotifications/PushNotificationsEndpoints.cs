@@ -34,5 +34,18 @@ public static class PushNotificationsEndpoints
             var isValid = await service.VerifySubscriptionAsync(agentId, req.Endpoint, ct);
             return Results.Ok(new { isValid });
         });
+
+        endpoints.MapDelete("/agente/dispositivos/desuscribir", async (
+            [FromBody] VerifySubscriptionRequest req,
+            ClaimsPrincipal user,
+            IPushNotificationService service,
+            CancellationToken ct) =>
+        {
+            var userIdString = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdString, out var agentId)) return Results.Unauthorized();
+
+            await service.UnsubscribeAgentAsync(agentId, req.Endpoint, ct);
+            return Results.Ok();
+        });
     }
 }

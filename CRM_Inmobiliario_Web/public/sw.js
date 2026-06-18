@@ -24,6 +24,10 @@ self.addEventListener('push', (event) => {
     data: notification.data || {}
   };
 
+  if (notification.actions) {
+    options.actions = notification.actions;
+  }
+
   event.waitUntil(
     self.registration.showNotification(title, options)
   );
@@ -31,6 +35,27 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+
+  if (event.action === 'marcar_completada') {
+    const taskId = event.notification.data && event.notification.data.taskId;
+    if (taskId) {
+      event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+          for (let i = 0; i < windowClients.length; i++) {
+            const client = windowClients[i];
+            if ('postMessage' in client) {
+              client.postMessage({ type: 'COMPLETE_TASK', taskId: taskId });
+              return client.focus();
+            }
+          }
+          if (clients.openWindow) {
+            return clients.openWindow('/?tarea=' + taskId + '&action=complete');
+          }
+        })
+      );
+    }
+    return;
+  }
 
   const targetUrl = event.notification.data && event.notification.data.url
     ? event.notification.data.url

@@ -151,5 +151,28 @@ export const usePushNotifications = () => {
     }
   }, [isSupported]);
 
-  return { isSupported, isSubscribed, isSubscribing, subscribeToPush, resyncPushSubscription };
+  const unsubscribeFromPush = useCallback(async () => {
+    if (!isSupported) return;
+    try {
+      setIsSubscribing(true);
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      
+      if (subscription) {
+        const endpoint = subscription.endpoint;
+        await subscription.unsubscribe();
+        await api.delete('/agente/dispositivos/desuscribir', { data: { endpoint } });
+      }
+      
+      setIsSubscribed(false);
+      toast.success('Notificaciones desactivadas en este dispositivo.');
+    } catch (error) {
+      console.error('Error unsubscribing from push notifications:', error);
+      toast.error('Error al desactivar las notificaciones.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  }, [isSupported]);
+
+  return { isSupported, isSubscribed, isSubscribing, subscribeToPush, resyncPushSubscription, unsubscribeFromPush };
 };

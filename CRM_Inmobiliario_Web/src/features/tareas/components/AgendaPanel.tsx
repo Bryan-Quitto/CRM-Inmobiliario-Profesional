@@ -58,7 +58,9 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     sortBy,
     setSortBy,
     sortOrder,
-    setSortOrder
+    setSortOrder,
+    historySortOrder,
+    setHistorySortOrder
   } = useAgendaState(allTareas);
 
   // 2. Filters Hook
@@ -74,7 +76,8 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
     searchQuery, 
     filterTipos, 
     sortBy, 
-    sortOrder
+    sortOrder,
+    historySortOrder
   );
 
   // 3. Actions Hook
@@ -241,6 +244,8 @@ export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
           searchParams.set('tarea', id);
           setSearchParams(searchParams, { replace: true });
         }}
+        historySortOrder={historySortOrder}
+        onToggleHistorySort={() => setHistorySortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
       />
 
       <ComandoPanel

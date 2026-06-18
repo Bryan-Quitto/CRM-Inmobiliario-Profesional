@@ -3,7 +3,7 @@ import useSWR from 'swr';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
-import { Save, Bell, Loader2, Info, Check, ChevronDown, RefreshCw } from 'lucide-react';
+import { Save, Bell, Loader2, Info, Check, ChevronDown, RefreshCw, BellOff } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface NotificationSettings {
@@ -188,7 +188,7 @@ const TimeDurationInput: React.FC<TimeDurationInputProps> = ({
 export const ConfiguracionNotificaciones: React.FC<ConfiguracionNotificacionesProps> = ({ agentId }) => {
   const { user } = useAuth();
   const targetId = agentId || user?.id;
-  const { resyncPushSubscription, subscribeToPush, isSubscribed, isSubscribing, isSupported } = usePushNotifications();
+  const { resyncPushSubscription, subscribeToPush, unsubscribeFromPush, isSubscribed, isSubscribing, isSupported } = usePushNotifications();
   
   const { data, isLoading, mutate } = useSWR<NotificationSettings>(
     targetId ? `/agents/${targetId}/notifications` : null,
@@ -283,15 +283,27 @@ export const ConfiguracionNotificaciones: React.FC<ConfiguracionNotificacionesPr
                     {isSubscribing ? 'Activando...' : 'Activar Notificaciones'}
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={resyncPushSubscription}
-                    disabled={isSubscribing}
-                    className="shrink-0 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isSubscribing ? 'animate-spin' : ''}`} />
-                    {isSubscribing ? 'Sincronizando...' : 'Sincronizar Dispositivo'}
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={resyncPushSubscription}
+                      disabled={isSubscribing}
+                      className="shrink-0 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isSubscribing ? 'animate-spin' : ''}`} />
+                      <span className="hidden sm:inline">{isSubscribing ? 'Sincronizando...' : 'Sincronizar Dispositivo'}</span>
+                      <span className="sm:hidden">{isSubscribing ? '...' : 'Sync'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={unsubscribeFromPush}
+                      disabled={isSubscribing}
+                      className="shrink-0 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl border border-rose-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <BellOff className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Desactivar</span>
+                    </button>
+                  </>
                 )}
               </div>
             )}
