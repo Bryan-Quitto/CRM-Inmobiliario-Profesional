@@ -148,7 +148,7 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/propietarios" element={<ContactosList />} />
               <Route path="/propietarios/:id" element={<ContactoDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
-              <Route path="/registros-ia" element={<Suspense fallback={<PageLoader />}><IaLogsLayout /></Suspense>}>
+              <Route path="/registros-sistema-ia" element={<Suspense fallback={<PageLoader />}><IaLogsLayout /></Suspense>}>
                 <Route index element={<Navigate to="whatsapp" replace />} />
                 <Route path="whatsapp" element={<AuditoriaLogsView />} />
                 <Route path="personal" element={<Suspense fallback={<PageLoader />}><PersonalLogsView /></Suspense>} />

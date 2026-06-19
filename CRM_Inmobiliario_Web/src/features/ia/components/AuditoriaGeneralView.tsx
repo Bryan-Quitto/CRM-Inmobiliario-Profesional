@@ -185,7 +185,7 @@ const SessionCard: React.FC<{ sesion: AuditoriaSessionResponse }> = ({ sesion })
                           </Link>
                         ) : (
                           <Link
-                            to={`/registros-ia/${evento.source === 'Copilot' ? 'personal' : evento.source.toLowerCase()}?${evento.source === 'Copilot' ? `convId=${sesion.telefono}` : `telefono=${sesion.telefono || ''}`}&msgId=${evento.eventId}`}
+                            to={`/registros-sistema-ia/${evento.source === 'Copilot' ? 'personal' : evento.source.toLowerCase()}?${evento.source === 'Copilot' ? `convId=${sesion.telefono}` : `telefono=${sesion.telefono || ''}`}&msgId=${evento.eventId}`}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors shadow-sm"
                           >
                             Ver Mensaje

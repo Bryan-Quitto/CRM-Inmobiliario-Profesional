@@ -95,6 +95,8 @@ builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.I
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.ResumirHistorialContacto.ResumirHistorialContactoHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.CrearTareaCRM.CrearTareaCRMHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.GenerarCotizacionRapidaHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.CoreAi.Tools.EnviarFotosPropiedadHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.IPropertyGalleryAiDispatcher, CRM_Inmobiliario.Api.Features.CoreAi.Services.PropertyGalleryAiDispatcher>();
 
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
 builder.Services.AddSingleton<IPdfCleanupQueue, PdfCleanupQueue>();

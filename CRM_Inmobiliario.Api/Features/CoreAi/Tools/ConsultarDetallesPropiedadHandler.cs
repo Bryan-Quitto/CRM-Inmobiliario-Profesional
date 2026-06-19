@@ -45,9 +45,9 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
         }
 
         string searchTerm = pNameStr.Trim();
-        var searchPattern = $"%{CrmDbContext.NormalizeText(searchTerm)}%";
+        var normalizedTerm = CrmDbContext.NormalizeText(searchTerm);
         var propiedadBase = await _context.Properties
-            .Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern) || p.Id.ToString() == searchTerm)
+            .Where(p => p.NormalizedSearchText.Contains(normalizedTerm) || p.Id.ToString() == searchTerm)
             .FirstOrDefaultAsync();
 
         if (propiedadBase == null)

@@ -195,7 +195,7 @@ export const CopilotDrawer: React.FC = () => {
             </div>
             <h2 className="text-base font-semibold">Asistente de IA</h2>
             <Link 
-              to="/registros-ia/personal" 
+              to="/registros-sistema-ia/personal" 
               target="_blank" 
               rel="noopener noreferrer"
               className="no-drag ml-1 p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors flex items-center justify-center cursor-pointer"

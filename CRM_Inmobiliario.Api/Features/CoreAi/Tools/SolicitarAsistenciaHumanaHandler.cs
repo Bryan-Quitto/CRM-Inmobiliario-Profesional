@@ -13,10 +13,13 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
 {
     private readonly CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService _pushNotificationService;
 
-    public SolicitarAsistenciaHumanaHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<SolicitarAsistenciaHumanaHandler> logger, CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService pushNotificationService) 
+    private readonly IBackgroundJobClient _backgroundJobClient;
+
+    public SolicitarAsistenciaHumanaHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<SolicitarAsistenciaHumanaHandler> logger, CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService pushNotificationService, IBackgroundJobClient backgroundJobClient) 
         : base(dbContextFactory, logger) 
     {
         _pushNotificationService = pushNotificationService;
+        _backgroundJobClient = backgroundJobClient;
     }
 
     public override string ToolName => "SolicitarAsistenciaHumana";
@@ -130,16 +133,13 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                     .Select(a => new { a.Nombre })
                     .FirstOrDefaultAsync(cancellationToken);
 
-                var jobId = BackgroundJob.Schedule<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>(
+                var jobId = _backgroundJobClient.Schedule<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>(
                     job => job.EjecutarAsync(contacto.Id, nuevaTarea.Id, agente!.Nombre, canal),
                     TimeSpan.FromMinutes(5));
 
-                await _context.Contactos
-                    .Where(c => c.Id == contacto.Id)
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(c => c.PendingEscalamientoJobId, jobId)
-                        .SetProperty(c => c.PendingEscalamientoTareaId, nuevaTarea.Id),
-                    cancellationToken);
+                contacto.PendingEscalamientoJobId = jobId;
+                contacto.PendingEscalamientoTareaId = nuevaTarea.Id;
+                await _context.SaveChangesAsync(cancellationToken);
             }
         }
         else

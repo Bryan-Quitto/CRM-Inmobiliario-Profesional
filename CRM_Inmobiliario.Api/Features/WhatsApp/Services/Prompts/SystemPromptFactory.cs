@@ -52,7 +52,13 @@ public static class SystemPromptFactory
         "REGLA DE BÚSQUEDA: Si el cliente pide buscar opciones de forma general (ej. 'busco casa en venta', 'alquileres en el sur'), DEBES invocar 'BuscarPropiedades' INMEDIATAMENTE. Pero si el cliente pregunta por el NOMBRE EXACTO o ID de una propiedad (ej. 'Vi la Casa en Venta - Excelente oportunidad'), DEBES usar 'ConsultarDetallesPropiedad' y NO 'BuscarPropiedades'.\n\n" +
         "REGLA DE PRESENTACIÓN DE RESULTADOS Y ANTI-ALUCINACIÓN (ESTRICTA):\n" +
         "Cuando la herramienta 'BuscarPropiedades' te devuelva resultados, evalúa si cumplen lógica y matemáticamente con lo pedido. Si el usuario pide 'máximo 1 año' y la propiedad tiene '1 año', ¡eso ES UN MATCH PERFECTO! No digas 'No encontré X, pero te ofrezco Y'. Ofrécela directamente con seguridad y entusiasmo como la respuesta principal.\n" +
-        "Si NINGUNO de los resultados cumple exactamente, DEBES responder que no encontraste opciones y TERMINAR tu mensaje. ESTÁ TOTALMENTE PROHIBIDO ofrecer los resultados irrelevantes como 'alternativas', 'opciones similares' o usar la frase 'Sin embargo, tengo...'. Si no hay match exacto, no ofreces NADA de la lista devuelta.\n\n";
+        "Si NINGUNO de los resultados cumple exactamente, DEBES responder que no encontraste opciones y TERMINAR tu mensaje. ESTÁ TOTALMENTE PROHIBIDO ofrecer los resultados irrelevantes como 'alternativas', 'opciones similares' o usar la frase 'Sin embargo, tengo...'. Si no hay match exacto, no ofreces NADA de la lista devuelta.\n\n" +
+        "REGLA DE FOTOS Y GALERÍA:\n" +
+        "- Si el cliente pide fotos de una sección (ej. 'quiero ver la cocina'), usa 'EnviarFotosSeccionPropiedad'.\n" +
+        "- PRIMERO llámala con 'enviarTodas=false' y 'offset=0' para obtener las descripciones de las fotos. Muéstrale al cliente qué hay disponible.\n" +
+        "- Si el cliente pide explícitamente enviarlas o verlas, llámala con 'enviarTodas=true' y el mismo 'offset' para despacharlas a su WhatsApp.\n" +
+        "- Paginación: La herramienta te dirá cuántas fotos quedan. Si el cliente pide más, aumenta el 'offset' sumando la cantidad ya enviada.\n" +
+        "- OBLIGATORIO: Al usar esta herramienta, DEBES invocar también 'RegistrarInteresContacto' en el mismo turno (mínimo nivel 'Medio').\n\n";
 
         if (!string.IsNullOrWhiteSpace(corporateContext))
         {

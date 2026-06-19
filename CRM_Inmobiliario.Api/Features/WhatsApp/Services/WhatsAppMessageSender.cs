@@ -116,6 +116,90 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
         }
     }
 
+    public async Task SendImageMessageAsync(string to, string imageUrl, string caption, string? phoneNumberId = null, bool isAiResponse = false, Guid? contactoId = null, CancellationToken cancellationToken = default)
+    {
+        var phoneIdToUse = phoneNumberId ?? _whatsappPhoneId;
+        
+        if (string.IsNullOrEmpty(_whatsappToken) || string.IsNullOrEmpty(phoneIdToUse))
+        {
+            _logger.LogWarning("WhatsApp Message Sender: Credenciales no configuradas.");
+            return;
+        }
+
+        var url = $"https://graph.facebook.com/v19.0/{phoneIdToUse}/messages";
+        var payload = new
+        {
+            messaging_product = "whatsapp",
+            to = to,
+            type = "image",
+            image = new { link = imageUrl, caption = caption }
+        };
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _whatsappToken);
+            request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Error enviando imagen de WhatsApp a {Phone}: {Error}", to, error);
+                response.EnsureSuccessStatusCode();
+            }
+
+            // Registrar en BD
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
+
+                var agente = await db.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneIdToUse, cancellationToken);
+                Guid? agenteId = agente?.Id;
+
+                if (!contactoId.HasValue && agenteId.HasValue)
+                {
+                    var contacto = await db.Contactos.FirstOrDefaultAsync(c => c.Telefono == to && c.AgenteId == agenteId.Value, cancellationToken);
+                    contactoId = contacto?.Id;
+                }
+
+                if (contactoId.HasValue)
+                {
+                    var messageLog = new WhatsappMessage
+                    {
+                        Id = Guid.NewGuid(),
+                        ContactoId = contactoId.Value,
+                        AgenteId = agenteId,
+                        Telefono = to,
+                        Rol = "assistant",
+                        OrigenMensaje = isAiResponse ? "IA" : "AgenteHumano",
+                        Contenido = $"[Imagen] {caption}\nURL: {imageUrl}",
+                        Fecha = DateTimeOffset.UtcNow
+                    };
+
+                    db.WhatsappMessages.Add(messageLog);
+                    await db.SaveChangesAsync(cancellationToken);
+
+                    if (!isAiResponse && contactoId.HasValue)
+                    {
+                        var self = this;
+                        _ = Task.Run(async () => await self.AutoCompletarEscalacionAsync(contactoId.Value));
+                    }
+                }
+            }
+            catch (Exception dbEx)
+            {
+                _logger.LogError(dbEx, "WhatsAppMessageSender: Error guardando el registro de la imagen en BD.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Excepción enviando imagen de WhatsApp a {Phone}", to);
+            throw;
+        }
+    }
+
     private async Task AutoCompletarEscalacionAsync(Guid contactoId)
     {
         try

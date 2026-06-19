@@ -10,7 +10,8 @@ import {
   GripVertical, 
   FileDown, 
   Trash2, 
-  Loader2 
+  Loader2,
+  Info
 } from 'lucide-react';
 import type { MultimediaPropiedad } from '../../types';
 
@@ -148,6 +149,14 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
           ) : (
             <div className="flex items-center gap-3 group">
               <h3 className="text-2xl font-black text-slate-900 tracking-tight">{sectionNombre}</h3>
+              {!sectionId && (
+                <div 
+                  className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help mt-1"
+                  title="Estas fotos no las ocupará la IA, solo aquellas subidas al crear secciones."
+                >
+                  <Info size={18} />
+                </div>
+              )}
               {sectionId && !isReadOnly && (
                 <button onClick={() => setIsEditingName(true)} className="p-2 text-slate-300 hover:text-indigo-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer">
                   <Pencil size={16} />

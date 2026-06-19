@@ -2,10 +2,10 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { Bot, MessageSquare, MessageCircle, User, Settings2, Activity } from 'lucide-react';
 
 const tabs = [
-  { path: '/registros-ia/whatsapp', label: 'WhatsApp', icon: MessageSquare },
-  { path: '/registros-ia/facebook', label: 'Facebook', icon: MessageCircle },
-  { path: '/registros-ia/personal', label: 'Personal', icon: User },
-  { path: '/registros-ia/general', label: 'General', icon: Settings2 },
+  { path: '/registros-sistema-ia/whatsapp', label: 'WhatsApp', icon: MessageSquare },
+  { path: '/registros-sistema-ia/facebook', label: 'Facebook', icon: MessageCircle },
+  { path: '/registros-sistema-ia/personal', label: 'Personal', icon: User },
+  { path: '/registros-sistema-ia/general', label: 'General', icon: Settings2 },
 ];
 
 export const IaLogsLayout = () => {
@@ -17,11 +17,11 @@ export const IaLogsLayout = () => {
           <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-2xl shadow-blue-600/30 rotate-3">
             <Bot className="h-8 w-8" />
           </div>
-          Auditoría IA
+          Auditoría Sistema/IA
         </h2>
         <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em] mt-3 flex items-center gap-2">
           <Activity className="h-3 w-3 text-emerald-500" />
-          Supervisión proactiva del asistente
+          Supervisión proactiva del asistente y del sistema
         </p>
       </div>
 

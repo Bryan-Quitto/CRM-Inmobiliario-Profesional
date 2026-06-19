@@ -6,6 +6,7 @@ using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -46,7 +47,8 @@ public class SolicitarAsistenciaHumanaHandlerTests
         }
 
         var mockPushNotificationService = new Mock<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService>();
-        var handler = new SolicitarAsistenciaHumanaHandler(_mockDbContextFactory.Object, _mockLogger.Object, mockPushNotificationService.Object);
+        var mockBackgroundJobClient = new Mock<IBackgroundJobClient>();
+        var handler = new SolicitarAsistenciaHumanaHandler(_mockDbContextFactory.Object, _mockLogger.Object, mockPushNotificationService.Object, mockBackgroundJobClient.Object);
         var args = JsonDocument.Parse("{\"motivo\":\"Estoy muy molesto\"}");
         var execContext = new ToolExecutionContext { ContactoId = contactoId, ChannelIdentifier = "+1234567" };
 
@@ -54,7 +56,7 @@ public class SolicitarAsistenciaHumanaHandlerTests
         var result = await handler.ExecuteAsync(args, execContext);
 
         // Assert
-        Assert.Contains("Solicitud de asistencia enviada", result);
+        Assert.Contains("Asistencia solicitada", result);
 
         await using var dbContext = new CrmDbContext(_dbContextOptions);
         var contact = await dbContext.Contactos.FindAsync(contactoId);

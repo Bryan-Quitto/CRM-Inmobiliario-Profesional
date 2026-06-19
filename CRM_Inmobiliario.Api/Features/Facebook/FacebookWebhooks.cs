@@ -111,6 +111,24 @@ public static class FacebookWebhooksFeature
                             text = textProp.GetString() ?? string.Empty;
                         }
 
+                        if (string.IsNullOrWhiteSpace(text) && message.ValueKind != JsonValueKind.Undefined && message.TryGetProperty("attachments", out var attachments) && attachments.ValueKind == JsonValueKind.Array && attachments.GetArrayLength() > 0)
+                        {
+                            var attachment = attachments[0];
+                            if (attachment.TryGetProperty("type", out var typeProp))
+                            {
+                                var type = typeProp.GetString();
+                                string tipoFormateado = type switch
+                                {
+                                    "image" => "Imagen",
+                                    "video" => "Video",
+                                    "audio" => "Audio",
+                                    "file" => "Documento",
+                                    _ => type ?? "Archivo"
+                                };
+                                text = $"[Media: {tipoFormateado}]";
+                            }
+                        }
+
                         // Extraer referral (codigoCorto)
                         string? codigoCorto = null;
                         if (message.ValueKind != JsonValueKind.Undefined && message.TryGetProperty("referral", out var msgReferral) && msgReferral.TryGetProperty("ref", out var refProp))

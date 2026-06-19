@@ -93,6 +93,83 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
         }
     }
 
+    public async Task SendImageMessageAsync(string recipientPsid, string imageUrl, string? pageAccessToken = null, bool isAiResponse = false, Guid? contactoId = null, Guid? agenteId = null, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(pageAccessToken))
+        {
+            _logger.LogWarning("FacebookMessageSender: pageAccessToken vacío. No se puede enviar imagen a PSID {Psid}.", recipientPsid);
+            return;
+        }
+
+        var url = $"https://graph.facebook.com/v21.0/me/messages?access_token={pageAccessToken}";
+        var payload = new
+        {
+            recipient = new { id = recipientPsid },
+            message = new
+            {
+                attachment = new
+                {
+                    type = "image",
+                    payload = new { url = imageUrl, is_reusable = true }
+                }
+            }
+        };
+
+        try
+        {
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(url, content, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError("Error enviando imagen de Facebook a PSID {Psid}: {Error}", recipientPsid, error);
+                response.EnsureSuccessStatusCode();
+            }
+
+            // Registrar en BD
+            if (contactoId.HasValue && agenteId.HasValue)
+            {
+                try
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
+
+                    var messageLog = new FacebookMessage
+                    {
+                        Id = Guid.NewGuid(),
+                        ContactoId = contactoId.Value,
+                        FacebookSenderId = recipientPsid,
+                        AgenteId = agenteId.Value,
+                        Rol = "assistant",
+                        OrigenMensaje = isAiResponse ? "IA" : "AgenteHumano",
+                        Contenido = $"[Imagen]\nURL: {imageUrl}",
+                        Fecha = DateTimeOffset.UtcNow
+                    };
+
+                    db.FacebookMessages.Add(messageLog);
+                    await db.SaveChangesAsync(cancellationToken);
+
+                    // Auto-completar escalación si el agente responde manualmente
+                    if (!isAiResponse)
+                    {
+                        var self = this;
+                        _ = Task.Run(async () => await self.AutoCompletarEscalacionAsync(contactoId.Value));
+                    }
+                }
+                catch (Exception dbEx)
+                {
+                    _logger.LogError(dbEx, "FacebookMessageSender: Error guardando el registro de la imagen en BD.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Excepción enviando imagen de Facebook a PSID {Psid}", recipientPsid);
+            throw;
+        }
+    }
+
     private async Task AutoCompletarEscalacionAsync(Guid contactoId)
     {
         try

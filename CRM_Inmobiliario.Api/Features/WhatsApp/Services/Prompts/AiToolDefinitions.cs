@@ -120,6 +120,24 @@ public static class AiToolDefinitions
                 }
                 """
             });
+
+            tools.Add(new AiToolDefinition
+            {
+                Name = "EnviarFotosSeccionPropiedad",
+                Description = "Envía fotos de una sección específica de una propiedad (ej. 'Cocina', 'Baños'). Primero consulta la descripción de las fotos (EnviarTodas=false). Si el cliente las pide, usa EnviarTodas=true para enviarlas. OBLIGATORIO: Llama a RegistrarInteresContacto simultáneamente.",
+                ParametersSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "propiedadId": { "type": "string", "description": "ID exacto de la propiedad (Guid)." },
+                        "nombreSeccion": { "type": "string", "description": "Nombre exacto de la sección (ej. 'Cocina', 'Baños')." },
+                        "enviarTodas": { "type": "boolean", "description": "Si es false, solo consulta los captions. Si es true, envía las imágenes directamente por WhatsApp." },
+                        "offset": { "type": "integer", "description": "Control de paginación de fotos. Inicia en 0. Incrementa según te indique la herramienta." }
+                    },
+                    "required": ["propiedadId", "nombreSeccion", "enviarTodas", "offset"]
+                }
+                """
+            });
         }
         else if (channel == "Copilot")
         {

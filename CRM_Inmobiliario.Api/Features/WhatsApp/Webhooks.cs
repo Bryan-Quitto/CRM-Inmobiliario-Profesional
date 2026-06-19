@@ -120,6 +120,22 @@ public static class WebhooksFeature
                                     x => x.ProcessAudioAsync(phone, mediaId, phoneNumberId, CancellationToken.None));
                             }
                         }
+                        else if (!string.IsNullOrEmpty(type))
+                        {
+                            string tipoFormateado = type switch
+                            {
+                                "image" => "Imagen",
+                                "document" => "Documento",
+                                "video" => "Video",
+                                "sticker" => "Sticker",
+                                "audio" => "Audio",
+                                _ => type
+                            };
+                            string body = $"[Media: {tipoFormateado}]";
+                            
+                            Hangfire.BackgroundJob.Enqueue<Services.IWhatsAppJobProcessor>(
+                                x => x.ProcessMessageAsync(phone, body, phoneNumberId, CancellationToken.None));
+                        }
                     }
                 }
             }

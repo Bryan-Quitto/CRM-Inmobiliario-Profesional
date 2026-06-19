@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using static CRM_Inmobiliario.Api.Features.WhatsApp.ObtenerAuditoriaGeneral;
+using static CRM_Inmobiliario.Api.Features.IA.ObtenerAuditoriaGeneral;
 
 namespace CRM_Inmobiliario.Tests.Features.WhatsApp
 {
@@ -17,9 +17,9 @@ namespace CRM_Inmobiliario.Tests.Features.WhatsApp
             
             var events = new List<AuditoriaEventRow>
             {
-                new AuditoriaEventRow(Guid.NewGuid(), contactId, null, baseTime, "Message", "Msg1", null, "WhatsApp"),
-                new AuditoriaEventRow(Guid.NewGuid(), contactId, null, baseTime.AddMinutes(5), "Message", "Msg2", null, "WhatsApp"),
-                new AuditoriaEventRow(Guid.NewGuid(), contactId, null, baseTime.AddMinutes(9), "Message", "Msg3", null, "WhatsApp")
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = contactId, Telefono = null, Fecha = baseTime, Accion = "Message", DetalleJson = "Msg1", TriggerMessage = null, Canal = "WhatsApp" },
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = contactId, Telefono = null, Fecha = baseTime.AddMinutes(5), Accion = "Message", DetalleJson = "Msg2", TriggerMessage = null, Canal = "WhatsApp" },
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = contactId, Telefono = null, Fecha = baseTime.AddMinutes(9), Accion = "Message", DetalleJson = "Msg3", TriggerMessage = null, Canal = "WhatsApp" }
             };
 
             // Act
@@ -41,13 +41,13 @@ namespace CRM_Inmobiliario.Tests.Features.WhatsApp
             
             var events = new List<AuditoriaEventRow>
             {
-                new AuditoriaEventRow(Guid.NewGuid(), null, phone, baseTime, "Message", "Msg1", null, "Facebook"),
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = null, Telefono = phone, Fecha = baseTime, Accion = "Message", DetalleJson = "Msg1", TriggerMessage = null, Canal = "Facebook" },
                 // +5 min (Same session 1)
-                new AuditoriaEventRow(Guid.NewGuid(), null, phone, baseTime.AddMinutes(5), "Message", "Msg2", null, "Facebook"),
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = null, Telefono = phone, Fecha = baseTime.AddMinutes(5), Accion = "Message", DetalleJson = "Msg2", TriggerMessage = null, Canal = "Facebook" },
                 // +11 min gap from Msg2 -> (12:05 to 12:16) (New session 2)
-                new AuditoriaEventRow(Guid.NewGuid(), null, phone, baseTime.AddMinutes(16), "Message", "Msg3", null, "Facebook"),
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = null, Telefono = phone, Fecha = baseTime.AddMinutes(16), Accion = "Message", DetalleJson = "Msg3", TriggerMessage = null, Canal = "Facebook" },
                 // +5 min gap from Msg3 -> (12:16 to 12:21) (Same session 2)
-                new AuditoriaEventRow(Guid.NewGuid(), null, phone, baseTime.AddMinutes(21), "Message", "Msg4", null, "Facebook")
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = null, Telefono = phone, Fecha = baseTime.AddMinutes(21), Accion = "Message", DetalleJson = "Msg4", TriggerMessage = null, Canal = "Facebook" }
             };
 
             // Act
@@ -77,9 +77,9 @@ namespace CRM_Inmobiliario.Tests.Features.WhatsApp
             
             var events = new List<AuditoriaEventRow>
             {
-                new AuditoriaEventRow(Guid.NewGuid(), contact1, null, baseTime, "Message", "C1_Msg1", null, "WhatsApp"),
-                new AuditoriaEventRow(Guid.NewGuid(), contact2, null, baseTime.AddMinutes(1), "Message", "C2_Msg1", null, "WhatsApp"),
-                new AuditoriaEventRow(Guid.NewGuid(), contact1, null, baseTime.AddMinutes(2), "Message", "C1_Msg2", null, "WhatsApp"),
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = contact1, Telefono = null, Fecha = baseTime, Accion = "Message", DetalleJson = "C1_Msg1", TriggerMessage = null, Canal = "WhatsApp" },
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = contact2, Telefono = null, Fecha = baseTime.AddMinutes(1), Accion = "Message", DetalleJson = "C2_Msg1", TriggerMessage = null, Canal = "WhatsApp" },
+                new AuditoriaEventRow { EventId = Guid.NewGuid(), ContactoId = contact1, Telefono = null, Fecha = baseTime.AddMinutes(2), Accion = "Message", DetalleJson = "C1_Msg2", TriggerMessage = null, Canal = "WhatsApp" },
             };
 
             // Act

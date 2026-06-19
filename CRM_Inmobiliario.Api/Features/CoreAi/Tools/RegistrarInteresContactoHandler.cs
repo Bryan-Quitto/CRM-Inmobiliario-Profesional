@@ -39,9 +39,9 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
 
         // Búsqueda robusta por título o ID
         string searchTerm = pNameStr.Trim();
-        var searchPattern = $"%{CrmDbContext.NormalizeText(searchTerm)}%";
+        var normalizedTerm = CrmDbContext.NormalizeText(searchTerm);
         var propertyByTitle = await _context.Properties
-            .Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern) || p.Id.ToString() == searchTerm)
+            .Where(p => p.NormalizedSearchText.Contains(normalizedTerm) || p.Id.ToString() == searchTerm)
             .FirstOrDefaultAsync();
         
         if (propertyByTitle != null)
