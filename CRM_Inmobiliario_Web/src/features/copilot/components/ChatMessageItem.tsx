@@ -9,12 +9,13 @@ import { ContactCardPreview } from './ContactCardPreview';
 
 interface ChatMessageItemProps {
   msg: ChatMessage;
+  isHighlighted?: boolean;
 }
 
-export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg }) => {
+export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, isHighlighted }) => {
   const navigate = useNavigate();
   return (
-    <div className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+    <div id={`msg-${msg.id}`} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} ${isHighlighted ? 'ring-2 ring-orange-500 ring-offset-2 rounded-2xl transition-all' : ''}`}>
       <div
         className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${
           msg.role === 'user' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600'

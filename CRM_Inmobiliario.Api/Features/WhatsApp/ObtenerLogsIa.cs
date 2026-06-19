@@ -98,7 +98,12 @@ public static class ObtenerLogsIa
                     .ToList();
 
                 var contactoIds = groupedActivities.Where(g => g.Key.ContactoId.HasValue).Select(g => g.Key.ContactoId!.Value).Distinct().ToList();
-                var telefonos = groupedActivities.Where(g => !string.IsNullOrWhiteSpace(g.Key.TelefonoContacto)).Select(g => g.Key.TelefonoContacto!).Distinct().ToList();
+                var telefonos = groupedActivities
+                    .Select(g => g.Key.TelefonoContacto ?? g.First().TelefonoContacto)
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .Select(t => t!)
+                    .Distinct()
+                    .ToList();
 
                 var contactos = await context.Contactos
                     .AsNoTracking()
@@ -136,7 +141,7 @@ public static class ObtenerLogsIa
                     .Select(g => {
                         var firstActivity = g.First();
                         var cid = g.Key.ContactoId;
-                        var phone = g.Key.TelefonoContacto;
+                        var phone = g.Key.TelefonoContacto ?? firstActivity.TelefonoContacto;
                         
                         var contact = cid.HasValue && contactsById.ContainsKey(cid.Value) 
                             ? contactsById[cid.Value] 
@@ -156,6 +161,12 @@ public static class ObtenerLogsIa
                             
                         if (string.IsNullOrWhiteSpace(nombreAMostrar)) nombreAMostrar = "Contacto sin nombre";
 
+                        if (nombreAMostrar == "Contacto no identificado")
+                        {
+                            logger.LogWarning("DEBUG Contacto No Identificado: Canal={Canal}, cid={Cid}, phone={Phone}, contactInDict={ContactInDict}, firstActivityId={FirstActivityId}",
+                                canal, cid, phone, cid.HasValue ? contactsById.ContainsKey(cid.Value) : false, firstActivity.LogId);
+                        }
+
                         return new ContactGroupResponse(
                             phone ?? contact?.Telefono ?? contact?.FacebookSenderId ?? "",
                             nombreAMostrar,
@@ -166,6 +177,12 @@ public static class ObtenerLogsIa
                             contact?.Intereses ?? new List<InteresResumen>()
                         );
                     })
+                    .GroupBy(r => new { r.ContactoId, r.Telefono })
+                    .Select(g => g.First() with {
+                        Logs = g.SelectMany(x => x.Logs).OrderByDescending(l => l.Fecha).ToList(),
+                        UltimaActividad = g.Max(x => x.UltimaActividad)
+                    })
+                    .OrderByDescending(r => r.UltimaActividad)
                     .ToList();
 
                 return Results.Ok(response);

@@ -222,6 +222,7 @@ public class AgentAiService
                 {
                     UserId = agentId,
                     Channel = "Copilot",
+                    ChannelIdentifier = agentId.ToString(),
                     TriggerMessage = message
                 };
 

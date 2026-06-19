@@ -27,10 +27,38 @@ export interface ClientGroup {
 }
 
 export interface MensajeChat {
+  id: string;
   rol: 'contacto' | 'ia' | 'cliente';
   origenMensaje?: string;
   tipo?: 'texto' | 'audio' | 'imagen';
   contenido: string;
   audioUrl?: string;
   fecha: string;
+}
+
+export interface AuditoriaEventRow {
+  eventId: string;
+  contactoId: string | null;
+  telefono: string | null;
+  fecha: string;
+  accion: string;
+  detalleJson: string | null;
+  triggerMessage: string | null;
+  source: string;
+  canal: string;
+  senderType: string | null;
+  sessionId: number;
+}
+
+export interface AuditoriaSessionResponse {
+  sessionKey: string;
+  sessionId: number;
+  contactoId: string | null;
+  telefono: string | null;
+  contactoNombre: string | null;
+  contactoApellido: string | null;
+  inicioSesion: string;
+  finSesion: string;
+  canalPrincipal: string;
+  eventos: AuditoriaEventRow[];
 }

@@ -19,6 +19,7 @@
     "axios": "^1.14.0",
     "browser-image-compression": "^2.0.2",
     "buffer": "^6.0.3",
+    "date-fns": "^4.4.0",
     "fuse.js": "^7.3.0",
     "jszip": "^3.10.1",
     "lucide-react": "^1.7.0",

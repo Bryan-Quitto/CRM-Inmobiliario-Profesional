@@ -1,17 +1,21 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import useSWR, { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
 import { getContactoById } from '../../contactos/api/getContactoById';
 import type { ClientGroup } from '../types/auditoria';
 
 export const useAuditoriaLogs = (canal: string = 'WhatsApp') => {
+  const [searchParams] = useSearchParams();
+  const initTelefono = searchParams.get('telefono');
+
   const { mutate: globalMutate } = useSWRConfig();
   const { data: clientGroups, error, isLoading, mutate } = useSWR<ClientGroup[]>(`/ia/logs?canal=${canal}`, {
     revalidateOnFocus: true,
     dedupingInterval: 0
   });
   
-  const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
+  const [expandedClientId, setExpandedClientId] = useState<string | null>(initTelefono);
   const [search, setSearch] = useState('');
   
   // Estados para Edición y Borrado de Contacto

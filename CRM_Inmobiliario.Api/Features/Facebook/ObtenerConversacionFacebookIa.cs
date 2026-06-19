@@ -9,6 +9,7 @@ namespace CRM_Inmobiliario.Api.Features.Facebook;
 public static class ObtenerConversacionFacebookIa
 {
     public record MensajeChat(
+        Guid Id,
         string Rol,
         string Contenido,
         string? OrigenMensaje,
@@ -31,6 +32,7 @@ public static class ObtenerConversacionFacebookIa
                 .Skip(skip)
                 .Take(take)
                 .Select(m => new MensajeChat(
+                    m.Id,
                     m.Rol == "user" ? "cliente" : "ia",
                     m.Contenido,
                     m.OrigenMensaje,

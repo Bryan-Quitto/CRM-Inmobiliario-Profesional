@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Loader2, MessageCircle, SendHorizonal } from 'lucide-react';
 import { useConversacionIAFacebook } from '../../hooks/useConversacionIAFacebook';
 import { fullDateFormatter, timeFormatter } from '../../constants/auditoriaConstants';
@@ -10,6 +12,21 @@ interface SectionConversacionProps {
 
 export const AuditoriaSectionFacebookConversacion = ({ psid, isActive }: SectionConversacionProps) => {
   const { mensajes, totalMensajes, loadingChat, loadingMore, scrollRef, loadMore } = useConversacionIAFacebook(psid, isActive);
+  const [searchParams] = useSearchParams();
+  const msgId = searchParams.get('msgId');
+
+  useEffect(() => {
+    if (msgId && mensajes.length > 0) {
+      setTimeout(() => {
+        const el = document.getElementById(`msg-${msgId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('ring-4', 'ring-blue-400', 'transition-all', 'duration-500');
+          setTimeout(() => el.classList.remove('ring-4', 'ring-blue-400'), 3000);
+        }
+      }, 500);
+    }
+  }, [msgId, mensajes]);
 
   return (
     <div className="relative bg-white rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl h-[600px] flex flex-col font-sans">
@@ -102,7 +119,7 @@ export const AuditoriaSectionFacebookConversacion = ({ psid, isActive }: Section
                       </span>
                     </div>
                   )}
-                  <div className={`flex ${isIA ? 'justify-end' : 'justify-start'} mb-[2px]`}>
+                  <div id={`msg-${msg.id}`} className={`flex ${msg.rol === 'ia' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
                     {!isIA && (
                        <div className="w-7 h-7 rounded-full bg-[#E4E6EB] overflow-hidden mr-2 flex-shrink-0 self-end mb-[2px]">
                           {isLastInGroup ? (

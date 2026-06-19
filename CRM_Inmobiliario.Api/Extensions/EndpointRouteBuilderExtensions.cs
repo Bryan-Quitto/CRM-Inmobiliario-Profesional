@@ -11,6 +11,7 @@ using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Features.SeccionesGaleria;
 using CRM_Inmobiliario.Api.Features.Tareas;
 using CRM_Inmobiliario.Api.Features.WhatsApp;
+using CRM_Inmobiliario.Api.Features.IA;
 using CRM_Inmobiliario.Api.Features.Facebook;
 using CRM_Inmobiliario.Api.Features.Admin;
 using CRM_Inmobiliario.Api.Features.CorporateKnowledge.IngestDocument;
@@ -121,6 +122,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapObtenerLogsIa();
         apiGroup.MapObtenerConversacionIa();
         apiGroup.MapObtenerConversacionFacebookIa();
+        apiGroup.MapObtenerAuditoriaGeneral();
 
         // Webhooks (Sin Auth)
         endpoints.MapWhatsAppWebhooksEndpoints();

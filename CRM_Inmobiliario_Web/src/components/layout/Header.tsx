@@ -3,6 +3,7 @@ import { useTareas } from '@/features/tareas/context/useTareas';
 import { usePerfil } from '@/features/auth/api/perfil';
 import type { Session } from '@supabase/supabase-js';
 import { useCopilotStore } from '@/features/copilot/store/useCopilotStore';
+import { useSearchParams } from 'react-router-dom';
 
 interface HeaderProps {
   isAgendaOpen: boolean;
@@ -14,6 +15,7 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session }: HeaderProps) 
   const { urgentesCount } = useTareas();
   const { perfil } = usePerfil();
   const { toggleOpen, isOpen } = useCopilotStore();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   return (
     <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
@@ -32,7 +34,14 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session }: HeaderProps) 
 
       <div className="flex items-center gap-6">
         <button
-          onClick={toggleOpen}
+          onClick={() => {
+            toggleOpen();
+            if (searchParams.has('convId') || searchParams.has('msgId')) {
+              searchParams.delete('convId');
+              searchParams.delete('msgId');
+              setSearchParams(searchParams, { replace: true });
+            }
+          }}
           aria-label={isOpen ? "Cerrar Asistente de IA" : "Abrir Asistente de IA"}
           className={`cursor-pointer p-2.5 rounded-xl transition-all relative flex items-center justify-center ${
             isOpen ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'

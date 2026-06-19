@@ -2,10 +2,10 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { Bot, MessageSquare, MessageCircle, User, Settings2, Activity } from 'lucide-react';
 
 const tabs = [
-  { path: '/ia-logs/whatsapp', label: 'WhatsApp', icon: MessageSquare },
-  { path: '/ia-logs/facebook', label: 'Facebook', icon: MessageCircle },
-  { path: '/ia-logs/personal', label: 'Personal', icon: User },
-  { path: '/ia-logs/general', label: 'General', icon: Settings2 },
+  { path: '/registros-ia/whatsapp', label: 'WhatsApp', icon: MessageSquare },
+  { path: '/registros-ia/facebook', label: 'Facebook', icon: MessageCircle },
+  { path: '/registros-ia/personal', label: 'Personal', icon: User },
+  { path: '/registros-ia/general', label: 'General', icon: Settings2 },
 ];
 
 export const IaLogsLayout = () => {

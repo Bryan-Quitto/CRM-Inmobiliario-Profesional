@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { ChevronDown, User, ExternalLink, Clock, Settings, MessageSquare, Heart } from 'lucide-react';
 import { AuditoriaSectionRegistrado } from './AuditoriaSectionRegistrado';
@@ -28,7 +29,13 @@ export const AuditoriaClientItem = ({
   mutate,
   canal = 'WhatsApp'
 }: AuditoriaClientItemProps) => {
-  const [expandedSection, setExpandedSection] = useState<'registrado' | 'conversacion' | 'intereses' | null>(null);
+  const [searchParams] = useSearchParams();
+  const initMsgId = searchParams.get('msgId');
+  const initTelefono = searchParams.get('telefono');
+
+  const [expandedSection, setExpandedSection] = useState<'registrado' | 'conversacion' | 'intereses' | null>(
+    (initTelefono === group.telefono && initMsgId) ? 'conversacion' : null
+  );
 
   const handleToggleSection = (section: 'registrado' | 'conversacion' | 'intereses') => {
     setExpandedSection(prev => prev === section ? null : section);

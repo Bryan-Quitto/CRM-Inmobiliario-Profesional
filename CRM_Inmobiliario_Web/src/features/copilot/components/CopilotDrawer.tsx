@@ -10,10 +10,34 @@ import { toast } from 'sonner';
 import { useDraggableResizable } from '../hooks/useDraggableResizable';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useSearchParams } from 'react-router-dom';
 
 
 export const CopilotDrawer: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const msgIdToHighlight = searchParams.get('msgId');
+
   const { isOpen, toggleOpen, messages, clearConversation, isTyping } = useCopilotStore();
+
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    toggleOpen();
+    clearCopilotUrlParams();
+  };
+
+  const handleClearConversation = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    clearConversation();
+    clearCopilotUrlParams();
+  };
+
+  const clearCopilotUrlParams = () => {
+    if (searchParams.has('convId') || searchParams.has('msgId')) {
+      searchParams.delete('convId');
+      searchParams.delete('msgId');
+      setSearchParams(searchParams, { replace: true });
+    }
+  };
   const { sendMessage } = useCopilotChat();
   const [inputValue, setInputValue] = useState('');
   const isMobile = useIsMobile();
@@ -51,8 +75,16 @@ export const CopilotDrawer: React.FC = () => {
   });
 
   useEffect(() => {
+    if (msgIdToHighlight) {
+      const el = document.getElementById(`msg-${msgIdToHighlight}`);
+      if (el) {
+        // Pequeño delay para asegurar renderizado
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        return;
+      }
+    }
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isOpen, isTyping]);
+  }, [messages, isOpen, isTyping, msgIdToHighlight]);
 
   // If closed globally, reset minimized state when reopened
   useEffect(() => {
@@ -163,7 +195,7 @@ export const CopilotDrawer: React.FC = () => {
             </div>
             <h2 className="text-base font-semibold">Asistente de IA</h2>
             <Link 
-              to="/ia-logs/personal" 
+              to="/registros-ia/personal" 
               target="_blank" 
               rel="noopener noreferrer"
               className="no-drag ml-1 p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors flex items-center justify-center cursor-pointer"
@@ -175,7 +207,7 @@ export const CopilotDrawer: React.FC = () => {
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={clearConversation}
+              onClick={handleClearConversation}
               onPointerDown={(e) => e.stopPropagation()}
               className="no-drag p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors flex items-center justify-center cursor-pointer"
               title="Nueva Conversación"
@@ -191,7 +223,7 @@ export const CopilotDrawer: React.FC = () => {
               <Minus className="h-5 w-5" />
             </button>
             <button
-              onClick={toggleOpen}
+              onClick={handleClose}
               onPointerDown={(e) => e.stopPropagation()}
               className="no-drag p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
               title="Cerrar"
@@ -227,7 +259,7 @@ export const CopilotDrawer: React.FC = () => {
                     </div>
                   );
                 }
-                return <ChatMessageItem key={msg.id} msg={msg} />;
+                return <ChatMessageItem key={msg.id} msg={msg} isHighlighted={msg.id === msgIdToHighlight} />;
               })}
               {isTyping && messages[messages.length - 1]?.role !== 'assistant' && (
                 <div className="flex gap-3">

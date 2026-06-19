@@ -5,8 +5,10 @@ import { toast } from 'sonner';
 import { api } from '@/lib/axios';
 import { useState, useRef, useEffect } from 'react';
 import { PersonalTokenUsagePanel } from './PersonalTokenUsagePanel';
+import { useSearchParams } from 'react-router-dom';
 
 export const PersonalLogsView = () => {
+  const [searchParams] = useSearchParams();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
 
@@ -46,6 +48,15 @@ export const PersonalLogsView = () => {
   };
 
   const { loadConversation } = useCopilotChat();
+  const lastLoadedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const convId = searchParams.get('convId');
+    if (convId && convId !== lastLoadedRef.current) {
+      lastLoadedRef.current = convId;
+      loadConversation(convId);
+    }
+  }, [searchParams, loadConversation]);
 
   const handleEditSubmit = async (id: string, originalTitle: string) => {
     if (!editTitle.trim() || editTitle.trim() === originalTitle) {

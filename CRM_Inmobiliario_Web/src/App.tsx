@@ -29,6 +29,7 @@ const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel'
 const AuditoriaLogsView = lazy(() => import('./features/ia/components/AuditoriaLogsView').then(m => ({ default: m.AuditoriaLogsView })));
 const IaLogsLayout = lazy(() => import('./features/ia/components/IaLogsLayout').then(m => ({ default: m.IaLogsLayout })));
 const PersonalLogsView = lazy(() => import('./features/ia/components/PersonalLogsView').then(m => ({ default: m.PersonalLogsView })));
+const AuditoriaGeneralView = lazy(() => import('./features/ia/components/AuditoriaGeneralView').then(m => ({ default: m.AuditoriaGeneralView })));
 const ConfiguracionLayout = lazy(() => import('./features/configuracion/components/ConfiguracionLayout'));
 const ConfiguracionPerfil = lazy(() => import('./features/auth/components/ConfiguracionPerfil'));
 const ConfiguracionIA = lazy(() => import('./features/configuracion/components/ConfiguracionIA').then(m => ({ default: m.ConfiguracionIA })));
@@ -147,12 +148,12 @@ function AppContent({ session }: { session: Session | null }) {
               <Route path="/propietarios" element={<ContactosList />} />
               <Route path="/propietarios/:id" element={<ContactoDetalle />} />
               <Route path="/propiedades" element={<PropiedadesList />} />
-              <Route path="/ia-logs" element={<Suspense fallback={<PageLoader />}><IaLogsLayout /></Suspense>}>
+              <Route path="/registros-ia" element={<Suspense fallback={<PageLoader />}><IaLogsLayout /></Suspense>}>
                 <Route index element={<Navigate to="whatsapp" replace />} />
                 <Route path="whatsapp" element={<AuditoriaLogsView />} />
                 <Route path="personal" element={<Suspense fallback={<PageLoader />}><PersonalLogsView /></Suspense>} />
                 <Route path="facebook" element={<AuditoriaLogsView canal="Facebook" />} />
-                <Route path="general" element={<Navigate to="whatsapp" replace />} />
+                <Route path="general" element={<Suspense fallback={<PageLoader />}><AuditoriaGeneralView /></Suspense>} />
               </Route>
               <Route path="/kpis" element={<AnaliticaView />} />
               <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionLayout /></Suspense>}>

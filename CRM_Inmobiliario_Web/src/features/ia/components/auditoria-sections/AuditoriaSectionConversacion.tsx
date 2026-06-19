@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MessageSquare, Loader2, CheckCheck } from 'lucide-react';
 import { useConversacionIA } from '../../hooks/useConversacionIA';
 import { fullDateFormatter, timeFormatter } from '../../constants/auditoriaConstants';
@@ -10,6 +12,21 @@ interface SectionConversacionProps {
 
 export const AuditoriaSectionConversacion = ({ telefono, isActive }: SectionConversacionProps) => {
   const { mensajes, totalMensajes, loadingChat, loadingMore, scrollRef, loadMore } = useConversacionIA(telefono, isActive);
+  const [searchParams] = useSearchParams();
+  const msgId = searchParams.get('msgId');
+
+  useEffect(() => {
+    if (msgId && mensajes.length > 0) {
+      setTimeout(() => {
+        const el = document.getElementById(`msg-${msgId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('ring-4', 'ring-blue-400', 'transition-all', 'duration-500');
+          setTimeout(() => el.classList.remove('ring-4', 'ring-blue-400'), 3000);
+        }
+      }, 500);
+    }
+  }, [msgId, mensajes]);
 
   return (
     <div className="relative bg-[#e5ddd5] rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl h-[600px] flex flex-col">
@@ -61,7 +78,7 @@ export const AuditoriaSectionConversacion = ({ telefono, isActive }: SectionConv
                       </span>
                     </div>
                   )}
-                  <div className={`flex ${msg.rol === 'ia' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+                  <div id={`msg-${msg.id}`} className={`flex ${msg.rol === 'ia' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
                     <div className={`relative max-w-[85%] px-4 py-2.5 rounded-2xl shadow-sm ${msg.rol === 'ia' ? 'bg-[#dcf8c6] text-slate-800 rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none'}`}>
                       <div className={`absolute top-0 w-3 h-3 ${msg.rol === 'ia' ? '-right-2 bg-[#dcf8c6] [clip-path:polygon(0_0,0_100%,100%_0)]' : '-left-2 bg-white [clip-path:polygon(100%_0,100%_100%,0_0)]'}`}></div>
                       {msg.audioUrl || msg.tipo === 'audio' ? (
