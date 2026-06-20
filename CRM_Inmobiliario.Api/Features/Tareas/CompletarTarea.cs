@@ -30,7 +30,12 @@ public static class CompletarTareaFeature
                 // Invalidar caches proactivamente
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
                 await cacheStore.EvictByTagAsync("analytics-data", ct);
-                return Results.NoContent();
+                var t = await context.Tasks.FindAsync(id);
+            if (t != null) {
+                if (t.ContactoId.HasValue) await context.Contactos.Where(c => c.Id == t.ContactoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
+                if (t.PropiedadId.HasValue) await context.Properties.Where(p => p.Id == t.PropiedadId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
+            }
+            return Results.NoContent();
             }
 
             return Results.NotFound();

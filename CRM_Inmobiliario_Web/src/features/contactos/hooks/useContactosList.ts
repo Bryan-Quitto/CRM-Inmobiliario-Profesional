@@ -22,7 +22,7 @@ export const useContactosList = () => {
 
   const setActiveSegment = (segment: 'todos' | 'clientes' | 'propietarios') => {
     const path = segment === 'todos' ? '/contactos' : `/${segment}`;
-    navigate(path);
+    navigate({ pathname: path, search: searchParams.toString() });
   };
 
   const page = Number(searchParams.get('page')) || 1;

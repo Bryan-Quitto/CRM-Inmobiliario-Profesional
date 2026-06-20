@@ -72,6 +72,9 @@ public sealed class Contacto
     // ID de la TaskItem creada al escalar para poder auto-completarla cuando el agente responde.
     public Guid? PendingEscalamientoTareaId { get; set; }
 
+    public bool IsArchived { get; set; } = false;
+    public DateTimeOffset FechaUltimaActividad { get; set; } = DateTimeOffset.UtcNow;
+
     // Relaciones de navegación
     public ICollection<ContactoAgenteCompartido> CompartidoCon { get; set; } = new List<ContactoAgenteCompartido>();
     public ICollection<Property> PropertiesOwned { get; set; } = new List<Property>();

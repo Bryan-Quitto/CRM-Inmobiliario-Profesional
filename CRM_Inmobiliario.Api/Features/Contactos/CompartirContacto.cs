@@ -58,6 +58,7 @@ public static class CompartirContactoFeature
             });
 
             context.ContactoAgenteCompartidos.AddRange(comparticiones);
+            await context.Contactos.Where(c => c.Id == id).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
             await context.SaveChangesAsync(ct);
 
             // 4. Invalidar caché

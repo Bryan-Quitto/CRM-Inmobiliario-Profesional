@@ -113,6 +113,7 @@ public static class RevertirEstadoContactoFeature
                         }
                     }
 
+                    contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
                     await context.SaveChangesAsync();
                     await tx.CommitAsync();
 

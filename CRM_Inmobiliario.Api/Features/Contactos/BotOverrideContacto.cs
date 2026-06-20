@@ -41,6 +41,7 @@ public static class BotOverrideContactoFeature
                 usage.OutputTokens = 0;
             }
 
+            contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync(ct);
             return Results.Ok(contacto);
         });

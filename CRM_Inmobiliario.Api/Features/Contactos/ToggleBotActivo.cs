@@ -52,7 +52,8 @@ public static class ToggleBotActivoFeature
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(c => c.BotActivoFB, command.BotActivo)
                         .SetProperty(c => c.EstadoIA_FB, c => command.BotActivo ? null : c.EstadoIA_FB)
-                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada), ct);
+                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada)
+                        .SetProperty(c => c.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
             }
             else
             {
@@ -61,7 +62,8 @@ public static class ToggleBotActivoFeature
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(c => c.BotActivoWA, command.BotActivo)
                         .SetProperty(c => c.EstadoIA_WA, c => command.BotActivo ? null : c.EstadoIA_WA)
-                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada), ct);
+                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada)
+                        .SetProperty(c => c.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
             }
 
             if (updatedCount == 0)

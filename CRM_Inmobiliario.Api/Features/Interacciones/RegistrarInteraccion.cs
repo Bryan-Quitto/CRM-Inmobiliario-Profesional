@@ -46,6 +46,7 @@ public static class RegistrarInteraccionFeature
             };
 
             context.Interactions.Add(interaccion);
+            contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync();
 
             // Invalidar caches proactivamente

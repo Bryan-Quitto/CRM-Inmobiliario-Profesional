@@ -59,10 +59,18 @@ public sealed class CrmDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Contacto>()
+            .HasIndex(c => new { c.IsArchived, c.FechaUltimaActividad })
+            .HasDatabaseName("idx_contactos_archivado");
+
+        modelBuilder.Entity<Contacto>()
             .HasIndex(c => c.NormalizedSearchText)
             .HasDatabaseName("idx_contactos_search")
             .HasMethod("gin")
             .HasOperators("gin_trgm_ops");
+
+        modelBuilder.Entity<Property>()
+            .HasIndex(p => new { p.IsArchived, p.FechaUltimaActividad })
+            .HasDatabaseName("idx_properties_archivado");
 
         modelBuilder.Entity<Property>()
             .HasIndex(p => p.NormalizedSearchText)

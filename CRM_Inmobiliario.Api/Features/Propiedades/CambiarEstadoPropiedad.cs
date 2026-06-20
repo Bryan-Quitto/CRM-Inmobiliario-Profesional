@@ -68,6 +68,7 @@ public static class CambiarEstadoPropiedadFeature
 
                 // 4. PERSISTENCIA Y EFECTOS SECUNDARIOS
                 logger.LogInformation("💾 [ESTADO] Ejecutando SaveChangesAsync...");
+                validation.Property!.FechaUltimaActividad = DateTimeOffset.UtcNow;
                 await context.SaveChangesAsync(CancellationToken.None);
                 
                 // Notificaciones y Limpieza de Caché

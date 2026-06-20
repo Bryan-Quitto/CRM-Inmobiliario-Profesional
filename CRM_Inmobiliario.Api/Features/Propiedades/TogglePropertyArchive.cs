@@ -41,6 +41,7 @@ public static class TogglePropertyArchiveFeature
                 });
             }
 
+            propiedad.FechaUltimaActividad = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync(ct);
             
             await cacheStore.EvictByTagAsync("properties-data", ct);

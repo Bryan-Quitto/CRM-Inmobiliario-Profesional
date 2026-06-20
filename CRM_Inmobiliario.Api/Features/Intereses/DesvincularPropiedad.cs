@@ -28,6 +28,7 @@ public static class DesvincularPropiedadFeature
             if (rowsAffected > 0)
             {
                 // Invalidar caches proactivamente
+                await context.Contactos.Where(c => c.Id == contactoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
                 await cacheStore.EvictByTagAsync("analytics-data", ct);
                 return Results.NoContent();

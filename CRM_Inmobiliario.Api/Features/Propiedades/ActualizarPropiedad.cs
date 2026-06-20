@@ -163,6 +163,7 @@ public static class ActualizarPropiedadFeature
             try
             {
                 logger.LogInformation("ActualizarPropiedad {Id}: Iniciando SaveChangesAsync", id);
+                propiedad.FechaUltimaActividad = DateTimeOffset.UtcNow;
                 await context.SaveChangesAsync();
                 logger.LogInformation("ActualizarPropiedad {Id}: SaveChangesAsync exitoso", id);
                 
@@ -181,7 +182,8 @@ public static class ActualizarPropiedadFeature
                         if (oldPropietario != null)
                         {
                             oldPropietario.EsPropietario = false;
-                            await context.SaveChangesAsync();
+                            propiedad.FechaUltimaActividad = DateTimeOffset.UtcNow;
+                await context.SaveChangesAsync();
                         }
                     }
                 }

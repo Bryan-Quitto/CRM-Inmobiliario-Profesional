@@ -26,6 +26,14 @@ public class Agency
     [MaxLength(2000)]
     public string? ContextoCorporativoIA { get; set; }
 
+    public bool AutoArchivarContactos { get; set; } = false;
+    [Range(100, 1095)]
+    public int DiasInactividadContactos { get; set; } = 365;
+
+    public bool AutoArchivarPropiedades { get; set; } = false;
+    [Range(100, 1095)]
+    public int DiasInactividadPropiedades { get; set; } = 365;
+
     // Relación con Agentes
     public ICollection<Agent> Agents { get; set; } = new List<Agent>();
 }

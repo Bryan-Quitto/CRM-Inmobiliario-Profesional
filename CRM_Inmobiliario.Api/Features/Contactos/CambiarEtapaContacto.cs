@@ -145,6 +145,7 @@ public static class CambiarEtapaContactoFeature
                     context.Tasks.Add(task);
                 }
 
+                contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
                 await context.SaveChangesAsync(ct);
 
                 // Limpiar caché y precalentar KPIs

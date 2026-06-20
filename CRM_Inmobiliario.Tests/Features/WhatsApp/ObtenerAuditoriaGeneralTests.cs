@@ -95,7 +95,7 @@ namespace CRM_Inmobiliario.Tests.Features.WhatsApp
             Assert.Equal(2, sessionC1.Eventos.Count);
 
             Assert.Equal(1, sessionC2.SessionId);
-            Assert.Equal(1, sessionC2.Eventos.Count);
+            Assert.Single(sessionC2.Eventos);
         }
     }
 }

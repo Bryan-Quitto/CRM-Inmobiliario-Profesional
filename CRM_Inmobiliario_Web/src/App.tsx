@@ -40,6 +40,7 @@ const ConfiguracionAgencias = lazy(() => import('./features/configuracion/compon
 const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad })));
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
 const ConfiguracionNotificaciones = lazy(() => import('./features/configuracion/components/ConfiguracionNotificaciones').then(m => ({ default: m.ConfiguracionNotificaciones })));
+const AutoArchivadoSettings = lazy(() => import('./features/configuracion/components/AutoArchivadoSettings').then(m => ({ default: m.AutoArchivadoSettings })));
 
 import { CopilotDrawer } from './features/copilot/components/CopilotDrawer';
 import { GlobalContactoModal } from './components/layout/GlobalContactoModal';
@@ -166,6 +167,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="agentes" element={<AdminRoute><ConfiguracionAgentes /></AdminRoute>} />
                 <Route path="agencias" element={<AdminRoute><ConfiguracionAgencias /></AdminRoute>} />
                 <Route path="seguridad" element={<AdminRoute><ConfiguracionSeguridad /></AdminRoute>} />
+                <Route path="auto-archivado" element={<AutoArchivadoSettings />} />
               </Route>
               <Route path="/confirmar-password" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
               {/* Fallback global para usuarios logueados que intentan acceder a una ruta inexistente o vienen del login */}

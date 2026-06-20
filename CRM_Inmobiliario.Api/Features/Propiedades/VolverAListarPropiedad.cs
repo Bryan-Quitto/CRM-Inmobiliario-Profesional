@@ -206,6 +206,7 @@ public static class VolverAListarPropiedadFeature
 
             try
             {
+                propiedad.FechaUltimaActividad = DateTimeOffset.UtcNow;
                 await context.SaveChangesAsync(ct);
                 
                 logger.LogInformation("[RELIST] Éxito: Cambios guardados en DB");

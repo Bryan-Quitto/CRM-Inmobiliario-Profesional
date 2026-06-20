@@ -72,11 +72,11 @@ public static class ListarContactosFeature
 
             if (request.IsArchived)
             {
-                baseQuery = baseQuery.Where(c => archivedQuery.Any(a => a.ContactoId == c.Id));
+                baseQuery = baseQuery.Where(c => c.IsArchived || archivedQuery.Any(a => a.ContactoId == c.Id));
             }
             else
             {
-                baseQuery = baseQuery.Where(c => !archivedQuery.Any(a => a.ContactoId == c.Id));
+                baseQuery = baseQuery.Where(c => !c.IsArchived && !archivedQuery.Any(a => a.ContactoId == c.Id));
             }
 
             if (!string.IsNullOrEmpty(request.Search))

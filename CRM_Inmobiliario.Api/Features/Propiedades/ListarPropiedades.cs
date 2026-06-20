@@ -125,11 +125,11 @@ public static class ListarPropiedadesFeature
 
             if (request.IsArchived)
             {
-                query = query.Where(p => archivedQuery.Any(a => a.PropiedadId == p.Id));
+                query = query.Where(p => p.IsArchived || archivedQuery.Any(a => a.PropiedadId == p.Id));
             }
             else
             {
-                query = query.Where(p => !archivedQuery.Any(a => a.PropiedadId == p.Id));
+                query = query.Where(p => !p.IsArchived && !archivedQuery.Any(a => a.PropiedadId == p.Id));
             }
 
             // Aplicar filtros dinámicos

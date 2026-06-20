@@ -91,6 +91,7 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
 
                     db.WhatsappMessages.Add(messageLog);
                     await db.SaveChangesAsync(cancellationToken);
+                    if (contactoId.HasValue) await db.Contactos.Where(c => c.Id == contactoId.Value).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), cancellationToken);
 
                     // Auto-completar escalación si el agente responde manualmente
                     if (!isAiResponse && contactoId.HasValue)
@@ -180,6 +181,7 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
 
                     db.WhatsappMessages.Add(messageLog);
                     await db.SaveChangesAsync(cancellationToken);
+                    if (contactoId.HasValue) await db.Contactos.Where(c => c.Id == contactoId.Value).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), cancellationToken);
 
                     if (!isAiResponse && contactoId.HasValue)
                     {

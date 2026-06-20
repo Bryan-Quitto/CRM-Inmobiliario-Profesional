@@ -28,6 +28,8 @@ public static class ActualizarInteraccionFeature
             if (rowsAffected == 0) return Results.NotFound("Interacción no encontrada o no te pertenece.");
 
             // Invalidar caches proactivamente
+            var interaction = await context.Interactions.FindAsync(id);
+            if (interaction != null) await context.Contactos.Where(c => c.Id == interaction.ContactoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
             await cacheStore.EvictByTagAsync("analytics-data", ct);
 

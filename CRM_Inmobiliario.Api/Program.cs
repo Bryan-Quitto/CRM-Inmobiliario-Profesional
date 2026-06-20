@@ -108,6 +108,7 @@ builder.Services.AddScoped<TokenLimitResetJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.TaskNotificationJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.SendWebPushNotificationJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchivadoJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService, CRM_Inmobiliario.Api.Features.PushNotifications.Services.PushNotificationService>();
 
 builder.Services.AddProblemDetails(); // RFC 7807 (ProblemDetails)
@@ -190,6 +191,12 @@ app.Lifetime.ApplicationStarted.Register(() =>
         job => job.ExecuteAsync(), 
         "* * * * *" 
     );
+
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchivadoJob>(
+        "auto-archivado-diario",
+        job => job.ExecuteAsync(),
+        "0 7 * * *" // 07:00 UTC (02:00 AM UTC-5)
+    );
 });
 
 
@@ -205,6 +212,8 @@ app.MapPost("/api/properties/fix-embeddings", async (CRM_Inmobiliario.Api.Infras
     await db.SaveChangesAsync();
     return Results.Ok($"Fixed {props.Count} properties.");
 });
+
+
 
 app.Run();
 

@@ -41,6 +41,7 @@ public static class ToggleContactArchiveFeature
                 });
             }
 
+            contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync(ct);
             
             await cacheStore.EvictByTagAsync("contactos", ct);
