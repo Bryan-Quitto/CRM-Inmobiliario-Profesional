@@ -30,7 +30,10 @@ export const usePropiedadArchive = ({ propiedad, mutate, globalMutate }: UseProp
       
       // Update list cache
       globalMutate(
-        (key) => Array.isArray(key) && key[0] === '/propiedades',
+        (key: any) => {
+          const keyStr = Array.isArray(key) ? key[0] : key;
+          return typeof keyStr === 'string' && keyStr.includes('propiedades');
+        },
         undefined,
         true
       );

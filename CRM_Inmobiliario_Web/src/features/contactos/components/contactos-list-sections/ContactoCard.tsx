@@ -1,6 +1,5 @@
-import { Mail, Phone, Clock, Pencil, ChevronDown, Check, ArrowUpRight, Share2, Lock, Bot } from 'lucide-react';
+import { Mail, Phone, Clock, Pencil, ArrowUpRight, Share2, Bot } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/contactos';
 import { CompartirContactoModal } from './CompartirContactoModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useSWRConfig } from 'swr';
@@ -9,7 +8,8 @@ import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracio
 import { toggleContactArchive } from '../../api/toggleContactArchive';
 import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
 import type { Contacto } from '../../types';
-import { Loader2 } from 'lucide-react';
+import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
+import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
 
 interface ContactoCardProps {
   contacto: Contacto;
@@ -41,31 +41,29 @@ export const ContactoCard = ({
   const { mutate } = useSWRConfig();
   const [isTogglingArchive, setIsTogglingArchive] = useState(false);
 
-  const handleToggleArchive = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleToggleArchive = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setIsTogglingArchive(true);
     const newState = !contacto.isArchivedForCurrentUser;
     try {
-      mutate('contactos', (current: Contacto[] | undefined) => 
-        current?.map(c => c.id === contacto.id ? { ...c, isArchivedForCurrentUser: newState } : c), 
-        { revalidate: false }
-      );
       await toggleContactArchive(contacto.id);
-      await mutate('contactos');
+      mutate(
+        (key: unknown) => {
+          const keyStr = Array.isArray(key) ? key[0] : key;
+          return typeof keyStr === 'string' && keyStr.includes('contactos');
+        },
+        undefined,
+        { revalidate: true }
+      );
       toast.success(newState ? 'Contacto archivado' : 'Contacto desarchivado');
     } catch {
-      mutate('contactos'); // rollback
       toast.error('Error al cambiar estado de archivo');
     } finally {
       setIsTogglingArchive(false);
     }
   };
   
-  const getEtapaStyles = (etapa: string, isPropietario: boolean = false) => {
-    const list = isPropietario ? ETAPAS_PROPIETARIO : ETAPAS;
-    const found = list.find((e: { value: string }) => e.value === etapa);
-    return found?.color || 'bg-gray-50 text-gray-600 border-gray-100';
-  };
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -117,18 +115,11 @@ export const ContactoCard = ({
 
           {!contacto.esCompartido && (
             <>
-              <button
-                onClick={handleToggleArchive}
-                disabled={isTogglingArchive}
-                className={`h-10 px-3 rounded-xl flex items-center gap-1.5 justify-center transition-all cursor-pointer text-xs font-bold shadow-sm ${
-                  contacto.isArchivedForCurrentUser
-                    ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
-                    : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
-                }`}
-                title={contacto.isArchivedForCurrentUser ? "Desarchivar" : "Archivar"}
-              >
-                {isTogglingArchive ? <Loader2 className="h-4 w-4 animate-spin" /> : (contacto.isArchivedForCurrentUser ? 'Desarchivar' : 'Archivar')}
-              </button>
+              <ArchiveToggleButton
+                isArchived={!!contacto.isArchivedForCurrentUser}
+                isToggling={isTogglingArchive}
+                onToggle={handleToggleArchive}
+              />
               <button 
                 onClick={() => onNavigate(contacto.id)}
                 className="h-10 w-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-600/20 transition-all cursor-pointer group/nav"
@@ -160,43 +151,16 @@ export const ContactoCard = ({
                 }`}>
                   Cliente
                 </span>
-                <button 
-                  disabled={contacto.esCompartido}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (contacto.esCompartido) return;
-                    setOpenDropdown(prev => prev === 'cliente' ? null : 'cliente');
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                    contacto.esCompartido 
-                      ? 'bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed' 
-                      : `cursor-pointer hover:shadow-sm active:scale-95 ${getEtapaStyles(contacto.etapaEmbudo, false)}`
-                  }`}
-                >
-                  {contacto.etapaEmbudo}
-                  {contacto.esCompartido ? <Lock className="h-2.5 w-2.5" /> : <ChevronDown className={`h-2.5 w-2.5 transition-transform ${openDropdown === 'cliente' ? 'rotate-180' : ''}`} />}
-                </button>
+                <ContactoStatusDropdown
+                  contacto={contacto}
+                  tipo="cliente"
+                  isOpen={openDropdown === 'cliente'}
+                  isUpdating={false}
+                  onToggle={(tipo) => setOpenDropdown(tipo)}
+                  onStatusChange={(_id, etapa, t) => handleStageUpdate(etapa, t)}
+                  variant="card"
+                />
               </div>
-
-              {openDropdown === 'cliente' && !contacto.esCompartido && (
-                <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-left backdrop-blur-xl bg-white/95">
-                  {ETAPAS.filter(e => e.value !== 'En Negociación' && e.value !== 'Cerrado' && e.value !== 'Cerrado Ganado' && e.value !== 'Cerrado Perdido').map((etapa) => (
-                    <button
-                      key={etapa.value}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStageUpdate(etapa.value, 'contacto');
-                      }}
-                      className={`cursor-pointer w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
-                        contacto.etapaEmbudo === etapa.value ? 'text-blue-600' : 'text-slate-600'
-                      }`}
-                    >
-                      {etapa.label}
-                      {contacto.etapaEmbudo === etapa.value && <Check className="h-3.5 w-3.5" />}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
@@ -211,43 +175,16 @@ export const ContactoCard = ({
                 }`}>
                   Propietario
                 </span>
-                <button 
-                  disabled={contacto.esCompartido}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (contacto.esCompartido) return;
-                    setOpenDropdown(prev => prev === 'propietario' ? null : 'propietario');
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                    contacto.esCompartido 
-                      ? 'bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed' 
-                      : `cursor-pointer hover:shadow-sm active:scale-95 ${getEtapaStyles(contacto.estadoPropietario, true)}`
-                  }`}
-                >
-                  {contacto.estadoPropietario}
-                  {contacto.esCompartido ? <Lock className="h-2.5 w-2.5" /> : <ChevronDown className={`h-2.5 w-2.5 transition-transform ${openDropdown === 'propietario' ? 'rotate-180' : ''}`} />}
-                </button>
+                <ContactoStatusDropdown
+                  contacto={contacto}
+                  tipo="propietario"
+                  isOpen={openDropdown === 'propietario'}
+                  isUpdating={false}
+                  onToggle={(tipo) => setOpenDropdown(tipo)}
+                  onStatusChange={(_id, etapa, t) => handleStageUpdate(etapa, t)}
+                  variant="card"
+                />
               </div>
-
-              {openDropdown === 'propietario' && !contacto.esCompartido && (
-                <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[50] py-2 animate-in fade-in zoom-in duration-200 origin-top-left backdrop-blur-xl bg-white/95">
-                  {ETAPAS_PROPIETARIO.map((etapa) => (
-                    <button
-                      key={etapa.value}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStageUpdate(etapa.value, 'propietario');
-                      }}
-                      className={`cursor-pointer w-full px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide flex items-center justify-between transition-colors hover:bg-slate-50 ${
-                        contacto.estadoPropietario === etapa.value ? 'text-blue-600' : 'text-slate-600'
-                      }`}
-                    >
-                      {etapa.label}
-                      {contacto.estadoPropietario === etapa.value && <Check className="h-3.5 w-3.5" />}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
@@ -384,26 +321,30 @@ export const ContactoCard = ({
         <div className="flex items-center gap-2">
           {!contacto.esCompartido && (
             <>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsShareModalOpen(true);
-                }}
-                className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-amber-50 hover:text-amber-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                title="Compartir Visibilidad"
-              >
-                <Share2 className="h-3.5 w-3.5" />
-              </button>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(contacto);
-                }}
-                className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                title="Editar Contacto"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
+              {!contacto.isArchivedForCurrentUser && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsShareModalOpen(true);
+                  }}
+                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-amber-50 hover:text-amber-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                  title="Compartir Visibilidad"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {!contacto.isArchivedForCurrentUser && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(contacto);
+                  }}
+                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                  title="Editar Contacto"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
             </>
           )}
 

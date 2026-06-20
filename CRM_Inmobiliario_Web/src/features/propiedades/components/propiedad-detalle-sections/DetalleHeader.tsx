@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { X, Pencil, MessageSquare, Copy, Check, Loader2 } from 'lucide-react';
+import { X, Pencil, MessageSquare, Copy, Check } from 'lucide-react';
 import PDFLinkInternal from '../PDFLinkInternal';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
 import type { Propiedad } from '../../types';
+import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
 
 interface DetalleHeaderProps {
   id: string;
@@ -84,24 +85,11 @@ export const DetalleHeader = ({
             </>
           )}
 
-          <button 
-            data-testid="btn-toggle-archive"
-            onClick={onToggleArchive}
-            disabled={isTogglingArchive}
-            className={`px-4 py-1.5 font-black text-[10px] uppercase tracking-widest rounded-full transition-all shadow-sm border flex items-center gap-2 cursor-pointer ${
-              propiedad.isArchivedForCurrentUser 
-                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' 
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            {isTogglingArchive ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : propiedad.isArchivedForCurrentUser ? (
-              'Desarchivar'
-            ) : (
-              'Archivar'
-            )}
-          </button>
+          <ArchiveToggleButton
+            isArchived={!!propiedad.isArchivedForCurrentUser}
+            isToggling={isTogglingArchive}
+            onToggle={onToggleArchive}
+          />
 
           {!propiedad.isArchivedForCurrentUser && propiedad.permissions?.canEditMasterData && (
             <button
@@ -114,7 +102,7 @@ export const DetalleHeader = ({
             </button>
           )}
 
-          <div className={propiedad.isArchivedForCurrentUser ? 'opacity-50 pointer-events-none' : ''}>
+          <div>
             <PropiedadStatusDropdown
               propiedad={propiedad}
               isUpdating={isUpdatingStatus}

@@ -39,7 +39,7 @@ public static class ActualizarContactoFeature
 
             if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == agenteId && a.ContactoId == id, ct))
             {
-                return Results.Forbid();
+                return Results.BadRequest(new { message = "No puedes modificar un registro archivado" });
             }
 
             var telefonoNormalizado = string.IsNullOrWhiteSpace(command.Telefono) ? null : (command.Telefono.NormalizePhoneE164() ?? command.Telefono);

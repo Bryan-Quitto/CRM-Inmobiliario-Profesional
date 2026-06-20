@@ -57,7 +57,7 @@ public static class CambiarEstadoValidator
             string msg = "No tiene permisos para modificar los estados de esta propiedad.";
             
             if (isArchived)
-                msg = "No puedes modificar el estado de una propiedad archivada.";
+                return new ValidationResult(false, "No puedes modificar el estado de una propiedad archivada.", StatusCodes.Status400BadRequest);
             else if (esCreador && gestorActivo)
                 msg = "El agente invitado ha activado su cuenta y ahora tiene el control exclusivo de la propiedad.";
             

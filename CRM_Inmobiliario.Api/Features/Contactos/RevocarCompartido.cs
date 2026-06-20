@@ -37,7 +37,7 @@ public static class RevocarCompartidoFeature
 
             if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == currentUserId && a.ContactoId == id, ct))
             {
-                return Results.Forbid();
+                return Results.BadRequest(new { message = "No puedes modificar un registro archivado" });
             }
 
             if (agenteIds == null || agenteIds.Count == 0)

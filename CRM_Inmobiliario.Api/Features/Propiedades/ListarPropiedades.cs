@@ -60,7 +60,8 @@ public static class ListarPropiedadesFeature
         int Habitaciones,
         decimal AreaTotal,
         int? AniosAntiguedad,
-        bool AlreadyHasContact = false);
+        bool AlreadyHasContact = false,
+        bool IsArchivedForCurrentUser = false);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -277,7 +278,8 @@ public static class ListarPropiedadesFeature
                     x.Property.Habitaciones,
                     x.Property.AreaTotal,
                     x.Property.AniosAntiguedad,
-                    false)) // Lo calcularemos a continuación
+                    false,
+                    request.IsArchived)) // Lo calcularemos a continuación
                 .ToListAsync(cancellationToken);
 
             if (cleanPhoneToShare != null)

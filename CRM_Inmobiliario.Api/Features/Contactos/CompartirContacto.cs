@@ -33,7 +33,7 @@ public static class CompartirContactoFeature
 
             if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == currentUserId && a.ContactoId == id, ct))
             {
-                return Results.Forbid();
+                return Results.BadRequest(new { message = "No puedes modificar un registro archivado" });
             }
 
             // 2. Filtrar agentes que ya tienen acceso

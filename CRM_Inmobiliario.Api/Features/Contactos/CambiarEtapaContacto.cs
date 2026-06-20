@@ -44,7 +44,7 @@ public static class CambiarEtapaContactoFeature
 
                 if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == agenteId && a.ContactoId == id, ct))
                 {
-                    return Results.Forbid();
+                    return Results.BadRequest(new { message = "No puedes modificar un registro archivado" });
                 }
 
                 // 2. Bloqueos Estrictos de Negocio (SSoT en Propiedades)

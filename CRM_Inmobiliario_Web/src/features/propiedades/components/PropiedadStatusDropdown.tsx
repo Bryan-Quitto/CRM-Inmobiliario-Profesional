@@ -30,7 +30,7 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
     return found?.color || 'bg-slate-500 border-slate-400 text-white';
   };
 
-  const canEdit = p.permissions?.canChangeStatus;
+  const canEdit = p.permissions?.canChangeStatus && !p.isArchivedForCurrentUser;
 
   // Usamos onMouseDown para interceptar el clic antes de que cualquier otra capa lo detenga
   const handlePriorityToggle = (e: React.MouseEvent) => {
@@ -38,15 +38,13 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
     e.stopPropagation();
     
     if (!canEdit) {
-      // La autoridad es el captador si es activo, sino el creador.
-      // El autor de la transacción ya NO tiene permisos de cambio de estado.
       const responsable = p.agenteNombre || 'el agente asignado';
       
-      // Personalizar el mensaje según quién sea el responsable
-      // Si el backend mandó canEdit: false, es porque el usuario no es el dueño gestor.
-      const mensaje = p.esCaptadorActivo 
-        ? `Solo el agente captador (${responsable}) puede modificar los estados.`
-        : `Solo el agente (${responsable}) que registró la propiedad puede modificar los estados.`;
+      const mensaje = p.isArchivedForCurrentUser
+        ? 'No puedes modificar el estado de un registro archivado.'
+        : p.esCaptadorActivo 
+          ? `Solo el agente captador (${responsable}) puede modificar los estados.`
+          : `Solo el agente (${responsable}) que registró la propiedad puede modificar los estados.`;
 
       toast.warning('Acción restringida', {
         description: mensaje
@@ -85,11 +83,11 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
           <button
             onMouseDown={handlePriorityToggle} // PRIORIDAD MÁXIMA
             type="button"
-            className={`cursor-pointer font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm hover:scale-105 active:scale-95 disabled:opacity-50 ${
+            className={`font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 ${
               variant === 'header' 
                 ? 'px-3 py-1.5 rounded-full text-[10px]' 
                 : 'px-3 py-1 rounded-full text-[10px] border'
-            } ${getStatusStyles(p.estadoComercial)} ${!canEdit ? 'opacity-80' : ''}`}
+            } ${getStatusStyles(p.estadoComercial)} ${!canEdit ? 'cursor-not-allowed opacity-80' : 'cursor-pointer hover:scale-105 active:scale-95'}`}
           >
             {!canEdit && <Lock className="h-2.5 w-2.5" />}
             {p.estadoComercial}

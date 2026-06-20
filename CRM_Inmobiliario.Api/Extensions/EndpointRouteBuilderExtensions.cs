@@ -45,6 +45,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapBotOverrideContactoEndpoint();
         apiGroup.MapObtenerTokenUsageContactoEndpoint();
         apiGroup.MapFusionarContactosEndpoint();
+        apiGroup.MapToggleContactArchiveEndpoint();
 
         // Propiedades
         apiGroup.MapGetDropdownPropiedadesEndpoint();
@@ -64,6 +65,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapVolverAListarPropiedadEndpoint();
         apiGroup.MapObtenerHistorialPropiedadEndpoint();
         apiGroup.MapEliminarTransaccionEndpoint();
+        apiGroup.MapTogglePropertyArchiveEndpoint();
 
         // Tareas
         apiGroup.MapRegistrarTareaEndpoint();

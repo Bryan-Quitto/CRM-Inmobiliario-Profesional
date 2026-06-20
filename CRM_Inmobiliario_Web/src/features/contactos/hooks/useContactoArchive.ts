@@ -30,7 +30,10 @@ export const useContactoArchive = ({ contacto, mutate, globalMutate }: UseContac
       
       // Update list cache
       globalMutate(
-        (key) => Array.isArray(key) && key[0] === '/contactos',
+        (key: any) => {
+          const keyStr = Array.isArray(key) ? key[0] : key;
+          return typeof keyStr === 'string' && keyStr.includes('contactos');
+        },
         undefined,
         true
       );

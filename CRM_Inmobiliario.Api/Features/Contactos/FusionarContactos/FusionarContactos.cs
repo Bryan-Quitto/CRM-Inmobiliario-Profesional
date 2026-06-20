@@ -42,7 +42,7 @@ public static class FusionarContactosFeature
 
             if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == agenteId && (a.ContactoId == command.PrimaryContactoId || a.ContactoId == command.SecondaryContactoId), ct))
             {
-                return Results.Forbid();
+                return Results.BadRequest(new { message = "No puedes modificar un registro archivado" });
             }
 
             // Anti-Collision Channel Validation (Permitir duplicados literales)

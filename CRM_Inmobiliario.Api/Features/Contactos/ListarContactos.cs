@@ -31,7 +31,8 @@ public static class ListarContactosFeature
         int NumeroIntereses,
         int NumeroPropiedadesCaptadas,
         int NumeroReservas,
-        int NumeroCierres);
+        int NumeroCierres,
+        bool IsArchivedForCurrentUser);
 
     public record GetContactosRequest(
         int Page = 1,
@@ -195,7 +196,8 @@ public static class ListarContactosFeature
                     l.NumeroIntereses,
                     l.NumeroPropiedadesCaptadas,
                     l.NumeroReservas,
-                    l.NumeroCierres
+                    l.NumeroCierres,
+                    request.IsArchived
                 ))
                 .ToListAsync(cancellationToken);
 
