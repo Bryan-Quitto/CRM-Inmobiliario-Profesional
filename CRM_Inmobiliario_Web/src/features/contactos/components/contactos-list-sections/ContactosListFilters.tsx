@@ -33,6 +33,8 @@ interface ContactosListFiltersProps {
   setSortBy: (sort: SortOptionContacto) => void;
   sortDirection: SortDirectionContacto;
   setSortDirection: (dir: SortDirectionContacto) => void;
+  isArchived: boolean;
+  setIsArchived: (val: boolean) => void;
 }
 
 export const ContactosListFilters = ({
@@ -56,7 +58,9 @@ export const ContactosListFilters = ({
   sortBy,
   setSortBy,
   sortDirection,
-  setSortDirection
+  setSortDirection,
+  isArchived,
+  setIsArchived
 }: ContactosListFiltersProps) => {
 
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -77,9 +81,33 @@ export const ContactosListFilters = ({
   return (
     <div className="flex flex-col space-y-6 mb-10">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Directorio de Contactos</h2>
-          <p className="text-slate-600 mt-1 font-medium italic">Gestión integral de la base de datos inmobiliaria.</p>
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Directorio de Contactos</h2>
+            <p className="text-slate-600 mt-1 font-medium italic">Gestión integral de la base de datos inmobiliaria.</p>
+          </div>
+          
+          {/* Segmented Control - Inbox vs Archive */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl self-start">
+            <button 
+              data-testid="tab-main"
+              onClick={() => setIsArchived(false)}
+              className={`cursor-pointer px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                !isArchived ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Catálogo Principal
+            </button>
+            <button 
+              data-testid="tab-archived"
+              onClick={() => setIsArchived(true)}
+              className={`cursor-pointer px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                isArchived ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Archivados
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

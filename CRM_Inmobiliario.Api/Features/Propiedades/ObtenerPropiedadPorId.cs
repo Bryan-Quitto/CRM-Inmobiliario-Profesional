@@ -49,7 +49,8 @@ public static class ObtenerPropiedadPorIdFeature
         IEnumerable<MediaResponse> MediaSinSeccion,
         PropertyPermissions Permissions,
         ActiveTransactionInfo? ActiveTransaction,
-        string Version);
+        string Version,
+        bool IsArchivedForCurrentUser = false);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -173,12 +174,13 @@ public static class ObtenerPropiedadPorIdFeature
                             m.EsPrincipal,
                             m.Orden)),
                     new PropertyPermissions(
-                        x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo)),
-                        x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo)),
-                        x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))
+                        !context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id) && (x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))),
+                        !context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id) && (x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))),
+                        !context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id) && (x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo)))
                     ),
                     x.ActiveTransaction,
-                    x.Property.Version.ToString()))
+                    x.Property.Version.ToString(),
+                    context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id)))
                 .FirstOrDefaultAsync();
 
             return propiedad is not null 

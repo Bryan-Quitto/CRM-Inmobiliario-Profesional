@@ -77,6 +77,13 @@ secrets.json
 *.sqlite
 *.sqlite3
 
+# --- [ Playwright (E2E Testing) ] ---
+**/playwright-report/
+**/test-results/
+**/playwright/.cache/
+**/playwright/.auth/
+**/blob-report/
+
 # --- [ Miscellaneous ] ---
 .gemini/
 .agents/

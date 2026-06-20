@@ -36,6 +36,8 @@ public static class GetDropdownContactosFeature
                 query = query.Where(c => c.AgenteId == currentUserId);
             }
 
+            query = query.Where(c => !context.AgentArchivedContacts.Any(a => a.AgentId == currentUserId && a.ContactoId == c.Id));
+
             if (!string.IsNullOrWhiteSpace(searchQuery))
             {
                 var searchPattern = $"%{searchQuery}%";

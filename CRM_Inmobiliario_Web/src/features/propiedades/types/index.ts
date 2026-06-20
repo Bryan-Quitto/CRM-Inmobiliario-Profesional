@@ -73,4 +73,5 @@ export interface Propiedad {
   permissions?: PropertyPermissions;
   activeTransaction?: ActiveTransactionInfo;
   version?: string;
+  isArchivedForCurrentUser?: boolean;
 }

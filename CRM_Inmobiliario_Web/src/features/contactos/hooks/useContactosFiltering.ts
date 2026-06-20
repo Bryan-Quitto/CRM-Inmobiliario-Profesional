@@ -62,6 +62,7 @@ export const useContactosFiltering = () => {
   const filterVisibilidad = searchParams.get('visibilidad') || 'Todos';
   const filterOrigen = searchParams.get('origen') || 'Todos';
   const filterEstadoPropietario = searchParams.get('estadoPropietario') || 'Todos';
+  const isArchived = searchParams.get('isArchived') === 'true';
   const sortBy = (searchParams.get('sortBy') as SortOptionContacto) || 'fechaCreacion';
   const sortDirection = (searchParams.get('sortDirection') as SortDirectionContacto) || 'desc';
   const advancedFilters: ContactosAdvancedFiltersState = {};
@@ -79,6 +80,16 @@ export const useContactosFiltering = () => {
   const setFilterVisibilidad = (val: string) => setParamAndResetPage('visibilidad', val, 'Todos');
   const setFilterOrigen = (val: string) => setParamAndResetPage('origen', val, 'Todos');
   const setFilterEstadoPropietario = (val: string) => setParamAndResetPage('estadoPropietario', val, 'Todos');
+  
+  const setIsArchived = (val: boolean) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (val) next.set('isArchived', 'true');
+      else next.delete('isArchived');
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  };
   
   const setSortBy = (val: SortOptionContacto) => {
     setSearchParams(prev => {
@@ -111,6 +122,8 @@ export const useContactosFiltering = () => {
     setFilterEstadoCliente,
     filterEstadoPropietario,
     setFilterEstadoPropietario,
+    isArchived,
+    setIsArchived,
     advancedFilters,
     setAdvancedFilters,
     sortBy,

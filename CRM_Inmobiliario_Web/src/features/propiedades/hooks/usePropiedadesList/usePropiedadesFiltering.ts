@@ -39,6 +39,7 @@ export const usePropiedadesFiltering = () => {
 
   const filterEstado = searchParams.get('estadoComercial') || 'Todos';
   const filterTipo = searchParams.get('tipoPropiedad') || 'Todos';
+  const isArchived = searchParams.get('isArchived') === 'true';
   const sortBy = (searchParams.get('sortBy') as SortOption) || 'fechaIngreso';
   const sortDirection = (searchParams.get('sortDirection') as SortDirection) || 'desc';
 
@@ -73,6 +74,18 @@ export const usePropiedadesFiltering = () => {
       const next = new URLSearchParams(prevParams);
       if (newVal === 'Todos' || !newVal) next.delete('tipoPropiedad');
       else next.set('tipoPropiedad', newVal);
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  };
+
+  const setIsArchived = (val: boolean | ((prev: boolean) => boolean)) => {
+    setSearchParams(prevParams => {
+      const currentVal = prevParams.get('isArchived') === 'true';
+      const newVal = typeof val === 'function' ? val(currentVal) : val;
+      const next = new URLSearchParams(prevParams);
+      if (newVal) next.set('isArchived', 'true');
+      else next.delete('isArchived');
       next.delete('page');
       return next;
     }, { replace: true });
@@ -152,6 +165,7 @@ export const usePropiedadesFiltering = () => {
     if (debouncedSearchQuery) params.set('searchQuery', debouncedSearchQuery);
     if (filterEstado !== 'Todos') params.set('estadoComercial', filterEstado);
     if (filterTipo !== 'Todos') params.set('tipoPropiedad', filterTipo);
+    if (isArchived) params.set('isArchived', 'true');
     if (sortBy) params.set('sortBy', sortBy);
     if (sortDirection) params.set('sortDirection', sortDirection);
     
@@ -174,6 +188,8 @@ export const usePropiedadesFiltering = () => {
     setFilterEstado,
     filterTipo,
     setFilterTipo,
+    isArchived,
+    setIsArchived,
     advancedFilters,
     setAdvancedFilters,
     sortBy,

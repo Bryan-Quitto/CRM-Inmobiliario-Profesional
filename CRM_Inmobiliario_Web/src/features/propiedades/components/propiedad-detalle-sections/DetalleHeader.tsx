@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Pencil, MessageSquare, Copy, Check } from 'lucide-react';
+import { X, Pencil, MessageSquare, Copy, Check, Loader2 } from 'lucide-react';
 import PDFLinkInternal from '../PDFLinkInternal';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
 import type { Propiedad } from '../../types';
@@ -16,6 +16,8 @@ interface DetalleHeaderProps {
   handleWhatsAppShare: () => void;
   activeTab: 'detalle' | 'ia';
   onTabChange: (tab: 'detalle' | 'ia') => void;
+  isTogglingArchive: boolean;
+  onToggleArchive: () => void;
 }
 
 export const DetalleHeader = ({
@@ -30,6 +32,8 @@ export const DetalleHeader = ({
   handleWhatsAppShare,
   activeTab,
   onTabChange,
+  isTogglingArchive,
+  onToggleArchive
 }: DetalleHeaderProps) => {
   const [copied, setCopied] = useState(false);
 
@@ -65,18 +69,43 @@ export const DetalleHeader = ({
           </div>
         </div>
         <div className="flex gap-2">
-          <PDFLinkInternal propiedad={propiedad} />
+          {!propiedad.isArchivedForCurrentUser && (
+            <>
+              <PDFLinkInternal propiedad={propiedad} />
 
-          <button
-            onClick={handleWhatsAppShare}
-            className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 group/wa cursor-pointer"
-            title="Compartir por WhatsApp"
+              <button
+                data-testid="btn-share-whatsapp"
+                onClick={handleWhatsAppShare}
+                className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 group/wa cursor-pointer"
+                title="Compartir por WhatsApp"
+              >
+                <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
+              </button>
+            </>
+          )}
+
+          <button 
+            data-testid="btn-toggle-archive"
+            onClick={onToggleArchive}
+            disabled={isTogglingArchive}
+            className={`px-4 py-1.5 font-black text-[10px] uppercase tracking-widest rounded-full transition-all shadow-sm border flex items-center gap-2 cursor-pointer ${
+              propiedad.isArchivedForCurrentUser 
+                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' 
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
           >
-            <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
+            {isTogglingArchive ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : propiedad.isArchivedForCurrentUser ? (
+              'Desarchivar'
+            ) : (
+              'Archivar'
+            )}
           </button>
 
-          {propiedad.permissions?.canEditMasterData && (
+          {!propiedad.isArchivedForCurrentUser && propiedad.permissions?.canEditMasterData && (
             <button
+              data-testid="btn-edit-entity"
               onClick={onShowEditModal}
               className="px-4 py-1.5 bg-white border-2 border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
             >
@@ -85,14 +114,16 @@ export const DetalleHeader = ({
             </button>
           )}
 
-          <PropiedadStatusDropdown
-            propiedad={propiedad}
-            isUpdating={isUpdatingStatus}
-            isOpen={isStatusDropdownOpen}
-            onToggle={setIsStatusDropdownOpen}
-            onStatusChange={(_id, status) => handleStatusChange(status)}
-            variant="header"
-          />
+          <div className={propiedad.isArchivedForCurrentUser ? 'opacity-50 pointer-events-none' : ''}>
+            <PropiedadStatusDropdown
+              propiedad={propiedad}
+              isUpdating={isUpdatingStatus}
+              isOpen={isStatusDropdownOpen}
+              onToggle={setIsStatusDropdownOpen}
+              onStatusChange={(_id, status) => handleStatusChange(status)}
+              variant="header"
+            />
+          </div>
         </div>
       </div>
 

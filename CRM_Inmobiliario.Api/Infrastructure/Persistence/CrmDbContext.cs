@@ -39,6 +39,8 @@ public sealed class CrmDbContext : DbContext
     public DbSet<AgentPushSubscription> AgentPushSubscriptions => Set<AgentPushSubscription>();
     public DbSet<PushNotificationsOutbox> PushNotificationsOutbox => Set<PushNotificationsOutbox>();
     public DbSet<PropertyFaq> PropertyFaqs => Set<PropertyFaq>();
+    public DbSet<AgentArchivedContact> AgentArchivedContacts => Set<AgentArchivedContact>();
+    public DbSet<AgentArchivedProperty> AgentArchivedProperties => Set<AgentArchivedProperty>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -82,6 +84,20 @@ public sealed class CrmDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(f => f.CreadoPorAgenteId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AgentArchivedContact>(entity =>
+        {
+            entity.HasKey(e => new { e.AgentId, e.ContactoId });
+            entity.HasOne(e => e.Agent).WithMany().HasForeignKey(e => e.AgentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Contacto).WithMany().HasForeignKey(e => e.ContactoId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AgentArchivedProperty>(entity =>
+        {
+            entity.HasKey(e => new { e.AgentId, e.PropiedadId });
+            entity.HasOne(e => e.Agent).WithMany().HasForeignKey(e => e.AgentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Propiedad).WithMany().HasForeignKey(e => e.PropiedadId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // Aplicar todas las configuraciones de IEntityTypeConfiguration encontradas en el ensamblado

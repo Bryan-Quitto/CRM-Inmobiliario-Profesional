@@ -63,7 +63,8 @@ public static class ActualizarPropiedadFeature
             }
 
             // SEGURIDAD: Validación por Agente Activo (Spec 015 Custom)
-            if (!PropertyPermissionsHelper.CanManage(propiedad, currentUserId))
+            var isArchived = await context.AgentArchivedProperties.AnyAsync(a => a.AgentId == currentUserId && a.PropiedadId == id, ct);
+            if (!PropertyPermissionsHelper.CanManage(propiedad, currentUserId, isArchived))
             {
                 return Results.Json(new { message = "No tienes permisos para editar esta propiedad. Contacta al agente responsable." }, statusCode: StatusCodes.Status403Forbidden);
             }

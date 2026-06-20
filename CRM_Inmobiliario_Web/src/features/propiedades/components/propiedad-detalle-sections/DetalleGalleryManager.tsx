@@ -21,6 +21,7 @@ interface DetalleGalleryManagerProps {
   handleMoveSection: (index: number, direction: 'up' | 'down', customTargetIndex?: number) => void;
   handleDragEnd: (result: DropResult) => void;
   mutate: () => void;
+  isArchived?: boolean;
 }
 
 export const DetalleGalleryManager = ({
@@ -40,8 +41,10 @@ export const DetalleGalleryManager = ({
   handleRenameSection,
   handleMoveSection,
   handleDragEnd,
-  mutate
+  mutate,
+  isArchived
 }: DetalleGalleryManagerProps) => {
+  const canManage = !isArchived && propiedad.permissions?.canManageGallery;
   return (
     <div className="space-y-12">
       <div className="flex items-center justify-between">
@@ -49,7 +52,7 @@ export const DetalleGalleryManager = ({
           <div className="h-8 w-1 bg-indigo-600 rounded-full"></div>
           <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Galerías del Inmueble</h3>
         </div>
-        {propiedad.permissions?.canManageGallery && (
+        {canManage && (
           <button
             onClick={handleAddSection}
             disabled={isCreatingInline}
@@ -71,12 +74,12 @@ export const DetalleGalleryManager = ({
         onDeleteMedia={handleDeleteMedia}
         onImageUploaded={() => mutate()}
         onClearGallery={handleClearGallery}
-        isReadOnly={!propiedad.permissions?.canManageGallery}
+        isReadOnly={!canManage}
       />
 
       {/* Secciones Dinámicas con Drag & Drop */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="sections-list" isDropDisabled={!propiedad.permissions?.canManageGallery}>
+        <Droppable droppableId="sections-list" isDropDisabled={!canManage}>
           {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-12">
               {propiedad.secciones?.map((seccion, index) => {
@@ -100,7 +103,7 @@ export const DetalleGalleryManager = ({
                     onMoveDown={() => handleMoveSection(index, 'down')}
                     onMoveTo={(newIndex) => handleMoveSection(index, newIndex > index ? 'down' : 'up', newIndex)}
                     totalSections={propiedad.secciones?.length || 0}
-                    isReadOnly={!propiedad.permissions?.canManageGallery}
+                    isReadOnly={!canManage}
                   />
                 );
               })}
@@ -111,7 +114,7 @@ export const DetalleGalleryManager = ({
       </DragDropContext>
 
       {/* Input Inline para Nueva Sección - World Class UX */}
-      {isCreatingInline && propiedad.permissions?.canManageGallery && (
+      {isCreatingInline && canManage && (
         <div className="bg-indigo-50/50 border-2 border-dashed border-indigo-200 rounded-[2rem] p-6 animate-in zoom-in-95 duration-300">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">

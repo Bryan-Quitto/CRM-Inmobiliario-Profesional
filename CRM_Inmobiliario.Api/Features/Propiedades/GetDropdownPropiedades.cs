@@ -37,6 +37,8 @@ public static class GetDropdownPropiedadesFeature
                     (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo)));
             }
 
+            query = query.Where(p => !context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == p.Id));
+
             if (!string.IsNullOrWhiteSpace(searchQuery))
             {
                 var searchPattern = $"%{searchQuery}%";

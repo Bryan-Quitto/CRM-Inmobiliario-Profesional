@@ -3,10 +3,13 @@ import { useState, useRef, useEffect } from 'react';
 import { ETAPAS, ETAPAS_PROPIETARIO } from '../../constants/contactos';
 import { CompartirContactoModal } from './CompartirContactoModal';
 import ConfirmModal from '@/components/ConfirmModal';
-import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
+import { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
 import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracionIA';
+import { toggleContactArchive } from '../../api/toggleContactArchive';
+import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
 import type { Contacto } from '../../types';
+import { Loader2 } from 'lucide-react';
 
 interface ContactoCardProps {
   contacto: Contacto;
@@ -34,6 +37,29 @@ export const ContactoCard = ({
   const { settings } = useConfiguracionIA();
   const isWhatsAppAiEnabled = settings?.isWhatsAppAiEnabled ?? true;
   const isFacebookAiEnabled = settings?.isFacebookAiEnabled ?? true;
+  
+  const { mutate } = useSWRConfig();
+  const [isTogglingArchive, setIsTogglingArchive] = useState(false);
+
+  const handleToggleArchive = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsTogglingArchive(true);
+    const newState = !contacto.isArchivedForCurrentUser;
+    try {
+      mutate('contactos', (current: Contacto[] | undefined) => 
+        current?.map(c => c.id === contacto.id ? { ...c, isArchivedForCurrentUser: newState } : c), 
+        { revalidate: false }
+      );
+      await toggleContactArchive(contacto.id);
+      await mutate('contactos');
+      toast.success(newState ? 'Contacto archivado' : 'Contacto desarchivado');
+    } catch {
+      mutate('contactos'); // rollback
+      toast.error('Error al cambiar estado de archivo');
+    } finally {
+      setIsTogglingArchive(false);
+    }
+  };
   
   const getEtapaStyles = (etapa: string, isPropietario: boolean = false) => {
     const list = isPropietario ? ETAPAS_PROPIETARIO : ETAPAS;
@@ -90,13 +116,27 @@ export const ContactoCard = ({
           )}
 
           {!contacto.esCompartido && (
-            <button 
-              onClick={() => onNavigate(contacto.id)}
-              className="h-10 w-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-600/20 transition-all cursor-pointer group/nav"
-              title="Ver Detalles"
-            >
-              <ArrowUpRight className="h-5 w-5 transition-transform group-hover/nav:translate-x-0.5 group-hover/nav:-translate-y-0.5" />
-            </button>
+            <>
+              <button
+                onClick={handleToggleArchive}
+                disabled={isTogglingArchive}
+                className={`h-10 px-3 rounded-xl flex items-center gap-1.5 justify-center transition-all cursor-pointer text-xs font-bold shadow-sm ${
+                  contacto.isArchivedForCurrentUser
+                    ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
+                    : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                }`}
+                title={contacto.isArchivedForCurrentUser ? "Desarchivar" : "Archivar"}
+              >
+                {isTogglingArchive ? <Loader2 className="h-4 w-4 animate-spin" /> : (contacto.isArchivedForCurrentUser ? 'Desarchivar' : 'Archivar')}
+              </button>
+              <button 
+                onClick={() => onNavigate(contacto.id)}
+                className="h-10 w-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-600/20 transition-all cursor-pointer group/nav"
+                title="Ver Detalles"
+              >
+                <ArrowUpRight className="h-5 w-5 transition-transform group-hover/nav:translate-x-0.5 group-hover/nav:-translate-y-0.5" />
+              </button>
+            </>
           )}
         </div>
       </div>

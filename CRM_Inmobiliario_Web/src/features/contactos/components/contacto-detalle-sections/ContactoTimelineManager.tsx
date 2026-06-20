@@ -21,6 +21,7 @@ interface ContactoTimelineManagerProps {
   setIdInteraccionABorrar: (id: string | null) => void;
   handleEditarNota: (interaccion: Interaccion) => void;
   handleEliminarNota: (id: string) => void;
+  isArchived?: boolean;
 }
 
 export const ContactoTimelineManager = ({
@@ -40,7 +41,8 @@ export const ContactoTimelineManager = ({
   idInteraccionABorrar,
   setIdInteraccionABorrar,
   handleEditarNota,
-  handleEliminarNota
+  handleEliminarNota,
+  isArchived
 }: ContactoTimelineManagerProps) => {
   const [isOpenFilter, setIsOpenFilter] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
@@ -60,60 +62,62 @@ export const ContactoTimelineManager = ({
   return (
     <div className="lg:col-span-8 space-y-8">
       {/* Editor de Notas */}
-      <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm overflow-hidden relative group">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-              <Pencil className="h-5 w-5" />
+      {!isArchived && (
+        <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm overflow-hidden relative group">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                <Pencil className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">
+                  {notaEnEdicion ? 'Editando Nota' : 'Nueva Interacción'}
+                </h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Registra el progreso</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">
-                {notaEnEdicion ? 'Editando Nota' : 'Nueva Interacción'}
-              </h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Registra el progreso</p>
-            </div>
-          </div>
-          {notaEnEdicion && (
-            <button 
-              onClick={() => { setNotaEnEdicion(null); setNuevaNota(''); setTipoNota('Nota'); }}
-              className="text-[10px] font-black text-rose-500 uppercase hover:underline cursor-pointer"
-            >
-              Cancelar Edición
-            </button>
-          )}
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex gap-2 p-1.5 bg-slate-50 rounded-2xl w-fit">
-            {TIPO_NOTA_OPCIONES.map(opt => (
+            {notaEnEdicion && (
               <button 
-                key={opt.value}
-                onClick={() => setTipoNota(opt.value)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${tipoNota === opt.value ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                onClick={() => { setNotaEnEdicion(null); setNuevaNota(''); setTipoNota('Nota'); }}
+                className="text-[10px] font-black text-rose-500 uppercase hover:underline cursor-pointer"
               >
-                {opt.label}
+                Cancelar Edición
               </button>
-            ))}
+            )}
           </div>
 
-          <div className="relative">
-            <textarea 
-              value={nuevaNota}
-              onChange={(e) => setNuevaNota(e.target.value)}
-              placeholder="Escribe aquí los detalles de la interacción..."
-              className="w-full bg-slate-50 border border-slate-100 rounded-[24px] p-6 text-slate-700 font-medium text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-200 transition-all outline-none min-h-[120px] resize-none"
-            />
-            <button 
-              onClick={handleSaveNota}
-              disabled={isSavingNota || !nuevaNota.trim()}
-              className="absolute bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:bg-slate-200 disabled:shadow-none active:scale-95 cursor-pointer"
-            >
-              {isSavingNota ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-              {notaEnEdicion ? 'Actualizar' : 'Guardar'}
-            </button>
+          <div className="space-y-4">
+            <div className="flex gap-2 p-1.5 bg-slate-50 rounded-2xl w-fit">
+              {TIPO_NOTA_OPCIONES.map(opt => (
+                <button 
+                  key={opt.value}
+                  onClick={() => setTipoNota(opt.value)}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${tipoNota === opt.value ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative">
+              <textarea 
+                value={nuevaNota}
+                onChange={(e) => setNuevaNota(e.target.value)}
+                placeholder="Escribe aquí los detalles de la interacción..."
+                className="w-full bg-slate-50 border border-slate-100 rounded-[24px] p-6 text-slate-700 font-medium text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-200 transition-all outline-none min-h-[120px] resize-none"
+              />
+              <button 
+                onClick={handleSaveNota}
+                disabled={isSavingNota || !nuevaNota.trim()}
+                className="absolute bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:bg-slate-200 disabled:shadow-none active:scale-95 cursor-pointer"
+              >
+                {isSavingNota ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                {notaEnEdicion ? 'Actualizar' : 'Guardar'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Timeline de Historial */}
       <div className="space-y-6">

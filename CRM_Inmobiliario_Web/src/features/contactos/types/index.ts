@@ -55,6 +55,7 @@ export interface Contacto {
   numeroCierres?: number;
   numeroVisitas?: number;
   numeroOfertas?: number;
+  isArchivedForCurrentUser?: boolean;
 }
 
 export interface AgenteCompartido {

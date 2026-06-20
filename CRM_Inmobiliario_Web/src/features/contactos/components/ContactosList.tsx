@@ -39,6 +39,8 @@ const ContactosContent = () => {
     setSortBy,
     sortDirection,
     setSortDirection,
+    isArchived,
+    setIsArchived,
     currentPage,
     setCurrentPage,
     totalPages,
@@ -78,6 +80,8 @@ const ContactosContent = () => {
         setSortBy={setSortBy}
         sortDirection={sortDirection}
         setSortDirection={setSortDirection}
+        isArchived={isArchived}
+        setIsArchived={setIsArchived}
         viewMode={viewMode}
         setViewMode={setViewMode}
         onOpenCreateModal={() => window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action: 'create', isOwnersView } }))}

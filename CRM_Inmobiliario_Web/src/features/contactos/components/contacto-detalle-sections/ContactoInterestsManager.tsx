@@ -50,62 +50,64 @@ export const ContactoInterestsManager = ({
         <Building2 className="h-5 w-5 text-slate-200" />
       </div>
 
-      <div className="mb-6">
-        {!propiedadPendienteId ? (
-          <DynamicSearchSelect 
-            label=""
-            placeholder="Vincular propiedad..."
-            icon={Plus}
-            options={propiedadesOptions}
-            onChange={(propId) => {
-              if (propId) {
-                 setPropiedadPendienteId(propId);
-                 setNivelInteresPendiente('Medio');
-              }
-            }}
-          />
-        ) : (
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
-            <p className="text-xs font-bold text-slate-500 uppercase mb-3">Nivel de Interés para la propiedad</p>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {NIVELES_INTERES.map(n => (
-                <button
-                  key={n.value}
-                  onClick={() => setNivelInteresPendiente(n.value)}
-                  className={`cursor-pointer py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${nivelInteresPendiente === n.value ? n.color + ' border-current shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+      {!contacto.isArchivedForCurrentUser && (
+        <div data-testid="form-add-interest" className="mb-6">
+          {!propiedadPendienteId ? (
+            <DynamicSearchSelect 
+              label=""
+              placeholder="Vincular propiedad..."
+              icon={Plus}
+              options={propiedadesOptions}
+              onChange={(propId) => {
+                if (propId) {
+                   setPropiedadPendienteId(propId);
+                   setNivelInteresPendiente('Medio');
+                }
+              }}
+            />
+          ) : (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
+              <p className="text-xs font-bold text-slate-500 uppercase mb-3">Nivel de Interés para la propiedad</p>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {NIVELES_INTERES.map(n => (
+                  <button
+                    key={n.value}
+                    onClick={() => setNivelInteresPendiente(n.value)}
+                    className={`cursor-pointer py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${nivelInteresPendiente === n.value ? n.color + ' border-current shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                  >
+                    {n.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleVincularPropiedad}
+                  disabled={vincularStatus === 'saving' || vincularStatus === 'success'}
+                  className={`cursor-pointer flex-1 font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2
+                    ${vincularStatus === 'success' 
+                      ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+                      : 'bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800 disabled:bg-slate-200 disabled:shadow-none active:scale-95'}`}
                 >
-                  {n.label}
+                  {vincularStatus === 'saving' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : vincularStatus === 'success' ? (
+                    <><Check className="h-4 w-4" /> ¡Vinculado!</>
+                  ) : (
+                    <><Check className="h-4 w-4" /> Vincular Ahora</>
+                  )}
                 </button>
-              ))}
+                <button 
+                  onClick={() => { setPropiedadPendienteId(null); }}
+                  disabled={vincularStatus === 'saving'}
+                  className="h-[40px] w-[40px] flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 rounded-xl transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={handleVincularPropiedad}
-                disabled={vincularStatus === 'saving' || vincularStatus === 'success'}
-                className={`cursor-pointer flex-1 font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2
-                  ${vincularStatus === 'success' 
-                    ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
-                    : 'bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800 disabled:bg-slate-200 disabled:shadow-none active:scale-95'}`}
-              >
-                {vincularStatus === 'saving' ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : vincularStatus === 'success' ? (
-                  <><Check className="h-4 w-4" /> ¡Vinculado!</>
-                ) : (
-                  <><Check className="h-4 w-4" /> Vincular Ahora</>
-                )}
-              </button>
-              <button 
-                onClick={() => { setPropiedadPendienteId(null); }}
-                disabled={vincularStatus === 'saving'}
-                className="h-[40px] w-[40px] flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 rounded-xl transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         {(!contacto.intereses || contacto.intereses.filter((i: Interes) => !['Reservada', 'Vendida', 'Alquilada'].includes(i.estadoComercial)).length === 0) ? (

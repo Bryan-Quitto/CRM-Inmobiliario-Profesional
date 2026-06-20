@@ -60,7 +60,9 @@ export const ContactoDetalle = () => {
     handleDesvincular,
     historialFiltrado,
     navigate,
-    mutate
+    mutate,
+    isTogglingArchive,
+    handleToggleArchive
   } = useContactoDetalle();
 
   if (isLoading) {
@@ -113,6 +115,8 @@ export const ContactoDetalle = () => {
         navigate={navigate}
         onEdit={() => window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action: 'edit', contacto } }))}
         onMerge={() => setIsMergeModalOpen(true)}
+        isTogglingArchive={isTogglingArchive}
+        onToggleArchive={handleToggleArchive}
       />
 
       <div className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -169,6 +173,7 @@ export const ContactoDetalle = () => {
           setIdInteraccionABorrar={setIdInteraccionABorrar}
           handleEditarNota={handleEditarNota}
           handleEliminarNota={handleEliminarNota}
+          isArchived={contacto.isArchivedForCurrentUser}
         />
       </div>
 

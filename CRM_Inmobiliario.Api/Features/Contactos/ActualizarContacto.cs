@@ -37,6 +37,11 @@ public static class ActualizarContactoFeature
                 return Results.NotFound();
             }
 
+            if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == agenteId && a.ContactoId == id, ct))
+            {
+                return Results.Forbid();
+            }
+
             var telefonoNormalizado = string.IsNullOrWhiteSpace(command.Telefono) ? null : (command.Telefono.NormalizePhoneE164() ?? command.Telefono);
 
             if (!string.IsNullOrWhiteSpace(telefonoNormalizado))

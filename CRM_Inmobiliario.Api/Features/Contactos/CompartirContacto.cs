@@ -31,6 +31,11 @@ public static class CompartirContactoFeature
                 return Results.Forbid();
             }
 
+            if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == currentUserId && a.ContactoId == id, ct))
+            {
+                return Results.Forbid();
+            }
+
             // 2. Filtrar agentes que ya tienen acceso
             var yaCompartidos = await context.ContactoAgenteCompartidos
                 .Where(c => c.ContactoId == id && command.AgenteIds.Contains(c.AgenteId))

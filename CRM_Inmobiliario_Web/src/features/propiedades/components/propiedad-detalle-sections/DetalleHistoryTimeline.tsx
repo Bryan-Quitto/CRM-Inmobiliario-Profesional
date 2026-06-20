@@ -7,13 +7,15 @@ interface DetalleHistoryTimelineProps {
   handleInlineUpdateNote: (transaction: PropertyTransactionResponse, notes: string) => Promise<void>;
   formatDate: (date: string) => string;
   formatCurrency: (amount: number) => string;
+  isArchived?: boolean;
 }
 
 export const DetalleHistoryTimeline = ({
   historial,
   handleInlineUpdateNote,
   formatDate,
-  formatCurrency
+  formatCurrency,
+  isArchived
 }: DetalleHistoryTimelineProps) => {
   return (
     <div className="space-y-8 pb-12">
@@ -62,6 +64,7 @@ export const DetalleHistoryTimeline = ({
                 <InlineNoteEditor 
                   transaction={item} 
                   onSave={(notes) => handleInlineUpdateNote(item, notes)} 
+                  isArchived={isArchived}
                 />
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
@@ -87,7 +90,7 @@ export const DetalleHistoryTimeline = ({
   );
 };
 
-const InlineNoteEditor = ({ transaction, onSave }: { transaction: PropertyTransactionResponse, onSave: (notes: string) => Promise<void> }) => {
+const InlineNoteEditor = ({ transaction, onSave, isArchived }: { transaction: PropertyTransactionResponse, onSave: (notes: string) => Promise<void>, isArchived?: boolean }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [notes, setNotes] = useState(transaction.notes || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -141,8 +144,17 @@ const InlineNoteEditor = ({ transaction, onSave }: { transaction: PropertyTransa
   }
 
   return (
-    <p onDoubleClick={() => setIsEditing(true)} className={`text-sm font-medium contactoing-relaxed mb-4 italic cursor-text hover:bg-slate-50 p-2 -mx-2 rounded-lg transition-colors border border-transparent hover:border-slate-100 ${transaction.notes ? 'text-slate-600' : 'text-slate-300'}`} title="Doble clic para editar nota">
-      {transaction.notes ? `"${transaction.notes}"` : 'Doble clic para añadir nota...'}
+    <p 
+      onDoubleClick={() => {
+        if (!isArchived) setIsEditing(true);
+      }} 
+      className={`text-sm font-medium contactoing-relaxed mb-4 italic transition-colors border border-transparent 
+        ${isArchived ? 'cursor-default' : 'cursor-text hover:bg-slate-50 p-2 -mx-2 rounded-lg hover:border-slate-100'} 
+        ${transaction.notes ? 'text-slate-600' : 'text-slate-300'}
+      `} 
+      title={isArchived ? "" : "Doble clic para editar nota"}
+    >
+      {transaction.notes ? `"${transaction.notes}"` : (isArchived ? '' : 'Doble clic para añadir nota...')}
     </p>
   );
 };

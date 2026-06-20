@@ -22,6 +22,8 @@ interface PropiedadesFiltersProps {
   setFilterEstado: (estado: string) => void;
   filterTipo: string;
   setFilterTipo: (tipo: string) => void;
+  isArchived: boolean;
+  setIsArchived: (val: boolean) => void;
   advancedFilters: AdvancedFiltersState;
   setAdvancedFilters: React.Dispatch<React.SetStateAction<AdvancedFiltersState>>;
   sortBy: SortOption;
@@ -42,6 +44,8 @@ export const PropiedadesFilters = ({
   setFilterEstado,
   filterTipo,
   setFilterTipo,
+  isArchived,
+  setIsArchived,
   advancedFilters,
   setAdvancedFilters,
   sortBy,
@@ -93,9 +97,33 @@ export const PropiedadesFilters = ({
       <div className="flex flex-col gap-6 mb-10">
         {/* Primera Línea: Títulos y Acción Principal */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Catálogo de Inmuebles</h2>
-            <p className="text-slate-600 mt-1 font-medium italic">Explora y gestiona el inventario de propiedades.</p>
+          <div className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Catálogo de Inmuebles</h2>
+              <p className="text-slate-600 mt-1 font-medium italic">Explora y gestiona el inventario de propiedades.</p>
+            </div>
+
+            {/* Segmented Control - Inbox vs Archive */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl self-start">
+              <button 
+                data-testid="tab-main"
+                onClick={() => setIsArchived(false)}
+                className={`cursor-pointer px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                  !isArchived ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Catálogo Principal
+              </button>
+              <button 
+                data-testid="tab-archived"
+                onClick={() => setIsArchived(true)}
+                className={`cursor-pointer px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                  isArchived ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Archivados
+              </button>
+            </div>
           </div>
           
           <button 

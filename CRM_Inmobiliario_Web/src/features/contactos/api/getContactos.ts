@@ -12,6 +12,7 @@ export interface GetContactosParams {
   estadoPropietario?: string;
   sortBy?: string;
   sortDirection?: string;
+  isArchived?: boolean;
   signal?: AbortSignal;
 }
 

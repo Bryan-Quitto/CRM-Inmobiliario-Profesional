@@ -1,6 +1,10 @@
-import { Handshake, Pencil, MapPin, Plus, Image as ImageIcon } from 'lucide-react';
+import { Handshake, Pencil, MapPin, Plus, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../../constants/propiedades';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
+import { togglePropertyArchive } from '../../api/togglePropertyArchive';
+import { useSWRConfig } from 'swr';
+import { toast } from 'sonner';
+import { useState } from 'react';
 import type { Propiedad } from '../../types';
 
 interface PropiedadCardProps {
@@ -26,6 +30,29 @@ export const PropiedadCard = ({
   setSelectedPropiedadIdForEdit,
   dropdownRef
 }: PropiedadCardProps) => {
+  const { mutate } = useSWRConfig();
+  const [isTogglingArchive, setIsTogglingArchive] = useState(false);
+
+  const handleToggleArchive = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsTogglingArchive(true);
+    const newState = !p.isArchivedForCurrentUser;
+    try {
+      mutate('propiedades', (current: Propiedad[] | undefined) => 
+        current?.map(prop => prop.id === p.id ? { ...prop, isArchivedForCurrentUser: newState } : prop), 
+        { revalidate: false }
+      );
+      await togglePropertyArchive(p.id);
+      await mutate('propiedades');
+      toast.success(newState ? 'Propiedad archivada' : 'Propiedad desarchivada');
+    } catch {
+      mutate('propiedades'); // rollback
+      toast.error('Error al cambiar estado de archivo');
+    } finally {
+      setIsTogglingArchive(false);
+    }
+  };
+
   return (
     <div 
       className={`bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative ${
@@ -114,16 +141,30 @@ export const PropiedadCard = ({
               </div>
             </div>
           </div>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenDetail(p.id);
-            }}
-            className="h-12 w-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-500 hover:bg-blue-600 hover:text-white transition-all border border-slate-100 cursor-pointer hover:scale-110 active:scale-95 shadow-sm"
-            title="Ver Expediente"
-          >
-            <Plus className="h-6 w-6" />
-          </button>
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={handleToggleArchive}
+              disabled={isTogglingArchive}
+              className={`h-12 px-4 rounded-2xl flex items-center justify-center transition-all cursor-pointer text-[11px] uppercase tracking-widest font-black shadow-sm border ${
+                p.isArchivedForCurrentUser
+                  ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200'
+                  : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200'
+              }`}
+              title={p.isArchivedForCurrentUser ? "Desarchivar" : "Archivar"}
+            >
+              {isTogglingArchive ? <Loader2 className="h-4 w-4 animate-spin" /> : (p.isArchivedForCurrentUser ? 'Desarchivar' : 'Archivar')}
+            </button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenDetail(p.id);
+              }}
+              className="h-12 w-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-500 hover:bg-blue-600 hover:text-white transition-all border border-slate-100 cursor-pointer hover:scale-110 active:scale-95 shadow-sm"
+              title="Ver Expediente"
+            >
+              <Plus className="h-6 w-6" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

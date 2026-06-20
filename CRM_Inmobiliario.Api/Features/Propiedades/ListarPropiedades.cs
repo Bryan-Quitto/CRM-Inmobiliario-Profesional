@@ -31,7 +31,8 @@ public static class ListarPropiedadesFeature
         int? AniosAntiguedadMax,
         bool? EsCaptacionPropia,
         string? SortBy,
-        string? SortDirection
+        string? SortDirection,
+        bool IsArchived = false
     );
 
     public record Response(
@@ -120,6 +121,17 @@ public static class ListarPropiedadesFeature
                                        (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo)));
             }
 
+            var archivedQuery = context.AgentArchivedProperties.Where(a => a.AgentId == currentUserId);
+
+            if (request.IsArchived)
+            {
+                query = query.Where(p => archivedQuery.Any(a => a.PropiedadId == p.Id));
+            }
+            else
+            {
+                query = query.Where(p => !archivedQuery.Any(a => a.PropiedadId == p.Id));
+            }
+
             // Aplicar filtros dinámicos
             if (!string.IsNullOrWhiteSpace(request.SearchQuery))
             {
@@ -160,7 +172,7 @@ public static class ListarPropiedadesFeature
                 query = query.Where(p => p.EsCaptacionPropia == request.EsCaptacionPropia.Value);
 
             var memCache = serviceProvider.GetRequiredService<IMemoryCache>();
-            var countsCacheKey = $"Propiedades_Counts_{currentUserId}_{agenciaId}_{request.SearchQuery}_{request.EstadoComercial}_{request.TipoPropiedad}_{request.Operacion}_{request.PrecioMin}_{request.PrecioMax}_{request.AreaTotalMin}_{request.AreaTotalMax}_{request.HabitacionesMin}_{request.HabitacionesMax}_{request.AniosAntiguedadMin}_{request.AniosAntiguedadMax}_{request.EsCaptacionPropia}";
+            var countsCacheKey = $"Propiedades_Counts_{currentUserId}_{agenciaId}_{request.SearchQuery}_{request.EstadoComercial}_{request.TipoPropiedad}_{request.Operacion}_{request.PrecioMin}_{request.PrecioMax}_{request.AreaTotalMin}_{request.AreaTotalMax}_{request.HabitacionesMin}_{request.HabitacionesMax}_{request.AniosAntiguedadMin}_{request.AniosAntiguedadMax}_{request.EsCaptacionPropia}_{request.IsArchived}";
 
             (int TotalCount, int CountVentas, int CountAlquiler) counts;
             if (!memCache.TryGetValue(countsCacheKey, out counts))

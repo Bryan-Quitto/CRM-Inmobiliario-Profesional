@@ -40,6 +40,11 @@ public static class FusionarContactosFeature
                 return Results.NotFound(new { error = "Uno o ambos contactos no fueron encontrados o no pertenecen al agente." });
             }
 
+            if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == agenteId && (a.ContactoId == command.PrimaryContactoId || a.ContactoId == command.SecondaryContactoId), ct))
+            {
+                return Results.Forbid();
+            }
+
             // Anti-Collision Channel Validation (Permitir duplicados literales)
             var hasWhatsapp1 = !string.IsNullOrWhiteSpace(primary.Telefono);
             var hasWhatsapp2 = !string.IsNullOrWhiteSpace(secondary.Telefono);

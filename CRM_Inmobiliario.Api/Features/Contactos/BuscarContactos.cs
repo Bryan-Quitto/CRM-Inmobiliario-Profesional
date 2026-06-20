@@ -24,6 +24,7 @@ public static class BuscarContactosFeature
 
             var contactos = await context.Contactos
                 .Where(l => (l.AgenteId == agenteId || l.CompartidoCon.Any(c => c.AgenteId == agenteId)) &&
+                           !context.AgentArchivedContacts.Any(a => a.AgentId == agenteId && a.ContactoId == l.Id) &&
                            (EF.Functions.ILike(l.Nombre, searchTerm) ||
                             EF.Functions.ILike(l.Apellido ?? "", searchTerm) ||
                             EF.Functions.ILike(l.Telefono ?? "", searchTerm)))

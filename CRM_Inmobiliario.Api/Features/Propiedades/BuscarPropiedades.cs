@@ -49,6 +49,7 @@ public static class BuscarPropiedadesFeature
             var results = await context.Properties
                 .AsNoTracking()
                 .Where(p => p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId)
+                .Where(p => !context.AgentArchivedProperties.Any(a => a.AgentId == agenteId && a.PropiedadId == p.Id))
                 .Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern))
                 .OrderBy(p => p.Titulo)
                 .Take(20)

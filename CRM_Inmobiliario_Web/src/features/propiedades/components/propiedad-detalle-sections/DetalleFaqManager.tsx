@@ -9,6 +9,7 @@ interface DetalleFaqManagerProps {
   propiedadId: string;
   canManage: boolean;
   currentAgenteId: string;
+  isArchived?: boolean;
 }
 
 type ActiveModal =
@@ -17,7 +18,7 @@ type ActiveModal =
   | { type: 'rechazar'; faqId: string }
   | null;
 
-export const DetalleFaqManager = ({ propiedadId, canManage, currentAgenteId }: DetalleFaqManagerProps) => {
+export const DetalleFaqManager = ({ propiedadId, canManage, currentAgenteId, isArchived }: DetalleFaqManagerProps) => {
   const { faqs, isLoading, crear, editar, enviarARevision, aprobar, rechazar, desactivar, reactivar, eliminarBorrador } =
     useFaqLogic(propiedadId, canManage);
 
@@ -43,13 +44,15 @@ export const DetalleFaqManager = ({ propiedadId, canManage, currentAgenteId }: D
             Base de conocimiento · IA
           </p>
         </div>
-        <button
-          onClick={() => setModal({ type: 'crear' })}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all active:scale-95 cursor-pointer"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Nueva pregunta
-        </button>
+        {!isArchived && (
+          <button
+            onClick={() => setModal({ type: 'crear' })}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all active:scale-95 cursor-pointer"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Nueva pregunta
+          </button>
+        )}
       </div>
 
       {/* Estado de carga */}
@@ -78,7 +81,7 @@ export const DetalleFaqManager = ({ propiedadId, canManage, currentAgenteId }: D
               key={faq.id}
               faq={faq}
               currentAgenteId={currentAgenteId}
-              canManage={canManage}
+              canManage={canManage && !isArchived}
               onEditar={f => setModal({ type: 'editar', faq: f })}
               onEnviarRevision={id => enviarARevision(id)}
               onAprobar={id => aprobar(id)}

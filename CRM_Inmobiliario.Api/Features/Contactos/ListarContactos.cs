@@ -43,7 +43,8 @@ public static class ListarContactosFeature
         string? Origen = null,
         string? EstadoPropietario = null,
         string? SortBy = null,
-        string? SortDirection = null);
+        string? SortDirection = null,
+        bool IsArchived = false);
 
     public record GetContactosResponse(
         List<ContactoResponse> Items,
@@ -66,6 +67,17 @@ public static class ListarContactosFeature
             
             // Usar Concat (UNION ALL) en lugar de OR/EXISTS para forzar Index Scan en Postgres
             var baseQuery = propios.Concat(compartidos).AsNoTracking();
+
+            var archivedQuery = context.AgentArchivedContacts.Where(a => a.AgentId == agenteId);
+
+            if (request.IsArchived)
+            {
+                baseQuery = baseQuery.Where(c => archivedQuery.Any(a => a.ContactoId == c.Id));
+            }
+            else
+            {
+                baseQuery = baseQuery.Where(c => !archivedQuery.Any(a => a.ContactoId == c.Id));
+            }
 
             if (!string.IsNullOrEmpty(request.Search))
             {
@@ -107,7 +119,7 @@ public static class ListarContactosFeature
             var sortBy = request.SortBy?.ToLower() ?? "fechacreacion";
             var isDesc = request.SortDirection != "asc";
 
-            var countsCacheKey = $"Contactos_Counts_{agenteId}_{request.Search}_{request.Estado}_{request.Segmento}_{request.Visibilidad}_{request.Origen}_{request.EstadoPropietario}";
+            var countsCacheKey = $"Contactos_Counts_{agenteId}_{request.Search}_{request.Estado}_{request.Segmento}_{request.Visibilidad}_{request.Origen}_{request.EstadoPropietario}_{request.IsArchived}";
             
             var memCache = serviceProvider.GetRequiredService<IMemoryCache>();
 

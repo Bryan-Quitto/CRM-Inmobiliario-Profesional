@@ -12,6 +12,8 @@ interface ContactoHeaderProps {
   navigate: (path: string) => void;
   onEdit: () => void;
   onMerge: () => void;
+  isTogglingArchive: boolean;
+  onToggleArchive: () => void;
 }
 
 export const ContactoHeader = ({
@@ -22,7 +24,9 @@ export const ContactoHeader = ({
   handleStageChange,
   navigate,
   onEdit,
-  onMerge
+  onMerge,
+  isTogglingArchive,
+  onToggleArchive
 }: ContactoHeaderProps) => {
   const { pathname } = useLocation();
   const isFromOwners = pathname.includes('/propietarios');
@@ -151,21 +155,46 @@ export const ContactoHeader = ({
         )}
 
         <button 
-          onClick={onMerge}
-          title="Fusionar Contactos"
-          className="h-10 px-4 bg-white text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-sm border border-slate-200 flex items-center gap-2 cursor-pointer"
+          data-testid="btn-toggle-archive"
+          onClick={onToggleArchive}
+          disabled={isTogglingArchive}
+          className={`h-10 px-4 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-sm border flex items-center gap-2 cursor-pointer ${
+            contacto.isArchivedForCurrentUser 
+              ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' 
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+          }`}
         >
-          <Merge className="h-4 w-4 text-blue-500" />
-          Fusionar
+          {isTogglingArchive ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : contacto.isArchivedForCurrentUser ? (
+            'Desarchivar'
+          ) : (
+            'Archivar'
+          )}
         </button>
 
-        <button 
-          onClick={onEdit}
-          className="h-10 px-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2 cursor-pointer"
-        >
-          <Pencil className="h-4 w-4" />
-          Editar
-        </button>
+        {!contacto.isArchivedForCurrentUser && (
+          <>
+            <button 
+              data-testid="btn-merge-entity"
+              onClick={onMerge}
+              title="Fusionar Contactos"
+              className="h-10 px-4 bg-white text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-sm border border-slate-200 flex items-center gap-2 cursor-pointer"
+            >
+              <Merge className="h-4 w-4 text-blue-500" />
+              Fusionar
+            </button>
+
+            <button 
+              data-testid="btn-edit-entity"
+              onClick={onEdit}
+              className="h-10 px-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2 cursor-pointer"
+            >
+              <Pencil className="h-4 w-4" />
+              Editar
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

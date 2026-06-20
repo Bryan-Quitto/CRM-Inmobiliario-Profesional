@@ -42,6 +42,11 @@ public static class CambiarEtapaContactoFeature
                     return Results.NotFound();
                 }
 
+                if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == agenteId && a.ContactoId == id, ct))
+                {
+                    return Results.Forbid();
+                }
+
                 // 2. Bloqueos Estrictos de Negocio (SSoT en Propiedades)
                 if (!esTipoPropietario)
                 {

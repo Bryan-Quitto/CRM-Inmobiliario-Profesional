@@ -49,16 +49,19 @@ public static class CambiarEstadoValidator
         bool esDuenioGestor = property.AgenteId == currentUserId || 
                               (property.Transactions.Any(t => t.CreatedById == currentUserId) && (property.Agente == null || !property.Agente.Activo));
 
-        // Regla ESTRICTA: Solo el dueño/gestor puede cambiar estados. 
-        if (!esDuenioGestor)
+        var isArchived = await context.AgentArchivedProperties.AnyAsync(a => a.AgentId == currentUserId && a.PropiedadId == propertyId, ct);
+        if (!PropertyPermissionsHelper.CanManage(property, currentUserId, isArchived))
         {
             var esCreador = property.Transactions.Any(t => t.CreatedById == currentUserId);
             var gestorActivo = property.Agente != null && property.Agente.Activo;
             string msg = "No tiene permisos para modificar los estados de esta propiedad.";
-            if (esCreador && gestorActivo)
-                msg = $"El agente invitado ha activado su cuenta y ahora tiene el control exclusivo de la propiedad.";
             
-            return new ValidationResult(false, msg, StatusCodes.Status400BadRequest);
+            if (isArchived)
+                msg = "No puedes modificar el estado de una propiedad archivada.";
+            else if (esCreador && gestorActivo)
+                msg = "El agente invitado ha activado su cuenta y ahora tiene el control exclusivo de la propiedad.";
+            
+            return new ValidationResult(false, msg, StatusCodes.Status403Forbidden);
         }
 
         // 3. Spec 011: Validación de estado Reservada sobre Cierre

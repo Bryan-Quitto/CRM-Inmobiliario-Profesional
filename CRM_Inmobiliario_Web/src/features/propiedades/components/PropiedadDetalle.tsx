@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SWRConfig } from 'swr';
+import { SWRConfig, useSWRConfig } from 'swr';
 import { Loader2 } from 'lucide-react';
 import type { DropResult } from '@hello-pangea/dnd';
 import { localStorageProvider } from '@/lib/swr';
@@ -13,6 +13,7 @@ import { DetalleGalleryManager } from './propiedad-detalle-sections/DetalleGalle
 import { DetalleHistoryTimeline } from './propiedad-detalle-sections/DetalleHistoryTimeline';
 import { DetalleModalsOrchestrator } from './propiedad-detalle-sections/DetalleModalsOrchestrator';
 import { DetalleFaqManager } from './propiedad-detalle-sections/DetalleFaqManager';
+import { usePropiedadArchive } from '../hooks/usePropiedadArchive';
 
 interface PropiedadDetalleProps {
   id: string;
@@ -79,8 +80,16 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
     handleStatusChange,
     handleRelist,
     handleCancelTransaction,
-    mutate,
+    mutate
   } = usePropiedadDetalle({ id, onCoverUpdated });
+
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { isTogglingArchive, handleToggleArchive } = usePropiedadArchive({
+    propiedad: propiedad ?? undefined,
+    mutate,
+    globalMutate
+  });
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !propiedad?.secciones || isReordering) return;
@@ -147,6 +156,8 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
             message += `\n¿Te gustaría visitarla? ${e.smile}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
           }}
+          isTogglingArchive={isTogglingArchive}
+          onToggleArchive={handleToggleArchive}
         />
 
         <div className="p-8 space-y-12 pb-24">
@@ -174,6 +185,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                 handleMoveSection={handleMoveSection}
                 handleDragEnd={handleDragEnd}
                 mutate={() => mutate()}
+                isArchived={propiedad.isArchivedForCurrentUser}
               />
 
               <DetalleHistoryTimeline
@@ -181,6 +193,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
                 handleInlineUpdateNote={handleInlineUpdateNote}
                 formatDate={formatDate}
                 formatCurrency={formatCurrency}
+                isArchived={propiedad.isArchivedForCurrentUser}
               />
             </>
           )}
@@ -190,6 +203,7 @@ const PropiedadDetalleContent = ({ id, onClose, onCoverUpdated }: PropiedadDetal
               propiedadId={propiedad.id}
               canManage={!!propiedad.permissions?.canEditMasterData}
               currentAgenteId={user?.id ?? ''}
+              isArchived={propiedad.isArchivedForCurrentUser}
             />
           )}
         </div>

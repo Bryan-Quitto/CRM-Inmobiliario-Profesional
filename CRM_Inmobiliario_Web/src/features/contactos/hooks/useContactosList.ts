@@ -31,6 +31,7 @@ export const useContactosList = () => {
   const visibilidad = searchParams.get('visibilidad') || undefined;
   const origen = searchParams.get('origen') || undefined;
   const estadoPropietario = searchParams.get('estadoPropietario') || undefined;
+  const isArchived = searchParams.get('isArchived') === 'true';
   const sortBy = searchParams.get('sortBy') || undefined;
   const sortDirection = searchParams.get('sortDirection') || undefined;
   
@@ -43,9 +44,10 @@ export const useContactosList = () => {
     visibilidad: visibilidad === 'Todos' ? undefined : visibilidad,
     origen: origen === 'Todos' ? undefined : origen,
     estadoPropietario: estadoPropietario === 'Todos' ? undefined : estadoPropietario,
+    isArchived: isArchived || undefined,
     sortBy,
     sortDirection
-  }), [page, search, estado, activeSegment, visibilidad, origen, estadoPropietario, sortBy, sortDirection]);
+  }), [page, search, estado, activeSegment, visibilidad, origen, estadoPropietario, isArchived, sortBy, sortDirection]);
 
   const { data: responseData, isLoading, isValidating, mutate } = useSWR<GetContactosResponse>(
     ['/contactos', params],

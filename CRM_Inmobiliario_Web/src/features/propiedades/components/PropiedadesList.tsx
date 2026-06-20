@@ -24,6 +24,8 @@ const PropiedadesContent = () => {
     setFilterEstado,
     filterTipo,
     setFilterTipo,
+    isArchived,
+    setIsArchived,
     advancedFilters,
     setAdvancedFilters,
     sortBy,
@@ -79,6 +81,8 @@ const PropiedadesContent = () => {
         setFilterEstado={setFilterEstado}
         filterTipo={filterTipo}
         setFilterTipo={setFilterTipo}
+        isArchived={isArchived}
+        setIsArchived={setIsArchived}
         advancedFilters={advancedFilters}
         setAdvancedFilters={setAdvancedFilters}
         sortBy={sortBy}

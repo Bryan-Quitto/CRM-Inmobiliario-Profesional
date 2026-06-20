@@ -35,6 +35,11 @@ public static class RevocarCompartidoFeature
                 return Results.Forbid();
             }
 
+            if (await context.AgentArchivedContacts.AnyAsync(a => a.AgentId == currentUserId && a.ContactoId == id, ct))
+            {
+                return Results.Forbid();
+            }
+
             if (agenteIds == null || agenteIds.Count == 0)
             {
                 return Results.BadRequest(new { Message = "Debe proporcionar al menos un ID de agente." });
