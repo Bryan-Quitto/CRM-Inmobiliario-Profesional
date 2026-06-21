@@ -25,6 +25,8 @@ public static class CancelarTareaFeature
 
             tarea.Estado = "Cancelada";
             await context.SaveChangesAsync();
+            if (tarea.ContactoId.HasValue) await context.UpsertAgentContactActivityAsync(agenteId, tarea.ContactoId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
+            if (tarea.PropiedadId.HasValue) await context.UpsertAgentPropertyActivityAsync(agenteId, tarea.PropiedadId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
 
             // Notificar al servicio de Warming proactivamente
             warmingService.NotifyChange(agenteId);
@@ -39,3 +41,4 @@ public static class CancelarTareaFeature
         .WithName("CancelarTarea");
     }
 }
+

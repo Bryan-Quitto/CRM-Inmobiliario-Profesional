@@ -52,8 +52,7 @@ public static class ToggleBotActivoFeature
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(c => c.BotActivoFB, command.BotActivo)
                         .SetProperty(c => c.EstadoIA_FB, c => command.BotActivo ? null : c.EstadoIA_FB)
-                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada)
-                        .SetProperty(c => c.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
+                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada), ct);
             }
             else
             {
@@ -62,8 +61,7 @@ public static class ToggleBotActivoFeature
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(c => c.BotActivoWA, command.BotActivo)
                         .SetProperty(c => c.EstadoIA_WA, c => command.BotActivo ? null : c.EstadoIA_WA)
-                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada)
-                        .SetProperty(c => c.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
+                        .SetProperty(c => c.TransferenciaNotificada, c => command.BotActivo ? false : c.TransferenciaNotificada), ct);
             }
 
             if (updatedCount == 0)
@@ -71,6 +69,7 @@ public static class ToggleBotActivoFeature
                 return Results.NotFound();
             }
 
+            await context.UpsertAgentContactActivityAsync(agenteId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             await cacheStore.EvictByTagAsync("contactos", ct);
 
             return Results.NoContent();
@@ -80,3 +79,4 @@ public static class ToggleBotActivoFeature
         .WithName("ToggleBotActivoContacto");
     }
 }
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { Lock, Loader2, KeyRound, Smartphone, Save, MessageSquare, AlertTriangle, Bot, Settings2, ShieldAlert } from 'lucide-react';
 import { usePerfil } from '../../auth/api/perfil';
 import { supabase } from '../../../lib/supabase';
@@ -210,31 +211,30 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
     const avgPrice = isGemini ? 0.075 : 0.15;
     const estimatedCost = (limit * avgPrice / 1000000).toFixed(4);
     
-    return (
-      <div className="group relative flex items-center justify-end mt-1">
-        <span className="text-xs font-bold text-slate-500 cursor-help border-b border-dashed border-slate-400">
-          ≈ ${estimatedCost} USD
-        </span>
-        <div className="absolute bottom-full right-0 mb-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50 w-64">
-          <div className="bg-white/80 backdrop-blur-xl border border-indigo-100/50 p-4 rounded-2xl shadow-2xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 -z-10" />
-            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-indigo-100/50">
-              <div className="p-1.5 bg-indigo-100/80 rounded-lg text-indigo-600">
-                <Bot className="w-4 h-4" />
-              </div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-indigo-900">Estimación de Costo</p>
-            </div>
-            <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              Cálculo aproximado basado en un costo de <strong className="text-indigo-600 font-bold">${avgPrice} por 1M de tokens</strong> ({providerName}).
-            </p>
-            <div className="mt-3 bg-indigo-50/50 rounded-lg p-2 border border-indigo-100/50 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase">Costo Max. Diario</span>
-              <span className="text-xs font-black text-indigo-600">${estimatedCost} USD</span>
-            </div>
+    const tooltipContent = (
+      <div className="w-64">
+        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-indigo-100/50">
+          <div className="p-1.5 bg-indigo-100/80 rounded-lg text-indigo-600">
+            <Bot className="w-4 h-4" />
           </div>
-          <div className="absolute -bottom-2 right-4 w-4 h-4 bg-white/80 backdrop-blur-xl border-b border-r border-indigo-100/50 rotate-45 transform" />
+          <p className="text-[11px] font-black uppercase tracking-widest text-indigo-900">Estimación de Costo</p>
+        </div>
+        <p className="text-xs text-slate-600 font-medium leading-relaxed">
+          Cálculo aproximado basado en un costo de <strong className="text-indigo-600 font-bold">${avgPrice} por 1M de tokens</strong> ({providerName}).
+        </p>
+        <div className="mt-3 bg-indigo-50/50 rounded-lg p-2 border border-indigo-100/50 flex items-center justify-between">
+          <span className="text-[10px] font-bold text-slate-500 uppercase">Costo Max. Diario</span>
+          <span className="text-xs font-black text-indigo-600">${estimatedCost} USD</span>
         </div>
       </div>
+    );
+
+    return (
+      <Tooltip content={tooltipContent} variant="premium" className="mt-1" position="top">
+        <span className="text-xs font-bold text-slate-500 cursor-help border-b border-dashed border-slate-400 block">
+          ≈ ${estimatedCost} USD
+        </span>
+      </Tooltip>
     );
   };
 
@@ -421,7 +421,7 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
                     className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4"
                     onClick={() => {
                       if (isWhatsAppAiEnabled) {
-                        toast.info("La Inteligencia Artificial requiere la creación automática de contactos para funcionar. Apaga la IA primero si deseas deshabilitar esta opción.");
+                        toast.warning("La Inteligencia Artificial requiere la creación automática de contactos para funcionar. Apaga la IA primero si deseas deshabilitar esta opción.");
                       }
                     }}
                   >

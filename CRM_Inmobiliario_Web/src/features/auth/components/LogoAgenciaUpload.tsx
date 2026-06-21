@@ -42,7 +42,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Formato no soportado', { description: 'Usa JPG, PNG, WebP o SVG.' });
+      toast.warning('Formato no soportado', { description: 'Usa JPG, PNG, WebP o SVG.' });
       return;
     }
 

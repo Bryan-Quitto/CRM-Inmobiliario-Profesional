@@ -42,7 +42,7 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Formato no soportado', { description: 'Usa JPG, PNG o WebP.' });
+      toast.warning('Formato no soportado', { description: 'Usa JPG, PNG o WebP.' });
       return;
     }
 

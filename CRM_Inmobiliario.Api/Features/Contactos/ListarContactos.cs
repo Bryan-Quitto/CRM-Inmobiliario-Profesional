@@ -32,6 +32,10 @@ public static class ListarContactosFeature
         int NumeroPropiedadesCaptadas,
         int NumeroReservas,
         int NumeroCierres,
+        bool BotActivoWA,
+        bool BotActivoFB,
+        string? EstadoIA_WA,
+        string? EstadoIA_FB,
         bool IsArchivedForCurrentUser);
 
     public record GetContactosRequest(
@@ -73,11 +77,11 @@ public static class ListarContactosFeature
 
             if (request.IsArchived)
             {
-                baseQuery = baseQuery.Where(c => c.IsArchived || archivedQuery.Any(a => a.ContactoId == c.Id));
+                baseQuery = baseQuery.Where(c => archivedQuery.Any(a => a.ContactoId == c.Id));
             }
             else
             {
-                baseQuery = baseQuery.Where(c => !c.IsArchived && !archivedQuery.Any(a => a.ContactoId == c.Id));
+                baseQuery = baseQuery.Where(c => !archivedQuery.Any(a => a.ContactoId == c.Id));
             }
 
             if (!string.IsNullOrEmpty(request.Search))
@@ -197,6 +201,10 @@ public static class ListarContactosFeature
                     l.NumeroPropiedadesCaptadas,
                     l.NumeroReservas,
                     l.NumeroCierres,
+                    l.BotActivoWA,
+                    l.BotActivoFB,
+                    l.EstadoIA_WA,
+                    l.EstadoIA_FB,
                     request.IsArchived
                 ))
                 .ToListAsync(cancellationToken);

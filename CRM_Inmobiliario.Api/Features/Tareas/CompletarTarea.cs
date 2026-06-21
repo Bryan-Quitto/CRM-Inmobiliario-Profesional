@@ -32,8 +32,8 @@ public static class CompletarTareaFeature
                 await cacheStore.EvictByTagAsync("analytics-data", ct);
                 var t = await context.Tasks.FindAsync(id);
             if (t != null) {
-                if (t.ContactoId.HasValue) await context.Contactos.Where(c => c.Id == t.ContactoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
-                if (t.PropiedadId.HasValue) await context.Properties.Where(p => p.Id == t.PropiedadId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
+                if (t.ContactoId.HasValue) await context.UpsertAgentContactActivityAsync(agenteId, t.ContactoId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
+                if (t.PropiedadId.HasValue) await context.UpsertAgentPropertyActivityAsync(agenteId, t.PropiedadId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             }
             return Results.NoContent();
             }
@@ -44,3 +44,4 @@ public static class CompletarTareaFeature
         .WithName("CompletarTarea");
     }
 }
+

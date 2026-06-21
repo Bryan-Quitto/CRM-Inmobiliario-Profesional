@@ -44,9 +44,24 @@ public class AutoArchivadoJob
                 {
                     var cutoffContactos = utcMinus5.AddDays(-agency.DiasInactividadContactos);
 
-                    int archivedContactsCount = await _dbContext.Contactos
-                        .Where(c => c.Agente != null && c.Agente.AgenciaId == agency.Id && !c.IsArchived && c.FechaUltimaActividad <= cutoffContactos)
-                        .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsArchived, true));
+                    var sqlContacts = $@"
+                        INSERT INTO ""AgentArchivedContacts"" (""AgentId"", ""ContactoId"")
+                        SELECT c.""AgenteId"", c.""Id""
+                        FROM ""Contactos"" c
+                        INNER JOIN ""Agents"" a ON a.""Id"" = c.""AgenteId""
+                        WHERE a.""AgenciaId"" = '{agency.Id}'
+                        AND NOT EXISTS (
+                            SELECT 1 FROM ""AgentArchivedContacts"" arc 
+                            WHERE arc.""AgentId"" = c.""AgenteId"" AND arc.""ContactoId"" = c.""Id""
+                        )
+                        AND (
+                            COALESCE(
+                                (SELECT MAX(""LastActivityUtc"") FROM ""AgentContactActivities"" aca WHERE aca.""AgentId"" = c.""AgenteId"" AND aca.""ContactoId"" = c.""Id""),
+                                c.""FechaCreacion""
+                            ) <= '{cutoffContactos:O}'
+                        );";
+
+                    int archivedContactsCount = await _dbContext.Database.ExecuteSqlRawAsync(sqlContacts);
 
                     _logger.LogInformation("Agencia {AgencyId}: Se han auto-archivado {Count} contactos inactivos antes de {Cutoff}.", agency.Id, archivedContactsCount, cutoffContactos);
                 }
@@ -55,9 +70,25 @@ public class AutoArchivadoJob
                 {
                     var cutoffPropiedades = utcMinus5.AddDays(-agency.DiasInactividadPropiedades);
 
-                    int archivedPropertiesCount = await _dbContext.Properties
-                        .Where(p => (p.AgenciaId == agency.Id || (p.Agente != null && p.Agente.AgenciaId == agency.Id)) && !p.IsArchived && p.FechaUltimaActividad <= cutoffPropiedades)
-                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsArchived, true));
+                    var sqlProperties = $@"
+                        INSERT INTO ""AgentArchivedProperties"" (""AgentId"", ""PropiedadId"")
+                        SELECT p.""AgenteId"", p.""Id""
+                        FROM ""Properties"" p
+                        INNER JOIN ""Agents"" a ON a.""Id"" = p.""AgenteId""
+                        WHERE a.""AgenciaId"" = '{agency.Id}'
+                        AND p.""AgenteId"" IS NOT NULL
+                        AND NOT EXISTS (
+                            SELECT 1 FROM ""AgentArchivedProperties"" arp 
+                            WHERE arp.""AgentId"" = p.""AgenteId"" AND arp.""PropiedadId"" = p.""Id""
+                        )
+                        AND (
+                            COALESCE(
+                                (SELECT MAX(""LastActivityUtc"") FROM ""AgentPropertyActivities"" apa WHERE apa.""AgentId"" = p.""AgenteId"" AND apa.""PropertyId"" = p.""Id""),
+                                p.""FechaIngreso""
+                            ) <= '{cutoffPropiedades:O}'
+                        );";
+
+                    int archivedPropertiesCount = await _dbContext.Database.ExecuteSqlRawAsync(sqlProperties);
 
                     _logger.LogInformation("Agencia {AgencyId}: Se han auto-archivado {Count} propiedades inactivas antes de {Cutoff}.", agency.Id, archivedPropertiesCount, cutoffPropiedades);
                 }

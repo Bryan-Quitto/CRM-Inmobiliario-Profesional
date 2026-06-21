@@ -40,9 +40,8 @@ public static class TogglePropertyArchiveFeature
                     ArchivedAt = DateTimeOffset.UtcNow
                 });
             }
-
-            propiedad.FechaUltimaActividad = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync(ct);
+            await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             
             await cacheStore.EvictByTagAsync("properties-data", ct);
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
@@ -54,3 +53,4 @@ public static class TogglePropertyArchiveFeature
         .WithName("TogglePropertyArchive");
     }
 }
+

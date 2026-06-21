@@ -72,7 +72,7 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
 
                     db.FacebookMessages.Add(messageLog);
                     await db.SaveChangesAsync(cancellationToken);
-                    if (contactoId.HasValue) await db.Contactos.Where(c => c.Id == contactoId.Value).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), cancellationToken);
+                    if (agenteId.HasValue) { await db.UpsertAgentContactActivityAsync(agenteId.Value, contactoId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), cancellationToken); }
 
                     // Auto-completar escalación si el agente responde manualmente
                     if (!isAiResponse)
@@ -150,7 +150,7 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
 
                     db.FacebookMessages.Add(messageLog);
                     await db.SaveChangesAsync(cancellationToken);
-                    if (contactoId.HasValue) await db.Contactos.Where(c => c.Id == contactoId.Value).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), cancellationToken);
+                    if (agenteId.HasValue) { await db.UpsertAgentContactActivityAsync(agenteId.Value, contactoId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), cancellationToken); }
 
                     // Auto-completar escalación si el agente responde manualmente
                     if (!isAiResponse)
@@ -212,3 +212,4 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
         }
     }
 }
+

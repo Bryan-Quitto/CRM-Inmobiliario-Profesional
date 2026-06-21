@@ -41,6 +41,13 @@ This file defines the strict technical standards and architectural rules for the
 - **Files:** No separate `.css` files for components. Only use global CSS for Tailwind directives and base variables.
 - **Interactive Elements (Cursors):** ALL interactive elements (buttons, custom dropdowns, clickable pills, etc.) MUST explicitly include the `cursor-pointer` utility class to prevent UX ambiguity.
 
+### UI Feedback & Toasts Semantics
+- **Rule (Consistencia Semántica):** STRICT adherence to the semantic meaning of toast colors. 
+  - `toast.error` (Rojo): ONLY for system errors, network failures, database errors, or "Acceso denegado". NEVER use for business validations.
+  - `toast.warning` (Amarillo): For business restrictions, prerequisites not met (e.g., "Debes activar la IA", "Contacto archivado"), and soft validations.
+  - `toast.info` (Azul): For passive system state notifications (e.g., "Generando PDF").
+  - `toast.success` (Verde): For successful actions, INCLUDING DELETIONS (e.g., "Imagen eliminada"). NEVER use warning for successful actions.
+
 ### Code Documentation
 - **Rule:** Formal and professional technical comments only.
 - **Purpose:** Explain the "why" of complex logic, not the "what" (tutorial-style comments are forbidden).

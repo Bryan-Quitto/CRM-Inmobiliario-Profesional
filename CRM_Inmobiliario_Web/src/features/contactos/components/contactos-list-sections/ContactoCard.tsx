@@ -218,19 +218,23 @@ export const ContactoCard = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       if (!isWhatsAppAiEnabled) {
-                        toast.error("Debes activar la IA de WhatsApp en Configuración para usar esta función");
+                        toast.warning("Debes activar la IA de WhatsApp en Configuración para usar esta función");
                         return;
                       }
                       const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
                       if (isStageLocked) {
-                        toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                        toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                        return;
+                      }
+                      if (contacto.isArchivedForCurrentUser) {
+                        toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
                         return;
                       }
                       if (waToggle.isLoading) return;
                       waToggle.handleToggle(!waToggle.isBotActivo);
                     }}
                     className={`h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
-                      !isWhatsAppAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                      !isWhatsAppAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                         ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                         : waToggle.isBotActivo 
                           ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
@@ -270,19 +274,23 @@ export const ContactoCard = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       if (!isFacebookAiEnabled) {
-                        toast.error("Debes activar la IA de Facebook en Configuración para usar esta función");
+                        toast.warning("Debes activar la IA de Facebook en Configuración para usar esta función");
                         return;
                       }
                       const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
                       if (isStageLocked) {
-                        toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                        toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                        return;
+                      }
+                      if (contacto.isArchivedForCurrentUser) {
+                        toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
                         return;
                       }
                       if (fbToggle.isLoading) return;
                       fbToggle.handleToggle(!fbToggle.isBotActivo);
                     }}
                     className={`h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
-                      !isFacebookAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                      !isFacebookAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                         ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                         : fbToggle.isBotActivo 
                           ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 

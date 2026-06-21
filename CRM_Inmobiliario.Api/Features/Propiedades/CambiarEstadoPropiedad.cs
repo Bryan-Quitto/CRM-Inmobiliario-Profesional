@@ -68,8 +68,8 @@ public static class CambiarEstadoPropiedadFeature
 
                 // 4. PERSISTENCIA Y EFECTOS SECUNDARIOS
                 logger.LogInformation("💾 [ESTADO] Ejecutando SaveChangesAsync...");
-                validation.Property!.FechaUltimaActividad = DateTimeOffset.UtcNow;
                 await context.SaveChangesAsync(CancellationToken.None);
+                await context.UpsertAgentPropertyActivityAsync(currentUserId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), CancellationToken.None);
                 
                 // Notificaciones y Limpieza de Caché
                 warmingService.NotifyChange(currentUserId);
@@ -100,3 +100,4 @@ public static class CambiarEstadoPropiedadFeature
         await cacheStore.EvictByTagAsync("properties-data", ct);
     }
 }
+

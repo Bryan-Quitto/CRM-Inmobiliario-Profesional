@@ -27,8 +27,8 @@ public static class DesvincularPropiedadFeature
 
             if (rowsAffected > 0)
             {
+                await context.UpsertAgentContactActivityAsync(agenteId, contactoId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
                 // Invalidar caches proactivamente
-                await context.Contactos.Where(c => c.Id == contactoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
                 await cacheStore.EvictByTagAsync("analytics-data", ct);
                 return Results.NoContent();
@@ -40,3 +40,4 @@ public static class DesvincularPropiedadFeature
         .WithName("DesvincularPropiedad");
     }
 }
+

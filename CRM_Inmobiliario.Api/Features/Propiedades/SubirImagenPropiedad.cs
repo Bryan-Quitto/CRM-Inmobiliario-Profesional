@@ -99,6 +99,7 @@ public static class SubirImagenPropiedadFeature
 
                 context.PropertyMedia.Add(media);
                 await context.SaveChangesAsync();
+                await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
 
                 return Results.Ok(new 
                 { 
@@ -120,3 +121,4 @@ public static class SubirImagenPropiedadFeature
         .WithName("SubirImagenPropiedad");
     }
 }
+

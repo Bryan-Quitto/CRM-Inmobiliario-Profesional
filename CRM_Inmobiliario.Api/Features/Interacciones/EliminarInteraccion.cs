@@ -17,12 +17,16 @@ public static class EliminarInteraccionFeature
         {
             var agenteId = user.GetRequiredUserId();
 
+            var interaccion = await context.Interactions.FindAsync(id);
+            var contactoId = interaccion?.ContactoId;
+
             var rowsAffected = await context.Interactions
                 .Where(i => i.Id == id && i.AgenteId == agenteId)
                 .ExecuteDeleteAsync(ct);
 
             if (rowsAffected == 0) return Results.NotFound("Interacción no encontrada o no te pertenece.");
 
+            if (contactoId.HasValue) { await context.UpsertAgentContactActivityAsync(agenteId, contactoId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct); }
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
             await cacheStore.EvictByTagAsync("analytics-data", ct);
@@ -33,3 +37,5 @@ public static class EliminarInteraccionFeature
         .WithName("EliminarInteraccion");
     }
 }
+
+

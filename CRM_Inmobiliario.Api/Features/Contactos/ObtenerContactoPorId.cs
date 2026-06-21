@@ -21,6 +21,10 @@ public static class ObtenerContactoPorIdFeature
         DateTimeOffset FechaCreacion,
         bool EsCompartido,
         string? FacebookSenderId,
+        bool BotActivoWA,
+        bool BotActivoFB,
+        string? EstadoIA_WA,
+        string? EstadoIA_FB,
         bool IsArchivedForCurrentUser,
         List<InteraccionResponse> Interacciones,
         List<InteresPropiedadResponse> Intereses,
@@ -74,6 +78,10 @@ public static class ObtenerContactoPorIdFeature
                     c.FechaCreacion,
                     c.AgenteId != agenteId,
                     c.FacebookSenderId,
+                    c.BotActivoWA,
+                    c.BotActivoFB,
+                    c.EstadoIA_WA,
+                    c.EstadoIA_FB,
                     context.AgentArchivedContacts.Any(a => a.AgentId == agenteId && a.ContactoId == c.Id),
                     c.Interactions
                         .OrderByDescending(i => i.FechaInteraccion)

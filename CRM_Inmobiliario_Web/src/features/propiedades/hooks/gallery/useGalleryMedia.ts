@@ -49,7 +49,7 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
       }
     };
 
-    toast.warning(`${idsArray.length > 1 ? 'Imágenes eliminadas' : 'Imagen eliminada'}`, {
+    toast.success(`${idsArray.length > 1 ? 'Imágenes eliminadas' : 'Imagen eliminada'}`, {
       description: "Tienes unos segundos para deshacer.",
       action: {
         label: "Deshacer",
@@ -96,7 +96,7 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
       }
     };
 
-    toast.warning("Galería depurada", {
+    toast.success("Galería depurada", {
       description: "Se han eliminado todas las fotos excepto la de portada. Tienes unos segundos para deshacer.",
       action: {
         label: "Deshacer",

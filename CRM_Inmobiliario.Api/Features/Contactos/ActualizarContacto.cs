@@ -63,9 +63,8 @@ public static class ActualizarContactoFeature
             contacto.Origen = command.Origen;
             contacto.EsProspecto = command.EsContacto;
             contacto.EsPropietario = command.EsPropietario;
-
-            contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync(ct);
+            await context.UpsertAgentContactActivityAsync(agenteId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             await cacheStore.EvictByTagAsync("contactos", ct);
 
             return Results.NoContent();

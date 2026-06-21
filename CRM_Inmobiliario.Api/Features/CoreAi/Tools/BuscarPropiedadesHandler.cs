@@ -97,6 +97,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
 
         var baseQuery = _context.Properties
             .Where(p => allowedStates.Contains(p.EstadoComercial))
+
             .Where(p => !descartadosIds.Contains(p.Id))
             // Filtros duros (Hybrid Search)
             .Where(p => string.IsNullOrEmpty(tipoOperacion) || p.Operacion == tipoOperacion)
@@ -113,6 +114,16 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
             baseQuery = baseQuery.Where(p => 
                 (currentAgencyId != null && p.AgenciaId == currentAgencyId) || 
                 (currentAgentId != null && (p.AgenteId == currentAgentId || p.CreatedByAgenteId == currentAgentId)));
+        }
+
+        // Filtro de Ocultamiento IA: Excluir propiedades archivadas por el agente actual
+        if (currentAgentId != null)
+        {
+            var archivedByAgentIds = _context.AgentArchivedProperties
+                .Where(a => a.AgentId == currentAgentId)
+                .Select(a => a.PropiedadId);
+                
+            baseQuery = baseQuery.Where(p => !archivedByAgentIds.Contains(p.Id));
         }
 
         List<PropiedadResultDto> results;

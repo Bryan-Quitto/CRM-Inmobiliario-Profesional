@@ -29,6 +29,8 @@ public static class ToggleContactArchiveFeature
             {
                 // Desarchivar
                 context.AgentArchivedContacts.Remove(archiveRecord);
+                contacto.BotActivoWA = true;
+                contacto.BotActivoFB = true;
             }
             else
             {
@@ -39,10 +41,11 @@ public static class ToggleContactArchiveFeature
                     ContactoId = id,
                     ArchivedAt = DateTimeOffset.UtcNow
                 });
+                contacto.BotActivoWA = false;
+                contacto.BotActivoFB = false;
             }
-
-            contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync(ct);
+            await context.UpsertAgentContactActivityAsync(user.GetRequiredUserId(), id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             
             await cacheStore.EvictByTagAsync("contactos", ct);
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
@@ -54,3 +57,4 @@ public static class ToggleContactArchiveFeature
         .WithName("ToggleContactArchive");
     }
 }
+

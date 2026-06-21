@@ -112,9 +112,8 @@ public static class RevertirEstadoContactoFeature
                             pt.Notes = (pt.Notes ?? "") + (esTratoCaido ? $" [Cancelada el {DateTimeOffset.UtcNow:dd/MM/yyyy} por reversión de etapa]" : $" [Completada el {DateTimeOffset.UtcNow:dd/MM/yyyy} por reversión de etapa]");
                         }
                     }
-
-                    contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
                     await context.SaveChangesAsync();
+                    await context.UpsertAgentContactActivityAsync(user.GetRequiredUserId(), id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
                     await tx.CommitAsync();
 
                     return Results.Ok(new { Message = "Estado del contacto revertido con éxito" });
@@ -131,3 +130,4 @@ public static class RevertirEstadoContactoFeature
         .WithName("RevertirEstadoContacto");
     }
 }
+

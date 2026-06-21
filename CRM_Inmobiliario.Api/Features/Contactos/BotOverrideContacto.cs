@@ -40,10 +40,10 @@ public static class BotOverrideContactoFeature
                 usage.InputTokens = 0;
                 usage.OutputTokens = 0;
             }
-
-            contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync(ct);
+            await context.UpsertAgentContactActivityAsync(user.GetRequiredUserId(), id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             return Results.Ok(contacto);
         });
     }
 }
+

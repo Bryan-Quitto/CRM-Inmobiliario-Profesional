@@ -188,7 +188,7 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
       className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4"
       onClick={() => {
         if (isFacebookAiEnabled) {
-          import('sonner').then(({ toast }) => toast.info("La Inteligencia Artificial requiere la creación automática de contactos para funcionar. Apaga la IA primero si deseas deshabilitar esta opción."));
+          import('sonner').then(({ toast }) => toast.warning("La Inteligencia Artificial requiere la creación automática de contactos para funcionar. Apaga la IA primero si deseas deshabilitar esta opción."));
         }
       }}
     >

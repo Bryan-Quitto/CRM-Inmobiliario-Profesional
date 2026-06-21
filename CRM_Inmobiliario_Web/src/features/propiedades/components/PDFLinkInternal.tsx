@@ -101,7 +101,7 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
       // --- Lógica de borrado programado (30 segundos) ---
       setIsDeleting(true);
       await api.post(`/propiedades/${propiedad.id}/confirmar-descarga`);
-      toast.warning('Descarga exitosa. El archivo se eliminará del servidor en 30 segundos por seguridad.', {
+      toast.success('Descarga exitosa. El archivo se eliminará del servidor en 30 segundos por seguridad.', {
         duration: 5000
       });
       

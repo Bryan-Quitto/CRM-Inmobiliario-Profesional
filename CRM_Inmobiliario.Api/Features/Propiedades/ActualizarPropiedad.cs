@@ -167,8 +167,8 @@ public static class ActualizarPropiedadFeature
             try
             {
                 logger.LogInformation("ActualizarPropiedad {Id}: Iniciando SaveChangesAsync", id);
-                propiedad.FechaUltimaActividad = DateTimeOffset.UtcNow;
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(ct);
+                await context.UpsertAgentPropertyActivityAsync(currentUserId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
                 logger.LogInformation("ActualizarPropiedad {Id}: SaveChangesAsync exitoso", id);
                 
                 // Enqueue background job to update vector embedding
@@ -186,7 +186,6 @@ public static class ActualizarPropiedadFeature
                         if (oldPropietario != null)
                         {
                             oldPropietario.EsPropietario = false;
-                            propiedad.FechaUltimaActividad = DateTimeOffset.UtcNow;
                 await context.SaveChangesAsync();
                         }
                     }

@@ -41,6 +41,8 @@ public sealed class CrmDbContext : DbContext
     public DbSet<PropertyFaq> PropertyFaqs => Set<PropertyFaq>();
     public DbSet<AgentArchivedContact> AgentArchivedContacts => Set<AgentArchivedContact>();
     public DbSet<AgentArchivedProperty> AgentArchivedProperties => Set<AgentArchivedProperty>();
+    public DbSet<AgentContactActivity> AgentContactActivities => Set<AgentContactActivity>();
+    public DbSet<AgentPropertyActivity> AgentPropertyActivities => Set<AgentPropertyActivity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,18 +61,10 @@ public sealed class CrmDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Contacto>()
-            .HasIndex(c => new { c.IsArchived, c.FechaUltimaActividad })
-            .HasDatabaseName("idx_contactos_archivado");
-
-        modelBuilder.Entity<Contacto>()
             .HasIndex(c => c.NormalizedSearchText)
             .HasDatabaseName("idx_contactos_search")
             .HasMethod("gin")
             .HasOperators("gin_trgm_ops");
-
-        modelBuilder.Entity<Property>()
-            .HasIndex(p => new { p.IsArchived, p.FechaUltimaActividad })
-            .HasDatabaseName("idx_properties_archivado");
 
         modelBuilder.Entity<Property>()
             .HasIndex(p => p.NormalizedSearchText)
@@ -106,6 +100,20 @@ public sealed class CrmDbContext : DbContext
             entity.HasKey(e => new { e.AgentId, e.PropiedadId });
             entity.HasOne(e => e.Agent).WithMany().HasForeignKey(e => e.AgentId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(e => e.Propiedad).WithMany().HasForeignKey(e => e.PropiedadId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AgentContactActivity>(entity =>
+        {
+            entity.HasKey(e => new { e.AgentId, e.ContactoId });
+            entity.HasOne(e => e.Agent).WithMany().HasForeignKey(e => e.AgentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Contacto).WithMany().HasForeignKey(e => e.ContactoId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AgentPropertyActivity>(entity =>
+        {
+            entity.HasKey(e => new { e.AgentId, e.PropertyId });
+            entity.HasOne(e => e.Agent).WithMany().HasForeignKey(e => e.AgentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Property).WithMany().HasForeignKey(e => e.PropertyId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // Aplicar todas las configuraciones de IEntityTypeConfiguration encontradas en el ensamblado
@@ -145,6 +153,26 @@ public sealed class CrmDbContext : DbContext
                 }
             }
         }
+    }
+
+    public async Task UpsertAgentContactActivityAsync(Guid agentId, Guid contactoId, DateTimeOffset timestamp, CancellationToken ct = default)
+    {
+        await Database.ExecuteSqlRawAsync(
+            @"INSERT INTO ""AgentContactActivities"" (""AgentId"", ""ContactoId"", ""LastActivityUtc"")
+              VALUES ({0}, {1}, {2})
+              ON CONFLICT (""AgentId"", ""ContactoId"") 
+              DO UPDATE SET ""LastActivityUtc"" = EXCLUDED.""LastActivityUtc"";",
+            agentId, contactoId, timestamp);
+    }
+
+    public async Task UpsertAgentPropertyActivityAsync(Guid agentId, Guid propertyId, DateTimeOffset timestamp, CancellationToken ct = default)
+    {
+        await Database.ExecuteSqlRawAsync(
+            @"INSERT INTO ""AgentPropertyActivities"" (""AgentId"", ""PropertyId"", ""LastActivityUtc"")
+              VALUES ({0}, {1}, {2})
+              ON CONFLICT (""AgentId"", ""PropertyId"") 
+              DO UPDATE SET ""LastActivityUtc"" = EXCLUDED.""LastActivityUtc"";",
+            agentId, propertyId, timestamp);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

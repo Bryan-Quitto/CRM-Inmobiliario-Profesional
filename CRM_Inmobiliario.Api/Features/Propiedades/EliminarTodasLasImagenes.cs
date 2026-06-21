@@ -97,3 +97,4 @@ public static class EliminarTodasLasImagenesFeature
         .WithName("EliminarTodasLasImagenes");
     }
 }
+

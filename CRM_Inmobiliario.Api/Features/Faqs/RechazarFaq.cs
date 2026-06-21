@@ -49,6 +49,7 @@ public static class RechazarFaqFeature
             faq.FechaActualizacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 
             await context.SaveChangesAsync();
+            await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), faq.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
 
             await pushService.SendNotificationToAgentAsync(
                 faq.CreadoPorAgenteId,
@@ -62,3 +63,4 @@ public static class RechazarFaqFeature
         .WithName("RechazarFaq");
     }
 }
+

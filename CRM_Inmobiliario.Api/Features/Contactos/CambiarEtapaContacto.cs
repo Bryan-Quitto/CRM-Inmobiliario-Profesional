@@ -144,9 +144,8 @@ public static class CambiarEtapaContactoFeature
                     };
                     context.Tasks.Add(task);
                 }
-
-                contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
                 await context.SaveChangesAsync(ct);
+                await context.UpsertAgentContactActivityAsync(agenteId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
                 // Limpiar caché y precalentar KPIs
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
@@ -166,3 +165,4 @@ public static class CambiarEtapaContactoFeature
         .WithName("CambiarEtapaContacto");
     }
 }
+

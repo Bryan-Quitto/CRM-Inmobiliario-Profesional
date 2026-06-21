@@ -163,6 +163,7 @@ public static class FusionarContactosFeature
                 context.Contactos.Remove(secondary);
 
                 await context.SaveChangesAsync(ct);
+                await context.UpsertAgentContactActivityAsync(agenteId, command.PrimaryContactoId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
                 // Fix: Update DB counters AFTER SaveChangesAsync so EF Core change tracker doesn't overwrite them with stale in-memory zeros
                 var sqlCounters = @"
@@ -203,3 +204,4 @@ public static class FusionarContactosFeature
         .WithName("FusionarContactos");
     }
 }
+

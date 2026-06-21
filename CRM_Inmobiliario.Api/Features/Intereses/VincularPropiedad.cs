@@ -65,6 +65,7 @@ public static class VincularPropiedadFeature
                 };
                 context.ContactoInteresPropiedades.Add(nuevoInteres);
                 await context.SaveChangesAsync(ct);
+                await context.UpsertAgentContactActivityAsync(user.GetRequiredUserId(), contactoId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             }
 
             // Invalidar caches proactivamente (Afecta dashboard y analítica)
@@ -80,3 +81,4 @@ public static class VincularPropiedadFeature
         .WithName("VincularPropiedad");
     }
 }
+

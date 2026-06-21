@@ -63,3 +63,4 @@ public static class ReordenarSeccionesFeature
         .WithName("ReordenarSeccionesGaleria");
     }
 }
+

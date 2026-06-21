@@ -52,6 +52,7 @@ public static class CrearFaqFeature
 
             context.PropertyFaqs.Add(faq);
             await context.SaveChangesAsync();
+            await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), faq.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
 
             return Results.Created($"/api/faqs/{faq.Id}", new
             {
@@ -69,3 +70,4 @@ public static class CrearFaqFeature
         .WithName("CrearFaq");
     }
 }
+

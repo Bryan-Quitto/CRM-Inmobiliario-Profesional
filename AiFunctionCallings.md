@@ -1,6 +1,6 @@
 # Llamadas a Funciones de IA (Function Callings)
 
-Tras refactorizar el código base, las **9 funciones** ahora están estrictamente separadas por canales de ejecución para garantizar la seguridad y experiencia del usuario. Actualmente el proyecto cuenta con **3 IAs**:
+Tras refactorizar el código base, las **10 funciones** ahora están estrictamente separadas por canales de ejecución para garantizar la seguridad y experiencia del usuario. Actualmente el proyecto cuenta con **3 IAs**:
 1. IA de Facebook (para clientes)
 2. IA de WhatsApp (para clientes)
 3. IA personal del agente (Copilot)
@@ -50,23 +50,31 @@ Estas herramientas son exclusivas de las IAs de cara al cliente final (Facebook 
 - **Parámetros:**
   - `nombre` *(string, requerido)*: Nombre completo del propietario.
 
+### 7. EnviarFotosSeccionPropiedad
+- **Descripción:** Envía al cliente la galería de fotos de una sección específica de una propiedad utilizando paginación.
+- **Parámetros:**
+  - `propiedadId` *(string, requerido)*: ID de la propiedad.
+  - `nombreSeccion` *(string, requerido)*: Título de la sección de la galería (ej. Sala, Cocina).
+  - `enviarTodas` *(bool, opcional, default false)*: Si es true despacha las imágenes; si es false recupera los pies de foto para tomar una decisión.
+  - `offset` *(int, opcional, default 0)*: Elementos a omitir para la paginación (límite de 7 imágenes por envío).
+
 ---
 
 ## 👨‍💻 Herramientas Exclusivas del Agente Personal (Copilot)
 Estas herramientas están diseñadas estrictamente para interactuar de forma profunda con la SPA y la administración del CRM. Las IAs de clientes (Facebook y WhatsApp) tienen prohibido acceder a estas acciones.
 
-### 7. ResumirHistorialContacto
+### 8. ResumirHistorialContacto
 - **Descripción:** Consulta el historial completo (notas, tareas, mensajes) de un contacto.
 - **Parámetros:**
   - `searchTerm` *(string, requerido)*: Nombre completo o teléfono del contacto.
 
-### 8. CrearTareaCRM
+### 9. CrearTareaCRM
 - **Descripción:** Crea un recordatorio o cita en la agenda del agente.
 - **Parámetros:**
   - `titulo` *(string, requerido)*, `descripcion` *(string, requerido)*, `fechaProgramada` *(string, requerido)*.
   - `contactoId`, `propiedadId` *(opcionales)*.
 
-### 9. GenerarCotizacionRapida
+### 10. GenerarCotizacionRapida
 - **Descripción:** Calcula la proyección hipotecaria y cuotas estimadas basándose en documentos corporativos internos.
 - **Parámetros:**
   - `montoPropiedad` *(number, requerido)*: El precio total.

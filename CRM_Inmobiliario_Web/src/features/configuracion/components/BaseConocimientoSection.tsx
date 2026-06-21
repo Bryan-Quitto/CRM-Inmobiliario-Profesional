@@ -27,7 +27,7 @@ export const BaseConocimientoSection: React.FC = () => {
 
   const validateAndSetFile = (selectedFile: File) => {
     if (!selectedFile.name.endsWith('.md')) {
-      toast.error('Formato no soportado', { description: 'Solo se permiten archivos Markdown (.md)' });
+      toast.warning('Formato no soportado', { description: 'Solo se permiten archivos Markdown (.md)' });
       return;
     }
     setFile(selectedFile);

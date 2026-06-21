@@ -206,8 +206,8 @@ public static class VolverAListarPropiedadFeature
 
             try
             {
-                propiedad.FechaUltimaActividad = DateTimeOffset.UtcNow;
                 await context.SaveChangesAsync(ct);
+                await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
                 
                 logger.LogInformation("[RELIST] Éxito: Cambios guardados en DB");
 
@@ -234,3 +234,4 @@ public static class VolverAListarPropiedadFeature
         .WithName("VolverAListarPropiedad");
     }
 }
+

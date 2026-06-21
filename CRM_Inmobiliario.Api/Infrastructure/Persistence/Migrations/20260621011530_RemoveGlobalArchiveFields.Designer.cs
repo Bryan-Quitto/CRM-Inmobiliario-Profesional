@@ -3,6 +3,7 @@ using System;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260621011530_RemoveGlobalArchiveFields")]
+    partial class RemoveGlobalArchiveFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -257,24 +260,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.ToTable("AgentArchivedProperties");
                 });
 
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentContactActivity", b =>
-                {
-                    b.Property<Guid>("AgentId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ContactoId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("LastActivityUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("AgentId", "ContactoId");
-
-                    b.HasIndex("ContactoId");
-
-                    b.ToTable("AgentContactActivities");
-                });
-
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentConversation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -379,24 +364,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.HasIndex("AgentConversationId");
 
                     b.ToTable("AgentMessages");
-                });
-
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentPropertyActivity", b =>
-                {
-                    b.Property<Guid>("AgentId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PropertyId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("LastActivityUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("AgentId", "PropertyId");
-
-                    b.HasIndex("PropertyId");
-
-                    b.ToTable("AgentPropertyActivities");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentPushSubscription", b =>
@@ -1498,25 +1465,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Propiedad");
                 });
 
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentContactActivity", b =>
-                {
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agent")
-                        .WithMany()
-                        .HasForeignKey("AgentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Contacto", "Contacto")
-                        .WithMany()
-                        .HasForeignKey("ContactoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Agent");
-
-                    b.Navigation("Contacto");
-                });
-
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentConversation", b =>
                 {
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agent")
@@ -1548,25 +1496,6 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("AgentConversation");
-                });
-
-            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentPropertyActivity", b =>
-                {
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agent")
-                        .WithMany()
-                        .HasForeignKey("AgentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Property", "Property")
-                        .WithMany()
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Agent");
-
-                    b.Navigation("Property");
                 });
 
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.AgentPushSubscription", b =>

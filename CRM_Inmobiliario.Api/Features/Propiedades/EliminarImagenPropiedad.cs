@@ -50,6 +50,7 @@ public static class EliminarImagenPropiedadFeature
                 // 2. Eliminar registro de la DB
                 context.PropertyMedia.Remove(media);
                 await context.SaveChangesAsync();
+                await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), media.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
 
                 return Results.NoContent();
             }
@@ -62,3 +63,4 @@ public static class EliminarImagenPropiedadFeature
         .WithName("EliminarImagenPropiedad");
     }
 }
+

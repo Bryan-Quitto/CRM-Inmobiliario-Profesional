@@ -55,9 +55,8 @@ public static class RevocarCompartidoFeature
                 return Results.NotFound(new { Message = "No se encontraron relaciones de compartición para los agentes especificados." });
             }
 
-            await context.Contactos.Where(c => c.Id == id).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
-
             // 3. Invalidar caché
+            await context.UpsertAgentContactActivityAsync(currentUserId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             await cacheStore.EvictByTagAsync("contactos", ct);
 
             return Results.Ok(new { Message = "Visibilidad revocada exitosamente.", RegistrosEliminados = deletedRows });
@@ -67,3 +66,4 @@ public static class RevocarCompartidoFeature
         .WithName("RevocarCompartido");
     }
 }
+

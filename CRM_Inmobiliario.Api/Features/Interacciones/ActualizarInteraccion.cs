@@ -29,7 +29,7 @@ public static class ActualizarInteraccionFeature
 
             // Invalidar caches proactivamente
             var interaction = await context.Interactions.FindAsync(id);
-            if (interaction != null) await context.Contactos.Where(c => c.Id == interaction.ContactoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
+            if (interaction != null) { await context.UpsertAgentContactActivityAsync(agenteId, interaction.ContactoId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct); }
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
             await cacheStore.EvictByTagAsync("analytics-data", ct);
 
@@ -39,3 +39,4 @@ public static class ActualizarInteraccionFeature
         .WithName("ActualizarInteraccion");
     }
 }
+

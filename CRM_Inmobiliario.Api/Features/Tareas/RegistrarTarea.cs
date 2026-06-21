@@ -67,6 +67,8 @@ public static class RegistrarTareaFeature
 
             context.Tasks.Add(tarea);
             await context.SaveChangesAsync();
+            if (tarea.ContactoId.HasValue) await context.UpsertAgentContactActivityAsync(agenteId, tarea.ContactoId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
+            if (tarea.PropiedadId.HasValue) await context.UpsertAgentPropertyActivityAsync(agenteId, tarea.PropiedadId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
 
             // Notificar al servicio de Warming proactivamente
             warmingService.NotifyChange(agenteId);
@@ -74,12 +76,10 @@ public static class RegistrarTareaFeature
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);
             await cacheStore.EvictByTagAsync("analytics-data", ct);
-
-            if (tarea.ContactoId.HasValue) await context.Contactos.Where(c => c.Id == tarea.ContactoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
-            if (tarea.PropiedadId.HasValue) await context.Properties.Where(p => p.Id == tarea.PropiedadId).ExecuteUpdateAsync(s => s.SetProperty(x => x.FechaUltimaActividad, DateTimeOffset.UtcNow), ct);
             return Results.Created($"/tareas/{tarea.Id}", new { tarea.Id, tarea.Titulo, tarea.Estado });
         })
         .WithTags("Tareas")
         .WithName("RegistrarTarea");
     }
 }
+

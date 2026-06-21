@@ -38,6 +38,7 @@ public static class EditarFaqFeature
             faq.FechaActualizacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 
             await context.SaveChangesAsync();
+            await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), faq.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
 
             return Results.Ok(new
             {
@@ -56,3 +57,4 @@ public static class EditarFaqFeature
         .WithName("EditarFaq");
     }
 }
+

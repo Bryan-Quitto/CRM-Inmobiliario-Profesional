@@ -18,15 +18,27 @@ export const useContactoArchive = ({ contacto, mutate, globalMutate }: UseContac
     
     // Optimistic UI update
     const previousState = contacto.isArchivedForCurrentUser;
+    const previousBotWA = contacto.botActivoWA;
+    const previousBotFB = contacto.botActivoFB;
     const newState = !previousState;
     
-    await mutate({ ...contacto, isArchivedForCurrentUser: newState }, false);
+    await mutate({ 
+      ...contacto, 
+      isArchivedForCurrentUser: newState,
+      botActivoWA: !newState,
+      botActivoFB: !newState
+    }, false);
     
     try {
       const serverState = await toggleContactArchive(contacto.id);
       
       // Update with server source of truth
-      await mutate({ ...contacto, isArchivedForCurrentUser: serverState }, false);
+      await mutate({ 
+        ...contacto, 
+        isArchivedForCurrentUser: serverState,
+        botActivoWA: !serverState,
+        botActivoFB: !serverState
+      }, false);
       
       // Update list cache
       globalMutate(
@@ -43,7 +55,12 @@ export const useContactoArchive = ({ contacto, mutate, globalMutate }: UseContac
       });
     } catch {
       // Revert on error
-      await mutate({ ...contacto, isArchivedForCurrentUser: previousState }, false);
+      await mutate({ 
+        ...contacto, 
+        isArchivedForCurrentUser: previousState,
+        botActivoWA: previousBotWA,
+        botActivoFB: previousBotFB
+      }, false);
       import('sonner').then(({ toast }) => {
         toast.error('Error al cambiar el estado de archivo');
       });

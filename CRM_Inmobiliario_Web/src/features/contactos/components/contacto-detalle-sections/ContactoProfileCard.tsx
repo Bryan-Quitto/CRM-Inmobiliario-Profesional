@@ -290,12 +290,16 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
           onClick={(e) => {
             e.stopPropagation();
             if (!isGlobalEnabled) {
-              toast.error(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
+              toast.warning(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
               return;
             }
             const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
             if (isStageLocked) {
-              toast.error("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+              toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+              return;
+            }
+            if (contacto.isArchivedForCurrentUser) {
+              toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
               return;
             }
             if (isLoading || contacto.esCompartido) return;
@@ -307,7 +311,9 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
               ? 'bg-slate-300 opacity-50 cursor-not-allowed'
               : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
                 ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
+                : contacto.isArchivedForCurrentUser
+                  ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                  : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
           } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${

@@ -46,8 +46,8 @@ public static class RegistrarInteraccionFeature
             };
 
             context.Interactions.Add(interaccion);
-            contacto.FechaUltimaActividad = DateTimeOffset.UtcNow;
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(ct);
+            await context.UpsertAgentContactActivityAsync(agenteId, command.ContactoId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
             // Invalidar caches proactivamente
             await cacheStore.EvictByTagAsync("dashboard-data", ct);

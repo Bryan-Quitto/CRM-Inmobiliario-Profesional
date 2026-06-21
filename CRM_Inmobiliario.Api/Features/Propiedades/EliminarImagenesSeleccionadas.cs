@@ -92,3 +92,4 @@ public static class EliminarImagenesSeleccionadasFeature
         .WithName("EliminarImagenesSeleccionadas");
     }
 }
+

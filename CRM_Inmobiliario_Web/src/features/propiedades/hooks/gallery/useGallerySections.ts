@@ -90,7 +90,7 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
       }
     };
 
-    toast.warning("Sección eliminada", {
+    toast.success("Sección eliminada", {
       description: "Tienes unos segundos para deshacer.",
       action: {
         label: "Deshacer",

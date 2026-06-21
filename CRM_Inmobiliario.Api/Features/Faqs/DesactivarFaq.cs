@@ -39,6 +39,7 @@ public static class DesactivarFaqFeature
             faq.FechaActualizacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 
             await context.SaveChangesAsync();
+            await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), faq.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
 
             return Results.Ok(new { faq.Id, faq.Estado, faq.FechaActualizacion });
         })
@@ -46,3 +47,4 @@ public static class DesactivarFaqFeature
         .WithName("DesactivarFaq");
     }
 }
+
