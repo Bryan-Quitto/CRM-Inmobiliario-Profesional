@@ -95,10 +95,10 @@ export const ContactoHeader = ({
       <div className="flex items-center gap-2">
         {contacto.telefono && (
           <a 
+            title="WhatsApp Directo"
             href={`https://wa.me/${contacto.telefono.replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            title="WhatsApp Directo"
             className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm border border-emerald-100 cursor-pointer"
           >
             <MessageSquare className="h-5 w-5" />
@@ -107,10 +107,10 @@ export const ContactoHeader = ({
 
         {contacto.facebookSenderId && (
           <a 
+            title="Facebook Messenger"
             href={`https://m.me/${contacto.facebookSenderId}`}
             target="_blank"
             rel="noopener noreferrer"
-            title="Facebook Messenger"
             className="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100 cursor-pointer"
           >
             <MessageCircle className="h-5 w-5" />
@@ -126,9 +126,9 @@ export const ContactoHeader = ({
         {!contacto.isArchivedForCurrentUser && (
           <>
             <button 
+              title="Fusionar Contactos"
               data-testid="btn-merge-entity"
               onClick={onMerge}
-              title="Fusionar Contactos"
               className="h-10 px-4 bg-white text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-sm border border-slate-200 flex items-center gap-2 cursor-pointer"
             >
               <Merge className="h-4 w-4 text-blue-500" />

@@ -178,9 +178,9 @@ export const DynamicFilterInput = ({ contactos, filterDef, filters, onChange, on
         <label className="text-xs font-black uppercase tracking-wider text-slate-400">{label}</label>
         {isRemovable && (
           <button 
+            title="Eliminar filtro"
             onClick={onRemove}
             className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer p-1"
-            title="Eliminar filtro"
           >
             <X className="h-4 w-4" />
           </button>

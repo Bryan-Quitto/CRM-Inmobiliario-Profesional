@@ -89,22 +89,22 @@ export const TareaDetalle = ({ tarea, onEdit, onCancelTask, onCompleteTask, onBa
           {isPending && (
             <>
               <button 
-                onClick={onCompleteTask}
                 title="Completar Tarea"
+                onClick={onCompleteTask}
                 className="p-2 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-transparent hover:border-emerald-100 cursor-pointer"
               >
                 <CheckCircle2 className="h-4 w-4" />
               </button>
               <button 
-                onClick={onCancelTask}
                 title="Cancelar Tarea"
+                onClick={onCancelTask}
                 className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
               <button 
-                onClick={onEdit}
                 title="Editar Tarea"
+                onClick={onEdit}
                 className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100 cursor-pointer"
               >
                 <Pencil className="h-4 w-4" />

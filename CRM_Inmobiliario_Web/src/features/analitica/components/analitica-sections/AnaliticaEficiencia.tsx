@@ -49,9 +49,9 @@ export const AnaliticaEficiencia = ({
                   <div className="flex items-center gap-2">
                     <span className="font-black">{eficiencia?.calculos?.contactosConFechaCierre ?? 0}</span>
                     <button 
+                      title="Auditar cálculos"
                       onClick={() => setActiveModal('auditoria-velocidad')}
                       className="p-1 bg-white/10 hover:bg-white/20 rounded-md transition-all cursor-pointer text-indigo-200 hover:text-white"
-                      title="Auditar cálculos"
                     >
                       <Eye size={12} />
                     </button>

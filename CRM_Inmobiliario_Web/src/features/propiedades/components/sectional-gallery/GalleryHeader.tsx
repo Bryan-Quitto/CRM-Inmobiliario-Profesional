@@ -76,13 +76,13 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
       <div className="flex items-center gap-4">
         {sectionId && (
           <div className={`flex flex-col gap-1 mr-1 ${isReadOnly ? 'opacity-30 pointer-events-none' : ''}`}>
-            <button onClick={onMoveUp} disabled={isReadOnly} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer" title="Subir sección"><ChevronUp size={16} /></button>
+            <button title="Subir sección" onClick={onMoveUp} disabled={isReadOnly} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer"><ChevronUp size={16} /></button>
             
             <div className="relative" ref={dropdownRef}>
               <button 
+                title="Cambiar orden"
                 onClick={() => !isReadOnly && setIsOrderDropdownOpen(!isOrderDropdownOpen)}
                 className="h-6 w-6 rounded-md bg-slate-50 text-[10px] font-black text-indigo-600 flex items-center justify-center border border-indigo-100 hover:bg-indigo-50 transition-all cursor-pointer"
-                title="Cambiar orden"
               >
                 {index + 1}
               </button>
@@ -104,7 +104,7 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
               )}
             </div>
 
-            <button onClick={onMoveDown} disabled={isReadOnly} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer" title="Bajar sección"><ChevronDown size={16} /></button>
+            <button title="Bajar sección" onClick={onMoveDown} disabled={isReadOnly} className="p-1 text-slate-300 hover:text-indigo-600 transition-colors cursor-pointer"><ChevronDown size={16} /></button>
           </div>
         )}
         <div className={`h-12 w-12 shrink-0 ${sectionId ? 'bg-indigo-50 text-indigo-600' : 'bg-blue-50 text-blue-600'} rounded-[1.25rem] flex items-center justify-center shadow-inner`}>
@@ -128,23 +128,23 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
                 }}
               />
               <div className="flex items-center gap-1">
-                <button 
-                  onClick={handleRenameSubmit}
-                  className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all cursor-pointer"
-                  title="Confirmar"
-                >
-                  <Check size={16} strokeWidth={3} />
-                </button>
-                <button 
-                  onClick={() => {
-                    setNombre(sectionNombre);
-                    setIsEditingName(false);
-                  }}
-                  className="p-2 bg-slate-100 text-slate-400 rounded-lg hover:bg-rose-50 hover:text-rose-500 transition-all cursor-pointer"
-                  title="Cancelar"
-                >
-                  <X size={16} />
-                </button>
+                  <button 
+                    title="Confirmar"
+                    onClick={handleRenameSubmit}
+                    className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all cursor-pointer"
+                  >
+                    <Check size={16} strokeWidth={3} />
+                  </button>
+                  <button 
+                    title="Cancelar"
+                    onClick={() => {
+                      setNombre(sectionNombre);
+                      setIsEditingName(false);
+                    }}
+                    className="p-2 bg-slate-100 text-slate-400 rounded-lg hover:bg-rose-50 hover:text-rose-500 transition-all cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
               </div>
             </div>
           ) : (

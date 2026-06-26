@@ -304,14 +304,14 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
                       <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{agente.nombreCompleto}</p>
                       <p className="text-[10px] text-slate-400 font-bold uppercase">Tiene acceso de lectura</p>
                     </div>
-                    <button 
-                      disabled={isSubmitting}
-                      onClick={() => onRevocar(agente.id)}
-                      className="h-10 w-10 bg-red-50 text-red-400 rounded-xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all cursor-pointer group/del"
-                      title="Revocar Acceso"
-                    >
-                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <UserMinus className="h-5 w-5" />}
-                    </button>
+                      <button 
+                        title="Revocar Acceso"
+                        disabled={isSubmitting}
+                        onClick={() => onRevocar(agente.id)}
+                        className="h-10 w-10 bg-red-50 text-red-400 rounded-xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all cursor-pointer group/del"
+                      >
+                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <UserMinus className="h-5 w-5" />}
+                      </button>
                   </div>
                 ))
               )}

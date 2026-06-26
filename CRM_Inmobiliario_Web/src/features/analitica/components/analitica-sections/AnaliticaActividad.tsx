@@ -37,9 +37,9 @@ export const AnaliticaActividad = ({ actividad, loadingActividad, setActiveModal
             <div className="flex items-start justify-between mb-4">
               <div className={`p-3 rounded-2xl ${kpi.color} group-hover:scale-110 transition-transform`}>{kpi.icon}</div>
               <button 
+                title="Ver detalles"
                 onClick={() => setActiveModal(kpi.id)}
                 className="p-2 bg-slate-50 hover:bg-blue-50 rounded-xl text-slate-400 hover:text-blue-600 transition-all cursor-pointer border border-transparent hover:border-blue-100"
-                title="Ver detalles"
               >
                 <Eye size={16} />
               </button>

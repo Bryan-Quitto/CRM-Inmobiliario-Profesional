@@ -41,9 +41,9 @@ export const EditarTareaHeader = ({
         )}
         {!isReadOnly && (
           <button 
+            title="Cancelar Tarea"
             type="button"
             onClick={onCancelTask}
-            title="Cancelar Tarea"
             className="p-2.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
           >
             <Trash2 className="h-5 w-5" />

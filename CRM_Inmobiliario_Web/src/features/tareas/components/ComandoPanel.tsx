@@ -78,11 +78,11 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
 
               {/* Botón de instrucciones */}
               <button
+                title="¿Cómo escribir mi instrucción?"
                 id="comando-info-btn"
                 type="button"
                 onClick={() => setIsInstruccionesOpen(true)}
                 aria-label="Ver formatos de instrucción aceptados"
-                title="¿Cómo escribir mi instrucción?"
                 className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-violet-600 text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest rounded-lg border border-white/10 hover:border-violet-500 transition-all cursor-pointer group"
               >
                 <Info className="h-3 w-3 group-hover:animate-pulse" />

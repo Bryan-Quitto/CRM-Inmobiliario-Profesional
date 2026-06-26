@@ -83,12 +83,12 @@ export const PropiedadCard = ({
         <div className="flex gap-2 pointer-events-auto">
           {p.permissions?.canEditMasterData && !p.isArchivedForCurrentUser && (
             <button 
+              title="Editar Propiedad"
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedPropiedadIdForEdit(p.id);
               }}
               className="h-8 w-8 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:scale-110 transition-all shadow-sm opacity-0 group-hover:opacity-100 cursor-pointer"
-              title="Editar Propiedad"
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>
@@ -151,12 +151,12 @@ export const PropiedadCard = ({
               onToggle={handleToggleArchive}
             />
             <button 
+              title="Ver Expediente"
               onClick={(e) => {
                 e.stopPropagation();
                 handleOpenDetail(p.id);
               }}
               className="h-10 w-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-blue-600 hover:text-white transition-all border border-slate-100 cursor-pointer hover:scale-110 active:scale-95 shadow-sm"
-              title="Ver Expediente"
             >
               <Plus className="h-5 w-5" />
             </button>

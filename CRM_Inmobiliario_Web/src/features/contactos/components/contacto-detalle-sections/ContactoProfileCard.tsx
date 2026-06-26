@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { Contacto } from '../../types';
 import { useContactoTokenUsage } from '../../hooks/useContactoTokenUsage';
 import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracionIA';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface ContactoProfileCardProps {
   contacto: Contacto;
@@ -268,12 +269,13 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
         <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IA {channel}</p>
           {!isGlobalEnabled ? (
-            <span 
-              className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-help"
-              title={`La IA de ${channel} está desactivada en tu Configuración`}
-            >
-              Inactivo (Global)
-            </span>
+            <Tooltip content={`La IA de ${channel} está desactivada en tu Configuración`}>
+              <span 
+                className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-help"
+              >
+                Inactivo (Global)
+              </span>
+            </Tooltip>
           ) : isBotActivo ? (
             <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
           ) : estadoIA === 'Escalado' ? (
@@ -286,40 +288,41 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
         </div>
       </div>
       <div className="inline-block">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!isGlobalEnabled) {
-              toast.warning(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
-              return;
-            }
-            const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
-            if (isStageLocked) {
-              toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
-              return;
-            }
-            if (contacto.isArchivedForCurrentUser) {
-              toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
-              return;
-            }
-            if (isLoading || contacto.esCompartido) return;
-            handleToggle(!isBotActivo);
-          }}
-          title={!isGlobalEnabled ? `Debes activar la IA de ${channel} en Configuración para usar esta función` : undefined}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            !isGlobalEnabled
-              ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-              : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+        <Tooltip content={!isGlobalEnabled ? `Debes activar la IA de ${channel} en Configuración para usar esta función` : ''}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isGlobalEnabled) {
+                toast.warning(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
+                return;
+              }
+              const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+              if (isStageLocked) {
+                toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                return;
+              }
+              if (contacto.isArchivedForCurrentUser) {
+                toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
+                return;
+              }
+              if (isLoading || contacto.esCompartido) return;
+              handleToggle(!isBotActivo);
+            }}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              !isGlobalEnabled
                 ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                : contacto.isArchivedForCurrentUser
+                : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
                   ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                  : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
-          } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            isBotActivo ? 'translate-x-6' : 'translate-x-1'
-          }`} />
-        </button>
+                  : contacto.isArchivedForCurrentUser
+                    ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                    : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
+            } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              isBotActivo ? 'translate-x-6' : 'translate-x-1'
+            }`} />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

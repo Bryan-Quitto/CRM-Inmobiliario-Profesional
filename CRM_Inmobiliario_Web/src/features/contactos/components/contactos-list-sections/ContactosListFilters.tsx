@@ -145,7 +145,7 @@ export const ContactosListFilters = ({
           ))}
         </div>
 
-        {activeSegment !== 'todos' && (
+        {activeSegment !== 'todos' && !isArchived && (
           <div className="flex bg-slate-100 p-1 rounded-xl">
             <button 
               onClick={() => setViewMode('list')}
@@ -359,9 +359,9 @@ export const ContactosListFilters = ({
                 <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'sort' ? 'rotate-180' : ''}`} />
               </button>
               <button
+                title={sortDirection === 'asc' ? 'Orden Ascendente' : 'Orden Descendente'}
                 onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
                 className="px-3 py-2.5 text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center cursor-pointer"
-                title={sortDirection === 'asc' ? 'Orden Ascendente' : 'Orden Descendente'}
               >
                 {sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
               </button>
@@ -391,8 +391,8 @@ export const ContactosListFilters = ({
           <label className="text-[10px] font-black uppercase tracking-wider text-transparent select-none ml-1">_</label>
           <div className="relative">
             <button 
-              onClick={onOpenAdvancedFilters}
               title="Filtros avanzados"
+              onClick={onOpenAdvancedFilters}
               className={`relative flex items-center justify-center w-[42px] h-[42px] rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer border ${
                 advancedFiltersCount > 0 
                   ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100' 

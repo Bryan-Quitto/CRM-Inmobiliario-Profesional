@@ -95,10 +95,10 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
                     Confirmar
                   </button>
                   <button 
+                    title="Cancelar"
                     type="button"
                     onClick={() => setIsConfirmingClear(false)}
                     className="p-1 text-rose-400 hover:text-rose-600 transition-colors cursor-pointer"
-                    title="Cancelar"
                   >
                     <RotateCcw className="h-2.5 w-2.5" />
                   </button>

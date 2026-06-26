@@ -62,9 +62,17 @@ export const CrearContactoHeader = ({
                   </button>
                   <button 
                     type="button"
+                    onClick={handleClearDraft}
+                    className="flex items-center gap-1 text-[10px] font-black text-white bg-rose-500 hover:bg-rose-600 px-2.5 py-1 rounded-full transition-all cursor-pointer"
+                  >
+                    <Check className="h-2.5 w-2.5" />
+                    Confirmar
+                  </button>
+                  <button 
+                    title="Cancelar"
+                    type="button"
                     onClick={() => setIsConfirmingClear(false)}
                     className="p-1 text-rose-400 hover:text-rose-600 transition-colors cursor-pointer"
-                    title="Cancelar"
                   >
                     <RotateCcw className="h-2.5 w-2.5" />
                   </button>

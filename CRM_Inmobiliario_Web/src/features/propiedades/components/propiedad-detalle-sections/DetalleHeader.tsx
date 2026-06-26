@@ -57,14 +57,14 @@ export const DetalleHeader = ({
             <div className="flex items-center gap-3 mt-1">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ID: {id.split('-')[0]}</p>
               {propiedad.codigoCorto && (
-                <button
-                  onClick={handleCopyCode}
-                  className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded-md text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:bg-indigo-100 transition-colors cursor-pointer"
-                  title="Copiar para Anuncios de Meta (Payload)"
-                >
-                  Ref: {propiedad.codigoCorto}
-                  {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                </button>
+                  <button
+                    title="Copiar para Anuncios de Meta (Payload)"
+                    onClick={handleCopyCode}
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded-md text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:bg-indigo-100 transition-colors cursor-pointer"
+                  >
+                    Ref: {propiedad.codigoCorto}
+                    {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                  </button>
               )}
             </div>
           </div>
@@ -74,14 +74,14 @@ export const DetalleHeader = ({
             <>
               <PDFLinkInternal propiedad={propiedad} />
 
-              <button
-                data-testid="btn-share-whatsapp"
-                onClick={handleWhatsAppShare}
-                className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 group/wa cursor-pointer"
-                title="Compartir por WhatsApp"
-              >
-                <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
-              </button>
+                <button
+                  title="Compartir por WhatsApp"
+                  data-testid="btn-share-whatsapp"
+                  onClick={handleWhatsAppShare}
+                  className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 group/wa cursor-pointer"
+                >
+                  <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
+                </button>
             </>
           )}
 

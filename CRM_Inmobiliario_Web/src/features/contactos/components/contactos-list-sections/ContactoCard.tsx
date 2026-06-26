@@ -10,6 +10,7 @@ import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
 import type { Contacto } from '../../types';
 import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface ContactoCardProps {
   contacto: Contacto;
@@ -121,9 +122,9 @@ export const ContactoCard = ({
                 onToggle={handleToggleArchive}
               />
               <button 
+                title="Ver Detalles"
                 onClick={() => onNavigate(contacto.id)}
                 className="h-10 w-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-600/20 transition-all cursor-pointer group/nav"
-                title="Ver Detalles"
               >
                 <ArrowUpRight className="h-5 w-5 transition-transform group-hover/nav:translate-x-0.5 group-hover/nav:-translate-y-0.5" />
               </button>
@@ -197,12 +198,13 @@ export const ContactoCard = ({
                   IA WA
                 </span>
                 {!isWhatsAppAiEnabled ? (
-                  <span 
-                    className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-100/50 cursor-help"
-                    title="La IA de WhatsApp está desactivada en tu Configuración"
-                  >
-                    Inactivo (Global)
-                  </span>
+                  <Tooltip content="La IA de WhatsApp está desactivada en tu Configuración">
+                    <span 
+                      className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-100/50 cursor-help"
+                    >
+                      Inactivo (Global)
+                    </span>
+                  </Tooltip>
                 ) : (
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                     waToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
@@ -214,37 +216,38 @@ export const ContactoCard = ({
                   </span>
                 )}
                 <div className="opacity-0 group-hover:opacity-100 transition-all inline-block ml-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isWhatsAppAiEnabled) {
-                        toast.warning("Debes activar la IA de WhatsApp en Configuración para usar esta función");
-                        return;
-                      }
-                      const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
-                      if (isStageLocked) {
-                        toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
-                        return;
-                      }
-                      if (contacto.isArchivedForCurrentUser) {
-                        toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
-                        return;
-                      }
-                      if (waToggle.isLoading) return;
-                      waToggle.handleToggle(!waToggle.isBotActivo);
-                    }}
-                    className={`h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
-                      !isWhatsAppAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
-                        ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
-                        : waToggle.isBotActivo 
-                          ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
-                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
-                    } ${waToggle.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    title={!isWhatsAppAiEnabled ? "Debes activar la IA de WhatsApp en Configuración para usar esta función" : (waToggle.isBotActivo ? 'Desactivar IA WA' : 'Activar IA WA')}
-                  >
-                    <Bot className="h-3 w-3" />
-                    <span className="text-[9px] font-black uppercase tracking-wider">{waToggle.isBotActivo ? 'SI' : 'NO'}</span>
-                  </button>
+                  <Tooltip content={!isWhatsAppAiEnabled ? "Debes activar la IA de WhatsApp en Configuración para usar esta función" : (waToggle.isBotActivo ? 'Desactivar IA WA' : 'Activar IA WA')}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isWhatsAppAiEnabled) {
+                          toast.warning("Debes activar la IA de WhatsApp en Configuración para usar esta función");
+                          return;
+                        }
+                        const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                        if (isStageLocked) {
+                          toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                          return;
+                        }
+                        if (contacto.isArchivedForCurrentUser) {
+                          toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
+                          return;
+                        }
+                        if (waToggle.isLoading) return;
+                        waToggle.handleToggle(!waToggle.isBotActivo);
+                      }}
+                      className={`h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
+                        !isWhatsAppAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
+                          ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
+                          : waToggle.isBotActivo 
+                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
+                            : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
+                      } ${waToggle.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <Bot className="h-3 w-3" />
+                      <span className="text-[9px] font-black uppercase tracking-wider">{waToggle.isBotActivo ? 'SI' : 'NO'}</span>
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
 
@@ -253,12 +256,13 @@ export const ContactoCard = ({
                   IA FB
                 </span>
                 {!isFacebookAiEnabled ? (
-                  <span 
-                    className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-100/50 cursor-help"
-                    title="La IA de Facebook está desactivada en tu Configuración"
-                  >
-                    Inactivo (Global)
-                  </span>
+                  <Tooltip content="La IA de Facebook está desactivada en tu Configuración">
+                    <span 
+                      className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-orange-50 text-orange-600 border-orange-100/50 cursor-help"
+                    >
+                      Inactivo (Global)
+                    </span>
+                  </Tooltip>
                 ) : (
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                     fbToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
@@ -270,37 +274,38 @@ export const ContactoCard = ({
                   </span>
                 )}
                 <div className="opacity-0 group-hover:opacity-100 transition-all inline-block ml-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isFacebookAiEnabled) {
-                        toast.warning("Debes activar la IA de Facebook en Configuración para usar esta función");
-                        return;
-                      }
-                      const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
-                      if (isStageLocked) {
-                        toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
-                        return;
-                      }
-                      if (contacto.isArchivedForCurrentUser) {
-                        toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
-                        return;
-                      }
-                      if (fbToggle.isLoading) return;
-                      fbToggle.handleToggle(!fbToggle.isBotActivo);
-                    }}
-                    className={`h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
-                      !isFacebookAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
-                        ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
-                        : fbToggle.isBotActivo 
-                          ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
-                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
-                    } ${fbToggle.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    title={!isFacebookAiEnabled ? "Debes activar la IA de Facebook en Configuración para usar esta función" : (fbToggle.isBotActivo ? 'Desactivar IA FB' : 'Activar IA FB')}
-                  >
-                    <Bot className="h-3 w-3" />
-                    <span className="text-[9px] font-black uppercase tracking-wider">{fbToggle.isBotActivo ? 'SI' : 'NO'}</span>
-                  </button>
+                  <Tooltip content={!isFacebookAiEnabled ? "Debes activar la IA de Facebook en Configuración para usar esta función" : (fbToggle.isBotActivo ? 'Desactivar IA FB' : 'Activar IA FB')}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isFacebookAiEnabled) {
+                          toast.warning("Debes activar la IA de Facebook en Configuración para usar esta función");
+                          return;
+                        }
+                        const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                        if (isStageLocked) {
+                          toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                          return;
+                        }
+                        if (contacto.isArchivedForCurrentUser) {
+                          toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
+                          return;
+                        }
+                        if (fbToggle.isLoading) return;
+                        fbToggle.handleToggle(!fbToggle.isBotActivo);
+                      }}
+                      className={`h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
+                        !isFacebookAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
+                          ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
+                          : fbToggle.isBotActivo 
+                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
+                            : 'bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-pointer'
+                      } ${fbToggle.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <Bot className="h-3 w-3" />
+                      <span className="text-[9px] font-black uppercase tracking-wider">{fbToggle.isBotActivo ? 'SI' : 'NO'}</span>
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -330,28 +335,28 @@ export const ContactoCard = ({
           {!contacto.esCompartido && (
             <>
               {!contacto.isArchivedForCurrentUser && (
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsShareModalOpen(true);
-                  }}
-                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-amber-50 hover:text-amber-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                  title="Compartir Visibilidad"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                </button>
+                  <button 
+                    title="Compartir Visibilidad"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsShareModalOpen(true);
+                    }}
+                    className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-amber-50 hover:text-amber-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                  </button>
               )}
               {!contacto.isArchivedForCurrentUser && (
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(contacto);
-                  }}
-                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                  title="Editar Contacto"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
+                  <button 
+                    title="Editar Contacto"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(contacto);
+                    }}
+                    className="h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
               )}
             </>
           )}

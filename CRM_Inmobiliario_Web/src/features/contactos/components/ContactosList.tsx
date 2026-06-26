@@ -184,16 +184,16 @@ const ContactosContent = () => {
       {/* Floating Scroll Buttons */}
       <div className="fixed bottom-24 right-6 sm:right-8 flex flex-col gap-2 z-[90]">
         <button 
+          title="Ir al inicio"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
-          title="Ir al inicio"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
         </button>
         <button 
+          title="Ir al final"
           onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
           className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
-          title="Ir al final"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </button>

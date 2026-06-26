@@ -136,25 +136,25 @@ const InlineNoteEditor = ({ transaction, onSave, isArchived }: { transaction: Pr
           placeholder="Escribe la nota y presiona Enter para guardar..."
         />
         <div className="absolute bottom-3 right-3 flex gap-2">
-          <button onClick={handleSave} disabled={isSaving} className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 cursor-pointer" title="Guardar (Enter)">{isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}</button>
-          <button onClick={handleCancel} disabled={isSaving} className="p-1.5 bg-white border border-slate-200 text-slate-400 rounded-lg hover:bg-slate-50 transition-colors shadow-sm cursor-pointer" title="Cancelar (Esc)"><X size={14} /></button>
+          <button title="Guardar (Enter)" onClick={handleSave} disabled={isSaving} className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 cursor-pointer">{isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}</button>
+          <button title="Cancelar (Esc)" onClick={handleCancel} disabled={isSaving} className="p-1.5 bg-white border border-slate-200 text-slate-400 rounded-lg hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"><X size={14} /></button>
         </div>
       </div>
     );
   }
 
   return (
-    <p 
-      onDoubleClick={() => {
-        if (!isArchived) setIsEditing(true);
-      }} 
-      className={`text-sm font-medium contactoing-relaxed mb-4 italic transition-colors border border-transparent 
-        ${isArchived ? 'cursor-default' : 'cursor-text hover:bg-slate-50 p-2 -mx-2 rounded-lg hover:border-slate-100'} 
-        ${transaction.notes ? 'text-slate-600' : 'text-slate-300'}
-      `} 
-      title={isArchived ? "" : "Doble clic para editar nota"}
-    >
-      {transaction.notes ? `"${transaction.notes}"` : (isArchived ? '' : 'Doble clic para añadir nota...')}
-    </p>
+      <p 
+        title={isArchived ? undefined : "Doble clic para editar nota"}
+        onDoubleClick={() => {
+          if (!isArchived) setIsEditing(true);
+        }} 
+        className={`text-sm font-medium contactoing-relaxed mb-4 italic transition-colors border border-transparent 
+          ${isArchived ? 'cursor-default' : 'cursor-text hover:bg-slate-50 p-2 -mx-2 rounded-lg hover:border-slate-100'} 
+          ${transaction.notes ? 'text-slate-600' : 'text-slate-300'}
+        `} 
+      >
+        {transaction.notes ? `"${transaction.notes}"` : (isArchived ? '' : 'Doble clic para añadir nota...')}
+      </p>
   );
 };

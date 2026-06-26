@@ -126,9 +126,9 @@ export const MergeContactosModal = ({ contactoOriginal, onClose, onSuccess }: Me
           {/* Swap Button */}
           <div className="flex justify-center md:pt-16">
             <button
+              title="Invertir Principal y Secundario"
               onClick={handleSwap}
               disabled={!localSecundario}
-              title="Invertir Principal y Secundario"
               className={`p-4 rounded-full transition-all ${
                 localSecundario 
                   ? 'bg-slate-900 text-white hover:scale-110 hover:shadow-lg hover:shadow-slate-900/20 cursor-pointer' 

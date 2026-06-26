@@ -71,10 +71,10 @@ export const useContactosList = () => {
     return (saved as 'list' | 'kanban') || 'list';
   });
 
-  const viewMode = activeSegment === 'todos' ? 'list' : viewModeRaw;
+  const viewMode = (activeSegment === 'todos' || isArchived) ? 'list' : viewModeRaw;
 
   const setViewMode = (mode: 'list' | 'kanban') => {
-    if (activeSegment === 'todos') return;
+    if (activeSegment === 'todos' || isArchived) return;
     setViewModeRaw(mode);
   };
 

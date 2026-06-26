@@ -173,9 +173,9 @@ export const PersonalLogsView = () => {
                 <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`} />
               </button>
               <button
+                title={sortDirection === 'asc' ? 'Orden Ascendente' : 'Orden Descendente'}
                 onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
                 className="px-4 py-2 text-slate-500 hover:text-indigo-600 transition-colors flex items-center justify-center cursor-pointer"
-                title={sortDirection === 'asc' ? 'Orden Ascendente' : 'Orden Descendente'}
               >
                 {sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
               </button>
@@ -234,12 +234,12 @@ export const PersonalLogsView = () => {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-bold text-slate-900 truncate">{conv.title || 'Conversación sin título'}</span>
                     <button
+                      title="Editar título"
                       onClick={() => {
                         setEditingId(conv.id);
                         setEditTitle(conv.title || 'Conversación sin título');
                       }}
                       className="opacity-0 group-hover/row:opacity-100 transition-opacity text-slate-400 hover:text-blue-500 cursor-pointer p-1"
-                      title="Editar título"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -253,37 +253,37 @@ export const PersonalLogsView = () => {
               <div className="flex items-center">
                 {confirmDeleteId === conv.id ? (
                   <div className="flex items-center gap-2 animate-in slide-in-from-right-4 duration-300">
-                    <button 
-                      onClick={() => handleOptimisticDelete(conv.id)}
-                      className="cursor-pointer p-2 bg-rose-100 text-rose-600 rounded-xl hover:bg-rose-200 transition-colors"
-                      title="Confirmar"
-                    >
-                      <Check className="h-5 w-5" />
-                    </button>
-                    <button 
-                      onClick={() => setConfirmDeleteId(null)}
-                      className="cursor-pointer p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
-                      title="Cancelar"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
+                      <button 
+                        title="Confirmar"
+                        onClick={() => handleOptimisticDelete(conv.id)}
+                        className="cursor-pointer p-2 bg-rose-100 text-rose-600 rounded-xl hover:bg-rose-200 transition-colors"
+                      >
+                        <Check className="h-5 w-5" />
+                      </button>
+                      <button 
+                        title="Cancelar"
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="cursor-pointer p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1">
-                    <button 
-                      onClick={() => loadConversation(conv.id)}
-                      className="cursor-pointer p-3 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all"
-                      title="Continuar"
-                    >
-                      <ExternalLink className="h-5 w-5" />
-                    </button>
-                    <button 
-                      onClick={() => setConfirmDeleteId(conv.id)}
-                      className="cursor-pointer p-3 text-slate-300 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                      <button 
+                        title="Continuar"
+                        onClick={() => loadConversation(conv.id)}
+                        className="cursor-pointer p-3 text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all"
+                      >
+                        <ExternalLink className="h-5 w-5" />
+                      </button>
+                      <button 
+                        title="Eliminar"
+                        onClick={() => setConfirmDeleteId(conv.id)}
+                        className="cursor-pointer p-3 text-slate-300 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-all"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
                   </div>
                 )}
               </div>

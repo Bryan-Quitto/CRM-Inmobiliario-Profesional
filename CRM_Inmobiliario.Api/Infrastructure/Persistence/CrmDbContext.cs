@@ -162,7 +162,7 @@ public sealed class CrmDbContext : DbContext
               VALUES ({0}, {1}, {2})
               ON CONFLICT (""AgentId"", ""ContactoId"") 
               DO UPDATE SET ""LastActivityUtc"" = EXCLUDED.""LastActivityUtc"";",
-            agentId, contactoId, timestamp);
+            agentId, contactoId, timestamp.ToUniversalTime());
     }
 
     public async Task UpsertAgentPropertyActivityAsync(Guid agentId, Guid propertyId, DateTimeOffset timestamp, CancellationToken ct = default)
@@ -172,7 +172,7 @@ public sealed class CrmDbContext : DbContext
               VALUES ({0}, {1}, {2})
               ON CONFLICT (""AgentId"", ""PropertyId"") 
               DO UPDATE SET ""LastActivityUtc"" = EXCLUDED.""LastActivityUtc"";",
-            agentId, propertyId, timestamp);
+            agentId, propertyId, timestamp.ToUniversalTime());
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

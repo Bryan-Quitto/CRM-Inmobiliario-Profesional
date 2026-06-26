@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
-import { Clock, Maximize2, Minimize2 } from 'lucide-react';
+import { Clock, Maximize2, Minimize2, Lock, RefreshCcw } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { ETAPAS, ETAPAS_PROPIETARIO } from '../constants/contactos';
 import type { Contacto } from '../types';
 
@@ -86,6 +87,16 @@ export const ContactosKanban: React.FC<ContactosKanbanProps> = ({ contactos, act
                 {!isCollapsed ? (
                   <>
                     <div className="flex items-center gap-2 min-w-0">
+                      {etapa.value === 'En Negociación' && (
+                        <Tooltip content="Columna automática. Gestiona la transacción desde el catálogo de propiedades. No puedes mover contactos manualmente de esta columna." position="top" variant="premium">
+                          <Lock className="w-3.5 h-3.5 text-amber-600/80 cursor-help shrink-0" />
+                        </Tooltip>
+                      )}
+                      {(etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado') && (
+                        <Tooltip content="Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial." position="top" variant="premium">
+                          <RefreshCcw className="w-3.5 h-3.5 text-emerald-600/80 cursor-help shrink-0" />
+                        </Tooltip>
+                      )}
                       <span className="font-black text-slate-800 uppercase tracking-tighter text-[11px] truncate">{etapa.label}</span>
                       <span className="bg-white text-slate-500 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-slate-200 shrink-0 shadow-sm">
                         {count}
@@ -129,8 +140,11 @@ export const ContactosKanban: React.FC<ContactosKanbanProps> = ({ contactos, act
                     <div
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className={`flex-1 overflow-y-auto rounded-xl transition-colors duration-200 p-1.5 scrollbar-hide ${
-                        snapshot.isDraggingOver ? 'bg-blue-50/40 ring-2 ring-blue-100 ring-inset' : 'bg-slate-100/40'
+                      className={`flex-1 overflow-y-auto rounded-xl transition-all duration-200 p-1.5 scrollbar-hide ${
+                        snapshot.isDraggingOver ? 'bg-blue-50/40 ring-2 ring-blue-100 ring-inset' 
+                        : (etapa.value === 'En Negociación' || etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado') 
+                          ? 'bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(241,245,249,0.8)_10px,rgba(241,245,249,0.8)_20px)] border-2 border-dashed border-slate-200/50' 
+                          : 'bg-slate-100/40'
                       }`}
                     >
                       {columns[etapa.value]?.map((contacto, index) => (
@@ -144,6 +158,7 @@ export const ContactosKanban: React.FC<ContactosKanbanProps> = ({ contactos, act
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
+                              style={provided.draggableProps.style as React.CSSProperties}
                               {...provided.dragHandleProps}
                               onClick={() => !snapshot.isDragging && onNavigate(contacto.id)}
                               className={`cursor-pointer bg-white p-3 rounded-xl shadow-sm border mb-2 transition-all group cursor-grab active:cursor-grabbing ${

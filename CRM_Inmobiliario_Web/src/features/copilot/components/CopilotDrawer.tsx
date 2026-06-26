@@ -139,9 +139,9 @@ export const CopilotDrawer: React.FC = () => {
       {/* Minimized Bubble */}
       {isMinimized && (
         <div 
+          title="Restaurar Copiloto"
           className="fixed bottom-6 right-6 z-50 p-4 bg-indigo-600 rounded-full shadow-2xl cursor-pointer hover:bg-indigo-700 transition-all duration-300 ease-in-out hover:scale-105 flex items-center justify-center border-4 border-white/20"
           onClick={() => setIsMinimized(false)}
-          title="Restaurar Copiloto"
         >
           <div className="relative">
             <Bot className="h-8 w-8 text-white" />
@@ -195,11 +195,11 @@ export const CopilotDrawer: React.FC = () => {
             </div>
             <h2 className="text-base font-semibold">Asistente de IA</h2>
             <Link 
+              title="Ver Historial"
               to="/registros-sistema-ia/personal" 
               target="_blank" 
               rel="noopener noreferrer"
               className="no-drag ml-1 p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors flex items-center justify-center cursor-pointer"
-              title="Ver Historial"
               onPointerDown={(e) => e.stopPropagation()}
             >
               <History className="h-4 w-4" />
@@ -207,26 +207,26 @@ export const CopilotDrawer: React.FC = () => {
           </div>
           <div className="flex items-center gap-1">
             <button
+              title="Nueva Conversación"
               onClick={handleClearConversation}
               onPointerDown={(e) => e.stopPropagation()}
               className="no-drag p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors flex items-center justify-center cursor-pointer"
-              title="Nueva Conversación"
             >
               <RefreshCcw className="h-4 w-4" />
             </button>
             <button
+              title="Minimizar"
               onClick={() => setIsMinimized(true)}
               onPointerDown={(e) => e.stopPropagation()}
               className="no-drag p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
-              title="Minimizar"
             >
               <Minus className="h-5 w-5" />
             </button>
             <button
+              title="Cerrar"
               onClick={handleClose}
               onPointerDown={(e) => e.stopPropagation()}
               className="no-drag p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
-              title="Cerrar"
             >
               <X className="h-5 w-5" />
             </button>
@@ -278,9 +278,9 @@ export const CopilotDrawer: React.FC = () => {
           </div>
           {messages.length > 0 && (
             <button
+              title="Ir al final"
               onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
               className="absolute bottom-4 right-4 z-10 p-2 bg-white/90 backdrop-blur shadow-md rounded-full text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer border border-slate-200"
-              title="Ir al final"
             >
               <ChevronDown className="h-5 w-5" />
             </button>

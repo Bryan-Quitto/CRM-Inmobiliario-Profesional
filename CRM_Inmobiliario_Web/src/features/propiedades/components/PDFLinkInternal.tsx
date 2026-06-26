@@ -144,20 +144,20 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   return (
     <div className="flex items-center gap-1.5 animate-in fade-in zoom-in duration-500">
       <button 
+        title={isDeleting ? "Archivo en proceso de eliminación" : "Descargar Ficha Técnica PDF"}
         onClick={handleDownload}
         disabled={isDeleting}
         className={`cursor-pointer ${`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 active:scale-95 ${isDeleting ? 'bg-slate-100 text-slate-400 shadow-none' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'}`}`}
-        title={isDeleting ? "Archivo en proceso de eliminación" : "Descargar Ficha Técnica PDF"}
       >
         {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
         {isDeleting ? "Borrando..." : "Descargar PDF"}
       </button>
       
       <button
+        title="Regenerar PDF (Forzar actualización)"
         onClick={handleGenerate}
         disabled={isDeleting}
         className="p-1.5 bg-white border border-slate-200 text-slate-400 rounded-full hover:text-indigo-600 hover:border-indigo-200 transition-all disabled:opacity-30 cursor-pointer"
-        title="Regenerar PDF (Forzar actualización)"
       >
         <RefreshCw className="h-3.5 w-3.5" />
       </button>

@@ -157,6 +157,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
         <div 
           ref={provided.innerRef}
           {...provided.draggableProps}
+          style={provided.draggableProps.style as React.CSSProperties}
           {...provided.dragHandleProps}
         >
           {content}
