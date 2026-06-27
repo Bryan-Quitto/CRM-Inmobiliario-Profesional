@@ -68,6 +68,13 @@ function AppContent({ session }: { session: Session | null }) {
     }
   }, [urlTareaId, isAgendaOpen]);
 
+  // Manejar apertura global del panel de nueva tarea
+  useEffect(() => {
+    const handleOpenCreateTask = () => setIsAgendaOpen(true);
+    window.addEventListener('open-agenda-create-task', handleOpenCreateTask);
+    return () => window.removeEventListener('open-agenda-create-task', handleOpenCreateTask);
+  }, []);
+
   // Manejar acción 'marcar_completada' desde Notificaciones Push
   useEffect(() => {
     const completeTask = async (id: string) => {

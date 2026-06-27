@@ -30,6 +30,12 @@ export const useAgendaState = (allTareas: Tarea[]) => {
       setSelectedTareaId(urlTareaId);
     }
   }, [urlTareaId]);
+
+  useEffect(() => {
+    const handleOpenCreateTask = () => setView('create');
+    window.addEventListener('open-agenda-create-task', handleOpenCreateTask);
+    return () => window.removeEventListener('open-agenda-create-task', handleOpenCreateTask);
+  }, []);
   const [showHistory, setShowHistory] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
   const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);

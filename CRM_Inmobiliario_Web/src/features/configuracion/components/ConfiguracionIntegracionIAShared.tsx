@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { Bot, AlertTriangle, Lock, KeyRound, Loader2 } from 'lucide-react';
+import { Bot, AlertTriangle, Lock, KeyRound, Loader2, Eye, EyeOff } from 'lucide-react';
 import type { ConfiguracionIntegracionIALogic } from '../hooks/useConfiguracionIntegracionIALogic';
 
 export const CostEstimateTooltip: React.FC<{ limit: number, aiApiKey: string }> = ({ limit, aiApiKey }) => {
@@ -58,6 +58,7 @@ export const LimitWarning: React.FC<{ limit: number }> = ({ limit }) => {
 
 export const ConfiguracionIntegracionIAAuth: React.FC<{ logic: ConfiguracionIntegracionIALogic }> = ({ logic }) => {
   const { password, setPassword, isLoading, handleAuthenticate } = logic;
+  const [showPassword, setShowPassword] = React.useState(false);
 
   return (
     <div className="space-y-6">
@@ -78,13 +79,21 @@ export const ConfiguracionIntegracionIAAuth: React.FC<{ logic: ConfiguracionInte
             <div className="relative">
               <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Tu contraseña..."
-                className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium"
+                className="w-full pl-12 pr-12 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
           </div>
 

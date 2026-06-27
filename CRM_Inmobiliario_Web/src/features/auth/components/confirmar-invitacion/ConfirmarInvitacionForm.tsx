@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Building, Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User, Building, Lock, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { PasswordRequirements } from './PasswordRequirements';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
 
@@ -39,6 +39,8 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
   handleChange,
   handleActivate
 }) => {
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   return (
     <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 p-8 rounded-[2rem] shadow-2xl">
       <form onSubmit={handleActivate} className="space-y-6">
@@ -105,18 +107,34 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nueva Contraseña</label>
             <div className="relative group">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
-              <input name="password" type="password" required value={formData.password} onChange={handleChange}
-                className="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 text-sm outline-none focus:border-emerald-500 transition-all"
+              <input name="password" type={showPassword ? "text" : "password"} required value={formData.password} onChange={handleChange}
+                className="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-10 text-sm outline-none focus:border-emerald-500 transition-all"
                 placeholder="••••••••" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirmar</label>
             <div className="relative group">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
-              <input name="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange}
-                className="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 text-sm outline-none focus:border-emerald-500 transition-all"
+              <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} required value={formData.confirmPassword} onChange={handleChange}
+                className="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-10 text-sm outline-none focus:border-emerald-500 transition-all"
                 placeholder="••••••••" />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
         </div>

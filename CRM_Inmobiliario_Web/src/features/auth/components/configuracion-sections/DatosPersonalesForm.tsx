@@ -30,7 +30,7 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
               <input
                 type="text"
                 value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
                 className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                 placeholder="Tu nombre"
                 required
@@ -43,7 +43,7 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
               <input
                 type="text"
                 value={formData.apellido}
-                onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, apellido: e.target.value }))}
                 className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                 placeholder="Tu apellido"
                 required
@@ -66,7 +66,7 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Teléfono / WhatsApp</label>
               <PhoneInputWorldClass
                 value={formData.telefono}
-                onChange={(phone) => setFormData({ ...formData, telefono: phone })}
+                onChange={(phone) => setFormData(prev => ({ ...prev, telefono: phone }))}
               />
             </div>
 
@@ -76,7 +76,7 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
               <input
                 type="text"
                 value={formData.direccionFisica}
-                onChange={(e) => setFormData({ ...formData, direccionFisica: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, direccionFisica: e.target.value }))}
                 className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                 placeholder="Dirección de la sucursal donde trabajas"
               />
@@ -87,7 +87,7 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Personalidad de tu IA (Prompt Personal)</label>
               <textarea
                 value={formData.promptPersonalIA}
-                onChange={(e) => setFormData({ ...formData, promptPersonalIA: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, promptPersonalIA: e.target.value }))}
                 rows={3}
                 className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700 resize-none"
                 placeholder="Ej. Soy Juan Pérez. Uso emojis amigables. Siempre intento agendar una visita antes del viernes."

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, KeyRound, Smartphone, Save, AlertTriangle, Bot, Settings2, ShieldAlert, MessageSquare } from 'lucide-react';
+import { Loader2, KeyRound, Smartphone, Save, AlertTriangle, Bot, Settings2, ShieldAlert, MessageSquare, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { FacebookIntegracionTab } from './FacebookIntegracionTab';
 import { TokenUsageTable } from './TokenUsageTable';
@@ -24,6 +24,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
     aiKeyError, waIdError, isValidating,
     handleSave, loadSettings, mutateSettings
   } = logic;
+  const [showApiKey, setShowApiKey] = React.useState(false);
 
   return (
     <div className="hidden lg:block space-y-6 animate-in fade-in duration-500">
@@ -71,12 +72,20 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                     <div className="relative">
                       <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input 
-                        type="password" 
+                        type={showApiKey ? "text" : "password"} 
                         value={aiApiKey}
                         onChange={(e) => setAiApiKey(e.target.value)}
                         placeholder="Tu API Key (ej. sk-... o AIza...)"
-                        className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono ${aiKeyError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'}`}
+                        className={`w-full pl-10 pr-12 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono ${aiKeyError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'}`}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                        tabIndex={-1}
+                      >
+                        {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                     {aiKeyError ? (
                       <p className="text-xs text-red-600 mt-2 font-medium flex items-center gap-1"><AlertTriangle size={12}/> {aiKeyError}</p>

@@ -1,11 +1,15 @@
 import React, { useRef, useEffect } from 'react';
-import { Search, X, Settings, Calendar, PlusSquare, User, Home, CheckCircle, Loader2 } from 'lucide-react';
+import { Search, X, Settings, Calendar, PlusSquare, User, Home, CheckCircle, Loader2, Users, Building, BarChart, Bot } from 'lucide-react';
 import { useCommandPaletteLogic, type OmniSearchResult } from '../hooks/useCommandPaletteLogic';
 
 const IconMap: Record<string, React.ElementType> = {
   Settings,
   Calendar,
   PlusSquare,
+  Users,
+  Building,
+  BarChart,
+  Bot,
   Contacto: User,
   Propiedad: Home,
   Tarea: CheckCircle,

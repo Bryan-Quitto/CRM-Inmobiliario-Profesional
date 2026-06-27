@@ -25,3 +25,26 @@ body {
 #root {
   width: 100%;
 }
+
+@utility text-miui-white {
+  color: transparent !important;
+  background-image: linear-gradient(to right, #ffffff, #ffffff) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+@utility text-miui-slate-400 {
+  color: transparent !important;
+  background-image: linear-gradient(to right, #94a3b8, #94a3b8) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+@utility placeholder-miui-slate-600 {
+  &::placeholder {
+    color: transparent !important;
+    background-image: linear-gradient(to right, #475569, #475569) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+  }
+}

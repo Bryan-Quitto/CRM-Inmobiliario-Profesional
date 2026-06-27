@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, User, Building, Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShieldCheck, User, Building, Lock, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import type { ConfirmarInvitacionLogic } from '../hooks/useConfirmarInvitacionLogic';
 import { PasswordRequirements } from './confirmar-invitacion/PasswordRequirements';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
@@ -10,6 +10,8 @@ interface Props {
 
 export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
   const { formData, isLoading, error, hasPredefinedAgency, validations, allValid, handleChange, handleActivate } = logic;
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col p-4">
@@ -86,9 +88,17 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Nueva Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                <input name="password" type="password" required value={formData.password} onChange={handleChange}
-                  className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-emerald-500"
+                <input name="password" type={showPassword ? "text" : "password"} required value={formData.password} onChange={handleChange}
+                  className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-10 text-sm outline-none focus:border-emerald-500"
                   placeholder="••••••••" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 
@@ -96,9 +106,17 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirmar</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                <input name="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange}
-                  className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-emerald-500"
+                <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} required value={formData.confirmPassword} onChange={handleChange}
+                  className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-10 text-sm outline-none focus:border-emerald-500"
                   placeholder="••••••••" />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Lock, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { ShieldCheck, Lock, Loader2, CheckCircle2, XCircle, Eye, EyeOff } from 'lucide-react';
 import type { PwdData } from '../../hooks/useConfiguracionPerfil';
 
 interface SeguridadSectionProps {
@@ -25,6 +25,9 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
   allValid,
   handleUpdatePassword
 }) => {
+  const [showCurrentPassword, setShowCurrentPassword] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   return (
     <div className="bg-white shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden border border-slate-100">
       <div className="p-6">
@@ -46,13 +49,21 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
               <div className="relative group">
                 <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <input
-                  type="password"
+                  type={showCurrentPassword ? "text" : "password"}
                   value={pwdData.currentPassword}
                   onChange={(e) => setPwdData({ ...pwdData, currentPassword: e.target.value })}
-                  className="w-full pl-14 pr-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                  className="w-full pl-14 pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -63,13 +74,21 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
                 <div className="relative group">
                   <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={pwdData.password}
                     onChange={(e) => setPwdData({ ...pwdData, password: e.target.value })}
-                    className="w-full pl-14 pr-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                    className="w-full pl-14 pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                     placeholder="••••••••"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 
@@ -79,13 +98,21 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
                 <div className="relative group">
                   <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={pwdData.confirmPassword}
                     onChange={(e) => setPwdData({ ...pwdData, confirmPassword: e.target.value })}
-                    className="w-full pl-14 pr-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                    className="w-full pl-14 pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                     placeholder="••••••••"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
             </div>

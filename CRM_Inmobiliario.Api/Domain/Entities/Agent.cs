@@ -59,9 +59,9 @@ public sealed class Agent
 
     public int DailyTokenLimitPersonal { get; set; } = 500000;
 
-    public bool IsPersonalAiEnabled { get; set; } = true;
+    public bool IsPersonalAiEnabled { get; set; } = false;
 
-    public bool IsWhatsAppAiEnabled { get; set; } = true;
+    public bool IsWhatsAppAiEnabled { get; set; } = false;
 
     public bool AutoCreateWhatsAppContacts { get; set; } = true;
 

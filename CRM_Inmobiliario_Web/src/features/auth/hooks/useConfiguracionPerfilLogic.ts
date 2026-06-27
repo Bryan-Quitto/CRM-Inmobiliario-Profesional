@@ -60,7 +60,9 @@ export const useConfiguracionPerfilLogic = () => {
   useEffect(() => {
     if (!perfil) return;
 
-    if (!isInitialized.current && (perfil.nombre || perfil.apellido)) {
+    const isFirstTime = !isInitialized.current;
+
+    if (isFirstTime) {
       setFormData({
         nombre: perfil.nombre ?? '',
         apellido: perfil.apellido ?? '',
@@ -71,26 +73,29 @@ export const useConfiguracionPerfilLogic = () => {
         direccionFisica: perfil.direccionFisica ?? '',
         promptPersonalIA: perfil.promptPersonalIA ?? ''
       });
-      lastSyncedData.current = perfil;
       isInitialized.current = true;
-      return;
-    }
-
-    if (isInitialized.current) {
+      lastSyncedData.current = perfil;
+    } else {
       setFormData(prev => {
-        const merged = {
-          nombre: prev.nombre !== (lastSyncedData.current?.nombre ?? '') ? prev.nombre : (perfil.nombre ?? ''),
-          apellido: prev.apellido !== (lastSyncedData.current?.apellido ?? '') ? prev.apellido : (perfil.apellido ?? ''),
-          telefono: prev.telefono !== (lastSyncedData.current?.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
-          agenciaId: prev.agenciaId !== (lastSyncedData.current?.agenciaId ?? '') ? prev.agenciaId : (perfil.agenciaId ?? ''),
-          fotoUrl: prev.fotoUrl !== (lastSyncedData.current?.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
-          logoUrl: prev.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? ''),
-          direccionFisica: prev.direccionFisica !== (lastSyncedData.current?.direccionFisica ?? '') ? prev.direccionFisica : (perfil.direccionFisica ?? ''),
-          promptPersonalIA: prev.promptPersonalIA !== (lastSyncedData.current?.promptPersonalIA ?? '') ? prev.promptPersonalIA : (perfil.promptPersonalIA ?? '')
+        const getMerged = (field: keyof FormDataPerfil, perfilValue: string | null | undefined) => {
+          const lastValue = (lastSyncedData.current as Record<keyof FormDataPerfil, string | null | undefined> | undefined)?.[field] ?? '';
+          const currentValue = prev[field] ?? '';
+          const incomingValue = perfilValue ?? '';
+          return currentValue !== lastValue ? currentValue : incomingValue;
         };
-        lastSyncedData.current = perfil;
-        return merged;
+
+        return {
+          nombre: getMerged('nombre', perfil.nombre),
+          apellido: getMerged('apellido', perfil.apellido),
+          telefono: getMerged('telefono', perfil.telefono),
+          agenciaId: getMerged('agenciaId', perfil.agenciaId),
+          fotoUrl: getMerged('fotoUrl', perfil.fotoUrl),
+          logoUrl: getMerged('logoUrl', perfil.logoUrl),
+          direccionFisica: getMerged('direccionFisica', perfil.direccionFisica),
+          promptPersonalIA: getMerged('promptPersonalIA', perfil.promptPersonalIA)
+        };
       });
+      lastSyncedData.current = perfil;
     }
   }, [perfil]);
 
