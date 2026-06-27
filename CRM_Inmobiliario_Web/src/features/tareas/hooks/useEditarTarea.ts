@@ -16,6 +16,11 @@ import { useTareas } from '../context/useTareas';
 import { toLocalISOString } from '../constants';
 import type { ActualizarTareaDTO, Tarea } from '../types';
 
+import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
+import { getPropiedades } from '../../propiedades/api/getPropiedades';
+import { swrDefaultConfig } from '@/lib/swr';
+import useSWR from 'swr';
+
 interface UseEditarTareaProps {
   tareaId: string;
   initialData?: Tarea;
@@ -26,7 +31,10 @@ export type EditarTareaFormValues = ActualizarTareaDTO & { contactoNombre?: stri
 
 export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTareaProps) => {
   const { mutate } = useSWRConfig();
-  const { contactos, propiedades, updateTarea } = useTareas();
+  const { updateTarea } = useTareas();
+
+  const { data: contactos = [] } = useSWR('/contactos/dropdown', () => getDropdownContactos(), swrDefaultConfig);
+  const { data: propiedades = [] } = useSWR('/propiedades', getPropiedades, swrDefaultConfig);
   
   const [isLoading, setIsLoading] = useState(!initialData);
   const [isSyncing, setIsSyncing] = useState(!!initialData);

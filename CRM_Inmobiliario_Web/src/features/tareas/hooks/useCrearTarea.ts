@@ -6,6 +6,11 @@ import { crearTarea } from '../api/crearTarea';
 import { useTareas } from '../context/useTareas';
 import type { CrearTareaDTO, Tarea } from '../types';
 
+import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
+import { getPropiedades } from '../../propiedades/api/getPropiedades';
+import { swrDefaultConfig } from '@/lib/swr';
+import useSWR from 'swr';
+
 const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
 
 interface UseCrearTareaProps {
@@ -25,7 +30,10 @@ interface UseCrearTareaProps {
 
 export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTareaProps) => {
   const { mutate } = useSWRConfig();
-  const { contactos, propiedades, addTarea } = useTareas();
+  const { addTarea } = useTareas();
+
+  const { data: contactos = [] } = useSWR('/contactos/dropdown', () => getDropdownContactos(), swrDefaultConfig);
+  const { data: propiedades = [] } = useSWR('/propiedades', getPropiedades, swrDefaultConfig);
 
   const contactoOptions = useMemo(() =>
     contactos

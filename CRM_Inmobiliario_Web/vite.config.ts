@@ -34,6 +34,7 @@ export default defineConfig({
     },
   },
   build: {
+    modulePreload: false,
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {

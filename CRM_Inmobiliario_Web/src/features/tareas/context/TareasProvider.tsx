@@ -1,29 +1,14 @@
 import React, { useMemo, useEffect } from 'react';
-import useSWR, { SWRConfig } from 'swr';
+import useSWR from 'swr';
 import { getTareas } from '../api/getTareas';
-import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
-import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import type { Tarea } from '../types';
-import type { Propiedad } from '../../propiedades/types';
 import { TareasContext } from './TareasContext';
-import { localStorageProvider, swrDefaultConfig } from '@/lib/swr';
+import { swrDefaultConfig } from '@/lib/swr';
 
 export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: tareas = [], isValidating: loading, mutate } = useSWR<Tarea[]>(
     '/tareas',
     getTareas,
-    swrDefaultConfig
-  );
-
-  const { data: contactos = [], isValidating: loadingContactos } = useSWR(
-    '/contactos/dropdown',
-    () => getDropdownContactos(),
-    swrDefaultConfig
-  );
-
-  const { data: propiedades = [], isValidating: loadingPropiedades } = useSWR<Propiedad[]>(
-    '/propiedades',
-    getPropiedades,
     swrDefaultConfig
   );
 
@@ -116,10 +101,6 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const value = {
     tareas,
     loading,
-    contactos,
-    loadingContactos,
-    propiedades,
-    loadingPropiedades,
     refreshTareas,
     updateTareaEstado,
     updateTarea,
@@ -128,10 +109,8 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <SWRConfig value={{ provider: localStorageProvider }}>
-      <TareasContext.Provider value={value}>
-        {children}
-      </TareasContext.Provider>
-    </SWRConfig>
+    <TareasContext.Provider value={value}>
+      {children}
+    </TareasContext.Provider>
   );
 };

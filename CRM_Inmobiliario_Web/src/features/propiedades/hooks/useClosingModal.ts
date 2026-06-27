@@ -2,9 +2,13 @@ import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { buscarContactos } from '../../contactos/api/buscarContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
-import { useTareas } from '../../tareas/context/useTareas';
 import { useAgentes } from '@/features/configuracion/hooks/useAgentes';
 import { type SearchItem } from '@/components/DynamicSearchSelect';
+import useSWR from 'swr';
+import { getDropdownContactos, type DropdownContactoResponse } from '../../contactos/api/getDropdownContactos';
+import { getPropiedades } from '../../propiedades/api/getPropiedades';
+import type { Propiedad } from '../../propiedades/types';
+import { swrDefaultConfig } from '@/lib/swr';
 
 interface UseClosingModalProps {
   isOpen: boolean;
@@ -29,7 +33,8 @@ export const useClosingModal = ({
   initialData,
   intendedState
 }: UseClosingModalProps) => {
-  const { contactos, propiedades } = useTareas();
+  const { data: contactos = [] } = useSWR<DropdownContactoResponse[]>(isOpen ? '/contactos/dropdown' : null, () => getDropdownContactos(), swrDefaultConfig);
+  const { data: propiedades = [] } = useSWR<Propiedad[]>(isOpen ? '/propiedades' : null, getPropiedades, swrDefaultConfig);
   
   const [precioCierre, setPrecioCierre] = useState<string>(initialData?.precio.toString() || '');
   const [partnerId, setPartnerId] = useState<string | undefined>(mode === 'property' ? undefined : initialData?.id);

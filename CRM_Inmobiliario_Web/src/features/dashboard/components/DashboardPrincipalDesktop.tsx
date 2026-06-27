@@ -63,7 +63,7 @@ export const DashboardPrincipalDesktop: React.FC<Props> = ({ logic }) => {
         <div className="absolute right-0 top-0 bottom-0 w-2/3 md:w-1/2 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/60 to-transparent z-10"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900 z-10"></div>
-          <img src="/ivisual.png" alt="Smart Building" className="w-full h-full object-cover object-center opacity-80" />
+          <img src="/ivisual.webp" fetchPriority="high" alt="Smart Building" className="w-full h-full object-cover object-center opacity-80" />
         </div>
       </div>
 

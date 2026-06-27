@@ -58,7 +58,7 @@ export const DashboardPrincipalMobile: React.FC<Props> = ({ logic }) => {
       <div className="relative w-full bg-slate-900 rounded-3xl p-6 shadow-xl overflow-hidden flex flex-col justify-end min-h-[160px] border border-slate-800">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent z-10"></div>
-          <img src="/ivisual.png" alt="Smart Building" className="w-full h-full object-cover object-top opacity-60" />
+          <img src="/ivisual.webp" fetchPriority="high" alt="Smart Building" className="w-full h-full object-cover object-top opacity-60" />
         </div>
         <div className="relative z-10 flex flex-col gap-1 min-w-0 w-full">
           <h1 className="text-2xl font-black text-white tracking-tight break-words">
