@@ -1,0 +1,151 @@
+import React from 'react';
+import { Loader2 } from 'lucide-react';
+import { ComandoPanel } from './ComandoPanel';
+import { CrearTareaForm } from './CrearTareaForm';
+import { EditarTareaForm } from './EditarTareaForm';
+import { TareaDetalle } from './TareaDetalle';
+import ConfirmModal from '../../../components/ConfirmModal';
+
+import { AgendaHeader } from './agenda-panel-sections/AgendaHeader';
+import { AgendaToolbar } from './agenda-panel-sections/AgendaToolbar';
+import { AgendaTaskList } from './agenda-panel-sections/AgendaTaskList';
+import { AgendaHistory } from './agenda-panel-sections/AgendaHistory';
+import type { UseAgendaPanelLogicReturn } from '../hooks/useAgendaPanelLogic';
+
+interface AgendaPanelMobileProps {
+  logic: UseAgendaPanelLogicReturn;
+  onClose?: () => void;
+}
+
+export const AgendaPanelMobile: React.FC<AgendaPanelMobileProps> = ({ logic, onClose }) => {
+  const { allTareas, loading, state, filters, actions, handlers } = logic;
+  const { view } = state;
+
+  if (view === 'create') {
+    return (
+      <div className="w-full h-full flex flex-col bg-white overflow-hidden shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] break-words">
+        <CrearTareaForm
+          onSuccess={handlers.handleSuccessCreate}
+          onCancel={handlers.handleCancelCreate}
+          prefill={state.prefillData ?? undefined}
+        />
+      </div>
+    );
+  }
+
+  if (view === 'detail' && state.selectedTarea) {
+    return (
+      <div className="w-full h-full flex flex-col bg-white overflow-hidden shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] break-words">
+        <TareaDetalle 
+          tarea={state.selectedTarea}
+          onEdit={() => state.setView('edit')}
+          onCancelTask={() => state.setIsConfirmingCancel(true)}
+          onCompleteTask={handlers.handleCompletarFromDetail}
+          onBack={handlers.handleBackFromDetail}
+        />
+        <ConfirmModal 
+          isOpen={state.isConfirmingCancel}
+          title="¿Cancelar Tarea?"
+          description="Esta acción no se puede deshacer. La tarea quedará marcada como cancelada en el historial."
+          confirmText="Sí, cancelar"
+          type="danger"
+          onConfirm={() => actions.handleCancelar(state.selectedTareaId)}
+          onClose={() => state.setIsConfirmingCancel(false)}
+        />
+      </div>
+    );
+  }
+
+  if (view === 'edit' && state.selectedTareaId) {
+    return (
+      <div className="w-full h-full flex flex-col bg-white overflow-hidden shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] break-words">
+        <EditarTareaForm 
+          tareaId={state.selectedTareaId}
+          initialData={state.selectedTarea}
+          onSuccess={handlers.handleSuccessEdit}
+          onCancel={handlers.handleCancelEdit}
+          onCancelTask={() => state.setIsConfirmingCancel(true)}
+        />
+        <ConfirmModal 
+          isOpen={state.isConfirmingCancel}
+          title="¿Cancelar Tarea?"
+          description="Esta acción no se puede deshacer. La tarea quedará marcada como cancelada en el historial."
+          confirmText="Sí, cancelar"
+          type="danger"
+          onConfirm={() => actions.handleCancelar(state.selectedTareaId)}
+          onClose={() => state.setIsConfirmingCancel(false)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full bg-white flex flex-col shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] animate-in fade-in slide-in-from-bottom-2 duration-300 relative break-words">
+      {/* Indicador de Sincronización UPSP */}
+      {loading && allTareas.length > 0 && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-2 duration-300 pointer-events-none">
+          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-white/10 break-words">
+            <Loader2 className="h-3 w-3 shrink-0 animate-spin text-blue-400" />
+            <span className="text-[8px] font-black uppercase tracking-[0.2em]">Sincronizando...</span>
+          </div>
+        </div>
+      )}
+
+      <AgendaHeader 
+        tareasPendientesCount={filters.tareasPendientes.length}
+        isToolbarOpen={state.isToolbarOpen}
+        onToggleToolbar={() => state.setIsToolbarOpen(!state.isToolbarOpen)}
+        onOpenComando={() => state.setIsComandoPanelOpen(true)}
+        onCreateTask={() => state.setView('create')}
+        onClose={onClose}
+      />
+
+      {state.isToolbarOpen && (
+        <AgendaToolbar
+          searchQuery={state.searchQuery}
+          onSearchChange={state.setSearchQuery}
+          filterTipos={state.filterTipos}
+          onFilterTiposChange={state.setFilterTipos}
+          sortBy={state.sortBy}
+          onSortByChange={state.setSortBy}
+          sortOrder={state.sortOrder}
+          onSortOrderChange={state.setSortOrder}
+        />
+      )}
+
+      <AgendaTaskList 
+        loading={loading}
+        allTareasCount={allTareas.length}
+        tareasPendientes={filters.tareasPendientes}
+        tareasAtrasadas={filters.tareasAtrasadas}
+        tareasHoy={filters.tareasHoy}
+        tareasFuturas={filters.tareasFuturas}
+        isFuturasExpanded={state.isFuturasExpanded}
+        onToggleFuturas={() => state.setIsFuturasExpanded(!state.isFuturasExpanded)}
+        onComplete={actions.handleCompletar}
+        onSelectTask={handlers.handleSelectTask}
+        onEditTask={(id) => {
+          state.setSelectedTareaId(id);
+          state.setView('edit');
+        }}
+      />
+
+      <AgendaHistory 
+        showHistory={state.showHistory}
+        onToggleHistory={() => state.setShowHistory(!state.showHistory)}
+        historySearch={state.historySearch}
+        onSearchChange={state.setHistorySearch}
+        filteredHistorial={filters.filteredHistorial}
+        onSelectTask={handlers.handleSelectTask}
+        historySortOrder={state.historySortOrder}
+        onToggleHistorySort={() => state.setHistorySortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+      />
+
+      <ComandoPanel
+        isOpen={state.isComandoPanelOpen}
+        onClose={() => state.setIsComandoPanelOpen(false)}
+        onParsed={handlers.handleParsedComando}
+      />
+    </div>
+  );
+};

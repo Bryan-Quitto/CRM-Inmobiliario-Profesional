@@ -21,7 +21,7 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
 }) => {
   return (
     <div className="bg-white shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden border border-slate-100">
-      <div className="p-10">
+      <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Nombre */}
@@ -115,20 +115,18 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
             </div>
           </div>
 
-          <div className="pt-8 border-t border-slate-50 flex items-center justify-between">
-            <div>
-              {showSuccess && (
-                <span className="text-emerald-600 flex items-center gap-2 font-black text-sm animate-in fade-in slide-in-from-left-4">
-                  <CheckCircle size={20} /> PERFIL ACTUALIZADO
-                </span>
-              )}
-            </div>
+          <div className="pt-6 border-t border-slate-50 flex flex-col items-center gap-4">
+            {showSuccess && (
+              <span className="text-emerald-600 flex items-center gap-2 font-black text-sm animate-in fade-in slide-in-from-left-4 w-full justify-center text-center">
+                <CheckCircle size={20} className="shrink-0" /> PERFIL ACTUALIZADO
+              </span>
+            )}
             
             <button
               type="submit"
-              className="flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 cursor-pointer"
+              className="flex items-center justify-center w-full gap-3 px-6 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 cursor-pointer"
             >
-              <Save size={20} /> GUARDAR CAMBIOS
+              <Save size={20} className="shrink-0" /> GUARDAR CAMBIOS
             </button>
           </div>
         </form>

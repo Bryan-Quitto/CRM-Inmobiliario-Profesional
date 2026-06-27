@@ -27,9 +27,9 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
 }) => {
   return (
     <div className="bg-white shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden border border-slate-100">
-      <div className="p-10">
+      <div className="p-6">
         <div className="flex items-center gap-4 mb-8">
-          <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+          <div className="h-12 w-12 shrink-0 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <div>
@@ -92,24 +92,24 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
           </div>
 
           {/* Checklist */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 p-6 bg-slate-50 rounded-2xl border border-slate-100">
             <Requirement met={validations.length} label="Mínimo 8 caracteres" />
             <Requirement met={validations.hasUpper} label="Una mayúscula" />
             <Requirement met={validations.hasNumber} label="Un número" />
             <Requirement met={validations.match} label="Las contraseñas coinciden" />
           </div>
 
-          <div className="pt-8 border-t border-slate-50 flex items-center justify-end">
+          <div className="pt-6 border-t border-slate-50 flex flex-col items-center">
             <button
               type="submit"
               disabled={isUpdatingPwd || !allValid || !pwdData.currentPassword}
-              className={`cursor-pointer flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl ${
+              className={`cursor-pointer flex items-center justify-center w-full gap-3 px-6 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl ${
                 allValid && pwdData.currentPassword 
                   ? 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200' 
                   : 'bg-slate-300 pointer-events-none'
               }`}
             >
-              {isUpdatingPwd ? <Loader2 className="animate-spin h-5 w-5" /> : <><Lock size={20} /> ACTUALIZAR CONTRASEÑA</>}
+              {isUpdatingPwd ? <Loader2 className="animate-spin h-5 w-5 shrink-0" /> : <><Lock size={20} className="shrink-0" /> ACTUALIZAR CONTRASEÑA</>}
             </button>
           </div>
         </form>
@@ -120,7 +120,7 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
 
 const Requirement = ({ met, label }: { met: boolean; label: string }) => (
   <div className={`flex items-center gap-2 text-[10px] font-bold transition-colors ${met ? 'text-indigo-600' : 'text-slate-400'}`}>
-    {met ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3 opacity-30" />}
+    {met ? <CheckCircle2 className="h-3 w-3 shrink-0" /> : <XCircle className="h-3 w-3 opacity-30 shrink-0" />}
     {label}
   </div>
 );

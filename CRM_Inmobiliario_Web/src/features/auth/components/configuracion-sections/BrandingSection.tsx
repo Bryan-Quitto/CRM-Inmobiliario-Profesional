@@ -25,9 +25,9 @@ const BrandingSection: React.FC<BrandingSectionProps> = ({
   return (
     <div className="lg:col-span-1 space-y-8">
       {/* Card: Foto de Perfil */}
-      <div className="bg-white p-8 rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
+      <div className="bg-white p-6 rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
         <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center justify-center gap-2">
-          <Camera size={16} /> Foto de Perfil
+          <Camera size={16} className="shrink-0" /> Foto de Perfil
         </h3>
         <FotoPerfilUpload 
           userId={userId} 
@@ -49,9 +49,9 @@ const BrandingSection: React.FC<BrandingSectionProps> = ({
       </div>
 
       {/* Card: Logo de Agencia */}
-      <div className="bg-white p-8 rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
+      <div className="bg-white p-6 rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
         <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center justify-center gap-2">
-          <ImageIcon size={16} /> Logo Corporativo
+          <ImageIcon size={16} className="shrink-0" /> Logo Corporativo
         </h3>
         <LogoAgenciaUpload 
           userId={userId} 

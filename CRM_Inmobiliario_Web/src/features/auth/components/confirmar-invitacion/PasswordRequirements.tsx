@@ -14,7 +14,7 @@ interface PasswordRequirementsProps {
 
 export const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({ validations }) => {
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-4 bg-slate-900/40 rounded-2xl border border-slate-700/50">
+    <div className="flex flex-col gap-1.5 p-4 bg-slate-900/40 rounded-2xl border border-slate-700/50">
       <Requirement met={validations.personal} label="Datos personales" />
       <Requirement met={validations.length} label="8+ caracteres" />
       <Requirement met={validations.hasUpper} label="Mayúscula" />
@@ -25,7 +25,7 @@ export const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({ vali
 };
 
 const Requirement = ({ met, label }: { met: boolean; label: string }) => (
-  <div className={`flex items-center gap-2 text-[10px] font-bold transition-colors ${met ? 'text-emerald-400' : 'text-slate-500'}`}>
+  <div className={`flex items-center gap-2 text-[11px] font-bold transition-colors ${met ? 'text-emerald-400' : 'text-slate-500'}`}>
     {met ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3 opacity-30" />}
     {label}
   </div>

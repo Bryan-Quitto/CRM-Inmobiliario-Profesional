@@ -13,7 +13,7 @@ export const ContactoTransactions = ({ contacto }: ContactoTransactionsProps) =>
 
   if (transacciones.length === 0) {
     return (
-      <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm text-center space-y-4">
+      <div className="bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-8 border border-slate-100 shadow-sm text-center space-y-4">
         <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
           <Award className="h-8 w-8 text-slate-300" />
         </div>
@@ -28,7 +28,7 @@ export const ContactoTransactions = ({ contacto }: ContactoTransactionsProps) =>
   }
 
   return (
-    <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
+    <div className="bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-8 border border-slate-100 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Transacciones</h3>

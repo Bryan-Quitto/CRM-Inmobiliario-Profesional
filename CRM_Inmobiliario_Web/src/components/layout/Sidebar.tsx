@@ -48,12 +48,21 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   };
 
   return (
-    <aside 
-      className={`fixed left-0 top-0 h-full bg-slate-900 text-slate-400 transition-all duration-300 z-[100] shadow-2xl flex flex-col ${
-        isOpen ? 'w-64' : 'w-20'
-      }`}
-    >
-      <div className="h-20 flex items-center px-6 border-b border-slate-800/50">
+    <>
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] md:hidden transition-opacity duration-300"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <aside 
+        className={`fixed left-0 top-0 h-[100dvh] bg-slate-900 text-slate-400 transition-all duration-300 z-[100] shadow-2xl flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
+          isOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'
+        }`}
+      >
+        <div className="h-20 flex items-center px-6 border-b border-slate-800/50 flex-shrink-0">
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
           {isOpen && (
@@ -114,10 +123,11 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       <button 
         onClick={() => setIsOpen(!isOpen)}
         aria-label={isOpen ? "Contraer menú lateral" : "Expandir menú lateral"}
-        className="absolute -right-3 top-24 h-6 w-6 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all z-[110] cursor-pointer"
+        className="absolute -right-3 top-24 h-6 w-6 bg-blue-600 text-white rounded-full hidden md:flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all z-[110] cursor-pointer"
       >
         {isOpen ? <ChevronLeft className="h-4 w-4" aria-hidden="true" /> : <ChevronRight className="h-4 w-4" aria-hidden="true" />}
       </button>
     </aside>
+    </>
   );
 };

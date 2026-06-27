@@ -63,8 +63,8 @@ export const ContactoTimelineManager = ({
     <div className="lg:col-span-8 space-y-8">
       {/* Editor de Notas */}
       {!isArchived && (
-        <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm overflow-hidden relative group">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-8 border border-slate-100 shadow-sm overflow-hidden relative group">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0 mb-6">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
                 <Pencil className="h-5 w-5" />
@@ -87,7 +87,7 @@ export const ContactoTimelineManager = ({
           </div>
 
           <div className="space-y-4">
-            <div className="flex gap-2 p-1.5 bg-slate-50 rounded-2xl w-fit">
+            <div className="flex flex-wrap gap-2 p-1.5 bg-slate-50 rounded-2xl w-full">
               {TIPO_NOTA_OPCIONES.map(opt => (
                 <button 
                   key={opt.value}
@@ -104,12 +104,12 @@ export const ContactoTimelineManager = ({
                 value={nuevaNota}
                 onChange={(e) => setNuevaNota(e.target.value)}
                 placeholder="Escribe aquí los detalles de la interacción..."
-                className="w-full bg-slate-50 border border-slate-100 rounded-[24px] p-6 text-slate-700 font-medium text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-200 transition-all outline-none min-h-[120px] resize-none"
+                className="w-full bg-slate-50 border border-slate-100 rounded-[20px] md:rounded-[24px] p-4 md:p-6 text-slate-700 font-medium text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-200 transition-all outline-none min-h-[120px] resize-none"
               />
               <button 
                 onClick={handleSaveNota}
                 disabled={isSavingNota || !nuevaNota.trim()}
-                className="absolute bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:bg-slate-200 disabled:shadow-none active:scale-95 cursor-pointer"
+                className="absolute bottom-3 md:bottom-4 right-3 md:right-4 bg-slate-900 text-white px-4 md:px-6 py-2 md:py-3 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:bg-slate-200 disabled:shadow-none active:scale-95 cursor-pointer"
               >
                 {isSavingNota ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 {notaEnEdicion ? 'Actualizar' : 'Guardar'}
@@ -207,7 +207,7 @@ export const ContactoTimelineManager = ({
                       )}
                     </div>
                   </div>
-                  <div className="bg-slate-50/50 p-6 rounded-[32px] border border-slate-100 hover:bg-white hover:shadow-xl hover:border-blue-100 transition-all duration-500 italic text-sm font-medium text-slate-600 contactoing-relaxed">"{interaccion.notas}"</div>
+                  <div className="bg-slate-50/50 p-4 md:p-6 rounded-[24px] md:rounded-[32px] border border-slate-100 hover:bg-white hover:shadow-xl hover:border-blue-100 transition-all duration-500 italic text-sm font-medium text-slate-600 leading-relaxed">"{interaccion.notas}"</div>
                 </div>
               </div>
             ))

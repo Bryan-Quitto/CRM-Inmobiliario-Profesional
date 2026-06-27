@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useContactoBase } from './useContactoBase';
 import { useContactoTimeline } from './useContactoTimeline';
 import { useContactoInterests } from './useContactoInterests';
@@ -13,11 +14,15 @@ export const useContactoDetalle = () => {
   const stage = useContactoStage({ contacto, id, mutate, globalMutate });
   const archive = useContactoArchive({ contacto, mutate, globalMutate });
 
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+
   return {
     ...base,
     ...timeline,
     ...interests,
     ...stage,
-    ...archive
+    ...archive,
+    isMergeModalOpen,
+    setIsMergeModalOpen
   };
 };

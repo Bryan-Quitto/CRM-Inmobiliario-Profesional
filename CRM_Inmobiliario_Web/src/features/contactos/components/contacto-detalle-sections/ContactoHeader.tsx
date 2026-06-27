@@ -35,19 +35,19 @@ export const ContactoHeader = ({
   
 
   return (
-    <div className="bg-white border-b border-slate-100 sticky top-0 z-[100] px-6 py-4 flex items-center justify-between backdrop-blur-md bg-white/80">
-      <div className="flex items-center gap-4">
+    <div className="bg-white border-b border-slate-100 sticky top-0 z-[100] px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0 backdrop-blur-md bg-white/80">
+      <div className="flex items-start md:items-center gap-3 md:gap-4 w-full md:w-auto">
         <button 
           onClick={() => navigate(backPath)}
-          className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+          className="p-1.5 md:p-2 mt-0.5 md:mt-0 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer shrink-0"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
         </button>
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</h1>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-3 items-start">
+            <h1 className="text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight truncate w-full md:w-auto">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</h1>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3 overflow-x-auto hide-scrollbar w-full md:w-auto pb-1 md:pb-0">
               {/* Badge & Dropdown de Cliente */}
               {contacto.esContacto && (
                 <div className="flex items-center gap-2">
@@ -89,10 +89,10 @@ export const ContactoHeader = ({
               )}
             </div>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Expediente del Contacto</p>
+          <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Expediente del Contacto</p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0 w-full md:w-auto">
         {contacto.telefono && (
           <a 
             title="WhatsApp Directo"
@@ -129,18 +129,18 @@ export const ContactoHeader = ({
               title="Fusionar Contactos"
               data-testid="btn-merge-entity"
               onClick={onMerge}
-              className="h-10 px-4 bg-white text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-sm border border-slate-200 flex items-center gap-2 cursor-pointer"
+              className="h-8 md:h-10 px-3 md:px-4 bg-white text-slate-700 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-slate-50 transition-all shadow-sm border border-slate-200 flex items-center gap-1.5 md:gap-2 cursor-pointer shrink-0"
             >
-              <Merge className="h-4 w-4 text-blue-500" />
+              <Merge className="h-3 w-3 md:h-4 md:w-4 text-blue-500" />
               Fusionar
             </button>
 
             <button 
               data-testid="btn-edit-entity"
               onClick={onEdit}
-              className="h-10 px-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2 cursor-pointer"
+              className="h-8 md:h-10 px-3 md:px-4 bg-slate-900 text-white font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-1.5 md:gap-2 cursor-pointer shrink-0"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-3 w-3 md:h-4 md:w-4" />
               Editar
             </button>
           </>

@@ -15,7 +15,7 @@ interface ChatMessageItemProps {
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, isHighlighted }) => {
   const navigate = useNavigate();
   return (
-    <div id={`msg-${msg.id}`} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} ${isHighlighted ? 'ring-2 ring-orange-500 ring-offset-2 rounded-2xl transition-all' : ''}`}>
+    <div id={`msg-${msg.id}`} className={`flex gap-3 w-full ${msg.role === 'user' ? 'flex-row-reverse' : ''} ${isHighlighted ? 'ring-2 ring-orange-500 ring-offset-2 rounded-2xl transition-all' : ''}`}>
       <div
         className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${
           msg.role === 'user' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600'
@@ -24,13 +24,13 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, isHighlig
         {msg.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
       </div>
       <div
-        className={`px-4 py-3 rounded-2xl max-w-[85%] ${
+        className={`px-4 py-3 rounded-2xl max-w-[85%] min-w-0 break-words ${
           msg.role === 'user'
             ? 'bg-indigo-600 text-white rounded-tr-none'
             : 'bg-white border border-slate-200 text-slate-700 rounded-tl-none shadow-sm'
         }`}
       >
-        <div className={`text-sm max-w-none ${msg.role === 'user' ? 'text-white' : 'text-slate-700'}`}>
+        <div className={`text-sm max-w-none break-words min-w-0 w-full ${msg.role === 'user' ? 'text-white' : 'text-slate-700'}`}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -60,7 +60,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, isHighlig
                   return (
                     <a
                       href={cleanHref}
-                      className="text-indigo-600 hover:underline hover:text-indigo-700 cursor-pointer font-medium"
+                      className="text-indigo-600 hover:underline hover:text-indigo-700 cursor-pointer font-medium break-all"
                       onClick={(e) => {
                         e.preventDefault();
                         navigate(cleanHref);
@@ -72,7 +72,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, isHighlig
                   );
                 }
                 return (
-                  <a href={href} className="text-indigo-600 hover:underline hover:text-indigo-700 cursor-pointer" target="_blank" rel="noopener noreferrer" {...props}>
+                  <a href={href} className="text-indigo-600 hover:underline hover:text-indigo-700 cursor-pointer break-all" target="_blank" rel="noopener noreferrer" {...props}>
                     {children}
                   </a>
                 );

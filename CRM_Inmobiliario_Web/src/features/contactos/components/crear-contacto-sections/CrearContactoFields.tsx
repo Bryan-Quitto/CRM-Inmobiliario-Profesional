@@ -28,31 +28,31 @@ export const CrearContactoFields = ({
   const isWhatsApp = origen?.toLowerCase().includes('whatsapp');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 w-full">
       {/* Sección de Roles */}
-      <div className="space-y-3">
-        <label className={`text-[10px] font-black uppercase tracking-widest ml-1 transition-colors ${roleError ? 'text-rose-500' : 'text-slate-400'}`}>
+      <div className="space-y-3 w-full">
+        <label className={`text-[10px] font-black uppercase tracking-widest ml-1 transition-colors ${roleError ? 'text-rose-500' : 'text-slate-400'} block break-words`}>
           Roles del Contacto {roleError && '(Debe seleccionar al menos uno)'}
         </label>
-        <div className={`grid grid-cols-2 gap-3 p-1 rounded-3xl transition-all ${roleError ? 'bg-rose-50 ring-2 ring-rose-200' : ''}`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 p-1 rounded-3xl transition-all w-full ${roleError ? 'bg-rose-50 ring-2 ring-rose-200' : ''}`}>
           <button
             type="button"
             onClick={() => setValue('esContacto', !esContacto)}
             disabled={isSuccess}
-            className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+            className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer w-full ${
               esContacto 
                 ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10' 
                 : 'border-slate-100 bg-slate-50 hover:border-slate-200'
             }`}
           >
-            <div className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${
+            <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
               esContacto ? 'bg-blue-500' : 'bg-slate-200'
             }`}>
-              <Search className={`h-4 w-4 ${esContacto ? 'text-white' : 'text-slate-500'}`} />
+              <Search className={`h-4 w-4 shrink-0 ${esContacto ? 'text-white' : 'text-slate-500'}`} />
             </div>
-            <div className="text-left">
-              <p className={`text-xs font-black uppercase ${esContacto ? 'text-blue-900' : 'text-slate-500'}`}>Cliente</p>
-              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 ${esContacto ? 'text-blue-600' : 'text-slate-400'}`}>
+            <div className="text-left flex-1 min-w-0">
+              <p className={`text-xs font-black uppercase truncate ${esContacto ? 'text-blue-900' : 'text-slate-500'}`}>Cliente</p>
+              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esContacto ? 'text-blue-600' : 'text-slate-400'}`}>
                 {esContacto ? 'Habilitado' : 'Inactivo'}
               </p>
             </div>
@@ -62,20 +62,20 @@ export const CrearContactoFields = ({
             type="button"
             onClick={() => setValue('esPropietario', !esPropietario)}
             disabled={isSuccess}
-            className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+            className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer w-full ${
               esPropietario 
                 ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-500/10' 
                 : 'border-slate-100 bg-slate-50 hover:border-slate-200'
             }`}
           >
-            <div className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors ${
+            <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
               esPropietario ? 'bg-emerald-500' : 'bg-slate-200'
             }`}>
-              <UserCheck className={`h-4 w-4 ${esPropietario ? 'text-white' : 'text-slate-500'}`} />
+              <UserCheck className={`h-4 w-4 shrink-0 ${esPropietario ? 'text-white' : 'text-slate-500'}`} />
             </div>
-            <div className="text-left">
-              <p className={`text-xs font-black uppercase ${esPropietario ? 'text-emerald-900' : 'text-slate-500'}`}>Propietario</p>
-              <p className={`text-[9px] font-bold uppercase contactoing-none mt-0.5 ${esPropietario ? 'text-emerald-600' : 'text-slate-400'}`}>
+            <div className="text-left flex-1 min-w-0">
+              <p className={`text-xs font-black uppercase truncate ${esPropietario ? 'text-emerald-900' : 'text-slate-500'}`}>Propietario</p>
+              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esPropietario ? 'text-emerald-600' : 'text-slate-400'}`}>
                 {esPropietario ? 'Habilitado' : 'Inactivo'}
               </p>
             </div>
@@ -85,11 +85,11 @@ export const CrearContactoFields = ({
         <input type="hidden" {...register('esPropietario')} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Nombre</label>
-          <div className="relative">
-            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div className="space-y-2 w-full">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 block break-words">Nombre</label>
+          <div className="relative w-full">
+            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />
             <input 
               {...register('nombre', { required: 'El nombre es obligatorio' })}
               type="text" 
@@ -98,11 +98,11 @@ export const CrearContactoFields = ({
               className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
             />
           </div>
-          {errors.nombre && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.nombre.message}</p>}
+          {errors.nombre && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase break-words">{errors.nombre.message}</p>}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Apellido</label>
+        <div className="space-y-2 w-full">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 block break-words">Apellido</label>
           <input 
             {...register('apellido')}
             type="text" 
@@ -113,10 +113,10 @@ export const CrearContactoFields = ({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Correo Electrónico</label>
-        <div className="relative">
-          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+      <div className="space-y-2 w-full">
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 block break-words">Correo Electrónico</label>
+        <div className="relative w-full">
+          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />
           <input 
             {...register('email', { 
               pattern: { value: /^\S+@\S+$/i, message: 'Email inválido' }
@@ -127,11 +127,11 @@ export const CrearContactoFields = ({
             className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
           />
         </div>
-        {errors.email && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.email.message}</p>}
+        {errors.email && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase break-words">{errors.email.message}</p>}
       </div>
 
-      <div className="space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+      <div className="space-y-2 w-full">
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 block break-words">
           Teléfono {isWhatsApp && <span className="text-rose-500">*</span>}
         </label>
         <Controller
@@ -151,7 +151,7 @@ export const CrearContactoFields = ({
             />
           )}
         />
-        {errors.telefono && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.telefono.message}</p>}
+        {errors.telefono && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase break-words">{errors.telefono.message}</p>}
       </div>
     </div>
   );

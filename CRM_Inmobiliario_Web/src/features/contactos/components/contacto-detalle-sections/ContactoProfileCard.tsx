@@ -7,6 +7,7 @@ import type { Contacto } from '../../types';
 import { useContactoTokenUsage } from '../../hooks/useContactoTokenUsage';
 import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracionIA';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
 
 interface ContactoProfileCardProps {
   contacto: Contacto;
@@ -56,17 +57,17 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
   ];
 
   return (
-    <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
-      <div className="flex flex-col items-center text-center mb-8">
-        <div className="h-24 w-24 bg-slate-900 text-white rounded-[32px] flex items-center justify-center text-3xl font-black shadow-2xl mb-4 rotate-3">
+    <div className="bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-8 border border-slate-100 shadow-sm">
+      <div className="flex flex-col items-center text-center mb-6 md:mb-8">
+        <div className="h-16 w-16 md:h-24 md:w-24 bg-slate-900 text-white rounded-[20px] md:rounded-[32px] flex items-center justify-center text-xl md:text-3xl font-black shadow-2xl mb-3 md:mb-4 rotate-3">
           {contacto.nombre[0]}{contacto.apellido?.[0] || ''}
         </div>
-        <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</h2>
+        <h2 className="text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</h2>
         <p className="text-sm font-bold text-slate-400 mt-1 italic">Contacto desde {new Date(contacto.fechaCreacion!).toLocaleDateString()}</p>
       </div>
 
       <div className="space-y-6">
-        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
+        <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
           <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-600 shadow-sm transition-colors">
             <Phone className="h-5 w-5" />
           </div>
@@ -94,7 +95,7 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
         )}
 
         {contacto.email && (
-          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
+          <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
             <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-600 shadow-sm transition-colors">
               <Mail className="h-5 w-5" />
             </div>
@@ -105,7 +106,7 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
           </div>
         )}
 
-        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
+        <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
           <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-600 shadow-sm transition-colors">
             <Tag className="h-5 w-5" />
           </div>
@@ -117,8 +118,8 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
 
         {/* Token Usage Section */}
         {!contacto.esCompartido && (
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="flex items-center justify-between mb-3">
+          <div className="p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0 mb-3">
               <div className="flex items-center gap-2">
                 <Bot className="h-4 w-4 text-purple-500" />
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Consumo Tokens</p>
@@ -261,21 +262,34 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
   const estadoIA = channel === 'Facebook' ? contacto.estadoIA_FB : contacto.estadoIA_WA;
 
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all">
-      <div className="flex items-center gap-4">
-        <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors ${isBotActivo ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-slate-400'}`}>
+    <div className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all">
+      <div className="flex items-center gap-3 md:gap-4">
+        <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors shrink-0 ${isBotActivo ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-slate-400'}`}>
           <Bot className="h-5 w-5" />
         </div>
         <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IA {channel}</p>
           {!isGlobalEnabled ? (
-            <Tooltip content={`La IA de ${channel} está desactivada en tu Configuración`}>
-              <span 
-                className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-help"
-              >
-                Inactivo (Global)
-              </span>
-            </Tooltip>
+            <>
+              <div className="hidden lg:flex">
+                <Tooltip content={`La IA de ${channel} está desactivada en tu Configuración`}>
+                  <span 
+                    className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-help"
+                  >
+                    Inactivo (Global)
+                  </span>
+                </Tooltip>
+              </div>
+              <div className="flex lg:hidden">
+                <MobileInfoPopover content={`La IA de ${channel} está desactivada en tu Configuración`}>
+                  <span 
+                    className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider cursor-help"
+                  >
+                    Inactivo (Global)
+                  </span>
+                </MobileInfoPopover>
+              </div>
+            </>
           ) : isBotActivo ? (
             <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
           ) : estadoIA === 'Escalado' ? (
@@ -288,41 +302,82 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
         </div>
       </div>
       <div className="inline-block">
-        <Tooltip content={!isGlobalEnabled ? `Debes activar la IA de ${channel} en Configuración para usar esta función` : ''}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isGlobalEnabled) {
-                toast.warning(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
-                return;
-              }
-              const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
-              if (isStageLocked) {
-                toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
-                return;
-              }
-              if (contacto.isArchivedForCurrentUser) {
-                toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
-                return;
-              }
-              if (isLoading || contacto.esCompartido) return;
-              handleToggle(!isBotActivo);
-            }}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              !isGlobalEnabled
-                ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+        <div className="hidden lg:inline-block">
+          <Tooltip content={!isGlobalEnabled ? `Debes activar la IA de ${channel} en Configuración para usar esta función` : ''}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isGlobalEnabled) {
+                  toast.warning(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
+                  return;
+                }
+                const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                if (isStageLocked) {
+                  toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                  return;
+                }
+                if (contacto.isArchivedForCurrentUser) {
+                  toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
+                  return;
+                }
+                if (isLoading || contacto.esCompartido) return;
+                handleToggle(!isBotActivo);
+              }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                !isGlobalEnabled
+                  ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                  : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                    ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                    : contacto.isArchivedForCurrentUser
+                      ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+                      : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
+              } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isBotActivo ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </Tooltip>
+        </div>
+        <div className="inline-block lg:hidden">
+          {(!isGlobalEnabled) ? (
+            <MobileInfoPopover content={`Debes activar la IA de ${channel} en Configuración para usar esta función`}>
+              <button
+                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-slate-300 opacity-50 cursor-not-allowed"
+              >
+                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
+              </button>
+            </MobileInfoPopover>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                if (isStageLocked) {
+                  toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+                  return;
+                }
+                if (contacto.isArchivedForCurrentUser) {
+                  toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
+                  return;
+                }
+                if (isLoading || contacto.esCompartido) return;
+                handleToggle(!isBotActivo);
+              }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
                   ? 'bg-slate-300 opacity-50 cursor-not-allowed'
                   : contacto.isArchivedForCurrentUser
                     ? 'bg-slate-300 opacity-50 cursor-not-allowed'
                     : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
-            } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              isBotActivo ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </Tooltip>
+              } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isBotActivo ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

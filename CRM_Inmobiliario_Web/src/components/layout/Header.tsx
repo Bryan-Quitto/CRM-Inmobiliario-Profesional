@@ -1,4 +1,4 @@
-import { Search, Bell, Sparkles } from 'lucide-react';
+import { Search, Bell, Sparkles, Menu } from 'lucide-react';
 import { useTareas } from '@/features/tareas/context/useTareas';
 import { usePerfil } from '@/features/auth/api/perfil';
 import type { Session } from '@supabase/supabase-js';
@@ -9,18 +9,27 @@ interface HeaderProps {
   isAgendaOpen: boolean;
   setIsAgendaOpen: (open: boolean) => void;
   session: Session | null;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (open: boolean) => void;
 }
 
-export const Header = ({ isAgendaOpen, setIsAgendaOpen, session }: HeaderProps) => {
+export const Header = ({ isAgendaOpen, setIsAgendaOpen, session, isSidebarOpen, setIsSidebarOpen }: HeaderProps) => {
   const { urgentesCount } = useTareas();
   const { perfil } = usePerfil();
   const { toggleOpen, isOpen } = useCopilotStore();
   const [searchParams, setSearchParams] = useSearchParams();
 
   return (
-    <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
-      <div className="flex items-center gap-4 flex-1">
-        <div className="relative w-full max-w-md hidden md:block">
+    <header className="h-[calc(5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
+      <div className="flex items-center gap-2 md:gap-4 flex-1">
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          aria-label={isSidebarOpen ? "Cerrar menú lateral" : "Abrir menú lateral"}
+          className="md:hidden p-2.5 -ml-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer touch-manipulation flex-shrink-0"
+        >
+          <Menu className="h-6 w-6" aria-hidden="true" />
+        </button>
+        <div className="relative w-full max-w-md">
           <label htmlFor="global-search" className="sr-only">Búsqueda global</label>
           <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true" />
           <input 
@@ -32,7 +41,7 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session }: HeaderProps) 
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 md:gap-6 ml-2">
         <button
           onClick={() => {
             toggleOpen();
@@ -64,7 +73,7 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session }: HeaderProps) 
             </span>
           )}
         </button>
-        <div className="h-8 w-px bg-slate-200"></div>
+        <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-black text-slate-900">

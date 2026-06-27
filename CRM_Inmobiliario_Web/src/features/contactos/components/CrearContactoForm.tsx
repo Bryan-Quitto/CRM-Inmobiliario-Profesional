@@ -31,7 +31,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
   } = useCrearContacto({ initialData, isOwnersView, onSuccess });
 
   return (
-    <div className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
+    <div className="bg-white p-6 sm:p-8 rounded-none sm:rounded-3xl w-full max-w-lg shadow-none sm:shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-full sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 flex flex-col min-w-0">
       <CrearContactoHeader 
         isEditing={isEditing}
         isSuccess={isSuccess}
@@ -42,7 +42,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
         onCancel={onCancel}
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="flex flex-col w-full space-y-6">
         <CrearContactoFields 
           register={register}
           errors={errors}
@@ -60,7 +60,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
           isSuccess={isSuccess}
         />
 
-        <div className="space-y-4">
+        <div className="space-y-4 w-full">
           <CrearContactoFooter 
             isEditing={isEditing}
             isSuccess={isSuccess}
@@ -69,7 +69,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
           />
           
           {roleError && (
-            <p className="text-center text-rose-500 font-black text-[10px] uppercase tracking-wider animate-bounce">
+            <p className="text-center text-rose-500 font-black text-[10px] uppercase tracking-wider animate-bounce break-words px-2">
               ⚠️ Debes seleccionar al menos un rol (Cliente o Propietario)
             </p>
           )}

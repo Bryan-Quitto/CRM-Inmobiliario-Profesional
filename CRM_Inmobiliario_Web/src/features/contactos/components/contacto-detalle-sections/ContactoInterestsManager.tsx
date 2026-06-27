@@ -41,10 +41,10 @@ export const ContactoInterestsManager = ({
   handleDesvincular
 }: ContactoInterestsManagerProps) => {
   return (
-    <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-8 border border-slate-100 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0 mb-5 md:mb-6">
         <div>
-          <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Intereses</h3>
+          <h3 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-tight">Intereses</h3>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Propiedades vinculadas</p>
         </div>
         <Building2 className="h-5 w-5 text-slate-200" />
@@ -121,18 +121,18 @@ export const ContactoInterestsManager = ({
             const isThisBeingDeleted = idInteresABorrar === interes.propiedadId;
 
             return (
-              <div key={interes.propiedadId} className="group relative bg-white border border-slate-100 p-4 rounded-2xl hover:border-blue-200 hover:shadow-md transition-all">
+              <div key={interes.propiedadId} className="group relative bg-white border border-slate-100 p-3 md:p-4 rounded-2xl hover:border-blue-200 hover:shadow-md transition-all">
                 {(isUpdating || (isDeletingInteres && isThisBeingDeleted)) && <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-2xl"><Loader2 className="h-5 w-5 text-blue-600 animate-spin" /></div>}
                 
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 bg-slate-100 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-slate-300" />
+                  <div className="h-10 w-10 md:h-12 md:w-12 bg-slate-100 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
+                    <Building2 className="h-4 w-4 md:h-5 md:w-5 text-slate-300" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-black text-slate-900 uppercase truncate contactoing-tight group-hover:text-blue-600 transition-colors">{interes.titulo}</h4>
+                    <h4 className="text-xs font-black text-slate-900 uppercase truncate group-hover:text-blue-600 transition-colors tracking-tight">{interes.titulo}</h4>
                     <p className="text-[10px] font-bold text-slate-400 mt-0.5">{formatCurrency(interes.precio || 0)}</p>
                     
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex flex-wrap md:flex-nowrap items-center gap-2 mt-2">
                       <div className="relative">
                         <button 
                           onClick={() => setDropdownInteresOpenId(dropdownInteresOpenId === interes.propiedadId ? null : interes.propiedadId)}

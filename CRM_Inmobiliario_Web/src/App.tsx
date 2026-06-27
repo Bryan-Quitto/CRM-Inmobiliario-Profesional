@@ -51,11 +51,11 @@ function AppContent({ session }: { session: Session | null }) {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('crm_sidebar_state');
-    return saved !== null ? JSON.parse(saved) : true;
+    return saved !== null ? JSON.parse(saved) : false;
   });
   const [isAgendaOpen, setIsAgendaOpen] = useState(() => {
     const saved = localStorage.getItem('crm_agenda_state');
-    return saved !== null ? JSON.parse(saved) : true;
+    return saved !== null ? JSON.parse(saved) : false;
   });
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -126,15 +126,20 @@ function AppContent({ session }: { session: Session | null }) {
     }
   }, [location, navigate]);
 
+  const sidebarMargin = isSidebarOpen ? 'md:ml-64' : 'md:ml-20';
+  const agendaMargin = isAgendaOpen ? 'md:mr-80' : 'md:mr-0';
+
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
+    <div className="flex min-h-[100dvh] bg-slate-50 font-sans antialiased text-slate-900 overflow-x-hidden">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} ${isAgendaOpen ? 'mr-80' : 'mr-0'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 w-full ml-0 ${sidebarMargin} mr-0 ${agendaMargin}`}>
         <Header 
           isAgendaOpen={isAgendaOpen} 
           setIsAgendaOpen={setIsAgendaOpen} 
           session={session} 
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
         />
 
         <main className="p-8 w-full max-full">

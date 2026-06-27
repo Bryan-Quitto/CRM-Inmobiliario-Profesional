@@ -38,10 +38,10 @@ export const OrigenSelect = ({
   }, []);
 
   return (
-    <div className="space-y-2 mt-6">
-      <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Origen del Contacto</label>
-      <div className="relative" ref={selectRef}>
-        <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+    <div className="space-y-2 mt-6 w-full">
+      <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 block break-words">Origen del Contacto</label>
+      <div className="relative w-full" ref={selectRef}>
+        <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />
         <Controller
           name="origen"
           control={control}
@@ -54,10 +54,10 @@ export const OrigenSelect = ({
                 onClick={() => setIsSelectOpen(!isSelectOpen)}
                 className={`cursor-pointer w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.origen ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group disabled:opacity-50`}
               >
-                <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
+                <span className={`truncate flex-1 ${field.value ? 'text-slate-900' : 'text-slate-400'}`}>
                   {field.value || 'Selecciona origen...'}
                 </span>
-                <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${isSelectOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 shrink-0 text-slate-300 transition-transform duration-300 ${isSelectOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isSelectOpen && (
@@ -74,8 +74,8 @@ export const OrigenSelect = ({
                         field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
                       }`}
                     >
-                      {opt.label}
-                      {field.value === opt.value && <Check className="h-4 w-4" />}
+                      <span className="truncate pr-2">{opt.label}</span>
+                      {field.value === opt.value && <Check className="h-4 w-4 shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -84,7 +84,7 @@ export const OrigenSelect = ({
           )}
         />
       </div>
-      {errors.origen && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.origen.message}</p>}
+      {errors.origen && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase break-words">{errors.origen.message}</p>}
     </div>
   );
 };

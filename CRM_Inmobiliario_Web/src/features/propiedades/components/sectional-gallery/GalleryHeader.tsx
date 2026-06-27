@@ -14,6 +14,7 @@ import {
   Info
 } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
 import type { MultimediaPropiedad } from '../../types';
 
 interface GalleryHeaderProps {
@@ -151,11 +152,22 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
             <div className="flex items-center gap-3 group">
               <h3 className="text-2xl font-black text-slate-900 tracking-tight">{sectionNombre}</h3>
               {!sectionId && (
-                <Tooltip content="Estas fotos no las ocupará la IA, solo aquellas subidas al crear secciones.">
-                  <div className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help mt-1 flex">
-                    <Info size={18} />
+                <>
+                  <div className="hidden lg:flex">
+                    <Tooltip content="Estas fotos no las ocupará la IA, solo aquellas subidas al crear secciones.">
+                      <div className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help mt-1 flex">
+                        <Info size={18} />
+                      </div>
+                    </Tooltip>
                   </div>
-                </Tooltip>
+                  <div className="flex lg:hidden mt-1">
+                    <MobileInfoPopover content="Estas fotos no las ocupará la IA, solo aquellas subidas al crear secciones.">
+                      <div className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help flex">
+                        <Info size={18} />
+                      </div>
+                    </MobileInfoPopover>
+                  </div>
+                </>
               )}
               {sectionId && !isReadOnly && (
                 <button onClick={() => setIsEditingName(true)} className="p-2 text-slate-300 hover:text-indigo-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer">

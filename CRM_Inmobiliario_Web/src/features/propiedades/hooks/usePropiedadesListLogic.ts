@@ -3,7 +3,7 @@ import { usePropiedadesFiltering } from './usePropiedadesList/usePropiedadesFilt
 import { usePropiedadesUI } from './usePropiedadesList/usePropiedadesUI';
 import { usePropiedadesActions } from './usePropiedadesList/usePropiedadesActions';
 
-export const usePropiedadesList = (checkContactoId?: string) => {
+export const usePropiedadesListLogic = (checkContactoId?: string) => {
   // 1. Filtering Layer
   const {
     searchQuery,
