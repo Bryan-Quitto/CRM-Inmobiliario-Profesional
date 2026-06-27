@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Pencil, Send, Loader2, Search, Filter as FilterIcon, Phone, MessageSquare, Clock, Check, X, Trash2 } from 'lucide-react';
+import { Pencil, Send, Loader2, Filter as FilterIcon, Phone, MessageSquare, Clock, Check, X, Trash2 } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { TIPO_NOTA_OPCIONES, formatDate } from '../../constants/contactos';
 import type { Interaccion } from '../../types';
 
@@ -128,14 +129,13 @@ export const ContactoTimelineManager = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text"
+            <div className="w-40 sm:w-56">
+              <SearchInput 
                 value={searchHistorial}
                 onChange={(e) => setSearchHistorial(e.target.value)}
                 placeholder="Buscar notas..."
-                className="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-2 text-[10px] font-bold text-slate-600 focus:ring-4 focus:ring-blue-100 transition-all outline-none w-40 sm:w-56"
+                className="rounded-full pl-9 py-2 text-[10px] font-bold"
+                iconClassName="left-3 h-3.5 w-3.5"
               />
             </div>
             <div className="relative" ref={filterDropdownRef}>

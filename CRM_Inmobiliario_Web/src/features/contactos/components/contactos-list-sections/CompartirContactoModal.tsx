@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { X, Search, Users, Home, UserPlus, UserMinus, AlertCircle, Loader2, Check } from 'lucide-react';
+import { X, Users, Home, UserPlus, UserMinus, AlertCircle, Loader2, Check } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import Fuse from 'fuse.js';
 import { useAgentes } from '@/features/configuracion/hooks/useAgentes';
 import type { AgenteResponse } from '@/features/configuracion/api/getAgentes';
@@ -181,16 +182,13 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
               </div>
 
               {/* Search Input */}
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
-                <input 
-                  type="text"
-                  placeholder={searchMode === 'agente' ? "Buscar agente por nombre..." : "Buscar propiedad por título o sector..."}
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </div>
+              <SearchInput 
+                placeholder={searchMode === 'agente' ? "Buscar agente por nombre..." : "Buscar propiedad por título o sector..."}
+                className="pl-12 py-4 bg-slate-50 border-slate-100 rounded-2xl focus:ring-blue-600/20 focus:border-blue-600"
+                iconClassName="left-4 h-5 w-5 text-slate-300"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
 
               {/* Search Results */}
               {query && searchResults.length > 0 && (

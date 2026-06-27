@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, Loader2, X, Check } from 'lucide-react';
+import { Loader2, X, Check } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import Fuse from 'fuse.js';
 
 export interface SearchItem {
@@ -129,9 +130,9 @@ export const DynamicSearchSelect = ({
           </div>
         ) : (
           <div className="relative group">
-            <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-            <input
+            <SearchInput
               type="text"
+              icon={Icon}
               placeholder={placeholder}
               value={query}
               onChange={(e) => {
@@ -139,15 +140,14 @@ export const DynamicSearchSelect = ({
                 setIsOpen(true);
               }}
               onFocus={() => setIsOpen(true)}
-              className={`w-full pl-10 pr-10 py-3 bg-slate-50 border ${error ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4`}
+              className={`py-3 bg-slate-50 border ${error ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4`}
+              iconClassName="group-focus-within:text-blue-500 transition-colors"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              {isLoading ? (
+            {isLoading && (
+              <div className="absolute right-10 top-1/2 -translate-y-1/2 pointer-events-none">
                 <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4 text-slate-300" />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
 

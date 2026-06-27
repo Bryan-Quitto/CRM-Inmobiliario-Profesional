@@ -1,5 +1,6 @@
 import React from 'react';
-import { Building2, Plus, Loader2, Search, ChevronRight } from 'lucide-react';
+import { Building2, Plus, Loader2, ChevronRight } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import type { ConfiguracionAgenciasLogic } from '../hooks/useConfiguracionAgenciasLogic';
 import { AgenciaModal } from './AgenciaModal';
 
@@ -26,14 +27,12 @@ export const ConfiguracionAgenciasMobile: React.FC<Props> = ({ logic }) => {
         </h2>
         <p className="text-sm text-slate-500 font-medium mb-4">Gestiona la información corporativa.</p>
         
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
+        <div className="w-full">
+          <SearchInput
             placeholder="Buscar agencia..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm font-medium"
+            className="py-2.5 bg-slate-50 border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-medium"
           />
         </div>
       </div>

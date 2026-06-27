@@ -1,4 +1,5 @@
-import { X, Search, ArrowRightLeft, Loader2, AlertCircle, Phone, MessageCircle, HelpCircle } from 'lucide-react';
+import { X, ArrowRightLeft, Loader2, AlertCircle, Phone, MessageCircle, HelpCircle } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import type { UseMergeContactosLogicReturn } from '../hooks/useMergeContactosLogic';
 
 interface MergeContactosModalDesktopProps {
@@ -126,16 +127,15 @@ export const MergeContactosModalDesktop = ({ logic }: MergeContactosModalDesktop
             ) : (
               <div className="mt-4">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                  <input
-                    type="text"
+                  <SearchInput
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Buscar contacto..."
-                    className="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-slate-700"
+                    className="pl-12 py-3 border-2 focus:ring-blue-500/10 font-bold text-slate-700"
+                    iconClassName="left-4 h-5 w-5"
                   />
                   {isLoading && (
-                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500 animate-spin" />
+                    <Loader2 className="absolute right-10 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500 animate-spin pointer-events-none" />
                   )}
                 </div>
 

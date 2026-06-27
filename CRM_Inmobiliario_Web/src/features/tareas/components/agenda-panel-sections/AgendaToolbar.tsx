@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown, Check, ArrowUp, ArrowDown } from 'lucide-react';
+import { ChevronDown, Check, ArrowUp, ArrowDown } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 
 interface AgendaToolbarProps {
   searchQuery: string;
@@ -53,16 +54,13 @@ export const AgendaToolbar: React.FC<AgendaToolbarProps> = ({
   return (
     <div className="px-5 py-3 border-b border-slate-50 space-y-2.5 bg-slate-50/50 animate-in slide-in-from-top-2 duration-200">
       {/* Buscador */}
-      <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Buscar tareas, contactos o propiedades..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
-        />
-      </div>
+      <SearchInput
+        placeholder="Buscar tareas, contactos o propiedades..."
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className="pl-8 py-1.5 text-[11px] placeholder:text-slate-400 focus:ring-blue-100"
+        iconClassName="left-2.5 h-3.5 w-3.5"
+      />
 
       {/* Filtros rápidos por Tipo */}
       <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">

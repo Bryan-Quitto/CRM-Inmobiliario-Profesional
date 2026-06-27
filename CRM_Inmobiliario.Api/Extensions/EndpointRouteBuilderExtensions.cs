@@ -19,6 +19,7 @@ using CRM_Inmobiliario.Api.Features.AgentAi.Endpoints;
 using CRM_Inmobiliario.Api.Features.FinOps.GetAgentTokenUsage;
 using CRM_Inmobiliario.Api.Features.PushNotifications;
 using CRM_Inmobiliario.Api.Features.Faqs;
+using CRM_Inmobiliario.Api.Features.Shared.OmniSearch;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -116,6 +117,9 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapConfiguracionIAEndpoints();
         apiGroup.MapFacebookOAuthEndpoints();
         apiGroup.MapGetAgentTokenUsageEndpoint();
+
+        // OmniSearch
+        apiGroup.MapBuscarOmniSearch();
 
         // Calendario
         apiGroup.MapListarEventosEndpoint().CacheOutput();

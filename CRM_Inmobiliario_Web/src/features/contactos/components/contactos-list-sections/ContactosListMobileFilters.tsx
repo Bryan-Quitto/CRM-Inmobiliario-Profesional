@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, Plus, Filter, ChevronDown, LayoutGrid, List } from 'lucide-react';
+import { Plus, Filter, ChevronDown, LayoutGrid, List } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { ORIGENES } from '../../constants/contactos';
 import type { ContactosListLogic } from '../../hooks/useContactosListLogic';
 
@@ -63,16 +64,12 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
         </button>
       </div>
 
-      <div className="relative w-full">
-        <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-        <input 
-          type="text" 
-          value={logic.searchQuery}
-          onChange={(e) => logic.setSearchQuery(e.target.value)}
-          placeholder="Buscar contacto..." 
-          className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
-        />
-      </div>
+      <SearchInput 
+        value={logic.searchQuery}
+        onChange={(e) => logic.setSearchQuery(e.target.value)}
+        placeholder="Buscar contacto..." 
+        className="py-3"
+      />
 
       <div className="w-full flex flex-col gap-3 min-w-0">
         <div className="flex flex-col gap-1 w-full relative">

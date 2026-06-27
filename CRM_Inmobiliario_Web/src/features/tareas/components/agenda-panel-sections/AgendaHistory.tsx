@@ -1,5 +1,6 @@
 import React from 'react';
-import { History, Search, CheckCircle2, XCircle, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { History, CheckCircle2, XCircle, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import type { Tarea } from '../../types';
 import { formatDateTime } from '../../utils';
 
@@ -47,14 +48,13 @@ export const AgendaHistory: React.FC<AgendaHistoryProps> = ({
           <div className="flex items-center gap-2 mb-3">
             <div className="relative flex-1">
               <label htmlFor="history-search" className="sr-only">Buscar en historial de tareas</label>
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" aria-hidden="true" />
-              <input 
+              <SearchInput 
                 id="history-search"
-                type="text"
                 placeholder="Buscar en historial..."
                 value={historySearch}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-medium outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+                className="pl-8 py-1.5 text-[10px]"
+                iconClassName="left-2.5 h-3 w-3"
               />
             </div>
             <button 

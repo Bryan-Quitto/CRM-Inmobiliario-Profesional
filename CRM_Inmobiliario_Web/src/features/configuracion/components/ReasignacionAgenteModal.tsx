@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { UserX, Search, ShieldAlert, Loader2 } from 'lucide-react';
+import { UserX, ShieldAlert, Loader2 } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import Fuse from 'fuse.js';
 import { toast } from 'sonner';
 import { useAgentes } from '../hooks/useAgentes';
@@ -77,14 +78,13 @@ export const ReasignacionAgenteModal: React.FC<ReasignacionAgenteModalProps> = (
         </div>
 
         <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
-          <div className="relative mb-6">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
+          <div className="mb-6">
+            <SearchInput
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar agente activo por nombre o email..."
-              className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-800 placeholder:text-slate-400"
+              className="pl-12 py-4 bg-slate-50 border-slate-200 rounded-2xl focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-slate-800 placeholder:text-slate-400"
+              iconClassName="left-4 h-5 w-5 text-slate-400"
             />
           </div>
 

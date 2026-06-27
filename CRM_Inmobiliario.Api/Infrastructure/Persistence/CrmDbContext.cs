@@ -43,6 +43,7 @@ public sealed class CrmDbContext : DbContext
     public DbSet<AgentArchivedProperty> AgentArchivedProperties => Set<AgentArchivedProperty>();
     public DbSet<AgentContactActivity> AgentContactActivities => Set<AgentContactActivity>();
     public DbSet<AgentPropertyActivity> AgentPropertyActivities => Set<AgentPropertyActivity>();
+    public DbSet<CRM_Inmobiliario.Api.Features.Shared.OmniSearch.OmniSearchResult> OmniSearchResults => Set<CRM_Inmobiliario.Api.Features.Shared.OmniSearch.OmniSearchResult>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +54,10 @@ public sealed class CrmDbContext : DbContext
             modelBuilder.HasPostgresExtension("pg_trgm");
         }
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<CRM_Inmobiliario.Api.Features.Shared.OmniSearch.OmniSearchResult>()
+            .ToView("vw_omni_search")
+            .HasNoKey();
 
         modelBuilder.Entity<AgentConversation>()
             .HasMany(c => c.Messages)

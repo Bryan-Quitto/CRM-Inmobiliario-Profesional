@@ -1,4 +1,5 @@
-import { Search, MessageSquare, Trash2, Check, X, AlertCircle, Pencil, ExternalLink, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { MessageSquare, Trash2, Check, X, AlertCircle, Pencil, ExternalLink, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { PersonalTokenUsagePanel } from './PersonalTokenUsagePanel';
 import type { PersonalLogsViewLogic } from '../hooks/usePersonalLogsViewLogic';
 
@@ -41,16 +42,13 @@ export const PersonalLogsViewMobile = ({ logic }: Props) => {
       <div className="flex flex-col w-full gap-4 mb-6">
         <div className="flex flex-col gap-1.5 w-full">
           <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Búsqueda rápida</label>
-          <div className="relative group">
-            <Search className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Buscar en el historial..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border-2 border-slate-100 rounded-2xl py-3.5 pl-12 pr-6 text-sm font-bold focus:ring-8 focus:ring-indigo-50 focus:border-indigo-200 transition-all outline-none shadow-sm placeholder:text-slate-300"
-            />
-          </div>
+          <SearchInput 
+            placeholder="Buscar en el historial..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-white border-2 border-slate-100 rounded-2xl py-3.5 pl-12 focus:ring-8 focus:ring-indigo-50 focus:border-indigo-200 shadow-sm placeholder:text-slate-300"
+            iconClassName="left-4 h-5 w-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors"
+          />
         </div>
 
         {/* Dropdown de Ordenamiento */}

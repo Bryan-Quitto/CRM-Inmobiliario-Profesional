@@ -4,6 +4,7 @@ import { usePerfil } from '@/features/auth/api/perfil';
 import type { Session } from '@supabase/supabase-js';
 import { useCopilotStore } from '@/features/copilot/store/useCopilotStore';
 import { useSearchParams } from 'react-router-dom';
+import { CommandPalette } from '@/features/omnisearch/components/CommandPalette';
 
 interface HeaderProps {
   isAgendaOpen: boolean;
@@ -32,14 +33,18 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session, isSidebarOpen, 
         <div className="relative w-full max-w-md">
           <label htmlFor="global-search" className="sr-only">Búsqueda global</label>
           <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true" />
-          <input 
+          <button 
             id="global-search"
-            type="text" 
-            placeholder="Búsqueda global..." 
-            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 pl-10 pr-4 text-sm font-medium focus:ring-4 focus:ring-blue-100 transition-all outline-none"
-          />
+            onClick={() => window.dispatchEvent(new Event('open-omnisearch'))}
+            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 pl-10 pr-4 text-sm font-medium focus:ring-4 focus:ring-blue-100 transition-all outline-none text-left text-slate-400 cursor-pointer flex justify-between items-center"
+          >
+            <span>Búsqueda global...</span>
+            <kbd className="hidden sm:inline-block bg-white border border-slate-200 rounded px-1.5 py-0.5 font-sans font-medium text-slate-400 text-xs shadow-sm">Ctrl K</kbd>
+          </button>
         </div>
       </div>
+
+      <CommandPalette />
 
       <div className="flex items-center gap-2 md:gap-6 ml-2">
         <button

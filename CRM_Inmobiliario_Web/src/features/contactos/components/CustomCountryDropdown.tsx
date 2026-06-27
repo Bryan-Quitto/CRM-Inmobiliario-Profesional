@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { ChevronDown, Search, Check } from 'lucide-react';
+import { ChevronDown, Check } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { defaultCountries, parseCountry, FlagImage } from 'react-international-phone';
 import Fuse from 'fuse.js';
 
@@ -61,17 +62,14 @@ export const CustomCountryDropdown = ({ country, setCountry, disabled }: Props) 
       {isOpen && (
         <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in duration-200 origin-top overflow-hidden">
           <div className="px-3 pb-2 border-b border-slate-50">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                autoFocus
-                placeholder="Buscar país o prefijo..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
-              />
-            </div>
+            <SearchInput
+              autoFocus
+              placeholder="Buscar país o prefijo..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-9 py-2 bg-slate-50"
+              iconClassName="left-3"
+            />
           </div>
           
           <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 mt-1">

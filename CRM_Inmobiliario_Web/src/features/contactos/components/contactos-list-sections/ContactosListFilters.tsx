@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, Plus, List, LayoutGrid, ChevronDown, Check, SlidersHorizontal, Globe, Users, Briefcase, ArrowUp, ArrowDown, ArrowUpDown, Eye } from 'lucide-react';
+import { Plus, List, LayoutGrid, ChevronDown, Check, SlidersHorizontal, Globe, Users, Briefcase, ArrowUp, ArrowDown, ArrowUpDown, Eye } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { ETAPAS, ETAPAS_PROPIETARIO, ORIGENES } from '../../constants/contactos';
 import type { SortOptionContacto, SortDirectionContacto } from '../../hooks/useContactosFiltering';
 
@@ -174,16 +175,12 @@ export const ContactosListFilters = ({
         {/* Búsqueda rápida */}
         <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
           <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Búsqueda rápida</label>
-          <div className="relative">
-            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input 
-              type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nombre, email o teléfono..." 
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
-            />
-          </div>
+          <SearchInput 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por nombre, email o teléfono..." 
+            className="focus:ring-4"
+          />
         </div>
 
         {/* Dropdown Visibilidad */}

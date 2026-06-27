@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Filter as FilterIcon, ChevronDown, Check, Plus, ArrowUp, ArrowDown, ArrowUpDown, Building2, SlidersHorizontal } from 'lucide-react';
+import { Filter as FilterIcon, ChevronDown, Check, Plus, ArrowUp, ArrowDown, ArrowUpDown, Building2, SlidersHorizontal } from 'lucide-react';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { ESTADOS } from '../../constants/propiedades';
 import { TIPOS_PROPIEDAD } from '../../constants/propertyForm';
 import type { SortOption, SortDirection, AdvancedFiltersState } from '../../hooks/usePropiedadesList/usePropiedadesFiltering';
@@ -140,16 +141,12 @@ export const PropiedadesFilters = ({
           {/* Búsqueda */}
           <div className="flex flex-col gap-1.5 flex-1 sm:min-w-[240px]">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Búsqueda rápida</label>
-            <div className="relative">
-              <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar título, sector..." 
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
-              />
-            </div>
+            <SearchInput 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar título, sector..." 
+              className="focus:ring-4"
+            />
           </div>
 
           {/* Dropdown Estado */}
