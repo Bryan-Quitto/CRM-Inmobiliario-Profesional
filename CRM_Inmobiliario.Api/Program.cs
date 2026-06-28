@@ -76,7 +76,12 @@ builder.Services.AddHttpClient<IWhatsAppMessageSender, WhatsAppMessageSender>()
 builder.Services.AddHttpClient<IWhatsAppMediaService, WhatsAppMediaService>()
     .AddStandardResilienceHandler();
 builder.Services.AddScoped<LLMProviderFactory>();
+builder.Services.AddScoped<IWhatsAppContactProcessor, WhatsAppContactProcessor>();
+builder.Services.AddScoped<IWhatsAppBotRulesProcessor, WhatsAppBotRulesProcessor>();
+builder.Services.AddScoped<IWhatsAppMemoryProcessor, WhatsAppMemoryProcessor>();
+builder.Services.AddScoped<IWhatsAppTokenUsageProcessor, WhatsAppTokenUsageProcessor>();
 builder.Services.AddScoped<IWhatsAppConversationManager, WhatsAppConversationManager>();
+builder.Services.AddScoped<IWhatsAppLlmOrchestrator, WhatsAppLlmOrchestrator>();
 builder.Services.AddScoped<WhatsAppAiService>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.ISemanticRouterService, CRM_Inmobiliario.Api.Features.CoreAi.Services.SemanticRouterService>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentSystemPromptFactory>();

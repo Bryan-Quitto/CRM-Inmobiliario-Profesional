@@ -6,74 +6,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class ListarPropiedadesFeature
 {
-    public record GetPropiedadesRequest(
-        int? PageNumber,
-        int? PageSize,
-        Guid? CheckContactoId,
-        string? SearchQuery,
-        string? EstadoComercial,
-        string? TipoPropiedad,
-        string? Operacion,
-        decimal? PrecioMin,
-        decimal? PrecioMax,
-        decimal? AreaTotalMin,
-        decimal? AreaTotalMax,
-        int? HabitacionesMin,
-        int? HabitacionesMax,
-        int? AniosAntiguedadMin,
-        int? AniosAntiguedadMax,
-        bool? EsCaptacionPropia,
-        string? SortBy,
-        string? SortDirection,
-        bool IsArchived = false
-    );
-
-    public record Response(
-        Guid Id,
-        string Titulo,
-        string TipoPropiedad,
-        string Operacion,
-        decimal Precio,
-        string Sector,
-        string Ciudad,
-        string EstadoComercial,
-        bool EsCaptacionPropia,
-        decimal PorcentajeComision,
-        string AgenteNombre,
-        Guid GestorId,
-        string GestorNombre,
-        Guid? PropietarioId,
-        Guid? CerradoConId,
-        string? CerradoConNombre,
-        string? ImagenPortadaUrl,
-        DateTimeOffset FechaIngreso,
-        PropertyPermissions Permissions,
-        ActiveTransactionInfo? ActiveTransaction,
-        string Version,
-        int Habitaciones,
-        decimal AreaTotal,
-        int? AniosAntiguedad,
-        bool AlreadyHasContact = false,
-        bool IsArchivedForCurrentUser = false);
-
-    public record PropertyPermissions(
-        bool CanEditMasterData,
-        bool CanChangeStatus);
-
-    public record ActiveTransactionInfo(
-        Guid AgenteId,
-        string AgenteNombre);
-
-    // Semáforos por clave para evitar Cache Stampede
-    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _countLocks = new();
-
     public static RouteHandlerBuilder MapListarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
         return app.MapGet("/propiedades", async ([AsParameters] GetPropiedadesRequest request, ClaimsPrincipal user, CrmDbContext context, IServiceProvider serviceProvider, CancellationToken cancellationToken) =>
@@ -106,129 +43,13 @@ public static class ListarPropiedadesFeature
                 .Select(a => a.AgenciaId)
                 .FirstOrDefaultAsync();
 
-            var query = context.Properties.AsNoTracking();
-
-            if (agenciaId.HasValue)
-            {
-                // En agencia ves todo lo de la agencia, o si eres el dueño, o si fuiste el creador y el agente invitado no ha activado su cuenta
-                query = query.Where(p => p.AgenciaId == agenciaId || 
-                                       p.AgenteId == currentUserId || 
-                                       (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo)));
-            }
-            else
-            {
-                // Independiente: Ves lo que captaste, o si fuiste el creador y el agente invitado no ha activado su cuenta
-                query = query.Where(p => p.AgenteId == currentUserId || 
-                                       (p.Transactions.Any(t => t.CreatedById == currentUserId) && (p.Agente == null || !p.Agente.Activo)));
-            }
-
-            var archivedQuery = context.AgentArchivedProperties.Where(a => a.AgentId == currentUserId);
-
-            if (request.IsArchived)
-            {
-                query = query.Where(p => archivedQuery.Any(a => a.PropiedadId == p.Id));
-            }
-            else
-            {
-                query = query.Where(p => !archivedQuery.Any(a => a.PropiedadId == p.Id));
-            }
-
-            // Aplicar filtros dinámicos
-            if (!string.IsNullOrWhiteSpace(request.SearchQuery))
-            {
-                var searchPattern = $"%{CrmDbContext.NormalizeText(request.SearchQuery)}%";
-                query = query.Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern));
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.EstadoComercial) && request.EstadoComercial != "Todos")
-                query = query.Where(p => p.EstadoComercial == request.EstadoComercial);
-
-            if (!string.IsNullOrWhiteSpace(request.TipoPropiedad) && request.TipoPropiedad != "Todos")
-                query = query.Where(p => p.TipoPropiedad == request.TipoPropiedad);
-
-            if (!string.IsNullOrWhiteSpace(request.Operacion) && request.Operacion != "Todas")
-                query = query.Where(p => p.Operacion == request.Operacion);
-
-            if (request.PrecioMin.HasValue)
-                query = query.Where(p => p.Precio >= request.PrecioMin.Value);
-            if (request.PrecioMax.HasValue)
-                query = query.Where(p => p.Precio <= request.PrecioMax.Value);
-
-            if (request.AreaTotalMin.HasValue)
-                query = query.Where(p => p.AreaTotal >= request.AreaTotalMin.Value);
-            if (request.AreaTotalMax.HasValue)
-                query = query.Where(p => p.AreaTotal <= request.AreaTotalMax.Value);
-
-            if (request.HabitacionesMin.HasValue)
-                query = query.Where(p => p.Habitaciones >= request.HabitacionesMin.Value);
-            if (request.HabitacionesMax.HasValue)
-                query = query.Where(p => p.Habitaciones <= request.HabitacionesMax.Value);
-
-            if (request.AniosAntiguedadMin.HasValue)
-                query = query.Where(p => p.AniosAntiguedad >= request.AniosAntiguedadMin.Value);
-            if (request.AniosAntiguedadMax.HasValue)
-                query = query.Where(p => p.AniosAntiguedad <= request.AniosAntiguedadMax.Value);
-
-            if (request.EsCaptacionPropia.HasValue)
-                query = query.Where(p => p.EsCaptacionPropia == request.EsCaptacionPropia.Value);
+            var query = ListarPropiedadesQueryBuilder.BuildPermissionsQuery(context, currentUserId, agenciaId, request.IsArchived);
+            query = ListarPropiedadesQueryBuilder.ApplyFilters(query, request);
 
             var memCache = serviceProvider.GetRequiredService<IMemoryCache>();
-            var countsCacheKey = $"Propiedades_Counts_{currentUserId}_{agenciaId}_{request.SearchQuery}_{request.EstadoComercial}_{request.TipoPropiedad}_{request.Operacion}_{request.PrecioMin}_{request.PrecioMax}_{request.AreaTotalMin}_{request.AreaTotalMax}_{request.HabitacionesMin}_{request.HabitacionesMax}_{request.AniosAntiguedadMin}_{request.AniosAntiguedadMax}_{request.EsCaptacionPropia}_{request.IsArchived}";
+            var counts = await ListarPropiedadesCountsHelper.GetCountsAsync(memCache, query, currentUserId, agenciaId, request, cancellationToken);
 
-            (int TotalCount, int CountVentas, int CountAlquiler) counts;
-            if (!memCache.TryGetValue(countsCacheKey, out counts))
-            {
-                var sem = _countLocks.GetOrAdd(countsCacheKey, _ => new SemaphoreSlim(1, 1));
-                await sem.WaitAsync(cancellationToken);
-                try
-                {
-                    if (!memCache.TryGetValue(countsCacheKey, out counts))
-                    {
-                        var swCount = Stopwatch.StartNew();
-                        var stats = await query
-                            .GroupBy(p => 1)
-                            .Select(g => new
-                            {
-                                TotalCount = g.Count(),
-                                CountVentas = g.Count(p => p.Operacion == "Venta"),
-                                CountAlquiler = g.Count(p => p.Operacion == "Alquiler")
-                            })
-                            .OrderBy(g => g.TotalCount)
-                            .FirstOrDefaultAsync(cancellationToken);
-                        
-                        swCount.Stop();
-                        Console.WriteLine($"[API] Calculó Counts Propiedades en {swCount.ElapsedMilliseconds}ms (Caché Miss)");
-                        
-                        counts = (
-                            stats?.TotalCount ?? 0,
-                            stats?.CountVentas ?? 0,
-                            stats?.CountAlquiler ?? 0
-                        );
-                        memCache.Set(countsCacheKey, counts, TimeSpan.FromMinutes(5));
-                    }
-                }
-                finally
-                {
-                    sem.Release();
-                }
-            }
-
-            var totalCount = counts.TotalCount;
-            var countVentas = counts.CountVentas;
-            var countAlquiler = counts.CountAlquiler;
-
-            // Ordenamiento dinámico
-            var sortBy = request.SortBy?.ToLowerInvariant() ?? "fechaingreso";
-            var isAsc = (request.SortDirection?.ToLowerInvariant() ?? "desc") == "asc";
-
-            query = sortBy switch
-            {
-                "precio" => isAsc ? query.OrderBy(p => p.Precio).ThenBy(p => p.Id) : query.OrderByDescending(p => p.Precio).ThenByDescending(p => p.Id),
-                "areatotal" => isAsc ? query.OrderBy(p => p.AreaTotal).ThenBy(p => p.Id) : query.OrderByDescending(p => p.AreaTotal).ThenByDescending(p => p.Id),
-                "habitaciones" => isAsc ? query.OrderBy(p => p.Habitaciones).ThenBy(p => p.Id) : query.OrderByDescending(p => p.Habitaciones).ThenByDescending(p => p.Id),
-                "aniosantiguedad" => isAsc ? query.OrderBy(p => p.AniosAntiguedad).ThenBy(p => p.Id) : query.OrderByDescending(p => p.AniosAntiguedad).ThenByDescending(p => p.Id),
-                _ => isAsc ? query.OrderBy(p => p.FechaIngreso).ThenBy(p => p.Id) : query.OrderByDescending(p => p.FechaIngreso).ThenByDescending(p => p.Id)
-            };
+            query = ListarPropiedadesQueryBuilder.ApplySorting(query, request.SortBy, request.SortDirection);
 
             var propiedades = await query
                 .Skip((actualPageNumber - 1) * actualPageSize)
@@ -279,7 +100,7 @@ public static class ListarPropiedadesFeature
                     x.Property.AreaTotal,
                     x.Property.AniosAntiguedad,
                     false,
-                    request.IsArchived)) // Lo calcularemos a continuación
+                    request.IsArchived)) 
                 .ToListAsync(cancellationToken);
 
             if (cleanPhoneToShare != null)
@@ -310,9 +131,9 @@ public static class ListarPropiedadesFeature
             return Results.Ok(new 
             {
                 Items = propiedades,
-                TotalCount = totalCount,
-                CountVentas = countVentas,
-                CountAlquiler = countAlquiler,
+                TotalCount = counts.TotalCount,
+                CountVentas = counts.CountVentas,
+                CountAlquiler = counts.CountAlquiler,
                 PageNumber = actualPageNumber,
                 PageSize = actualPageSize
             });
@@ -321,4 +142,3 @@ public static class ListarPropiedadesFeature
         .WithName("ListarPropiedades");
     }
 }
-
