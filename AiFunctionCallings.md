@@ -1,6 +1,6 @@
 # Llamadas a Funciones de IA (Function Callings)
 
-Tras refactorizar el código base, las **10 funciones** ahora están estrictamente separadas por canales de ejecución para garantizar la seguridad y experiencia del usuario. Actualmente el proyecto cuenta con **3 IAs**:
+Tras refactorizar el código base, las **11 funciones** ahora están estrictamente separadas por canales de ejecución para garantizar la seguridad y experiencia del usuario. Actualmente el proyecto cuenta con **3 IAs**:
 1. IA de Facebook (para clientes)
 2. IA de WhatsApp (para clientes)
 3. IA personal del agente (Copilot)
@@ -64,17 +64,21 @@ Estas herramientas son exclusivas de las IAs de cara al cliente final (Facebook 
 Estas herramientas están diseñadas estrictamente para interactuar de forma profunda con la SPA y la administración del CRM. Las IAs de clientes (Facebook y WhatsApp) tienen prohibido acceder a estas acciones.
 
 ### 8. ResumirHistorialContacto
-- **Descripción:** Consulta el historial completo (notas, tareas, mensajes) de un contacto.
+- **Descripción:** Consulta el historial completo (notas, tareas, mensajes) del contacto actual en la UI.
 - **Parámetros:**
-  - `searchTerm` *(string, requerido)*: Nombre completo o teléfono del contacto.
+  - `cantidadMensajes` *(integer, opcional, default 20)*: Cantidad de mensajes recientes a recuperar de la conversación. (El parámetro de búsqueda fue eliminado para optimizar tokens, ya que requiere un contexto activo).
 
-### 9. CrearTareaCRM
+### 9. ConsultarInteraccionesContacto
+- **Descripción:** Lee el registro de interacciones (llamadas, reuniones, correos, notas) del contacto actual en la UI.
+- **Parámetros:** *Ninguno* (depende completamente del contexto).
+
+### 10. CrearTareaCRM
 - **Descripción:** Crea un recordatorio o cita en la agenda del agente.
 - **Parámetros:**
   - `titulo` *(string, requerido)*, `descripcion` *(string, requerido)*, `fechaProgramada` *(string, requerido)*.
   - `contactoId`, `propiedadId` *(opcionales)*.
 
-### 10. GenerarCotizacionRapida
+### 11. GenerarCotizacionRapida
 - **Descripción:** Calcula la proyección hipotecaria y cuotas estimadas basándose en documentos corporativos internos.
 - **Parámetros:**
   - `montoPropiedad` *(number, requerido)*: El precio total.

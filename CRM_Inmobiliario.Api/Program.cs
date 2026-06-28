@@ -104,6 +104,7 @@ builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.I
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, DerivarCaptacionPropietarioHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, SolicitarAsistenciaHumanaHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.ResumirHistorialContacto.ResumirHistorialContactoHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.ConsultarInteraccionesContacto.ConsultarInteraccionesContactoHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.CrearTareaCRM.CrearTareaCRMHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.GenerarCotizacionRapidaHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.CoreAi.Tools.EnviarFotosPropiedadHandler>();
@@ -134,8 +135,6 @@ app.Use(async (context, next) => {
     await next();
     if (context.Response.StatusCode == 401) Console.WriteLine($"WARN [401]: {context.Request.Method} {context.Request.Path}");
 });
-
-// if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection(); // Comentado porque Railway maneja HTTPS en el Edge Router
 
 app.UseCors();
 app.UseAuthentication();

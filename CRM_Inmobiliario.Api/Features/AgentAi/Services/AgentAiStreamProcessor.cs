@@ -40,7 +40,7 @@ public class AgentAiStreamProcessor
         _tokenManager = tokenManager;
     }
 
-    public async IAsyncEnumerable<string> StreamAsync(Guid agentId, Guid conversationId, string message, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<string> StreamAsync(Guid agentId, Guid conversationId, string message, CRM_Inmobiliario.Api.Features.AgentAi.Endpoints.StreamChatEndpoint.FocusedContextDto? focusedContext, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
     {
         string providerName = "OpenAI";
         long totalAccumulatedTotalTokens = 0;
@@ -83,6 +83,15 @@ public class AgentAiStreamProcessor
                 new AiMessage { Role = "system", Content = _promptFactory.CreatePrompt(agent.Agencia?.ContextoCorporativoIA) }
             };
 
+            if (focusedContext != null)
+            {
+                messages.Add(new AiMessage { Role = "system", Content = $"[SISTEMA] El agente está actualmente visualizando el perfil del contacto '{focusedContext.Name}'. Las herramientas de análisis e interacciones usarán a este contacto automáticamente." });
+            }
+            else
+            {
+                messages.Add(new AiMessage { Role = "system", Content = "[SISTEMA] Si el usuario pide analizar, resumir el historial o leer las interacciones de un contacto, indícale amablemente que no puedes buscar contactos globalmente, y que debe entrar a los Detalles del Contacto y pulsar el botón '✨ Analizar con IA'." });
+            }
+
             foreach (var msg in history)
             {
                 messages.Add(new AiMessage { Role = msg.Role, Content = msg.Content });
@@ -96,10 +105,11 @@ public class AgentAiStreamProcessor
                 UserId = agentId,
                 Channel = "Copilot",
                 ChannelIdentifier = agentId.ToString(),
-                TriggerMessage = message
+                TriggerMessage = message,
+                FocusedContextId = focusedContext?.Id
             };
 
-            var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools("Copilot");
+            var tools = CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts.AiToolDefinitions.GetTools("Copilot", focusedContext != null);
             var toolHandler = new AgentAiToolHandler(_scopeFactory, _logger);
 
             bool requiresAction = true;

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import type { Contacto } from '../../types';
 import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
+import { useCopilotStore } from '@/features/copilot/store/useCopilotStore';
 
 interface ContactoHeaderProps {
   contacto: Contacto;
@@ -32,6 +33,12 @@ export const ContactoHeader = ({
   const { pathname } = useLocation();
   const isFromOwners = pathname.includes('/propietarios');
   const backPath = isFromOwners ? '/propietarios' : '/contactos';
+  const { setFocusedContext, toggleOpen } = useCopilotStore();
+  
+  const handleAnalizarConIA = () => {
+    setFocusedContext({ id: contacto.id, name: [contacto.nombre, contacto.apellido].filter(Boolean).join(' ') });
+    toggleOpen();
+  };
   
 
   return (
@@ -116,6 +123,14 @@ export const ContactoHeader = ({
             <MessageCircle className="h-5 w-5" />
           </a>
         )}
+
+        <button
+          onClick={handleAnalizarConIA}
+          title="Analizar con IA"
+          className="h-10 px-3 md:px-4 bg-indigo-50 text-indigo-600 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1.5 md:gap-2 cursor-pointer shrink-0"
+        >
+          ✨ <span className="hidden md:inline">Analizar con IA</span>
+        </button>
 
         <ArchiveToggleButton
           isArchived={!!contacto.isArchivedForCurrentUser}

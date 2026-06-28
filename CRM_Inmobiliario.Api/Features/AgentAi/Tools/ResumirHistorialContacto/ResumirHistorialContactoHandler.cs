@@ -22,8 +22,13 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
             return "Error: Acceso denegado. Esta herramienta es de uso exclusivo para el agente interno (Copilot).";
         }
 
+        if (string.IsNullOrEmpty(context.FocusedContextId))
+        {
+            return "Error: No se encontró un contexto de contacto activo. Debes usar la vista de detalles del contacto.";
+        }
+
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        string searchTerm = ExtractSafeString(args.RootElement, "searchTerm", 100, string.Empty);
+        string searchTerm = context.FocusedContextId;
         int requestedCantidad = args.RootElement.TryGetProperty("cantidadMensajes", out var prop) && prop.TryGetInt32(out var cant) ? cant : 20;
         int cantidadMensajes = Math.Clamp(requestedCantidad, 1, 50);
         
@@ -41,14 +46,8 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
         var agent = await ResolveIdentityAsync(context, cancellationToken);
         if (agent == null) return "{\"error\": \"Acceso denegado: No se pudo identificar al agente.\"}";
 
-        string searchTermLower = searchTerm.ToLower(); // Solo para comparación de teléfono (ya es string en C#)
-        var searchPattern = $"%{CrmDbContext.NormalizeText(searchTerm.Trim())}%";
-
         var result = await (from c in _context.Contactos
-                            where c.AgenteId == agent.Id &&
-                                  (EF.Functions.ILike(c.NormalizedSearchText, searchPattern) ||
-                                   (c.Telefono != null && c.Telefono.Contains(searchTerm)) ||
-                                   c.Id.ToString() == searchTerm)
+                            where c.AgenteId == agent.Id && c.Id.ToString() == searchTerm
                             select new 
                             {
                                 ContactId = c.Id,

@@ -13,15 +13,17 @@ interface CopilotState {
   conversationId: string | null;
   messages: ChatMessage[];
   isTyping: boolean;
+  focusedContext: { id: string; name: string } | null;
   toggleOpen: () => void;
   setOpen: (open: boolean) => void;
   setTyping: (typing: boolean) => void;
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (chunk: string) => void;
   overwriteLastMessage: (content: string) => void;
-  setConversationId: (id: string) => void;
+  setConversationId: (id: string | null) => void;
   clearConversation: () => void;
   setMessages: (messages: ChatMessage[]) => void;
+  setFocusedContext: (context: { id: string; name: string } | null) => void;
 }
 
 export const useCopilotStore = create<CopilotState>()(
@@ -31,6 +33,7 @@ export const useCopilotStore = create<CopilotState>()(
       conversationId: null,
       messages: [],
       isTyping: false,
+      focusedContext: null,
       toggleOpen: () => set((state) => ({ isOpen: !state.isOpen })),
       setOpen: (open) => set({ isOpen: open }),
       setTyping: (typing) => set({ isTyping: typing }),
@@ -63,8 +66,9 @@ export const useCopilotStore = create<CopilotState>()(
           return { messages: newMessages };
         }),
       setConversationId: (id) => set({ conversationId: id }),
-      clearConversation: () => set({ conversationId: null, messages: [] }),
+      clearConversation: () => set({ conversationId: null, messages: [], focusedContext: null }),
       setMessages: (messages) => set({ messages }),
+      setFocusedContext: (context) => set({ focusedContext: context }),
     }),
     {
       name: 'crm_copilot_storage',

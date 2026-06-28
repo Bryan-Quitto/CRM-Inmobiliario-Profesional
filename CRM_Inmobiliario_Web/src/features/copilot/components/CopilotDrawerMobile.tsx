@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, RefreshCcw, Send, Bot, Loader2, ShieldAlert, ChevronDown, Mic, MicOff, History } from 'lucide-react';
+import { X, RefreshCcw, Send, Bot, Loader2, ShieldAlert, ChevronDown, Mic, MicOff, History, Square } from 'lucide-react';
 import { ChatMessageItem } from './ChatMessageItem';
 import { Link } from 'react-router-dom';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -11,9 +11,12 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
     isMinimized,
     messages,
     isTyping,
+    focusedContext,
+    setFocusedContext,
     inputValue,
     setInputValue,
     handleSend,
+    stopGeneration,
     handleKeyDown,
     handleClose,
     handleClearConversation,
@@ -66,6 +69,23 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
           </button>
         </div>
       </div>
+
+      {/* Active Context Banner */}
+      {focusedContext && (
+        <div className="bg-indigo-50 px-4 py-2 flex items-center justify-between border-b border-indigo-100/50 select-none w-full min-w-0">
+          <div className="flex items-center gap-2 overflow-hidden text-indigo-700 min-w-0">
+            <span className="text-xs font-semibold whitespace-nowrap shrink-0">📌 Contacto activo:</span>
+            <span className="text-xs font-medium truncate">{focusedContext.name}</span>
+          </div>
+          <button 
+            onClick={() => setFocusedContext(null)}
+            className="p-1 hover:bg-indigo-100 rounded-full text-indigo-400 hover:text-indigo-600 transition-colors shrink-0"
+            title="Quitar contexto"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Body / Messages List */}
       <div className="flex-1 min-h-0 min-w-0 overflow-y-auto p-4 space-y-4 bg-slate-50 relative w-full">
@@ -177,13 +197,23 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
                 >
                   {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </button>
-                <button
-                  onClick={handleSend}
-                  disabled={!inputValue.trim() || isTyping}
-                  className="p-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
+                {isTyping ? (
+                  <button
+                    onClick={stopGeneration}
+                    className="p-2 text-white bg-rose-600 rounded-full hover:bg-rose-700 transition-colors cursor-pointer shadow-sm animate-pulse"
+                    title="Detener generación"
+                  >
+                    <Square className="h-4 w-4 fill-current" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSend}
+                    disabled={!inputValue.trim()}
+                    className="p-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
             <p className="text-center text-[10px] text-slate-400 mt-2 font-medium w-full min-w-0 break-words">

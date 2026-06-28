@@ -6,7 +6,7 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services.Prompts;
 
 public static class AiToolDefinitions
 {
-    public static List<AiToolDefinition> GetTools(string channel = "WhatsApp")
+    public static List<AiToolDefinition> GetTools(string channel = "WhatsApp", bool hasFocusedContext = false)
     {
         var tools = new List<AiToolDefinition>
         {
@@ -141,21 +141,34 @@ public static class AiToolDefinitions
         }
         else if (channel == "Copilot")
         {
-            tools.Add(new AiToolDefinition
+            if (hasFocusedContext)
             {
-                Name = "ResumirHistorialContacto",
-                Description = "Consulta el historial completo de un contacto en el CRM (notas, tareas, etapa de embudo y mensajes previos). Úsala cuando necesites recordar el contexto completo de un cliente o antes de transferirlo a un agente.",
-                ParametersSchema = """
+                tools.Add(new AiToolDefinition
                 {
-                    "type": "object",
-                    "properties": {
-                        "searchTerm": { "type": "string", "description": "Nombre completo o teléfono del contacto a buscar." },
-                        "cantidadMensajes": { "type": "integer", "description": "Cantidad de mensajes recientes a recuperar de la conversación (ej. 5). Si no se especifica, usa 20." }
-                    },
-                    "required": ["searchTerm"]
-                }
-                """
-            });
+                    Name = "ResumirHistorialContacto",
+                    Description = "Consulta el historial completo del contacto actual en el CRM (notas, tareas, etapa de embudo y mensajes previos). Úsala cuando necesites recordar el contexto completo de este cliente o antes de transferirlo a un agente.",
+                    ParametersSchema = """
+                    {
+                        "type": "object",
+                        "properties": {
+                            "cantidadMensajes": { "type": "integer", "description": "Cantidad de mensajes recientes a recuperar de la conversación (ej. 5). Si no se especifica, usa 20. El rango válido es de 1 a 50." }
+                        }
+                    }
+                    """
+                });
+
+                tools.Add(new AiToolDefinition
+                {
+                    Name = "ConsultarInteraccionesContacto",
+                    Description = "Lee el registro de interacciones (llamadas, reuniones, correos, notas) del contacto actual. Úsala cuando necesites saber qué ha pasado históricamente con este cliente.",
+                    ParametersSchema = """
+                    {
+                        "type": "object",
+                        "properties": {}
+                    }
+                    """
+                });
+            }
 
             tools.Add(new AiToolDefinition
             {

@@ -43,9 +43,9 @@ public static class BuscarOmniSearch
                 .Where(o => o.VisibleToAgenteId == agenteId && EF.Functions.ILike(o.SearchText, searchPattern));
 
             // Split into 3 queries, limit 5 each
-            var contactosQuery = baseQuery.Where(o => o.EntityType == "Contacto").Take(5);
-            var propiedadesQuery = baseQuery.Where(o => o.EntityType == "Propiedad").Take(5);
-            var tareasQuery = baseQuery.Where(o => o.EntityType == "Tarea").Take(5);
+            var contactosQuery = baseQuery.Where(o => o.EntityType == "Contacto").OrderBy(o => o.Title).Take(5);
+            var propiedadesQuery = baseQuery.Where(o => o.EntityType == "Propiedad").OrderBy(o => o.Title).Take(5);
+            var tareasQuery = baseQuery.Where(o => o.EntityType == "Tarea").OrderBy(o => o.Title).Take(5);
 
             // Concat forces a single SQL UNION ALL query execution (One Trip Pattern)
             var combinedResults = await contactosQuery

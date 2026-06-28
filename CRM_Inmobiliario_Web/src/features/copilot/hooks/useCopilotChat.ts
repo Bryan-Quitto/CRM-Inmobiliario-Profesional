@@ -1,4 +1,4 @@
-// Removed unused import
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCopilotStore } from '../store/useCopilotStore';
 import { supabase } from '@/lib/supabase';
@@ -6,8 +6,16 @@ import { api } from '@/lib/axios';
 import { mutate } from 'swr';
 
 export const useCopilotChat = () => {
-  const { addMessage, updateLastMessage, overwriteLastMessage, setTyping, setConversationId, setMessages, setOpen, conversationId } = useCopilotStore();
+  const { addMessage, updateLastMessage, overwriteLastMessage, setTyping, setConversationId, setMessages, setOpen, conversationId, focusedContext } = useCopilotStore();
   const navigate = useNavigate();
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const stopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
 
   const loadConversation = async (id: string) => {
     try {
@@ -45,7 +53,10 @@ export const useCopilotChat = () => {
       timestamp: new Date().toISOString(),
     });
 
+    let fullText = '';
+
     try {
+      abortControllerRef.current = new AbortController();
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || '';
       const baseUrl = api.defaults.baseURL || 'https://localhost:7046/api';
@@ -56,7 +67,8 @@ export const useCopilotChat = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ message: content, conversationId }),
+        body: JSON.stringify({ message: content, conversationId, focusedContext }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -70,7 +82,6 @@ export const useCopilotChat = () => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let done = false;
-      let fullText = '';
       let buffer = '';
 
       setTyping(false);
@@ -127,13 +138,23 @@ export const useCopilotChat = () => {
           }
         }
       }
-    } catch (error) {
-      console.error('Error in useCopilotChat stream:', error);
-      updateLastMessage('\n\n*(Error conectando con el servidor)*');
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Generación de IA abortada por el usuario');
+        if (!fullText.trim()) {
+          overwriteLastMessage('*(Generación cancelada)*');
+        } else {
+          updateLastMessage('\n\n*(Generación cancelada)*');
+        }
+      } else {
+        console.error('Error in useCopilotChat stream:', error);
+        updateLastMessage('\n\n*(Error conectando con el servidor)*');
+      }
     } finally {
       setTyping(false);
+      abortControllerRef.current = null;
     }
   };
 
-  return { sendMessage, loadConversation };
+  return { sendMessage, loadConversation, stopGeneration };
 };

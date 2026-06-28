@@ -162,10 +162,7 @@ public static class ServiceCollectionExtensions
 
         services.AddCors(options => options.AddDefaultPolicy(p =>
             p.WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:3000",
-
-                "https://luminacrminmobiliario.com"
+                allowedOrigins.Concat(new[] { "http://localhost:3000", "https://luminacrminmobiliario.com" }).ToArray()
             ).AllowAnyMethod().AllowAnyHeader()));
 
 

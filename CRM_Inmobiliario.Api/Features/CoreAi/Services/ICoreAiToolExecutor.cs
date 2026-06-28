@@ -12,6 +12,7 @@ public class ToolExecutionContext
     public string? Channel { get; set; } // Ej: "WhatsApp", "Facebook"
     public string? ChannelIdentifier { get; set; } // El PSID, Número, etc.
     public string? TriggerMessage { get; set; }
+    public string? FocusedContextId { get; set; }
     public string? PhoneNumberId { get; set; } // Si es WhatsApp
     public Guid? ContactoId { get; set; } // Opcional, si estamos en contexto WhatsApp
 }

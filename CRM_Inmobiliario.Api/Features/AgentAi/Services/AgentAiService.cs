@@ -58,7 +58,7 @@ public class AgentAiService
         }
     }
 
-    public async IAsyncEnumerable<string> StreamResponseAsync(Guid agentId, Guid conversationId, string message, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<string> StreamResponseAsync(Guid agentId, Guid conversationId, string message, CRM_Inmobiliario.Api.Features.AgentAi.Endpoints.StreamChatEndpoint.FocusedContextDto? focusedContext, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var semaphore = Locks.GetOrAdd(agentId.ToString(), _ => new SemaphoreSlim(1, 1));
         
@@ -69,7 +69,7 @@ public class AgentAiService
             await GlobalConcurrencyLock.WaitAsync(cancellationToken);
             try
             {
-                await foreach (var update in _streamProcessor.StreamAsync(agentId, conversationId, message, cancellationToken))
+                await foreach (var update in _streamProcessor.StreamAsync(agentId, conversationId, message, focusedContext, cancellationToken))
                 {
                     yield return update;
                 }

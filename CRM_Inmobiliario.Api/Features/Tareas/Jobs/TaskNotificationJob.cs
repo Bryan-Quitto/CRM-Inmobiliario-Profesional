@@ -42,6 +42,7 @@ public class TaskNotificationJob
             .Where(a => a.Activo && a.PushSubscriptions.Any())
             .Where(a => a.Tasks.Any(t => t.Estado == "Pendiente"))
             .Select(a => a.Id)
+            .OrderBy(id => id)
             .Take(21)
             .ToListAsync();
 

@@ -70,17 +70,24 @@ public static class StreamChatEndpoint
 
         context.Response.Headers.Append("Content-Type", "text/event-stream");
         context.Response.Headers.Append("Cache-Control", "no-cache");
-        context.Response.Headers.Append("Connection", "keep-alive");
 
         var responseBuilder = new System.Text.StringBuilder();
 
-        await foreach (var chunk in aiService.StreamResponseAsync(agentId, conversationId, request.Message, cancellationToken))
+        try
         {
-            responseBuilder.Append(chunk);
-            var encodedChunk = chunk.Replace("\n", "\\n"); // Or proper JSON encoding if needed
-            // For simple SSE:
-            await context.Response.WriteAsync($"data: {encodedChunk}\n\n", cancellationToken);
-            await context.Response.Body.FlushAsync(cancellationToken);
+            await foreach (var chunk in aiService.StreamResponseAsync(agentId, conversationId, request.Message, request.FocusedContext, cancellationToken))
+            {
+                responseBuilder.Append(chunk);
+                var encodedChunk = chunk.Replace("\n", "\\n"); // Or proper JSON encoding if needed
+                // For simple SSE:
+                await context.Response.WriteAsync($"data: {encodedChunk}\n\n", cancellationToken);
+                await context.Response.Body.FlushAsync(cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // El cliente cerró la conexión o canceló el stream.
+            // Continuamos para guardar el mensaje parcial que se haya generado.
         }
 
         string cleanMessage = Regex.Replace(responseBuilder.ToString(), @"\[SystemAction:.*?\]", string.Empty).Trim();
@@ -94,22 +101,32 @@ public static class StreamChatEndpoint
             CreatedAt = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5))
         };
         dbContext.AgentMessages.Add(assistantMessage);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
 
         if (isFirstMessage)
         {
-            await context.Response.WriteAsync($"data: [SystemAction: ConversationId={conversationId}]\n\n", cancellationToken);
-            await context.Response.Body.FlushAsync(cancellationToken);
+            await context.Response.WriteAsync($"data: [SystemAction: ConversationId={conversationId}]\n\n", CancellationToken.None);
+            await context.Response.Body.FlushAsync(CancellationToken.None);
             _ = Task.Run(() => titleService.GenerateTitleAsync(agentId, conversationId, request.Message, CancellationToken.None));
         }
 
-        await context.Response.WriteAsync("data: [DONE]\n\n", cancellationToken);
-        await context.Response.Body.FlushAsync(cancellationToken);
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            await context.Response.WriteAsync("data: [DONE]\n\n", CancellationToken.None);
+            await context.Response.Body.FlushAsync(CancellationToken.None);
+        }
+    }
+
+    public class FocusedContextDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
     public class ChatRequest
     {
         public Guid? ConversationId { get; set; }
         public string Message { get; set; } = string.Empty;
+        public FocusedContextDto? FocusedContext { get; set; }
     }
 }

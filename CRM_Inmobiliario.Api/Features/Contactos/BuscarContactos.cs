@@ -28,6 +28,7 @@ public static class BuscarContactosFeature
                            (EF.Functions.ILike(l.Nombre, searchTerm) ||
                             EF.Functions.ILike(l.Apellido ?? "", searchTerm) ||
                             EF.Functions.ILike(l.Telefono ?? "", searchTerm)))
+                .OrderBy(l => l.Nombre)
                 .Take(10)
                 .Select(l => new ContactoBusquedaResponse(
                     l.Id,

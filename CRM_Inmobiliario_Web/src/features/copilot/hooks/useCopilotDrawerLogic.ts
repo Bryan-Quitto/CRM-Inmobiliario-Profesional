@@ -11,7 +11,7 @@ export const useCopilotDrawerLogic = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const msgIdToHighlight = searchParams.get('msgId');
 
-  const { isOpen, toggleOpen, messages, clearConversation, isTyping } = useCopilotStore();
+  const { isOpen, toggleOpen, messages, clearConversation, isTyping, focusedContext, setFocusedContext } = useCopilotStore();
 
   const handleClose = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -33,7 +33,7 @@ export const useCopilotDrawerLogic = () => {
     }
   };
 
-  const { sendMessage } = useCopilotChat();
+  const { sendMessage, stopGeneration } = useCopilotChat();
   const [inputValue, setInputValue] = useState('');
 
   const { isListening, toggleListening } = useSpeechRecognition({
@@ -125,9 +125,12 @@ export const useCopilotDrawerLogic = () => {
     setIsMinimized,
     messages,
     isTyping,
+    focusedContext,
+    setFocusedContext,
     inputValue,
     setInputValue,
     handleSend,
+    stopGeneration,
     handleKeyDown,
     handleClose,
     handleClearConversation,
