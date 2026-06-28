@@ -21,7 +21,7 @@ const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899'
 
 export const EmbudoVentas: React.FC<EmbudoVentasProps> = ({ data, syncing }) => {
   return (
-    <div className="lg:col-span-8 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm relative overflow-hidden">
+    <div className="lg:col-span-8 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
       {syncing && <div className="absolute inset-0 bg-white/10 backdrop-blur-[0.5px] pointer-events-none" />}
       <div className="flex items-center justify-between mb-8">
         <div>

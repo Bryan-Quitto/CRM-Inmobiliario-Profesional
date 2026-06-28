@@ -49,7 +49,7 @@ export const ConfiguracionNotificacionesMobile: React.FC<Props> = ({ logic }) =>
   return (
     <div className="w-full block lg:hidden">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-4 sm:p-5">
+        <div className="p-4 sm:p-4">
           <div className="flex items-start gap-3 mb-5">
             <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
               <Bell className="w-5 h-5" />
@@ -61,7 +61,7 @@ export const ConfiguracionNotificacionesMobile: React.FC<Props> = ({ logic }) =>
           </div>
           
           {isSupported && !agentId && (
-            <div className="flex flex-col gap-2 mb-6">
+            <div className="flex flex-col gap-2 mb-4">
               {!isSubscribed ? (
                 <button
                   type="button"

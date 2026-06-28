@@ -81,7 +81,7 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session, isSidebarOpen, 
         <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-black text-slate-900">
+            <p className="text-sm font-black text-slate-900 truncate">
               {perfil ? (
                 (() => {
                   const nombreCompleto = [perfil.nombre, perfil.apellido].filter(Boolean).join(' ');

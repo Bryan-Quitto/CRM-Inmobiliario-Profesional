@@ -30,13 +30,13 @@ export const AutoArchivadoSettingsMobile: React.FC<Props> = ({ logic }) => {
   return (
     <div className="w-full">
       <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-4 sm:p-5">
-          <div className="flex flex-col gap-3 mb-6 items-center text-center w-full">
+        <div className="p-4 sm:p-4">
+          <div className="flex flex-col gap-3 mb-4 items-center text-center w-full">
             <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
               <Archive className="w-6 h-6" />
             </div>
             <div className="w-full">
-              <h2 className="text-xl font-bold text-slate-900 break-words">Auto-Archivado</h2>
+              <h2 className="text-lg md:text-xl font-bold text-slate-900 break-words">Auto-Archivado</h2>
               <p className="text-slate-500 text-sm mt-1 break-words">Configura el archivado automático de registros inactivos.</p>
             </div>
           </div>

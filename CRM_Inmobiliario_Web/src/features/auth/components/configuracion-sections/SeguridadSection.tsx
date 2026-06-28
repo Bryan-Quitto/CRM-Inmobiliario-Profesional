@@ -30,7 +30,7 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   return (
     <div className="bg-white shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden border border-slate-100">
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <div className="flex items-center gap-4 mb-8">
           <div className="h-12 w-12 shrink-0 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
             <ShieldCheck className="h-6 w-6" />
@@ -47,19 +47,19 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Contraseña Actual</label>
               <div className="relative group">
-                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <Lock className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <input
                   type={showCurrentPassword ? "text" : "password"}
                   value={pwdData.currentPassword}
                   onChange={(e) => setPwdData({ ...pwdData, currentPassword: e.target.value })}
-                  className="w-full pl-14 pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                  className="w-full pl-10 md:pl-14 pr-10 md:pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                   placeholder="••••••••"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                  className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
                   tabIndex={-1}
                 >
                   {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -72,19 +72,19 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Nueva Contraseña</label>
                 <div className="relative group">
-                  <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <Lock className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={pwdData.password}
                     onChange={(e) => setPwdData({ ...pwdData, password: e.target.value })}
-                    className="w-full pl-14 pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                    className="w-full pl-10 md:pl-14 pr-10 md:pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                     placeholder="••••••••"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                    className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -96,19 +96,19 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Confirmar Contraseña</label>
                 <div className="relative group">
-                  <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <Lock className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={pwdData.confirmPassword}
                     onChange={(e) => setPwdData({ ...pwdData, confirmPassword: e.target.value })}
-                    className="w-full pl-14 pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                    className="w-full pl-10 md:pl-14 pr-10 md:pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
                     placeholder="••••••••"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                    className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}

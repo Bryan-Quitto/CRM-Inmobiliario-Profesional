@@ -28,15 +28,15 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
 
   return (
     <div className="block lg:hidden space-y-4 animate-in fade-in duration-500 pb-20">
-      <section className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 mt-4 mx-2">
+      <section className="bg-white p-4 sm:p-4 rounded-2xl shadow-sm border border-slate-200 mt-4 mx-2">
         <div className="flex items-center gap-3 mb-5">
           <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg shrink-0">
             <Settings2 size={24} />
           </div>
-          <h2 className="text-xl font-black text-slate-800 tracking-tight leading-tight flex-1 min-w-0 break-words">Configuración de IA</h2>
+          <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight leading-tight flex-1 min-w-0 break-words">Configuración de IA</h2>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 mb-6">
+        <div className="grid grid-cols-2 gap-2 mb-4">
           {(['General', 'Personal', 'WhatsApp', 'Facebook'] as const).map((tab) => (
             <button
               key={tab}
@@ -53,11 +53,11 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
         </div>
 
         {isFetching ? (
-          <div className="flex justify-center p-6">
+          <div className="flex justify-center p-4">
             <Loader2 className="animate-spin text-indigo-600" size={32} />
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             
             {activeTab === 'General' && (
               <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
@@ -245,7 +245,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
               <button
                 onClick={handleSave}
                 disabled={isSaving || isValidating || !!aiKeyError || !!waIdError || limitValue < 20000 || limitValue > 1000000 || personalLimitValue < 20000 || personalLimitValue > 1000000 || facebookLimitValue < 20000 || facebookLimitValue > 1000000}
-                className="w-full cursor-pointer flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full cursor-pointer flex items-center justify-center gap-2 px-4 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving || isValidating ? <Loader2 size={18} className="animate-spin shrink-0" /> : <Save size={18} className="shrink-0" />}
                 <span className="break-words">Guardar Configuración</span>

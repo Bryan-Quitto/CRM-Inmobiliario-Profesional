@@ -11,12 +11,12 @@ export const ConfiguracionLayoutMobile: React.FC<Props> = ({ logic }) => {
 
   return (
     <div className="flex flex-col min-h-screen w-full p-4">
-      <header className="w-full mb-6 break-words">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight italic">Panel de Control</h1>
+      <header className="w-full mb-4 break-words">
+        <h1 className="text-lg md:text-xl md:text-3xl font-black text-slate-900 tracking-tight italic">Panel de Control</h1>
         <p className="text-slate-500 font-medium mt-1">Gestiona tu identidad.</p>
       </header>
 
-      <div className="w-full mb-6">
+      <div className="w-full mb-4">
         <label htmlFor="mobile-nav" className="sr-only">Navegación</label>
         <div className="relative w-full">
           <select

@@ -33,7 +33,7 @@ export const ConfiguracionAgentesMobile: React.FC<Props> = ({ logic }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
+      <div className="flex justify-center p-4">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
       </div>
     );
@@ -41,13 +41,13 @@ export const ConfiguracionAgentesMobile: React.FC<Props> = ({ logic }) => {
 
   return (
     <div className="space-y-4">
-      <section className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+      <section className="bg-white p-4 sm:p-4 rounded-2xl shadow-sm border border-slate-200">
         <div className="flex flex-col gap-3 mb-4">
           <div className="flex items-center gap-3 w-full">
             <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg shrink-0">
               <Users size={20} />
             </div>
-            <h2 className="text-xl font-black text-slate-800 tracking-tight flex-1 min-w-0 break-words">Agentes Actuales</h2>
+            <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight flex-1 min-w-0 break-words">Agentes Actuales</h2>
           </div>
         </div>
         

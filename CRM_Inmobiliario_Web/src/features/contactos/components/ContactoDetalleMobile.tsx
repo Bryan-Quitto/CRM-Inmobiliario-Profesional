@@ -68,7 +68,7 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-2">
         <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Cargando expediente...</p>
       </div>
@@ -79,15 +79,15 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
     const isNetworkError = error && (!error.response || error.code === 'ERR_NETWORK' || error.message === 'Network Error');
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center">
-        <div className={`h-16 w-16 ${isNetworkError ? 'bg-amber-50' : 'bg-rose-50'} rounded-full flex items-center justify-center mb-4`}>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-2 text-center">
+        <div className={`h-12 w-12 ${isNetworkError ? 'bg-amber-50' : 'bg-rose-50'} rounded-full flex items-center justify-center mb-4`}>
           {isNetworkError ? (
             <WifiOff className="h-8 w-8 text-amber-500" />
           ) : (
             <X className="h-8 w-8 text-rose-500" />
           )}
         </div>
-        <h2 className="text-xl font-black text-slate-900 mb-2">
+        <h2 className="text-base md:text-xl font-black text-slate-900 mb-2">
           {isNetworkError ? 'Pérdida de conexión' : 'Expediente no encontrado'}
         </h2>
         <p className="text-sm text-slate-500 max-w-xs mb-6">
@@ -97,7 +97,7 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
         </p>
         <button 
           onClick={() => isNetworkError ? window.location.reload() : navigate('/contactos')}
-          className="px-6 py-3 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all cursor-pointer w-full max-w-xs"
+          className="px-3 py-3 bg-slate-900 text-white font-black rounded-lg hover:bg-slate-800 transition-all cursor-pointer w-full max-w-xs"
         >
           {isNetworkError ? 'Reintentar' : 'Volver a Cartera'}
         </button>
@@ -122,17 +122,17 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
         />
 
         {/* Mobile Tabs */}
-        <div className="px-4 py-3 bg-white border-b border-slate-200 flex space-x-2 overflow-x-auto hide-scrollbar shadow-sm">
+        <div className="px-2 py-3 bg-white border-b border-slate-200 flex space-x-2 overflow-x-auto hide-scrollbar shadow-sm">
           <button 
             onClick={() => setActiveTab('perfil')}
-            className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl font-bold text-sm transition-all cursor-pointer min-w-max ${activeTab === 'perfil' ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-2 rounded-lg font-bold text-sm transition-all cursor-pointer min-w-max ${activeTab === 'perfil' ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
           >
             <User className="h-4 w-4" />
             <span>Perfil y Datos</span>
           </button>
           <button 
             onClick={() => setActiveTab('historial')}
-            className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl font-bold text-sm transition-all cursor-pointer min-w-max ${activeTab === 'historial' ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-2 rounded-lg font-bold text-sm transition-all cursor-pointer min-w-max ${activeTab === 'historial' ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
           >
             <History className="h-4 w-4" />
             <span>Historial</span>
@@ -140,9 +140,9 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
         </div>
       </div>
 
-      <div className="flex-1 px-4 py-6 space-y-6">
+      <div className="flex-1 px-2 py-3 space-y-3">
         {activeTab === 'perfil' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <ContactoProfileCard contacto={contacto} />
             
             {contacto.esPropietario && (

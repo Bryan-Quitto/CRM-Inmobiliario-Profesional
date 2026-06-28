@@ -18,11 +18,11 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
       {/* Simplified Background */}
       <div className="absolute top-0 left-0 right-0 h-64 bg-emerald-900/20 rounded-b-[3rem] blur-3xl pointer-events-none"></div>
 
-      <div className="flex flex-col items-center mt-8 mb-6 z-10">
+      <div className="flex flex-col items-center mt-4 mb-4 z-10">
         <div className="h-12 w-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-600/30 mb-4">
           <ShieldCheck className="h-6 w-6" />
         </div>
-        <h1 className="text-2xl font-black text-white tracking-tight text-center">
+        <h1 className="text-lg md:text-xl md:text-2xl font-black text-white tracking-tight text-center">
           Activa tu <span className="text-emerald-500">Perfil Pro</span>
         </h1>
         <p className="text-slate-400 mt-2 font-bold uppercase tracking-widest text-[11px] text-center">
@@ -30,7 +30,7 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
         </p>
       </div>
 
-      <div className="bg-slate-800/80 border border-slate-700 p-5 rounded-3xl shadow-xl z-10 mb-8">
+      <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-3xl shadow-xl z-10 mb-4">
         <form onSubmit={handleActivate} className="flex flex-col gap-5">
           {error && (
             <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl flex items-start gap-2 text-rose-400 text-xs font-bold">

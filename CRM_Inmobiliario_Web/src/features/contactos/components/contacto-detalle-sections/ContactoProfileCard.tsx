@@ -62,7 +62,7 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
         <div className="h-16 w-16 md:h-24 md:w-24 bg-slate-900 text-white rounded-[20px] md:rounded-[32px] flex items-center justify-center text-xl md:text-3xl font-black shadow-2xl mb-3 md:mb-4 rotate-3">
           {contacto.nombre[0]}{contacto.apellido?.[0] || ''}
         </div>
-        <h2 className="text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</h2>
+        <h2 className="text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight truncate">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</h2>
         <p className="text-sm font-bold text-slate-400 mt-1 italic">Contacto desde {new Date(contacto.fechaCreacion!).toLocaleDateString()}</p>
       </div>
 

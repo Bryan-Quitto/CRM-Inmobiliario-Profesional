@@ -84,7 +84,7 @@ export const AgendaPanelMobile: React.FC<AgendaPanelMobileProps> = ({ logic, onC
       {/* Indicador de Sincronización UPSP */}
       {loading && allTareas.length > 0 && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-2 duration-300 pointer-events-none">
-          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-white/10 break-words">
+          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-2 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-white/10 break-words">
             <Loader2 className="h-3 w-3 shrink-0 animate-spin text-blue-400" />
             <span className="text-[8px] font-black uppercase tracking-[0.2em]">Sincronizando...</span>
           </div>

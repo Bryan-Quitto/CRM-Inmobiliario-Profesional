@@ -38,14 +38,14 @@ export const CalendarioViewMobile: React.FC<Props> = ({ logic }) => {
   return (
     <div className="flex flex-col h-screen bg-slate-50 relative">
       {/* Header Móvil */}
-      <div className="bg-white px-4 py-4 border-b border-slate-200 shadow-sm sticky top-0 z-20 flex justify-between items-center">
+      <div className="bg-white px-2 py-2 border-b border-slate-200 shadow-sm sticky top-0 z-20 flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Agenda</h1>
+          <h1 className="text-base md:text-xl font-bold text-slate-900">Agenda</h1>
           <p className="text-xs text-slate-500 font-medium">{new Date().toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
         <button
           onClick={() => handleOpenCrear()}
-          className="bg-blue-600 text-white p-3 rounded-2xl shadow-md shadow-blue-600/20 active:scale-95 transition-transform"
+          className="bg-blue-600 text-white p-3 rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-transform"
         >
           <Plus size={20} />
         </button>
@@ -53,26 +53,26 @@ export const CalendarioViewMobile: React.FC<Props> = ({ logic }) => {
 
       {/* Sincronización */}
       {syncing && listaEventos.length > 0 && (
-        <div className="bg-blue-50 px-4 py-2 flex items-center justify-center gap-2 border-b border-blue-100">
+        <div className="bg-blue-50 px-2 py-2 flex items-center justify-center gap-2 border-b border-blue-100">
           <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
           <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">Sincronizando...</span>
         </div>
       )}
 
       {/* Lista de Eventos */}
-      <main className="flex-1 overflow-auto p-4 flex flex-col gap-4">
+      <main className="flex-1 overflow-auto p-2 flex flex-col gap-2">
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 opacity-50">
             <Loader2 size={32} className="text-slate-400 animate-spin" />
             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Cargando...</span>
           </div>
         ) : eventosOrdenados.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center opacity-50 px-6">
-            <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center opacity-50 px-3">
+            <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center">
               <CalendarIcon size={32} className="text-slate-400" />
             </div>
             <div>
-              <p className="font-bold text-slate-700 text-lg mb-1">Día Libre</p>
+              <p className="font-bold text-slate-700 text-sm md:text-lg mb-1">Día Libre</p>
               <p className="text-sm text-slate-500">No hay tareas pendientes en tu agenda.</p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export const CalendarioViewMobile: React.FC<Props> = ({ logic }) => {
               <div
                 key={evento.id}
                 onClick={() => setViewingTareaId(evento.id)}
-                className="bg-white w-full p-4 rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
+                className="bg-white w-full p-2 rounded-xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
                 style={{ borderLeftColor: evento.colorHex || '#3b82f6', borderLeftWidth: '4px' }}
               >
                 <div className="flex justify-between items-start mb-2 gap-2">

@@ -30,9 +30,9 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
         
 
 
-        <div className="flex flex-col items-center mb-8 mt-4">
+        <div className="flex flex-col items-center mb-4 mt-4">
           <img src="/logo.png" alt="Lúmina Logo" className="h-16 w-16 object-contain drop-shadow-[0_0_10px_rgba(37,99,235,0.4)] mb-3" />
-          <h1 className="text-2xl font-black text-miui-white tracking-tight text-center">
+          <h1 className="text-lg md:text-xl md:text-2xl font-black text-miui-white tracking-tight text-center">
             Lúmina
           </h1>
           <p className="text-miui-slate-400 mt-1 font-bold uppercase tracking-[0.15em] text-xs">
@@ -40,8 +40,8 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
           </p>
         </div>
 
-        <div className="backdrop-blur-md border border-slate-700/50 p-6 rounded-3xl shadow-xl w-full" style={{ backgroundImage: 'linear-gradient(to right, rgba(30, 41, 59, 0.6), rgba(30, 41, 59, 0.6))' }}>
-          <h2 className="text-lg font-bold text-miui-white mb-6 text-center">Acceso al Sistema</h2>
+        <div className="backdrop-blur-md border border-slate-700/50 p-4 rounded-3xl shadow-xl w-full" style={{ backgroundImage: 'linear-gradient(to right, rgba(30, 41, 59, 0.6), rgba(30, 41, 59, 0.6))' }}>
+          <h2 className="text-lg font-bold text-miui-white mb-4 text-center">Acceso al Sistema</h2>
 
           <form onSubmit={handleLogin} className="space-y-5">
             {error && (
@@ -118,7 +118,7 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
           </form>
         </div>
 
-        <p className="mt-6 mb-2 text-center text-miui-slate-400 text-xs font-bold uppercase tracking-widest">
+        <p className="mt-4 mb-2 text-center text-miui-slate-400 text-xs font-bold uppercase tracking-widest">
           © 2026 Lúmina CRM
         </p>
       </div>

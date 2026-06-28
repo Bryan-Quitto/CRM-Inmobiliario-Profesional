@@ -21,11 +21,11 @@ export const ConfiguracionSeguridadMobile: React.FC<Props> = ({ logic }) => {
   if (!isAdmin) {
     return (
       <div className="space-y-4 w-full">
-        <section className="bg-rose-50/50 p-6 rounded-3xl border border-rose-200/60 flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-1000 w-full">
+        <section className="bg-rose-50/50 p-4 rounded-3xl border border-rose-200/60 flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-1000 w-full">
           <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-4 shrink-0">
             <ShieldBan size={32} className="shrink-0" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2 break-words w-full">Acceso Denegado</h2>
+          <h2 className="text-lg md:text-xl md:text-2xl font-black text-slate-800 tracking-tight mb-2 break-words w-full">Acceso Denegado</h2>
           <p className="text-slate-600 font-medium text-base mb-3 break-words w-full">
             El Centro de Seguridad y Auditoría está restringido.
           </p>
@@ -62,7 +62,7 @@ export const ConfiguracionSeguridadMobile: React.FC<Props> = ({ logic }) => {
 
         <div className="p-0 bg-slate-50/30">
           {isLoadingLogs ? (
-            <div className="p-6 flex justify-center">
+            <div className="p-4 flex justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
             </div>
           ) : logs && logs.length > 0 ? (
@@ -97,7 +97,7 @@ export const ConfiguracionSeguridadMobile: React.FC<Props> = ({ logic }) => {
               ))}
             </div>
           ) : (
-            <div className="p-6 text-center">
+            <div className="p-4 text-center">
               <ShieldCheck className="mx-auto h-10 w-10 text-emerald-400 mb-3 shrink-0" />
               <h3 className="text-base font-bold text-slate-800">Todo en orden</h3>
               <p className="text-slate-500 font-medium text-sm mt-1">No hay actividades anómalas.</p>

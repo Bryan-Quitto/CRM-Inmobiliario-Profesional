@@ -21,9 +21,9 @@ export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) 
   const [isSeguimientoOpen, setIsSeguimientoOpen] = useState(false);
 
   return (
-    <div className="lg:col-span-4 bg-rose-50 border-2 border-rose-100 rounded-[32px] overflow-hidden group shadow-sm hover:shadow-md transition-all">
+    <div className="lg:col-span-4 bg-rose-50 border-2 border-rose-100 rounded-3xl overflow-hidden group shadow-sm hover:shadow-md transition-all">
       <div 
-        className="p-8 relative cursor-pointer"
+        className="p-5 relative cursor-pointer"
         onClick={() => setIsSeguimientoOpen(!isSeguimientoOpen)}
       >
         <Users className="absolute -right-4 -bottom-4 h-24 w-24 text-rose-500/10 group-hover:scale-110 transition-transform" />
@@ -32,7 +32,7 @@ export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) 
             <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em]">Seguimiento Crítico</p>
             <ChevronDown className={`h-4 w-4 text-rose-400 transition-transform duration-300 ${isSeguimientoOpen ? 'rotate-180' : ''}`} />
           </div>
-          <h3 className="text-5xl font-black text-rose-600 tracking-tighter">{data.seguimientoRequerido}</h3>
+          <h3 className="text-3xl font-black text-rose-600 tracking-tighter">{data.seguimientoRequerido}</h3>
           <p className="text-[11px] font-bold text-rose-500/70 mt-2">Contactos nuevos con interés Alto/Medio</p>
         </div>
       </div>

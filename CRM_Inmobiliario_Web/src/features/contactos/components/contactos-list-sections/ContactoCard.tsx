@@ -87,7 +87,7 @@ export const ContactoCard = ({
 
   return (
     <div 
-      className={`bg-white rounded-2xl border p-6 shadow-sm hover:shadow-xl transition-all duration-300 group relative overflow-hidden ${
+      className={`bg-white rounded-2xl border p-3 md:p-6 shadow-sm hover:shadow-xl transition-all duration-300 group relative overflow-hidden ${
         contacto.esCompartido ? 'border-slate-100 opacity-95' : 'border-slate-100 hover:border-blue-100'
       }`}
     >

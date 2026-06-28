@@ -25,7 +25,7 @@ export const DashboardPrincipalMobile: React.FC<Props> = ({ logic }) => {
   }
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-6 w-full">
+    <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-6 w-full">
       {syncing && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-4 duration-300 w-max max-w-[90vw]">
           <div className="bg-slate-900/95 backdrop-blur-xl text-white px-5 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-white/10 w-full">
@@ -55,33 +55,33 @@ export const DashboardPrincipalMobile: React.FC<Props> = ({ logic }) => {
         </div>
       )}
 
-      <div className="relative w-full bg-slate-900 rounded-3xl p-6 shadow-xl overflow-hidden flex flex-col justify-end min-h-[160px] border border-slate-800">
+      <div className="relative w-full bg-slate-900 rounded-3xl p-4 shadow-xl overflow-hidden flex flex-col justify-end min-h-[100px] border border-slate-800">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent z-10"></div>
           <img src="/ivisual.webp" fetchPriority="high" alt="Smart Building" className="w-full h-full object-cover object-top opacity-60" />
         </div>
         <div className="relative z-10 flex flex-col gap-1 min-w-0 w-full">
-          <h1 className="text-2xl font-black text-white tracking-tight break-words">
+          <h1 className="text-lg md:text-xl md:text-2xl font-black text-white tracking-tight break-words">
             Hola, <span className="text-blue-500 break-words">{greeting}</span>.
           </h1>
           <p className="text-slate-400 font-medium text-xs break-words">Resumen estratégico de hoy.</p>
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="w-full min-w-full">
+      <div className="w-full overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
+        <div className="w-fit min-w-full">
           <KpiCards data={data} syncing={syncing} />
         </div>
       </div>
 
-      <div className="flex flex-col gap-6 w-full">
-        <div className="w-full overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="w-full min-w-[300px]">
+      <div className="flex flex-col gap-4 w-full">
+        <div className="w-full overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
+          <div className="w-fit min-w-[300px]">
             <SeguimientoCritico data={data} />
           </div>
         </div>
-        <div className="w-full overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="w-full min-w-[300px]">
+        <div className="w-full overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
+          <div className="w-fit min-w-[300px]">
             <EmbudoVentas data={data} syncing={syncing} />
           </div>
         </div>

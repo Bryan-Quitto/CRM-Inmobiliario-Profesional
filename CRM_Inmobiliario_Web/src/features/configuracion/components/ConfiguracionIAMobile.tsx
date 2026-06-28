@@ -11,12 +11,12 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
   return (
     <div className="space-y-4">
       {/* Propiedades */}
-      <section className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+      <section className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-2">
         <div className="flex items-center gap-3 mb-3">
           <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
             <Database size={24} />
           </div>
-          <h2 className="text-xl font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Vectorización de Propiedades</h2>
+          <h2 className="text-lg md:text-xl font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Vectorización de Propiedades</h2>
         </div>
         
         <p className="text-slate-600 text-sm mb-5 leading-relaxed break-words">
@@ -45,12 +45,12 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
       </section>
 
       {/* Documentos */}
-      <section className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-2 delay-75">
+      <section className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-2 delay-75">
         <div className="flex items-center gap-3 mb-3">
           <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
             <Database size={24} />
           </div>
-          <h2 className="text-xl font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Vectorización de Documentos</h2>
+          <h2 className="text-lg md:text-xl font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Vectorización de Documentos</h2>
         </div>
         
         <p className="text-slate-600 text-sm mb-5 leading-relaxed break-words">
@@ -83,7 +83,7 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
       {/* Modal Force Vectorización Propiedades (Mobile Style) */}
       {logic.showForceModal && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-h-[85vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl sm:max-w-sm p-6 animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300">
+          <div className="bg-white w-full max-h-[85vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl sm:max-w-sm p-4 animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300">
             <div className="flex justify-between items-start mb-5">
               <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
                 <AlertTriangle size={24} />
@@ -96,8 +96,8 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
               </button>
             </div>
             
-            <h3 className="text-xl font-black text-slate-800 mb-2 break-words">¿Forzar Re-Vectorización?</h3>
-            <p className="text-slate-600 text-sm mb-6 leading-relaxed break-words">
+            <h3 className="text-lg md:text-xl font-black text-slate-800 mb-2 break-words">¿Forzar Re-Vectorización?</h3>
+            <p className="text-slate-600 text-sm mb-4 leading-relaxed break-words">
               Se sobrescribirán los vectores existentes. Esto consumirá tokens del proveedor IA por cada propiedad. ¿Continuar?
             </p>
             
@@ -122,7 +122,7 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
       {/* Modal Force Vectorización Docs (Mobile Style) */}
       {logic.showForceDocsModal && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-h-[85vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl sm:max-w-sm p-6 animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300">
+          <div className="bg-white w-full max-h-[85vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl sm:max-w-sm p-4 animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300">
             <div className="flex justify-between items-start mb-5">
               <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
                 <AlertTriangle size={24} />
@@ -135,8 +135,8 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
               </button>
             </div>
             
-            <h3 className="text-xl font-black text-slate-800 mb-2 break-words">¿Re-Vectorizar Documentos?</h3>
-            <p className="text-slate-600 text-sm mb-6 leading-relaxed break-words">
+            <h3 className="text-lg md:text-xl font-black text-slate-800 mb-2 break-words">¿Re-Vectorizar Documentos?</h3>
+            <p className="text-slate-600 text-sm mb-4 leading-relaxed break-words">
               Se sobrescribirán los vectores de todos los documentos. Esto consumirá tokens del proveedor IA. ¿Continuar?
             </p>
             

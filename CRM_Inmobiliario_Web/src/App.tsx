@@ -62,11 +62,11 @@ function AppContent({ session }: { session: Session | null }) {
   const urlTareaId = searchParams.get('tarea');
 
   useEffect(() => {
-    if (urlTareaId && !isAgendaOpen) {
+    if (urlTareaId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAgendaOpen(true);
     }
-  }, [urlTareaId, isAgendaOpen]);
+  }, [urlTareaId]);
 
   // Manejar apertura global del panel de nueva tarea
   useEffect(() => {
@@ -149,7 +149,7 @@ function AppContent({ session }: { session: Session | null }) {
           setIsSidebarOpen={setIsSidebarOpen}
         />
 
-        <main className="p-8 w-full max-full">
+        <main className="p-3 md:p-8 w-full max-w-full">
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<DashboardPrincipal />} />
@@ -191,7 +191,7 @@ function AppContent({ session }: { session: Session | null }) {
         <Footer />
       </div>
 
-      <aside className={`fixed right-0 top-0 h-full transition-all duration-300 z-50 ${isAgendaOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <aside className={`fixed right-0 top-0 h-full w-full lg:w-auto transition-all duration-300 z-[110] ${isAgendaOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <Suspense fallback={<SidebarLoader />}>
           <AgendaPanel onClose={() => setIsAgendaOpen(false)} />
         </Suspense>

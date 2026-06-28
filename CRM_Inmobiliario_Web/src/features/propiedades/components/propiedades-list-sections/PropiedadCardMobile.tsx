@@ -58,16 +58,16 @@ export const PropiedadCardMobile = ({
 
   return (
     <div 
-      className={`bg-white rounded-2xl border border-slate-100 shadow-sm relative w-full ${
+      className={`bg-white rounded-xl border border-slate-100 shadow-sm relative w-full ${
         openDropdownId === p.id ? 'z-[60]' : 'z-10'
       }`}
     >
-      {syncing && <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px] z-20 pointer-events-none rounded-2xl" />}
+      {syncing && <div className="absolute inset-0 bg-white/5 backdrop-blur-[0.5px] z-20 pointer-events-none rounded-xl" />}
       
       {/* Vertical Layout for Mobile Card */}
-      <div className="flex flex-col p-4 gap-4 w-full">
+      <div className="flex flex-col p-2 gap-2 w-full">
         {/* Top: Thumbnail */}
-        <div className="w-full h-48 shrink-0 bg-slate-200 relative overflow-hidden rounded-xl flex items-center justify-center">
+        <div className="w-full h-48 shrink-0 bg-slate-200 relative overflow-hidden rounded-lg flex items-center justify-center">
           {p.imagenPortadaUrl ? (
             <img 
               src={p.imagenPortadaUrl} 
@@ -75,7 +75,7 @@ export const PropiedadCardMobile = ({
               className="w-full h-full object-cover"
             />
           ) : (
-            <ImageIcon className="h-12 w-12 text-slate-300 shrink-0" />
+            <ImageIcon className="h-10 w-10 text-slate-300 shrink-0" />
           )}
 
           {/* Type Badge Overlay */}
@@ -132,7 +132,7 @@ export const PropiedadCardMobile = ({
           <div className="mt-1 flex flex-col gap-3 w-full">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 w-full">
               <div className="flex flex-col flex-1 min-w-0 w-full">
-                <span className="text-xl font-black text-slate-900 tracking-tight leading-none mb-1 break-words min-w-0 flex-1 w-full">
+                <span className="text-base md:text-xl font-black text-slate-900 tracking-tight leading-none mb-1 break-words min-w-0 flex-1 w-full">
                   {formatCurrency(p.precio)}
                 </span>
                 <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 min-w-0 w-full">
@@ -140,7 +140,7 @@ export const PropiedadCardMobile = ({
                   <span className="flex-1 min-w-0 break-words">Comisión: {p.porcentajeComision}%</span>
                 </div>
               </div>
-              <div className="flex gap-2 items-center shrink-0">
+              <div className="flex flex-wrap gap-2 items-center shrink-0">
                 <ArchiveToggleButton
                   isArchived={!!p.isArchivedForCurrentUser}
                   isToggling={isTogglingArchive}

@@ -6,7 +6,7 @@ This file defines the strict technical standards and architectural rules for the
 - **Backend:** .NET 10 (C#)
 - **Frontend:** React 19 (Vite)
 - **Styles:** Tailwind CSS
-- **Database & Auth:** Supabase (PostgreSQL + Supabase Auth JWT)
+- **Database & Auth:** Supabase (PostgreSQL + Supabase Auth JWT with JWKS)
 - **ORM:** Entity Framework Core (EF Core)
 
 ## Development Workflow & Spec-Driven Development (SDD) Protocol

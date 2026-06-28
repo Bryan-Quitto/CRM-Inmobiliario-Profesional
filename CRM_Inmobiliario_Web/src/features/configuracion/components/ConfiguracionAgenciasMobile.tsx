@@ -21,7 +21,7 @@ export const ConfiguracionAgenciasMobile: React.FC<Props> = ({ logic }) => {
   return (
     <div className="flex flex-col min-h-[calc(100vh-80px)] pb-24 animate-in fade-in duration-300">
       <div className="px-4 pt-6 pb-4 bg-white border-b border-slate-100 sticky top-0 z-10">
-        <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2 mb-1 break-words">
+        <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight flex items-center gap-2 mb-1 break-words">
           <Building2 className="text-indigo-600 w-6 h-6 shrink-0" />
           Agencias
         </h2>

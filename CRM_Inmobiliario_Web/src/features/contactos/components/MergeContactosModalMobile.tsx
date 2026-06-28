@@ -22,10 +22,10 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
   } = logic;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-end justify-center sm:items-center sm:p-4">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-end justify-center sm:items-center sm:p-2">
       <div className="bg-white w-full rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom-full sm:fade-in sm:zoom-in duration-300 flex flex-col max-h-[85vh]">
         {/* Header - Fixed */}
-        <div className="relative w-full p-6 border-b border-slate-100 flex-shrink-0">
+        <div className="relative w-full p-3 border-b border-slate-100 flex-shrink-0">
           <button 
             onClick={onClose}
             className="absolute top-6 right-6 p-2 bg-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-200 rounded-full transition-all cursor-pointer"
@@ -34,7 +34,7 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
           </button>
 
           <div className="pr-12 w-full">
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight break-words">Fusionar Contactos</h2>
+            <h2 className="text-base md:text-xl font-black text-slate-900 uppercase tracking-tight break-words">Fusionar Contactos</h2>
             <p className="text-xs font-bold text-slate-500 mt-1 break-words">
               Unifica el historial de dos contactos. El contacto principal conservará su ID.
             </p>
@@ -42,11 +42,11 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
         </div>
 
         {/* Body - Scrollable */}
-        <div className="w-full p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 flex-1">
-          <div className="flex flex-col gap-4 w-full">
+        <div className="w-full p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 flex-1">
+          <div className="flex flex-col gap-2 w-full">
             
             {/* Principal */}
-            <div className="bg-blue-50/50 border-2 border-blue-100 rounded-2xl p-5 relative w-full">
+            <div className="bg-blue-50/50 border-2 border-blue-100 rounded-xl p-3 relative w-full">
               <div className="absolute -top-3 left-4 px-3 py-1 bg-blue-100 text-blue-700 font-black text-[10px] uppercase tracking-widest rounded-full">
                 Principal (Se Conserva)
               </div>
@@ -93,7 +93,7 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
             </div>
 
             {/* Secundario */}
-            <div className="bg-rose-50/50 border-2 border-rose-100 rounded-2xl p-5 relative min-h-[160px] w-full">
+            <div className="bg-rose-50/50 border-2 border-rose-100 rounded-xl p-3 relative min-h-[160px] w-full">
               <div className="absolute -top-3 left-4 px-3 py-1 bg-rose-100 text-rose-700 font-black text-[10px] uppercase tracking-widest rounded-full">
                 Secundario (Se Elimina)
               </div>
@@ -168,7 +168,7 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
                             setLocalSecundario(c);
                             setSearchTerm('');
                           }}
-                          className="w-full p-3 bg-white border border-slate-200 rounded-xl active:border-blue-500 active:bg-blue-50 text-left transition-all cursor-pointer"
+                          className="w-full p-3 bg-white border border-slate-200 rounded-lg active:border-blue-500 active:bg-blue-50 text-left transition-all cursor-pointer"
                         >
                           <div className="text-sm font-black text-slate-700 uppercase tracking-tight break-words">
                             {[c.nombre, c.apellido].filter(Boolean).join(' ')}
@@ -198,12 +198,12 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
         </div>
 
         {/* Footer - Fixed */}
-        <div className="w-full p-4 sm:p-6 border-t border-slate-100 flex-shrink-0 bg-white rounded-b-3xl">
+        <div className="w-full p-2 sm:p-3 border-t border-slate-100 flex-shrink-0 bg-white rounded-b-3xl">
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
             <button
               onClick={handleMerge}
               disabled={!localSecundario || isMerging}
-              className={`w-full py-3.5 sm:py-3 text-sm font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-3.5 sm:py-3 text-sm font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${
                 localSecundario && !isMerging
                   ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20 cursor-pointer'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -217,7 +217,7 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
             </button>
             <button
               onClick={onClose}
-              className="w-full py-3.5 sm:py-3 text-sm font-black text-slate-500 uppercase tracking-widest active:bg-slate-100 rounded-xl transition-all cursor-pointer"
+              className="w-full py-3.5 sm:py-3 text-sm font-black text-slate-500 uppercase tracking-widest active:bg-slate-100 rounded-lg transition-all cursor-pointer"
             >
               Cancelar
             </button>

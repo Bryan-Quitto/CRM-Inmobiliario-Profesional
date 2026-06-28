@@ -20,13 +20,13 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex flex-col gap-4 pb-6 w-full overflow-y-auto">
+      <div className="flex flex-col gap-2 pb-6 w-full overflow-y-auto">
         {currentEtapas.map((etapa) => {
           const count = columns[etapa.value]?.length || 0;
 
           return (
             <div key={etapa.value} className="flex flex-col w-full px-2">
-              <div className={`mb-2 p-3 rounded-xl border-t-4 bg-white shadow-sm flex items-center justify-between w-full min-w-0 ${getEtapaColor(etapa.value)}`}>
+              <div className={`mb-2 p-3 rounded-lg border-t-4 bg-white shadow-sm flex items-center justify-between w-full min-w-0 ${getEtapaColor(etapa.value)}`}>
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   {etapa.value === 'En Negociación' && (
                     <MobileInfoPopover content="Columna automática. Gestiona la transacción desde el catálogo de propiedades. No puedes mover contactos manualmente de esta columna.">
@@ -53,7 +53,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className={`min-h-[80px] w-full rounded-xl transition-all duration-200 p-1.5 ${
+                    className={`min-h-[80px] w-full rounded-lg transition-all duration-200 p-1.5 ${
                       snapshot.isDraggingOver ? 'bg-blue-50/40 ring-2 ring-blue-100 ring-inset' 
                       : (etapa.value === 'En Negociación' || etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado') 
                         ? 'bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(241,245,249,0.8)_10px,rgba(241,245,249,0.8)_20px)] border-2 border-dashed border-slate-200/50' 
@@ -74,7 +74,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                             style={provided.draggableProps.style as React.CSSProperties}
                             {...provided.dragHandleProps}
                             onClick={() => !snapshot.isDragging && onNavigate(contacto.id)}
-                            className={`cursor-pointer w-full min-w-0 flex-1 bg-white p-3 rounded-xl shadow-sm border mb-2 transition-all group ${
+                            className={`cursor-pointer w-full min-w-0 flex-1 bg-white p-3 rounded-lg shadow-sm border mb-2 transition-all group ${
                               snapshot.isDragging 
                                 ? 'scale-105 shadow-xl border-blue-400 z-50 ring-2 blue-500/10' 
                                 : 'border-slate-100'

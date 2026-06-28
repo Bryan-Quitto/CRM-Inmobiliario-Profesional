@@ -28,13 +28,13 @@ const ConfiguracionPerfilMobile: React.FC<Props> = ({ logic }) => {
   if (!perfil) return null;
 
   return (
-    <div className="w-full px-4 py-6 bg-slate-50 min-h-screen">
-      <header className="mb-6 text-center">
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Mi Perfil</h1>
+    <div className="w-full px-4 py-4 bg-slate-50 min-h-screen">
+      <header className="mb-4 text-center">
+        <h1 className="text-lg md:text-xl md:text-2xl font-black text-slate-900 tracking-tight">Mi Perfil</h1>
         <p className="text-sm text-slate-500 font-medium mt-1">Identidad y branding</p>
       </header>
 
-      <div className="flex flex-col space-y-6">
+      <div className="flex flex-col space-y-4">
         
         <div className="w-full">
           <BrandingSection 
