@@ -164,7 +164,8 @@ public static class ServiceCollectionExtensions
             p.WithOrigins(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "https://crm-inmobiliario-profesional.vercel.app"
+                "https://crm-inmobiliario-profesional.vercel.app",
+                "https://luminacrminmobiliario.com"
             ).AllowAnyMethod().AllowAnyHeader()));
 
 
