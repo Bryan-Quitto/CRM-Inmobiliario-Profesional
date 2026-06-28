@@ -37,6 +37,16 @@ public sealed class ConsultarInteraccionesContactoHandler : BaseCoreAiToolHandle
         int cantidadInteracciones = Math.Clamp(requestedCantidad, 1, 50);
         string? tipoInteraccion = args.RootElement.TryGetProperty("tipoInteraccion", out var tipoProp) && tipoProp.ValueKind == JsonValueKind.String ? tipoProp.GetString() : null;
 
+        string? notaSistema = null;
+        if (requestedCantidad > 50)
+        {
+            notaSistema = $"[SISTEMA] Se solicitaron {requestedCantidad} interacciones, pero el límite técnico es 50. Se devolvieron las últimas 50. Notifica amablemente de este límite al agente.";
+        }
+        else if (requestedCantidad < 1)
+        {
+            notaSistema = $"[SISTEMA] Cantidad inválida solicitada ({requestedCantidad}). Se devolvió 1 interacción. Notifica de esto al agente.";
+        }
+
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string contactId = context.FocusedContextId;
 
@@ -61,11 +71,21 @@ public sealed class ConsultarInteraccionesContactoHandler : BaseCoreAiToolHandle
 
         if (!interacciones.Any())
         {
+            if (!string.IsNullOrEmpty(tipoInteraccion))
+            {
+                return $"El contacto no tiene interacciones registradas que coincidan con el tipo '{tipoInteraccion}'. Dile al usuario que intente con otro tipo o sin filtros.";
+            }
             return "El contacto no tiene interacciones registradas.";
         }
 
         await LogAiActionAsync("ConsultarInteraccionesContacto", "{}", context);
 
-        return JsonSerializer.Serialize(interacciones);
+        var finalResult = new
+        {
+            Interacciones = interacciones,
+            NotaSistema = notaSistema
+        };
+
+        return JsonSerializer.Serialize(finalResult);
     }
 }
