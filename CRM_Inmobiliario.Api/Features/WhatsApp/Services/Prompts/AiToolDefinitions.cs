@@ -149,7 +149,8 @@ public static class AiToolDefinitions
                 {
                     "type": "object",
                     "properties": {
-                        "searchTerm": { "type": "string", "description": "Nombre completo o teléfono del contacto a buscar." }
+                        "searchTerm": { "type": "string", "description": "Nombre completo o teléfono del contacto a buscar." },
+                        "cantidadMensajes": { "type": "integer", "description": "Cantidad de mensajes recientes a recuperar de la conversación (ej. 5). Si no se especifica, usa 20." }
                     },
                     "required": ["searchTerm"]
                 }

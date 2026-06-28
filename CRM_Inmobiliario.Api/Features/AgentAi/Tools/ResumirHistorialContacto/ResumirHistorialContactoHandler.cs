@@ -24,6 +24,19 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
 
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string searchTerm = ExtractSafeString(args.RootElement, "searchTerm", 100, string.Empty);
+        int requestedCantidad = args.RootElement.TryGetProperty("cantidadMensajes", out var prop) && prop.TryGetInt32(out var cant) ? cant : 20;
+        int cantidadMensajes = Math.Clamp(requestedCantidad, 1, 50);
+        
+        string? notaSistema = null;
+        if (requestedCantidad > 50)
+        {
+            notaSistema = $"[SISTEMA] Se solicitaron {requestedCantidad} mensajes, pero el límite técnico es 50. Se devolvieron los últimos 50. Notifica amablemente de este límite al agente.";
+        }
+        else if (requestedCantidad < 1)
+        {
+            notaSistema = $"[SISTEMA] Cantidad inválida solicitada ({requestedCantidad}). Se devolvió 1 mensaje. Notifica de esto al agente.";
+        }
+
 
         var agent = await ResolveIdentityAsync(context, cancellationToken);
         if (agent == null) return "{\"error\": \"Acceso denegado: No se pudo identificar al agente.\"}";
@@ -36,9 +49,6 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
                                   (EF.Functions.ILike(c.NormalizedSearchText, searchPattern) ||
                                    (c.Telefono != null && c.Telefono.Contains(searchTerm)) ||
                                    c.Id.ToString() == searchTerm)
-                            let whatsapp = _context.WhatsappConversations
-                                .OrderByDescending(w => w.UltimaActualizacion)
-                                .FirstOrDefault(w => w.ContactoId == c.Id)
                             select new 
                             {
                                 ContactId = c.Id,
@@ -57,7 +67,16 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
                                     .OrderByDescending(i => i.FechaInteraccion)
                                     .Take(3)
                                     .Select(i => new { i.TipoInteraccion, i.Notas, i.FechaInteraccion }),
-                                ConversacionWhatsApp = whatsapp != null ? whatsapp.HistorialJson : null
+                                WaMessages = _context.WhatsappMessages
+                                    .Where(m => m.ContactoId == c.Id)
+                                    .OrderByDescending(m => m.Fecha)
+                                    .Take(cantidadMensajes)
+                                    .Select(m => new { m.Fecha, m.OrigenMensaje, m.Rol, m.Contenido }),
+                                FbMessages = _context.FacebookMessages
+                                    .Where(m => m.ContactoId == c.Id)
+                                    .OrderByDescending(m => m.Fecha)
+                                    .Take(cantidadMensajes)
+                                    .Select(m => new { m.Fecha, m.OrigenMensaje, m.Rol, m.Contenido })
                             })
                             .FirstOrDefaultAsync();
 
@@ -66,9 +85,34 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
             return "{\"error\": \"Contacto no encontrado\"}";
         }
 
+        var historialUnificado = result.WaMessages.Select(m => new { m.Fecha, Canal = "WhatsApp", Origen = m.OrigenMensaje ?? (m.Rol == "user" ? "Cliente" : "IA"), Mensaje = m.Contenido })
+            .Concat(result.FbMessages.Select(m => new { m.Fecha, Canal = "Facebook", Origen = m.OrigenMensaje ?? (m.Rol == "user" ? "Cliente" : "IA"), Mensaje = m.Contenido }))
+            .OrderBy(m => m.Fecha)
+            .TakeLast(cantidadMensajes)
+            .Select(m => new { 
+                fecha = m.Fecha.ToString("s"), 
+                canal = m.Canal, 
+                origen = m.Origen, 
+                mensaje = m.Mensaje 
+            });
+
+        var finalResult = new
+        {
+            result.ContactId,
+            result.Nombre,
+            result.Telefono,
+            result.EtapaEmbudo,
+            result.EsProspecto,
+            result.EsPropietario,
+            result.UltimasTareas,
+            result.UltimasNotas,
+            HistorialUnificado = historialUnificado,
+            NotaSistema = notaSistema
+        };
+
         await LogAiActionAsync("ResumirHistorialContacto", args.RootElement.GetRawText(), context);
 
-        return JsonSerializer.Serialize(result);
+        return JsonSerializer.Serialize(finalResult);
     }
 }
 
