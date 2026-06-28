@@ -126,7 +126,7 @@ app.Use(async (context, next) => {
     if (context.Response.StatusCode == 401) Console.WriteLine($"WARN [401]: {context.Request.Method} {context.Request.Path}");
 });
 
-if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
+// if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection(); // Comentado porque Railway maneja HTTPS en el Edge Router
 
 app.UseCors();
 app.UseAuthentication();
