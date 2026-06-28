@@ -161,7 +161,11 @@ public static class ServiceCollectionExtensions
             .ToArray();
 
         services.AddCors(options => options.AddDefaultPolicy(p =>
-            p.SetIsOriginAllowed(_ => true).AllowAnyMethod().AllowAnyHeader()));
+            p.WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://crm-inmobiliario-profesional.vercel.app"
+            ).AllowAnyMethod().AllowAnyHeader()));
 
 
         return services;

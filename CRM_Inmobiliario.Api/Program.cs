@@ -63,7 +63,11 @@ builder.Services.ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler
 // Configuración de Hangfire
 var dbString = Environment.GetEnvironmentVariable("DATABASE_URL");
 builder.Services.AddHangfire(config => config.UsePostgreSqlStorage(options => options.UseNpgsqlConnection(dbString)));
-builder.Services.AddHangfireServer();
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 5; // Conservador: sistema acotado a máximo 21 usuarios concurrentes
+    options.ServerName = $"crm-railway-{Environment.MachineName}";
+});
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Propiedades.Services.IPropertyEmbeddingService, CRM_Inmobiliario.Api.Features.Propiedades.Services.PropertyEmbeddingService>();
 builder.Services.AddScoped<IWhatsAppPromptBuilder, WhatsAppPromptBuilder>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.ICoreAiToolExecutor, CRM_Inmobiliario.Api.Features.CoreAi.Services.CoreAiToolExecutor>();

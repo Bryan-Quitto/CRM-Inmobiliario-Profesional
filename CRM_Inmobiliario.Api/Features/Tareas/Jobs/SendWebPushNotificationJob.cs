@@ -28,7 +28,7 @@ public class SendWebPushNotificationJob
         _dbContext = dbContext;
     }
 
-    [DisableConcurrentExecution(timeoutInSeconds: 60)]
+    [DisableConcurrentExecution(timeoutInSeconds: 30)]
     public async Task ExecuteAsync()
     {
         var outboxRecords = await _dbContext.PushNotificationsOutbox

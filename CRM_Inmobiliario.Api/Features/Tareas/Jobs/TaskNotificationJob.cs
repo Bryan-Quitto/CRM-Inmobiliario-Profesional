@@ -28,7 +28,7 @@ public class TaskNotificationJob
         _logger = logger;
     }
 
-    [DisableConcurrentExecution(timeoutInSeconds: 300)]
+    [DisableConcurrentExecution(timeoutInSeconds: 30)]
     public async Task ProcessNotificationsAsync()
     {
         _logger.LogInformation("Iniciando procesamiento de notificaciones de tareas (UTC-5)...");
