@@ -68,6 +68,7 @@ public sealed class Agent
     [MaxLength(50)]
     public string? WhatsAppPhoneNumberId { get; set; }
 
+    // Valid, Invalid, QuotaExhausted
     [MaxLength(50)]
     public string ByokKeyStatus { get; set; } = "Valid";
 
@@ -94,6 +95,14 @@ public sealed class Agent
     public int NotifyAiHelpTasksIntervalMinutes { get; set; } = 1;
     public int NotifyAiHelpTasksMaxRetries { get; set; } = 3;
     public int NotifyOverdueTasksMaxHours { get; set; } = 24;
+
+    public bool AutoArchivarContactos { get; set; } = false;
+    [Range(100, 1095)]
+    public int DiasInactividadContactos { get; set; } = 365;
+
+    public bool AutoArchivarPropiedades { get; set; } = false;
+    [Range(100, 1095)]
+    public int DiasInactividadPropiedades { get; set; } = 365;
 
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 

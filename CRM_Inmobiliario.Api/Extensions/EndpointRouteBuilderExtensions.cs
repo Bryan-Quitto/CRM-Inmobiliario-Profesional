@@ -106,7 +106,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapUpdateNotificationSettingsEndpoint();
         apiGroup.MapInvitarAgenteEndpoint();
         apiGroup.MapAgenciasEndpoints();
-        apiGroup.MapUpdateAgencyArchivingConfigEndpoint();
+        apiGroup.MapUpdateAgentArchivingConfigEndpoint();
         apiGroup.MapActivarPerfilEndpoint();
         apiGroup.MapListarAgentesEndpoint();
         apiGroup.MapDesactivarAgenteEndpoint();

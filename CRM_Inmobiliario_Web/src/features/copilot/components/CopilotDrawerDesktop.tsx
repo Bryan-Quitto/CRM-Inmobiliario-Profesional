@@ -26,6 +26,7 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
     isListening,
     toggleListening,
     isPersonalAiEnabled,
+    isByokExhausted,
     isLimitReached,
     isResetModalOpen,
     setIsResetModalOpen,
@@ -215,7 +216,7 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
           </div>
 
           {/* Footer / Input */}
-          <div className="p-4 border-t border-slate-200/50 bg-white/80 backdrop-blur-sm">
+          <div className="p-4 border-t border-slate-200/50 bg-white/80 backdrop-blur-sm flex flex-col gap-3">
             {!isPersonalAiEnabled ? (
               <div className="bg-slate-900 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-lg border border-slate-800">
                 <ShieldAlert className="h-5 w-5 text-orange-500 mb-2" />
@@ -250,20 +251,34 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
               </div>
             ) : (
               <>
+                {isByokExhausted && (
+                  <div className="bg-amber-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm border border-amber-200">
+                    <ShieldAlert className="h-5 w-5 text-amber-500 mb-1" />
+                    <p className="text-xs font-bold text-amber-900 mb-2">Tu crédito BYOK está agotado. Recarga tu cuenta para continuar.</p>
+                    <Link
+                      to="/configuracion/integracion-ia"
+                      onClick={toggleOpen}
+                      className="text-[10px] font-black uppercase tracking-wider text-amber-700 hover:text-amber-600 transition-colors bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20 cursor-pointer"
+                    >
+                      Configurar IA
+                    </Link>
+                  </div>
+                )}
                 <div className="relative flex shadow-sm rounded-2xl">
                   <textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    disabled={isTyping}
-                    placeholder={isTyping ? "La IA está escribiendo..." : "Escribe un mensaje..."}
+                    disabled={isTyping || isByokExhausted}
+                    placeholder={isByokExhausted ? "Crédito agotado..." : isTyping ? "La IA está escribiendo..." : "Escribe un mensaje..."}
                     className="w-full pr-20 pl-4 py-3 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-sm transition-all disabled:bg-slate-50 disabled:text-slate-400 placeholder:text-slate-400 resize-none h-24 overflow-y-auto"
                   />
                   <div className="absolute bottom-1.5 right-1.5 flex gap-1.5">
                     <button
                       type="button"
                       onClick={toggleListening}
-                      className={`cursor-pointer flex items-center justify-center p-2 rounded-full transition-all active:scale-95 shadow-sm ${
+                      disabled={isByokExhausted}
+                      className={`cursor-pointer flex items-center justify-center p-2 rounded-full transition-all active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                         isListening 
                           ? 'bg-rose-500 text-white animate-pulse' 
                           : 'bg-slate-100 text-slate-500 hover:bg-blue-600 hover:text-white'
@@ -282,7 +297,7 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
                     ) : (
                       <button
                         onClick={handleSend}
-                        disabled={!inputValue.trim()}
+                        disabled={!inputValue.trim() || isByokExhausted}
                         className="p-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:hover:bg-indigo-600 disabled:cursor-not-allowed cursor-pointer shadow-sm"
                       >
                         <Send className="h-4 w-4" />

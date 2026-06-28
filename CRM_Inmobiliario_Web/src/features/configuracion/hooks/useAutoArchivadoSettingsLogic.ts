@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useUpdateArchivingConfig, type ArchivingConfig } from '../api/useUpdateArchivingConfig';
+import { useUpdateAgentArchivingConfig, type ArchivingConfig } from '../api/useUpdateAgentArchivingConfig';
 import { toast } from 'sonner';
 
 export const useAutoArchivadoSettingsLogic = () => {
-  const { data, isLoading, updateConfig } = useUpdateArchivingConfig();
+  const { data, isLoading, updateConfig } = useUpdateAgentArchivingConfig();
   const [isSaving, setIsSaving] = useState(false);
 
   const [settings, setSettings] = useState<ArchivingConfig>({

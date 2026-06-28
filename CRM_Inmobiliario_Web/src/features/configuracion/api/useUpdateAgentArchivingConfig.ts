@@ -8,16 +8,16 @@ export interface ArchivingConfig {
   diasInactividadPropiedades: number;
 }
 
-export const useUpdateArchivingConfig = () => {
+export const useUpdateAgentArchivingConfig = () => {
   const { data, error, isLoading, mutate } = useSWR<ArchivingConfig>(
-    '/agencies/archiving-config',
+    '/agents/archiving-config',
     (url: string) => api.get(url).then(res => res.data)
   );
 
   const updateConfig = async (newConfig: ArchivingConfig) => {
     await mutate(newConfig, false);
     try {
-      await api.put('/agencies/archiving-config', newConfig);
+      await api.put('/agents/archiving-config', newConfig);
       await mutate(newConfig);
     } catch (err) {
       await mutate();

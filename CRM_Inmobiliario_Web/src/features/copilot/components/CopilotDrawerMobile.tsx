@@ -25,6 +25,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
     isListening,
     toggleListening,
     isPersonalAiEnabled,
+    isByokExhausted,
     isLimitReached,
     isResetModalOpen,
     setIsResetModalOpen,
@@ -153,7 +154,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
       </div>
 
       {/* Footer / Input (Pinned to bottom) */}
-      <div className="p-4 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] w-full min-w-0 shrink-0">
+      <div className="p-4 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] w-full min-w-0 shrink-0 flex flex-col gap-3">
         {!isPersonalAiEnabled ? (
           <div className="bg-slate-900 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-lg border border-slate-800 w-full min-w-0 break-words">
             <ShieldAlert className="h-5 w-5 text-orange-500 mb-2 shrink-0" />
@@ -188,20 +189,34 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
           </div>
         ) : (
           <>
+            {isByokExhausted && (
+              <div className="bg-amber-50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-sm border border-amber-200">
+                <ShieldAlert className="h-5 w-5 text-amber-500 mb-1" />
+                <p className="text-xs font-bold text-amber-900 mb-2">Tu crédito BYOK está agotado. Recarga tu cuenta para continuar.</p>
+                <Link
+                  to="/configuracion/integracion-ia"
+                  onClick={toggleOpen}
+                  className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20 text-center"
+                >
+                  Configurar IA
+                </Link>
+              </div>
+            )}
             <div className="relative flex shadow-sm rounded-2xl w-full min-w-0">
               <textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                disabled={isTyping}
-                placeholder={isTyping ? "La IA está escribiendo..." : "Escribe un mensaje..."}
+                disabled={isTyping || isByokExhausted}
+                placeholder={isByokExhausted ? "Crédito agotado..." : isTyping ? "La IA está escribiendo..." : "Escribe un mensaje..."}
                 className="w-full pr-20 pl-4 py-3 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-slate-50 disabled:text-slate-400 placeholder:text-slate-400 resize-none h-20 overflow-y-auto"
               />
               <div className="absolute bottom-1.5 right-1.5 flex gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={toggleListening}
-                  className={`flex items-center justify-center p-2 rounded-full transition-all active:scale-95 shadow-sm ${
+                  disabled={isByokExhausted}
+                  className={`flex items-center justify-center p-2 rounded-full transition-all active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                     isListening 
                       ? 'bg-rose-500 text-white animate-pulse' 
                       : 'bg-slate-100 text-slate-500'
@@ -220,7 +235,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
                 ) : (
                   <button
                     onClick={handleSend}
-                    disabled={!inputValue.trim()}
+                    disabled={!inputValue.trim() || isByokExhausted}
                     className="p-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
                   >
                     <Send className="h-4 w-4" />

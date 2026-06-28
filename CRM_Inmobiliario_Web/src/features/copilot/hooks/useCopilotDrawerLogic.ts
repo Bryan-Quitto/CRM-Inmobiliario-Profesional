@@ -44,6 +44,7 @@ export const useCopilotDrawerLogic = () => {
 
   const { settings, resetPersonalTokens } = useConfiguracionIA();
   const isPersonalAiEnabled = settings?.isPersonalAiEnabled ?? true;
+  const isByokExhausted = settings?.byokKeyStatus === 'QuotaExhausted';
   
   const isLimitReached = (settings?.tokensUsedToday ?? 0) >= (settings?.dailyTokenLimitPersonal ?? 500000);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -189,6 +190,7 @@ export const useCopilotDrawerLogic = () => {
     isListening,
     toggleListening,
     isPersonalAiEnabled,
+    isByokExhausted,
     isLimitReached,
     isResetModalOpen,
     setIsResetModalOpen,

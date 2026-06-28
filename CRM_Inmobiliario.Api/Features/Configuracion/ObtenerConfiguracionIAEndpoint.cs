@@ -24,7 +24,8 @@ public record IASettingsResponse(
     string? FacebookPageName,
     bool IsFacebookAiEnabled,
     bool AutoCreateFacebookContacts,
-    int DailyTokenLimitFacebook);
+    int DailyTokenLimitFacebook,
+    string ByokKeyStatus);
 
 public static class ObtenerConfiguracionIAEndpoint
 {
@@ -56,7 +57,8 @@ public static class ObtenerConfiguracionIAEndpoint
                     a.FacebookPageName,
                     a.IsFacebookAiEnabled,
                     a.AutoCreateFacebookContacts,
-                    a.DailyTokenLimitFacebook))
+                    a.DailyTokenLimitFacebook,
+                    a.ByokKeyStatus))
                 .FirstOrDefaultAsync();
 
             if (settings is null)

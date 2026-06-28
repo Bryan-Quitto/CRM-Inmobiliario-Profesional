@@ -6,13 +6,13 @@ using CRM_Inmobiliario.Api.Features.Configuracion;
 
 namespace CRM_Inmobiliario.Tests.Features.Configuracion;
 
-public class UpdateAgencyArchivingConfigValidatorTests
+public class UpdateAgentArchivingConfigValidatorTests
 {
-    private readonly UpdateAgencyArchivingConfigValidator _validator;
+    private readonly UpdateAgentArchivingConfigValidator _validator;
 
-    public UpdateAgencyArchivingConfigValidatorTests()
+    public UpdateAgentArchivingConfigValidatorTests()
     {
-        _validator = new UpdateAgencyArchivingConfigValidator();
+        _validator = new UpdateAgentArchivingConfigValidator();
     }
 
     [Theory]
@@ -22,7 +22,7 @@ public class UpdateAgencyArchivingConfigValidatorTests
     public void Should_Not_Have_Error_When_DiasInactividad_Is_Valid(int dias)
     {
         // Arrange
-        var request = new UpdateAgencyArchivingConfigRequest
+        var request = new UpdateAgentArchivingConfigRequest
         {
             AutoArchivarContactos = true,
             DiasInactividadContactos = dias,
@@ -46,7 +46,7 @@ public class UpdateAgencyArchivingConfigValidatorTests
     public void Should_Have_Error_When_DiasInactividad_Is_Out_Of_Range(int dias)
     {
         // Arrange
-        var request = new UpdateAgencyArchivingConfigRequest
+        var request = new UpdateAgentArchivingConfigRequest
         {
             AutoArchivarContactos = true,
             DiasInactividadContactos = dias,

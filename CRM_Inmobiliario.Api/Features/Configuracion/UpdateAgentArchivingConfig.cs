@@ -11,54 +11,53 @@ using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
-public static class UpdateAgencyArchivingConfig
+public static class UpdateAgentArchivingConfig
 {
-    public static void MapUpdateAgencyArchivingConfigEndpoint(this IEndpointRouteBuilder endpoints)
+    public static void MapUpdateAgentArchivingConfigEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPut("/agencies/{id}/archiving-config", async (
-            Guid id,
-            [FromBody] UpdateAgencyArchivingConfigRequest request,
+        endpoints.MapPut("/agents/archiving-config", async (
+            [FromBody] UpdateAgentArchivingConfigRequest request,
             ClaimsPrincipal user,
             CrmDbContext dbContext) =>
         {
             var userIdString = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdString, out Guid currentUserId)) return Results.Unauthorized();
 
-            var role = user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("Rol")?.Value;
-            if (role != "Admin") return Results.Forbid();
-
-            var agency = await dbContext.Agencies.FindAsync(id);
-            if (agency == null) return Results.NotFound(new { error = "Agency not found" });
-
-            var validator = new UpdateAgencyArchivingConfigValidator();
+            // Using ExecuteUpdateAsync for backend optimization! No need to fetch object just to update simple fields!
+            // Wait, we need to validate first
+            var validator = new UpdateAgentArchivingConfigValidator();
             var validationResult = await validator.ValidateAsync(request);
             if (!validationResult.IsValid)
             {
                 return Results.BadRequest(validationResult.ToDictionary());
             }
 
-            agency.AutoArchivarContactos = request.AutoArchivarContactos;
-            agency.DiasInactividadContactos = request.DiasInactividadContactos;
-            agency.AutoArchivarPropiedades = request.AutoArchivarPropiedades;
-            agency.DiasInactividadPropiedades = request.DiasInactividadPropiedades;
+            var rowsAffected = await dbContext.Agents
+                .Where(a => a.Id == currentUserId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.AutoArchivarContactos, request.AutoArchivarContactos)
+                    .SetProperty(p => p.DiasInactividadContactos, request.DiasInactividadContactos)
+                    .SetProperty(p => p.AutoArchivarPropiedades, request.AutoArchivarPropiedades)
+                    .SetProperty(p => p.DiasInactividadPropiedades, request.DiasInactividadPropiedades)
+                );
 
-            await dbContext.SaveChangesAsync();
+            if (rowsAffected == 0) return Results.NotFound(new { error = "Agent not found" });
 
             return Results.Ok(new
             {
-                agency.AutoArchivarContactos,
-                agency.DiasInactividadContactos,
-                agency.AutoArchivarPropiedades,
-                agency.DiasInactividadPropiedades
+                request.AutoArchivarContactos,
+                request.DiasInactividadContactos,
+                request.AutoArchivarPropiedades,
+                request.DiasInactividadPropiedades
             });
         })
-        .WithName("UpdateAgencyArchivingConfig")
+        .WithName("UpdateAgentArchivingConfig")
         .WithTags("Configuracion")
         .RequireAuthorization();
     }
 }
 
-public class UpdateAgencyArchivingConfigRequest
+public class UpdateAgentArchivingConfigRequest
 {
     public bool AutoArchivarContactos { get; set; }
     public int DiasInactividadContactos { get; set; }
@@ -66,9 +65,9 @@ public class UpdateAgencyArchivingConfigRequest
     public int DiasInactividadPropiedades { get; set; }
 }
 
-public class UpdateAgencyArchivingConfigValidator : AbstractValidator<UpdateAgencyArchivingConfigRequest>
+public class UpdateAgentArchivingConfigValidator : AbstractValidator<UpdateAgentArchivingConfigRequest>
 {
-    public UpdateAgencyArchivingConfigValidator()
+    public UpdateAgentArchivingConfigValidator()
     {
         RuleFor(x => x.DiasInactividadContactos)
             .InclusiveBetween(100, 1095)

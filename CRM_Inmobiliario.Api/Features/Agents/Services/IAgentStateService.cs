@@ -7,4 +7,5 @@ namespace CRM_Inmobiliario.Api.Features.Agents.Services;
 public interface IAgentStateService
 {
     Task InvalidateAgentKeyAsync(Guid agentId, CancellationToken cancellationToken = default);
+    Task HandleByokQuotaExhaustedAsync(Guid agentId, CancellationToken cancellationToken = default);
 }

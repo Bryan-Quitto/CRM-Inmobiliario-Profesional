@@ -144,6 +144,7 @@ public static class ActualizarConfiguracionIAEndpoint
 
                     agente.AiApiKey = newKey;
                     agente.ActiveLLMProvider = isGemini ? "Gemini" : (isOpenAI ? "OpenAI" : null);
+                    agente.ByokKeyStatus = "Valid";
                 }
                 else
                 {

@@ -192,7 +192,7 @@ const SessionCard: React.FC<{ sesion: AuditoriaSessionWithStats }> = ({ sesion }
 };
 
 export const AuditoriaGeneralViewDesktop: React.FC<{ logic: AuditoriaGeneralLogic }> = ({ logic }) => {
-  const { sesiones, isLoading, error, dias, setDias, startDate, setStartDate, endDate, setEndDate, canal, setCanal } = logic;
+  const { sesiones, isLoading, error, dias, setDias, startDate, setStartDate, endDate, setEndDate, canal, setCanal, isByokExhausted } = logic;
 
   if (error) {
     return (
@@ -210,6 +210,23 @@ export const AuditoriaGeneralViewDesktop: React.FC<{ logic: AuditoriaGeneralLogi
           Visión unificada de sesiones y acciones de inteligencia artificial.
         </p>
       </div>
+
+      {isByokExhausted && (
+        <div className="mb-6 bg-amber-50 rounded-xl p-4 border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3 text-amber-900">
+            <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0" />
+            <p className="text-sm font-medium">
+              <strong>⚠️ Crédito BYOK agotado.</strong> La IA de WhatsApp, Facebook y Copilot han sido desactivadas.
+            </p>
+          </div>
+          <Link
+            to="/configuracion/integracion-ia"
+            className="shrink-0 text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-500/10 hover:bg-amber-500/20 px-4 py-2 rounded-lg transition-colors border border-amber-500/20 whitespace-nowrap"
+          >
+            Configurar IA
+          </Link>
+        </div>
+      )}
 
       <AuditoriaGeneralFiltros 
         dias={dias} 

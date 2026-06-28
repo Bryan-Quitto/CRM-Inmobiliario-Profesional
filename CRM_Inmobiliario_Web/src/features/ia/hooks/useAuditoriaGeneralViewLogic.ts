@@ -1,5 +1,6 @@
 import { useAuditoriaGeneral } from './useAuditoriaGeneral';
 import type { AuditoriaSessionResponse } from '../types/auditoria';
+import { useConfiguracionIA } from '../../configuracion/hooks/useConfiguracionIA';
 
 export interface AuditoriaSessionWithStats extends AuditoriaSessionResponse {
   totalIA: number;
@@ -20,6 +21,9 @@ export const useAuditoriaGeneralViewLogic = () => {
     canal,
     setCanal
   } = useAuditoriaGeneral();
+
+  const { settings } = useConfiguracionIA();
+  const isByokExhausted = settings?.byokKeyStatus === 'QuotaExhausted';
 
   const sesionesWithStats: AuditoriaSessionWithStats[] = sesiones.map(sesion => {
     const totalIA = sesion.eventos.filter(e => {
@@ -51,7 +55,8 @@ export const useAuditoriaGeneralViewLogic = () => {
     endDate,
     setEndDate,
     canal,
-    setCanal
+    setCanal,
+    isByokExhausted
   };
 };
 

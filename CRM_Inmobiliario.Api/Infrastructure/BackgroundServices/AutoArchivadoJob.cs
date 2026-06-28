@@ -22,34 +22,33 @@ public class AutoArchivadoJob
     {
         _logger.LogInformation("Iniciando tarea de auto-archivado de contactos y propiedades.");
 
-        // Traemos todas las agencias que tengan el auto-archivado activado para contactos o propiedades.
-        var agencies = await _dbContext.Agencies
+        // Traemos todos los agentes que tengan el auto-archivado activado para contactos o propiedades.
+        var agents = await _dbContext.Agents
             .Where(a => a.AutoArchivarContactos || a.AutoArchivarPropiedades)
             .Select(a => new { a.Id, a.AutoArchivarContactos, a.DiasInactividadContactos, a.AutoArchivarPropiedades, a.DiasInactividadPropiedades })
             .ToListAsync();
 
-        if (!agencies.Any())
+        if (!agents.Any())
         {
-            _logger.LogInformation("No hay agencias con auto-archivado configurado. Finalizando.");
+            _logger.LogInformation("No hay agentes con auto-archivado configurado. Finalizando.");
             return;
         }
 
         var utcMinus5 = new DateTimeOffset(DateTime.UtcNow).ToOffset(TimeSpan.FromHours(-5));
 
-        foreach (var agency in agencies)
+        foreach (var agent in agents)
         {
             try
             {
-                if (agency.AutoArchivarContactos)
+                if (agent.AutoArchivarContactos)
                 {
-                    var cutoffContactos = utcMinus5.AddDays(-agency.DiasInactividadContactos);
+                    var cutoffContactos = utcMinus5.AddDays(-agent.DiasInactividadContactos);
 
                     var sqlContacts = $@"
                         INSERT INTO ""AgentArchivedContacts"" (""AgentId"", ""ContactoId"")
                         SELECT c.""AgenteId"", c.""Id""
                         FROM ""Contactos"" c
-                        INNER JOIN ""Agents"" a ON a.""Id"" = c.""AgenteId""
-                        WHERE a.""AgenciaId"" = '{agency.Id}'
+                        WHERE c.""AgenteId"" = '{agent.Id}'
                         AND NOT EXISTS (
                             SELECT 1 FROM ""AgentArchivedContacts"" arc 
                             WHERE arc.""AgentId"" = c.""AgenteId"" AND arc.""ContactoId"" = c.""Id""
@@ -63,20 +62,18 @@ public class AutoArchivadoJob
 
                     int archivedContactsCount = await _dbContext.Database.ExecuteSqlRawAsync(sqlContacts);
 
-                    _logger.LogInformation("Agencia {AgencyId}: Se han auto-archivado {Count} contactos inactivos antes de {Cutoff}.", agency.Id, archivedContactsCount, cutoffContactos);
+                    _logger.LogInformation("Agente {AgentId}: Se han auto-archivado {Count} contactos inactivos antes de {Cutoff}.", agent.Id, archivedContactsCount, cutoffContactos);
                 }
 
-                if (agency.AutoArchivarPropiedades)
+                if (agent.AutoArchivarPropiedades)
                 {
-                    var cutoffPropiedades = utcMinus5.AddDays(-agency.DiasInactividadPropiedades);
+                    var cutoffPropiedades = utcMinus5.AddDays(-agent.DiasInactividadPropiedades);
 
                     var sqlProperties = $@"
                         INSERT INTO ""AgentArchivedProperties"" (""AgentId"", ""PropiedadId"")
                         SELECT p.""AgenteId"", p.""Id""
                         FROM ""Properties"" p
-                        INNER JOIN ""Agents"" a ON a.""Id"" = p.""AgenteId""
-                        WHERE a.""AgenciaId"" = '{agency.Id}'
-                        AND p.""AgenteId"" IS NOT NULL
+                        WHERE p.""AgenteId"" = '{agent.Id}'
                         AND NOT EXISTS (
                             SELECT 1 FROM ""AgentArchivedProperties"" arp 
                             WHERE arp.""AgentId"" = p.""AgenteId"" AND arp.""PropiedadId"" = p.""Id""
@@ -90,12 +87,12 @@ public class AutoArchivadoJob
 
                     int archivedPropertiesCount = await _dbContext.Database.ExecuteSqlRawAsync(sqlProperties);
 
-                    _logger.LogInformation("Agencia {AgencyId}: Se han auto-archivado {Count} propiedades inactivas antes de {Cutoff}.", agency.Id, archivedPropertiesCount, cutoffPropiedades);
+                    _logger.LogInformation("Agente {AgentId}: Se han auto-archivado {Count} propiedades inactivas antes de {Cutoff}.", agent.Id, archivedPropertiesCount, cutoffPropiedades);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al procesar auto-archivado para la agencia {AgencyId}.", agency.Id);
+                _logger.LogError(ex, "Error al procesar auto-archivado para el agente {AgentId}.", agent.Id);
             }
         }
 

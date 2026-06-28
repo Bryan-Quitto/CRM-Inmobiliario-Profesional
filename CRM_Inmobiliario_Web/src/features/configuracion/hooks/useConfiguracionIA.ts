@@ -15,6 +15,7 @@ export interface IASettings {
   facebookPageName: string | null;
   isFacebookAiEnabled: boolean;
   autoCreateFacebookContacts: boolean;
+  byokKeyStatus: string;
 }
 
 const getIASettings = async () => {
