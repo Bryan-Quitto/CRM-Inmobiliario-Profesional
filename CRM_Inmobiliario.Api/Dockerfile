@@ -7,14 +7,14 @@ WORKDIR /src
 
 # Copiar el .csproj primero para aprovechar el caché de capas de Docker.
 # Si los paquetes no cambian, esta capa no se reconstruye.
-COPY CRM_Inmobiliario.Api/CRM_Inmobiliario.Api.csproj CRM_Inmobiliario.Api/
+COPY CRM_Inmobiliario.Api.csproj ./
 
-RUN dotnet restore "CRM_Inmobiliario.Api/CRM_Inmobiliario.Api.csproj"
+RUN dotnet restore "CRM_Inmobiliario.Api.csproj"
 
 # Copiar el resto del código fuente
-COPY CRM_Inmobiliario.Api/ CRM_Inmobiliario.Api/
+COPY . ./
 
-WORKDIR /src/CRM_Inmobiliario.Api
+WORKDIR /src
 
 # Publicar en modo Release, para la arquitectura linux-x64, sin binarios nativos del SDK
 RUN dotnet publish "CRM_Inmobiliario.Api.csproj" \
