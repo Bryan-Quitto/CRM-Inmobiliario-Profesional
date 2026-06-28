@@ -70,7 +70,9 @@ Estas herramientas están diseñadas estrictamente para interactuar de forma pro
 
 ### 9. ConsultarInteraccionesContacto
 - **Descripción:** Lee el registro de interacciones (llamadas, reuniones, correos, notas) del contacto actual en la UI.
-- **Parámetros:** *Ninguno* (depende completamente del contexto).
+- **Parámetros:**
+  - `cantidadInteracciones` *(integer, opcional, default 20)*: Cantidad de interacciones recientes a recuperar (rango 1-50).
+  - `tipoInteraccion` *(string, opcional)*: Permite filtrar por un tipo de interacción (ej. 'Llamada', 'Reunión', 'Nota').
 
 ### 10. CrearTareaCRM
 - **Descripción:** Crea un recordatorio o cita en la agenda del agente.

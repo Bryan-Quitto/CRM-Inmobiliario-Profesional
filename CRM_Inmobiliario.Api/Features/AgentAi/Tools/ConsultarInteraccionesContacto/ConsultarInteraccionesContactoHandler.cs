@@ -33,13 +33,24 @@ public sealed class ConsultarInteraccionesContactoHandler : BaseCoreAiToolHandle
         var agent = await ResolveIdentityAsync(context, cancellationToken);
         if (agent == null) return "{\"error\": \"Acceso denegado: No se pudo identificar al agente.\"}";
 
+        int requestedCantidad = args.RootElement.TryGetProperty("cantidadInteracciones", out var prop) && prop.TryGetInt32(out var cant) ? cant : 20;
+        int cantidadInteracciones = Math.Clamp(requestedCantidad, 1, 50);
+        string? tipoInteraccion = args.RootElement.TryGetProperty("tipoInteraccion", out var tipoProp) && tipoProp.ValueKind == JsonValueKind.String ? tipoProp.GetString() : null;
+
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string contactId = context.FocusedContextId;
 
-        var interacciones = await _context.Interactions
-            .Where(i => i.AgenteId == agent.Id && i.ContactoId.ToString() == contactId)
+        var query = _context.Interactions
+            .Where(i => i.AgenteId == agent.Id && i.ContactoId.ToString() == contactId);
+
+        if (!string.IsNullOrEmpty(tipoInteraccion))
+        {
+            query = query.Where(i => EF.Functions.ILike(i.TipoInteraccion, $"%{tipoInteraccion}%"));
+        }
+
+        var interacciones = await query
             .OrderByDescending(i => i.FechaInteraccion)
-            .Take(20) // Limite seguro para tokens
+            .Take(cantidadInteracciones)
             .Select(i => new
             {
                 fecha = i.FechaInteraccion.ToString("s"),

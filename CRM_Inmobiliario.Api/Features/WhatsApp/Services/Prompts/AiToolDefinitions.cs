@@ -164,7 +164,10 @@ public static class AiToolDefinitions
                     ParametersSchema = """
                     {
                         "type": "object",
-                        "properties": {}
+                        "properties": {
+                            "cantidadInteracciones": { "type": "integer", "description": "Cantidad de interacciones recientes a recuperar (ej. 5). Si no se especifica, usa 20. Rango de 1 a 50." },
+                            "tipoInteraccion": { "type": "string", "description": "Filtrar por tipo de interacción (ej. 'Llamada', 'Reunión', 'Nota'). Si no se especifica, trae de todos los tipos." }
+                        }
                     }
                     """
                 });

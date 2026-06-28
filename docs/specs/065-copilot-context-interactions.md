@@ -1,7 +1,7 @@
 # Spec: Copilot Context Interactions
 
 ## Intención
-Aprovechar la existencia del contexto implícito del Copiloto para implementar una nueva herramienta (`ConsultarInteraccionesContacto`) y optimizar la existente (`ResumirHistorialContacto`), haciéndolas 100% token-efficient (sin parámetros de búsqueda) y aislando el acceso a la información para evitar exfiltración de datos.
+Aprovechar la existencia del contexto implícito del Copiloto para implementar una nueva herramienta (`ConsultarInteraccionesContacto`) y optimizar la existente (`ResumirHistorialContacto`), haciéndolas 100% token-efficient (sin parámetros de búsqueda de ID/Nombre) y aislando el acceso a la información para evitar exfiltración de datos. `ConsultarInteraccionesContacto` soporta parámetros opcionales (`cantidadInteracciones` y `tipoInteraccion`) para búsquedas finas, preservando la eficiencia de tokens y garantizando la seguridad en el acceso a datos.
 
 ## Enfoque
 1. **Backend**:
