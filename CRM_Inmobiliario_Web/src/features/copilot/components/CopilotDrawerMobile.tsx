@@ -30,7 +30,9 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
     setIsResetModalOpen,
     isResetting,
     handleResetTokens,
-    toggleOpen
+    toggleOpen,
+    showScrollButton,
+    handleScroll
   } = logic;
 
   if (!isOpen || isMinimized) return null;
@@ -88,7 +90,11 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
       )}
 
       {/* Body / Messages List */}
-      <div className="flex-1 min-h-0 min-w-0 overflow-y-auto p-4 space-y-4 bg-slate-50 relative w-full">
+      <div 
+        id="copilot-messages-container-mobile"
+        className="flex-1 min-h-0 min-w-0 overflow-y-auto p-4 space-y-4 bg-slate-50 relative w-full"
+        onScroll={handleScroll}
+      >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4 w-full min-w-0">
             <div className="bg-white p-4 rounded-full shadow-sm shrink-0">
@@ -129,10 +135,16 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
           </>
         )}
         
-        {messages.length > 0 && (
+        {showScrollButton && messages.length > 0 && (
           <button
+            type="button"
             title="Ir al final"
-            onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => {
+              const container = document.getElementById('copilot-messages-container-mobile');
+              if (container) {
+                container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+              }
+            }}
             className="fixed bottom-32 right-4 z-10 p-2 bg-white/90 shadow-md rounded-full text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer border border-slate-200"
           >
             <ChevronDown className="h-5 w-5" />

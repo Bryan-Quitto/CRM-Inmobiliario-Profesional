@@ -35,7 +35,9 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
     size,
     onDragStart,
     onResizeStart,
-    toggleOpen
+    toggleOpen,
+    showScrollButton,
+    handleScroll
   } = logic;
 
   if (!isOpen) return null;
@@ -150,7 +152,11 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
 
           {/* Body / Messages List */}
           <div className="relative flex-1 min-h-0 flex flex-col bg-slate-50/50">
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+            <div 
+              id="copilot-messages-container" 
+              className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4"
+              onScroll={handleScroll}
+            >
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
                   <div className="bg-white p-4 rounded-full shadow-sm">
@@ -191,10 +197,16 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
                 </>
               )}
             </div>
-            {messages.length > 0 && (
+            {showScrollButton && messages.length > 0 && (
               <button
+                type="button"
                 title="Ir al final"
-                onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => {
+                  const container = document.getElementById('copilot-messages-container');
+                  if (container) {
+                    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+                  }
+                }}
                 className="absolute bottom-4 right-4 z-10 p-2 bg-white/90 backdrop-blur shadow-md rounded-full text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer border border-slate-200"
               >
                 <ChevronDown className="h-5 w-5" />

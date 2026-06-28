@@ -52,6 +52,16 @@ export const useCopilotDrawerLogic = () => {
   // Minimized state
   const [isMinimized, setIsMinimized] = useState(false);
 
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const scrollPositionRef = useRef<number | null>(null);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    scrollPositionRef.current = target.scrollTop;
+    const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 50;
+    setShowScrollButton(!isAtBottom);
+  };
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const defaultWidth = 380;
@@ -68,7 +78,18 @@ export const useCopilotDrawerLogic = () => {
     minHeight: 400
   });
 
+  const prevMessagesLengthRef = useRef(messages.length);
+  const prevConvIdRef = useRef(searchParams.get('convId'));
+
+  // 1. Auto-scroll to bottom only when new messages arrive or a new conversation is loaded
   useEffect(() => {
+    const currentConvId = searchParams.get('convId');
+    const isNewConversation = currentConvId !== prevConvIdRef.current;
+    const isNewMessage = messages.length !== prevMessagesLengthRef.current;
+    
+    prevConvIdRef.current = currentConvId;
+    prevMessagesLengthRef.current = messages.length;
+
     if (msgIdToHighlight) {
       const el = document.getElementById(`msg-${msgIdToHighlight}`);
       if (el) {
@@ -76,8 +97,37 @@ export const useCopilotDrawerLogic = () => {
         return;
       }
     }
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isOpen, isTyping, msgIdToHighlight]);
+
+    if (isNewConversation || isNewMessage || isTyping) {
+      setTimeout(() => {
+        const desktopContainer = document.getElementById('copilot-messages-container');
+        const mobileContainer = document.getElementById('copilot-messages-container-mobile');
+        
+        if (desktopContainer) desktopContainer.scrollTo({ top: desktopContainer.scrollHeight, behavior: 'smooth' });
+        if (mobileContainer) mobileContainer.scrollTo({ top: mobileContainer.scrollHeight, behavior: 'smooth' });
+      }, 150);
+    }
+  }, [messages, isTyping, msgIdToHighlight, searchParams]);
+
+  // 2. Restore exact scroll position when opening or un-minimizing the drawer
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      setTimeout(() => {
+        const desktopContainer = document.getElementById('copilot-messages-container');
+        const mobileContainer = document.getElementById('copilot-messages-container-mobile');
+        
+        if (scrollPositionRef.current !== null) {
+          // Restore exact position instantly (no animation)
+          if (desktopContainer) desktopContainer.scrollTop = scrollPositionRef.current;
+          if (mobileContainer) mobileContainer.scrollTop = scrollPositionRef.current;
+        } else {
+          // First time opening: go to bottom
+          if (desktopContainer) desktopContainer.scrollTop = desktopContainer.scrollHeight;
+          if (mobileContainer) mobileContainer.scrollTop = mobileContainer.scrollHeight;
+        }
+      }, 50);
+    }
+  }, [isOpen, isMinimized]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -148,6 +198,8 @@ export const useCopilotDrawerLogic = () => {
     size,
     onDragStart,
     onResizeStart,
-    toggleOpen
+    toggleOpen,
+    showScrollButton,
+    handleScroll
   };
 };

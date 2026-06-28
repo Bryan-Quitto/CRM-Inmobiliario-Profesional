@@ -34,7 +34,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, isHighlig
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+              p: ({ children }) => <div className="mb-2 last:mb-0 leading-relaxed">{children}</div>,
               ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>,
               ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-1">{children}</ol>,
               li: ({ children }) => <li>{children}</li>,
