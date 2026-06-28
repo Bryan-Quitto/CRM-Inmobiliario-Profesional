@@ -135,8 +135,10 @@ public class PdfWorker : BackgroundService
                 propiedad.Agente?.Agencia?.Nombre, agenteLogo, seccionesData
             );
 
+            // PRODUCCIÓN: EnableDebugging ELIMINADO intencionalmente.
+            // En true, QuestPDF activa su servidor hot-reload y escribe archivos de
+            // diagnóstico a disco, causando UnauthorizedAccessException en contenedores efímeros (Railway).
             var document = new PropiedadFichaDocument(data);
-            QuestPDF.Settings.EnableDebugging = true;
             var pdfBytes = document.GeneratePdf();
 
             _logger.LogInformation("☁️ [WORKER] PDF ensamblado ({Size} bytes). Subiendo a Supabase Storage...", pdfBytes.Length);

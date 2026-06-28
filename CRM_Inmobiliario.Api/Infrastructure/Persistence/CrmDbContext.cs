@@ -1,4 +1,5 @@
 using CRM_Inmobiliario.Api.Domain.Entities;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,11 +7,14 @@ using System.Linq;
 
 namespace CRM_Inmobiliario.Api.Infrastructure.Persistence;
 
-public sealed class CrmDbContext : DbContext
+public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
 {
     public CrmDbContext(DbContextOptions<CrmDbContext> options) : base(options)
     {
     }
+
+    // Requerido por IDataProtectionKeyContext para persistir claves en PostgreSQL (Railway-safe)
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     public DbSet<Agent> Agents => Set<Agent>();
     public DbSet<Agency> Agencies => Set<Agency>();

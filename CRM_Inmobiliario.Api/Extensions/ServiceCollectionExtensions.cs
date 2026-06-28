@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
@@ -14,6 +15,12 @@ public static class ServiceCollectionExtensions
         // Caché en memoria (Telemetría de Seguridad)
         services.AddMemoryCache();
 
+        // Data Protection persistida en PostgreSQL (Railway-safe).
+        // Las claves sobreviven a reinicios y redeployments del contenedor,
+        // eliminando rotaciones de clave no deseadas y cierres de sesión inesperados.
+        services.AddDataProtection()
+            .SetApplicationName("CRM_Inmobiliario_Profesional")
+            .PersistKeysToDbContext<CrmDbContext>();
         services.Configure<CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings>(
             configuration.GetSection(CRM_Inmobiliario.Api.Features.Shared.Settings.LLMSettings.SectionName));
 

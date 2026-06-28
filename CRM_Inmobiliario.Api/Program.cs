@@ -12,8 +12,10 @@ using Hangfire.PostgreSql;
 using CRM_Inmobiliario.Api.Features.AI.Infrastructure.Handlers;
 using CRM_Inmobiliario.Api.Features.AI.Services;
 using CRM_Inmobiliario.Api.Features.Agents.Services;
-// Cargar variables de entorno
-DotNetEnv.Env.TraversePath().Load();
+// Cargar variables de entorno desde .env en desarrollo local.
+// En Railway (producción), las variables son inyectadas por la plataforma
+// y no existe un archivo .env. El try-catch previene errores de arranque.
+try { DotNetEnv.Env.TraversePath().Load(); } catch { /* Ignorado en producción */ }
 
 var builder = WebApplication.CreateBuilder(args);
 
