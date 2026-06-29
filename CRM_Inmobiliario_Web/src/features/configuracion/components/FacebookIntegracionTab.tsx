@@ -6,6 +6,7 @@ import {
   saveFacebookPage,
   type FacebookPageOption,
 } from '../api/facebook';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 /* ─── FB SDK global types ─────────────────────────────────────────────────── */
 declare global {
@@ -424,11 +425,14 @@ export const FacebookIntegracionTab: React.FC<Props> = ({
 
       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
         {/* Header */}
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-          <div className="w-7 h-7 flex items-center justify-center text-[#1877F2]">
-            <FacebookIcon size={22} />
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 flex items-center justify-center text-[#1877F2]">
+              <FacebookIcon size={22} />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800">Integración con Facebook Messenger</h3>
           </div>
-          <h3 className="text-lg font-bold text-slate-800">Integración con Facebook Messenger</h3>
+          <HelpButton title="Integración con Facebook Messenger" path="/docs/manuales/manual_comunicaciones.md" />
         </div>
 
         {/* Feedback banners */}

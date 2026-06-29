@@ -8,6 +8,7 @@ import { AnaliticaEficiencia } from './analitica-sections/AnaliticaEficiencia';
 import { AnaliticaActividad } from './analitica-sections/AnaliticaActividad';
 import { AnaliticaModals } from './analitica-sections/AnaliticaModals';
 import type { AnaliticaViewLogic } from '../hooks/useAnaliticaViewLogic';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 interface Props {
   logic: AnaliticaViewLogic;
@@ -44,8 +45,13 @@ export const AnaliticaViewMobile: React.FC<Props> = ({ logic }) => {
             <Zap className="h-3 w-3" />
           </div>
           <div>
-            <h2 className="text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight">Pulso del Negocio</h2>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-start gap-2">
+              <h2 className="text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight">Pulso del Negocio</h2>
+              <div className="pt-0.5 shrink-0">
+                <HelpButton title="Analítica y Dashboard" path="/docs/manuales/manual_analitica.md" />
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>

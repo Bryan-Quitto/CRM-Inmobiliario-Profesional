@@ -1,7 +1,8 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, ChevronDown, ChevronRight, User } from 'lucide-react';
 import type { DashboardKpis, ContactoDashboardItem } from '../types';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 interface SeguimientoCriticoProps {
   data: DashboardKpis;
@@ -29,7 +30,10 @@ export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) 
         <Users className="absolute -right-4 -bottom-4 h-24 w-24 text-rose-500/10 group-hover:scale-110 transition-transform" />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em]">Seguimiento Crítico</p>
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em]">Seguimiento Crítico</p>
+              <HelpButton title="Seguimiento Crítico" path="/docs/manuales/manual_analitica.md" className="text-rose-400 hover:text-rose-600 hover:bg-rose-100" />
+            </div>
             <ChevronDown className={`h-4 w-4 text-rose-400 transition-transform duration-300 ${isSeguimientoOpen ? 'rotate-180' : ''}`} />
           </div>
           <h3 className="text-3xl font-black text-rose-600 tracking-tighter">{data.seguimientoRequerido}</h3>

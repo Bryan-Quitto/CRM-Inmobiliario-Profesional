@@ -6,6 +6,7 @@ import { KpiCards } from './KpiCards';
 import { SeguimientoCritico } from './SeguimientoCritico';
 import { EmbudoVentas } from './EmbudoVentas';
 
+
 interface Props {
   logic: DashboardPrincipalLogicType;
 }
@@ -55,9 +56,11 @@ export const DashboardPrincipalDesktop: React.FC<Props> = ({ logic }) => {
 
       <div className="relative bg-slate-900 rounded-3xl p-8 sm:p-10 shadow-2xl overflow-hidden flex items-center justify-between border border-slate-800">
         <div className="relative z-10 flex flex-col gap-2 max-w-lg">
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-            Hola de nuevo, <span className="text-blue-500">{greeting}</span>.
-          </h1>
+          <div className="flex items-start gap-3">
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Hola de nuevo, <span className="text-blue-500">{greeting}</span>.
+            </h1>
+          </div>
           <p className="text-slate-400 font-medium text-sm sm:text-base">Aquí está el resumen estratégico de tu negocio hoy.</p>
         </div>
         <div className="absolute right-0 top-0 bottom-0 w-2/3 md:w-1/2 pointer-events-none">

@@ -23,7 +23,7 @@ public static class CambiarEstadoContactoFeature
 
             // 1. Validar que la nueva etapa sea válida para el tipo
             var estadosValidos = esTipoPropietario
-                ? new[] { "Activo", "Inactivo", "Retirado", "Cerrado" }
+                ? new[] { "Activo", "Inactivo", "Cerrado" }
                 : new[] { "Nuevo", "Contactado", "Visita", "Perdido" }; // Restricción estricta de SSoT
 
             if (!estadosValidos.Contains(command.NuevoEstado))

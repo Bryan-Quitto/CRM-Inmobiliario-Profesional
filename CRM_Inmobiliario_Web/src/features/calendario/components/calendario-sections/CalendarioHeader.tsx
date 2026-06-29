@@ -8,6 +8,7 @@ import {
   Plus
 } from 'lucide-react';
 import FullCalendar from '@fullcalendar/react';
+import { HelpButton } from '../../../../components/ui/HelpButton';
 
 interface CalendarioHeaderProps {
   calendarRef: React.RefObject<FullCalendar | null>;
@@ -35,9 +36,14 @@ export const CalendarioHeader: React.FC<CalendarioHeaderProps> = ({
           <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
             <Calendar size={24} />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight contactoing-none">Calendario</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión de Agenda</p>
+          <div className="flex items-start gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Calendario</h1>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión de Agenda</p>
+            </div>
+            <div className="pt-0.5">
+              <HelpButton title="Productividad y Organización" path="/docs/manuales/manual_productividad.md" />
+            </div>
           </div>
         </div>
 

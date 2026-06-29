@@ -4,6 +4,7 @@ import { useFaqLogic } from '../../hooks/useFaqLogic';
 import { FaqCard } from './FaqCard';
 import { FaqFormModal } from './FaqFormModal';
 import type { PropertyFaq } from '../../types/faq.types';
+import { HelpButton } from '../../../../components/ui/HelpButton';
 
 interface DetalleFaqManagerProps {
   propiedadId: string;
@@ -38,11 +39,16 @@ export const DetalleFaqManager = ({ propiedadId, canManage, currentAgenteId, isA
     <section className="space-y-5">
       {/* Header de sección */}
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-black text-slate-900 tracking-tight">Preguntas Frecuentes</h3>
-          <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest mt-0.5">
-            Base de conocimiento · IA
-          </p>
+        <div className="flex items-start gap-2">
+          <div>
+            <h3 className="text-base font-black text-slate-900 tracking-tight">Preguntas Frecuentes</h3>
+            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest mt-0.5">
+              Base de conocimiento · IA
+            </p>
+          </div>
+          <div className="pt-0.5 shrink-0">
+            <HelpButton title="Base de Conocimiento Institucional" path="/docs/manuales/manual_knowledge.md" />
+          </div>
         </div>
         {!isArchived && (
           <button

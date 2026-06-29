@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, Users, Calendar, TrendingUp, ArrowUpRight } from 'lucide-react';
 import type { DashboardKpis } from '../types';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 interface KpiCardsProps {
   data: DashboardKpis;
@@ -44,9 +45,12 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ data, syncing }) => {
             <div className={`p-2 rounded-2xl ${card.color} group-hover:scale-110 transition-transform`}>
               {card.icon}
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full uppercase tracking-widest">
-              <TrendingUp className="h-3 w-3" />
-              Actual
+            <div className="flex gap-2 items-center">
+              <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full uppercase tracking-widest">
+                <TrendingUp className="h-3 w-3" />
+                Actual
+              </div>
+              <HelpButton title="Métricas y Analítica" path="/docs/manuales/manual_analitica.md" />
             </div>
           </div>
           <div className="mt-4">

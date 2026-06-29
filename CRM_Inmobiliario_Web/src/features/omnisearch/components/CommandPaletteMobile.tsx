@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Search, X, Settings, Calendar, PlusSquare, User, Home, CheckCircle, Loader2, Users, Building, BarChart, Bot } from 'lucide-react';
 import { useCommandPaletteLogic, type OmniSearchResult } from '../hooks/useCommandPaletteLogic';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 const IconMap: Record<string, React.ElementType> = {
   Settings,
@@ -57,13 +58,18 @@ export const CommandPaletteMobile: React.FC<Props> = ({ logic }) => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        {isSyncing && <Loader2 className="h-5 w-5 text-indigo-500 animate-spin absolute right-12" />}
-        <button 
-          onClick={() => setIsOpen(false)}
-          className="p-2 -mr-2 rounded-xl text-slate-500 hover:bg-slate-200 cursor-pointer touch-manipulation"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2 shrink-0 ml-2">
+          {isSyncing && <Loader2 className="h-5 w-5 text-indigo-500 animate-spin" />}
+          <div className="pt-0.5">
+            <HelpButton title="Búsqueda y Herramientas" path="/docs/manuales/manual_busqueda.md" />
+          </div>
+          <button 
+            onClick={() => setIsOpen(false)}
+            className="p-2 -mr-2 rounded-xl text-slate-500 hover:bg-slate-200 cursor-pointer touch-manipulation"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {/* Results Body */}

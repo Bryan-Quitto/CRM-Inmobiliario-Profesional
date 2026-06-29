@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import type { ConfiguracionLayoutLogicReturn } from '../hooks/useConfiguracionLayoutLogic';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 interface Props {
   logic: ConfiguracionLayoutLogicReturn;
@@ -12,8 +13,13 @@ export const ConfiguracionLayoutDesktop: React.FC<Props> = ({ logic }) => {
   return (
     <div className="max-w-7xl mx-auto">
       <header className="mb-10 px-6">
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight italic">Panel de Control</h1>
-        <p className="text-slate-500 font-medium mt-2">Gestiona tu identidad.</p>
+        <div className="flex items-start gap-3">
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight italic">Panel de Control</h1>
+          <div className="pt-2">
+            <HelpButton title="Administración y Configuración" path="/docs/manuales/manual_administracion.md" />
+          </div>
+        </div>
+        <p className="text-slate-500 font-medium mt-2">Gestiona tu configuración.</p>
       </header>
 
       <div className="px-6 mb-8">

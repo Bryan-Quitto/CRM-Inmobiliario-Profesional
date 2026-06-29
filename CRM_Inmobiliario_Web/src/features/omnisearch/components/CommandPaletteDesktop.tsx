@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Search, X, Settings, Calendar, PlusSquare, User, Home, CheckCircle, Loader2, Users, Building, BarChart, Bot } from 'lucide-react';
 import { useCommandPaletteLogic, type OmniSearchResult } from '../hooks/useCommandPaletteLogic';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 const IconMap: Record<string, React.ElementType> = {
   Settings,
@@ -56,22 +57,27 @@ export const CommandPaletteDesktop: React.FC<Props> = ({ logic }) => {
         
         {/* Header / Input */}
         <div className="flex items-center border-b border-slate-100 px-4 py-4 relative">
-          <Search className="h-5 w-5 text-slate-400 mr-3" />
+          <Search className="h-5 w-5 text-slate-400 mr-3 shrink-0" />
           <input
             ref={inputRef}
             type="text"
-            className="flex-1 bg-transparent text-lg text-slate-900 placeholder-slate-400 focus:outline-none"
+            className="flex-1 bg-transparent text-lg text-slate-900 placeholder-slate-400 focus:outline-none min-w-0"
             placeholder="Buscar contactos, propiedades, tareas o ir a..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          {isSyncing && <Loader2 className="h-5 w-5 text-indigo-500 animate-spin absolute right-12" />}
-          <button 
-            onClick={() => setIsOpen(false)}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0 ml-2">
+            {isSyncing && <Loader2 className="h-5 w-5 text-indigo-500 animate-spin" />}
+            <div className="pt-0.5">
+              <HelpButton title="Búsqueda y Herramientas" path="/docs/manuales/manual_busqueda.md" />
+            </div>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Results Body */}

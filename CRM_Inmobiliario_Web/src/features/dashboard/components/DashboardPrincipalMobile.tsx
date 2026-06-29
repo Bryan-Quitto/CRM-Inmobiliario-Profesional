@@ -6,6 +6,7 @@ import { KpiCards } from './KpiCards';
 import { SeguimientoCritico } from './SeguimientoCritico';
 import { EmbudoVentas } from './EmbudoVentas';
 
+
 interface Props {
   logic: DashboardPrincipalLogicType;
 }
@@ -61,9 +62,11 @@ export const DashboardPrincipalMobile: React.FC<Props> = ({ logic }) => {
           <img src="/ivisual.webp" fetchPriority="high" alt="Smart Building" className="w-full h-full object-cover object-top opacity-60" />
         </div>
         <div className="relative z-10 flex flex-col gap-1 min-w-0 w-full">
-          <h1 className="text-lg md:text-xl md:text-2xl font-black text-white tracking-tight break-words">
-            Hola, <span className="text-blue-500 break-words">{greeting}</span>.
-          </h1>
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="text-lg md:text-xl md:text-2xl font-black text-white tracking-tight break-words">
+              Hola, <span className="text-blue-500 break-words">{greeting}</span>.
+            </h1>
+          </div>
           <p className="text-slate-400 font-medium text-xs break-words">Resumen estratégico de hoy.</p>
         </div>
       </div>

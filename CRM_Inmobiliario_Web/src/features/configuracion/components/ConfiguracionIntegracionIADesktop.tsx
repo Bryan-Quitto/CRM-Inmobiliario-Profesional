@@ -5,6 +5,7 @@ import { FacebookIntegracionTab } from './FacebookIntegracionTab';
 import { TokenUsageTable } from './TokenUsageTable';
 import type { ConfiguracionIntegracionIALogic } from '../hooks/useConfiguracionIntegracionIALogic';
 import { CostEstimateTooltip, LimitWarning } from './ConfiguracionIntegracionIAShared';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionIntegracionIALogic }> = ({ logic }) => {
   const {
@@ -29,11 +30,14 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
   return (
     <div className="hidden lg:block space-y-6 animate-in fade-in duration-500">
       <section className="space-y-6 bg-slate-100/50 p-8 rounded-[40px] border border-slate-200/60 mt-8 max-w-4xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
-            <Settings2 size={20} />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+              <Settings2 size={20} />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight">Configuración de IA</h2>
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Configuración de IA</h2>
+          <HelpButton title="Configuración de IA" path="/docs/manuales/manual_ia.md" />
         </div>
 
         <div className="flex space-x-1 bg-slate-200/50 p-1.5 rounded-2xl mb-6 overflow-x-auto hide-scrollbar whitespace-nowrap">
@@ -99,9 +103,12 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
 
             {activeTab === 'WhatsApp' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                <div className="flex items-center gap-2 mb-2 border-b border-slate-100 pb-4">
-                  <Smartphone className="text-slate-400" size={20} />
-                  <h3 className="text-lg font-bold text-slate-800">Integración con WhatsApp</h3>
+                <div className="flex items-center justify-between mb-2 border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="text-slate-400" size={20} />
+                    <h3 className="text-lg font-bold text-slate-800">Integración con WhatsApp</h3>
+                  </div>
+                  <HelpButton title="Integración con WhatsApp" path="/docs/manuales/manual_comunicaciones.md" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -206,9 +213,12 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
 
             {activeTab === 'Personal' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                <div className="flex items-center gap-2 mb-2 border-b border-slate-100 pb-4">
-                  <Bot className="text-slate-400" size={20} />
-                  <h3 className="text-lg font-bold text-slate-800">IA del Sistema (Personal)</h3>
+                <div className="flex items-center justify-between mb-2 border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Bot className="text-slate-400" size={20} />
+                    <h3 className="text-lg font-bold text-slate-800">IA del Sistema (Personal)</h3>
+                  </div>
+                  <HelpButton title="IA del Sistema (Personal)" path="/docs/manuales/manual_comunicaciones.md" />
                 </div>
 
                 <div className="space-y-4">

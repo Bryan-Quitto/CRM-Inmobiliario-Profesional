@@ -5,6 +5,7 @@ import { FacebookIntegracionTab } from './FacebookIntegracionTab';
 import { TokenUsageTable } from './TokenUsageTable';
 import type { ConfiguracionIntegracionIALogic } from '../hooks/useConfiguracionIntegracionIALogic';
 import { CostEstimateTooltip, LimitWarning } from './ConfiguracionIntegracionIAShared';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIntegracionIALogic }> = ({ logic }) => {
   const {
@@ -29,11 +30,16 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
   return (
     <div className="block lg:hidden space-y-4 animate-in fade-in duration-500 pb-20">
       <section className="bg-white p-4 sm:p-4 rounded-2xl shadow-sm border border-slate-200 mt-4 mx-2">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg shrink-0">
-            <Settings2 size={24} />
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg shrink-0">
+              <Settings2 size={24} />
+            </div>
+            <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight leading-tight flex-1 min-w-0 break-words">Configuración de IA</h2>
           </div>
-          <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight leading-tight flex-1 min-w-0 break-words">Configuración de IA</h2>
+          <div className="shrink-0">
+            <HelpButton title="Configuración de IA" path="/docs/manuales/manual_ia.md" />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 mb-4">
@@ -97,9 +103,14 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
 
             {activeTab === 'WhatsApp' && (
               <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
-                <div className="flex items-center gap-2 mb-2 border-b border-slate-100 pb-3">
-                  <Smartphone className="text-slate-400 shrink-0" size={18} />
-                  <h3 className="text-base font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Integración con WhatsApp</h3>
+                <div className="flex items-center justify-between mb-2 border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="text-slate-400 shrink-0" size={18} />
+                    <h3 className="text-base font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Integración con WhatsApp</h3>
+                  </div>
+                  <div className="shrink-0">
+                    <HelpButton title="Integración con WhatsApp" path="/docs/manuales/manual_comunicaciones.md" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -179,9 +190,14 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
 
             {activeTab === 'Personal' && (
               <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
-                <div className="flex items-center gap-2 mb-2 border-b border-slate-100 pb-3">
-                  <Bot className="text-slate-400 shrink-0" size={18} />
-                  <h3 className="text-base font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">IA del Sistema (Personal)</h3>
+                <div className="flex items-center justify-between mb-2 border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Bot className="text-slate-400 shrink-0" size={18} />
+                    <h3 className="text-base font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">IA del Sistema (Personal)</h3>
+                  </div>
+                  <div className="shrink-0">
+                    <HelpButton title="IA del Sistema (Personal)" path="/docs/manuales/manual_comunicaciones.md" />
+                  </div>
                 </div>
 
                 <div className="space-y-3">

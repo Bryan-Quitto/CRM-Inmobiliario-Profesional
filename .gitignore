@@ -97,6 +97,8 @@ secrets.json
 *.rar
 *.7z
 Instrucciones.txt
+.aider*
+.antigravityignore
 
 # --- [ Whitelist (Overrides) ] ---
 !CRM_Inmobiliario.slnx

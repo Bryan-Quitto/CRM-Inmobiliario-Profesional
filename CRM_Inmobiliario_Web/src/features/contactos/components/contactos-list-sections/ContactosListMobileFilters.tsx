@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, Filter, ChevronDown, LayoutGrid, List } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { ORIGENES } from '../../constants/contactos';
+import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { ContactosListLogic } from '../../hooks/useContactosListLogic';
 
 interface MobileFiltersProps {
@@ -13,8 +14,13 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
     <div className="w-full flex flex-col space-y-4 mb-6 min-w-0">
       <div className="w-full flex justify-between items-start gap-4 min-w-0">
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight break-words">Directorio</h2>
-          <p className="text-sm text-slate-600 font-medium italic break-words">Gestión de contactos.</p>
+          <div className="flex items-start gap-3">
+            <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight break-words">Directorio</h2>
+            <div className="pt-1 shrink-0">
+              <HelpButton title="Contactos y CRM" path="/docs/manuales/manual_contactos.md" />
+            </div>
+          </div>
+          <p className="text-sm text-slate-600 font-medium italic break-words mt-1">Gestión de contactos.</p>
         </div>
         <button 
           onClick={() => logic.handleOpenCreateModal('create', { isOwnersView: logic.isOwnersView })}

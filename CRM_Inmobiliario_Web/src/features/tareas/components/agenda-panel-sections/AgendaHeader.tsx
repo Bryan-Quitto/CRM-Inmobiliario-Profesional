@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bot, Plus, XCircle, Filter } from 'lucide-react';
+import { HelpButton } from '../../../../components/ui/HelpButton';
 
 interface AgendaHeaderProps {
   tareasPendientesCount: number;
@@ -20,11 +21,16 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
 }) => {
   return (
     <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
-      <div>
-        <h2 className="text-lg font-black text-slate-900 tracking-tight">Agenda Diaria</h2>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
-          {tareasPendientesCount} Tareas Pendientes
-        </p>
+      <div className="flex items-start gap-3">
+        <div>
+          <h2 className="text-lg font-black text-slate-900 tracking-tight">Agenda Diaria</h2>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+            {tareasPendientesCount} Tareas Pendientes
+          </p>
+        </div>
+        <div className="pt-0.5">
+          <HelpButton title="Productividad y Organización" path="/docs/manuales/manual_productividad.md" />
+        </div>
       </div>
       <div className="flex items-center gap-1.5">
         <button

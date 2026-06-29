@@ -1,6 +1,7 @@
 import { Building2, Plus, Loader2, Check, X, ChevronDown, ExternalLink } from 'lucide-react';
 import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
 import { NIVELES_INTERES, formatCurrency } from '../../constants/contactos';
+import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { Contacto, Interes } from '../../types';
 
 interface ContactoInterestsManagerProps {
@@ -67,7 +68,13 @@ export const ContactoInterestsManager = ({
             />
           ) : (
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
-              <p className="text-xs font-bold text-slate-500 uppercase mb-3">Nivel de Interés para la propiedad</p>
+              <div className="flex items-center gap-2 mb-3">
+                <p className="text-xs font-bold text-slate-500 uppercase m-0">Nivel de Interés para la propiedad</p>
+                <HelpButton 
+                  title="Niveles de Interés" 
+                  content={`**¿Para qué sirven estos niveles?**\n\nAyudan a medir el nivel de interés de los contactos en las propiedades (🔥 Alto, ⚡ Medio, ❄️ Bajo). Esta métrica es fundamental para el **Dashboard de Inicio**, ya que te permite visualizar la temperatura de tus prospectos y priorizar tus esfuerzos de venta.`} 
+                />
+              </div>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {NIVELES_INTERES.map(n => (
                   <button

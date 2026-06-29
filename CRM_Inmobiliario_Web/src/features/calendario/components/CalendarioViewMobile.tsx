@@ -2,6 +2,7 @@ import React from 'react';
 import { Loader2, Plus, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
 import type { CalendarioViewLogic } from '../hooks/useCalendarioViewLogic';
 import { CalendarioModals } from './calendario-sections/CalendarioModals';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 interface Props {
   logic: CalendarioViewLogic;
@@ -40,8 +41,13 @@ export const CalendarioViewMobile: React.FC<Props> = ({ logic }) => {
       {/* Header Móvil */}
       <div className="bg-white px-2 py-2 border-b border-slate-200 shadow-sm sticky top-0 z-20 flex justify-between items-center">
         <div>
-          <h1 className="text-base md:text-xl font-bold text-slate-900">Agenda</h1>
-          <p className="text-xs text-slate-500 font-medium">{new Date().toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          <div className="flex items-start gap-2">
+            <h1 className="text-base md:text-xl font-bold text-slate-900">Agenda</h1>
+            <div className="pt-0.5 shrink-0">
+              <HelpButton title="Productividad y Organización" path="/docs/manuales/manual_productividad.md" />
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">{new Date().toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
         <button
           onClick={() => handleOpenCrear()}

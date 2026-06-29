@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import type { ConfiguracionLayoutLogicReturn } from '../hooks/useConfiguracionLayoutLogic';
+import { HelpButton } from '../../../components/ui/HelpButton';
 
 interface Props {
   logic: ConfiguracionLayoutLogicReturn;
@@ -12,8 +13,13 @@ export const ConfiguracionLayoutMobile: React.FC<Props> = ({ logic }) => {
   return (
     <div className="flex flex-col min-h-screen w-full p-4">
       <header className="w-full mb-4 break-words">
-        <h1 className="text-lg md:text-xl md:text-3xl font-black text-slate-900 tracking-tight italic">Panel de Control</h1>
-        <p className="text-slate-500 font-medium mt-1">Gestiona tu identidad.</p>
+        <div className="flex items-start gap-2">
+          <h1 className="text-lg md:text-xl md:text-3xl font-black text-slate-900 tracking-tight italic">Panel de Control</h1>
+          <div className="pt-1 shrink-0">
+            <HelpButton title="Administración y Configuración" path="/docs/manuales/manual_administracion.md" />
+          </div>
+        </div>
+        <p className="text-slate-500 font-medium mt-1">Gestiona tu configuración.</p>
       </header>
 
       <div className="w-full mb-4">

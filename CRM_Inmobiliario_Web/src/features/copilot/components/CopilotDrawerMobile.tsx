@@ -3,6 +3,7 @@ import { X, RefreshCcw, Send, Bot, Loader2, ShieldAlert, ChevronDown, Mic, MicOf
 import { ChatMessageItem } from './ChatMessageItem';
 import { Link } from 'react-router-dom';
 import ConfirmModal from '@/components/ConfirmModal';
+import { HelpButton } from '../../../components/ui/HelpButton';
 import { useCopilotDrawerLogic } from '../hooks/useCopilotDrawerLogic';
 
 export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilotDrawerLogic> }> = ({ logic }) => {
@@ -54,6 +55,9 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
           >
             <History className="h-4 w-4" />
           </Link>
+          <div className="shrink-0">
+            <HelpButton title="Inteligencia Artificial" path="/docs/manuales/manual_ia.md" />
+          </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button

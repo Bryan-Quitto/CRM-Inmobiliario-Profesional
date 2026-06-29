@@ -44,6 +44,7 @@ const AutoArchivadoSettings = lazy(() => import('./features/configuracion/compon
 
 import { CopilotDrawer } from './features/copilot/components/CopilotDrawer';
 import { GlobalContactoModal } from './components/layout/GlobalContactoModal';
+import { HelpDrawer } from './components/ui/HelpDrawer';
 
 function AppContent({ session }: { session: Session | null }) {
   const location = useLocation();
@@ -199,6 +200,7 @@ function AppContent({ session }: { session: Session | null }) {
 
       <CopilotDrawer />
       <GlobalContactoModal />
+      <HelpDrawer />
     </div>
   );
 }
