@@ -102,7 +102,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
               />
             ) : (
               <DynamicSearchSelect
-                label={tipoCierre === 'Alquilada' ? 'Inquilino Final' : 'Comprador Final'}
+                label={tipoCierre === 'Alquilada' ? 'Inquilino Final' : 'Cliente Final'}
                 icon={User}
                 placeholder={`Buscar ${tipoCierre === 'Alquilada' ? 'inquilino' : 'comprador'}...`}
                 options={contactoOptions}
@@ -244,3 +244,4 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
     </div>
   );
 };
+

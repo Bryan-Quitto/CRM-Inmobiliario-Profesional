@@ -1,4 +1,4 @@
-using CRM_Inmobiliario.Api.Domain.Entities;
+﻿using CRM_Inmobiliario.Api.Domain.Entities;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
@@ -211,8 +211,8 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
 
         foreach (var entry in entries)
         {
-            var originalEtapa = entry.OriginalValues.GetValue<string>("EtapaEmbudo");
-            var currentEtapa = entry.CurrentValues.GetValue<string>("EtapaEmbudo");
+            var originalEtapa = entry.OriginalValues.GetValue<string>("EstadoEmbudo");
+            var currentEtapa = entry.CurrentValues.GetValue<string>("EstadoEmbudo");
 
             if (originalEtapa != currentEtapa)
             {
@@ -220,8 +220,8 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
                 {
                     Id = Guid.NewGuid(),
                     ContactoId = entry.Entity.Id,
-                    EtapaAnterior = originalEtapa ?? string.Empty,
-                    EtapaNueva = currentEtapa ?? string.Empty,
+                    EstadoAnterior = originalEtapa ?? string.Empty,
+                    EstadoNuevo = currentEtapa ?? string.Empty,
                     FechaCambio = DateTimeOffset.UtcNow
                 });
             }

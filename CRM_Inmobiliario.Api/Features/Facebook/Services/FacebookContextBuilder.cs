@@ -1,4 +1,4 @@
-using CRM_Inmobiliario.Api.Domain.Entities;
+﻿using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -66,7 +66,7 @@ public sealed class FacebookContextBuilder
                 Origen = "Aut. Facebook",
                 AgenteId = agente.Id,
                 FechaCreacion = DateTimeOffset.UtcNow,
-                EtapaEmbudo = "Nuevo",
+                EstadoEmbudo = "Nuevo",
                 EsProspecto = true
             };
             db.Contactos.Add(contacto);

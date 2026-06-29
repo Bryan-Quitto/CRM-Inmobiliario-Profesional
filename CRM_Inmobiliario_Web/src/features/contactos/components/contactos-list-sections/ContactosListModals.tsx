@@ -35,7 +35,7 @@ export const ContactosListModals = ({
                   <p className="text-amber-700/80">
                     Esto colocará al cliente en estado {newCycleConfirmation.etapa} para iniciar una nueva búsqueda, pero <strong>mantendrá intacto</strong> el contrato histórico. 
                     <br/><br/>
-                    La propiedad anterior <strong>NO</strong> volverá a estar Disponible. Si lo que deseas es finalizar un arrendamiento o anular una venta para liberar el inmueble, debes hacerlo exclusivamente desde el Catálogo de Propiedades.
+                    La propiedad anterior <strong>NO</strong> volverá a estar Disponible. Si lo que deseas es finalizar un arrendamiento o anular una venta para liberar la propiedad, debes hacerlo exclusivamente desde el Catálogo de Propiedades.
                   </p>
                 </div>
               </div>
@@ -61,3 +61,4 @@ export const ContactosListModals = ({
     </>
   );
 };
+

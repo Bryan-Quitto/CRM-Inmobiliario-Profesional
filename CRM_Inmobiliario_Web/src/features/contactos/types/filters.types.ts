@@ -1,4 +1,4 @@
-export type FilterFieldType = 'text' | 'select' | 'range' | 'boolean' | 'date';
+﻿export type FilterFieldType = 'text' | 'select' | 'range' | 'boolean' | 'date';
 export type ContactoFilterKey = string; // Claves de la interfaz Contacto
 
 export interface FilterDefinition {
@@ -26,7 +26,7 @@ export const AVAILABLE_CONTACT_FILTERS: FilterDefinition[] = [
     options: ['Todos', 'Facebook Ads', 'Google Search', 'Referido', 'Portal Inmobiliario', 'WhatsApp Directo'] 
   },
   { 
-    key: 'etapaEmbudo', 
+    key: 'estadoEmbudo', 
     label: 'Estado de Cliente', 
     type: 'select', 
     options: ['Todos', 'Nuevo', 'Contactado', 'En Negociación', 'Cerrado', 'Perdido', 'Escalado'] 

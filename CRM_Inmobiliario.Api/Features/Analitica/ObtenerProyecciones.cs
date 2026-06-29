@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -34,7 +34,7 @@ public static class ObtenerProyeccionesEndpoint
                 .Include(p => p.CerradoCon)
                 .Where(p => p.EstadoComercial == "Reservada" && 
                             p.CerradoCon != null && 
-                            p.CerradoCon.EtapaEmbudo == "En Negociación" &&
+                            p.CerradoCon.EstadoEmbudo == "En Negociación" &&
                             (p.AgenteId == agenteId || p.CerradoCon.AgenteId == agenteId))
                 .Select(p => new ItemCalculoProyeccion(
                     p.Titulo,

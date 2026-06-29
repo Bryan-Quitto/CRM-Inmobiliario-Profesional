@@ -70,7 +70,7 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
         </h2>
         <div className="flex flex-wrap items-center gap-2 mt-1 min-h-[24px]">
           <p className="text-slate-500 font-medium text-sm">
-            {isEditing ? 'Actualiza los detalles técnicos del inmueble.' : 'Ingresa los detalles del inmueble para el catálogo.'}
+            {isEditing ? 'Actualiza los detalles técnicos del inmueble.' : 'Ingresa los detalles de la propiedad para el catálogo.'}
           </p>
           
           {!isEditing && hasData && !isSuccess && (
@@ -168,3 +168,4 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
     </div>
   );
 };
+

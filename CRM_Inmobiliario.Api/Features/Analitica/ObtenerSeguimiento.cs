@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.Analitica;
 
-public record ContactoSeguimientoItem(Guid Id, string Nombre, string Apellido, string EtapaEmbudo);
+public record ContactoSeguimientoItem(Guid Id, string Nombre, string Apellido, string EstadoEmbudo);
 public record SeguimientoResponse(int SeguimientoRequerido, List<ContactoSeguimientoItem> Contactos);
 
 public static class ObtenerSeguimientoEndpoint
@@ -25,22 +25,22 @@ public static class ObtenerSeguimientoEndpoint
             var agenteId = user.GetRequiredUserId();
 
             // Etapas que ya no se consideran "Seguimiento Crítico" porque ya están en proceso avanzado o finalizado
-            var etapasExcluidas = new[] { "En Negociación", "Cerrado", "Perdido" };
+            var estadosExcluidos = new[] { "En Negociación", "Cerrado", "Perdido" };
 
             // D. Seguimiento Crítico: 
             // 1. Interés Medio o Alto
             // 2. Que NO estén en Negociación, Cerrados o Perdidos
             var contactosConInteres = await context.Contactos
                 .AsNoTracking()
-                .Where(l => l.AgenteId == agenteId && !etapasExcluidas.Contains(l.EtapaEmbudo))
+                .Where(l => l.AgenteId == agenteId && !estadosExcluidos.Contains(l.EstadoEmbudo))
                 .Where(l => l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
-                .Select(l => new ContactoSeguimientoItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
+                .Select(l => new ContactoSeguimientoItem(l.Id, l.Nombre, l.Apellido ?? "", l.EstadoEmbudo))
                 .ToListAsync();
 
             logger.LogInformation("--- Analizando Seguimiento Crítico (Filtrado) ---");
             foreach (var contacto in contactosConInteres)
             {
-                logger.LogInformation("Contacto en seguimiento: {Nombre} {Apellido} | Etapa: {Etapa}", contacto.Nombre, contacto.Apellido, contacto.EtapaEmbudo);
+                logger.LogInformation("Contacto en seguimiento: {Nombre} {Apellido} | Etapa: {Etapa}", contacto.Nombre, contacto.Apellido, contacto.EstadoEmbudo);
             }
             logger.LogInformation("Total Seguimiento Crítico: {Total}", contactosConInteres.Count);
 

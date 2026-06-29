@@ -1,4 +1,4 @@
-import { Mail, Phone, Clock, Pencil, ArrowUpRight, Share2, Bot } from 'lucide-react';
+﻿import { Mail, Phone, Clock, Pencil, ArrowUpRight, Share2, Bot } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { CompartirContactoModal } from './CompartirContactoModal';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -239,7 +239,7 @@ export const ContactoCard = ({
                             toast.warning("Debes activar la IA de WhatsApp en Configuración para usar esta función");
                             return;
                           }
-                          const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                          const isStageLocked = contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado';
                           if (isStageLocked) {
                             toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
                             return;
@@ -252,7 +252,7 @@ export const ContactoCard = ({
                           waToggle.handleToggle(!waToggle.isBotActivo);
                         }}
                         className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
-                          !isWhatsAppAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
+                          !isWhatsAppAiEnabled || (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                             ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                             : waToggle.isBotActivo 
                               ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
@@ -277,7 +277,7 @@ export const ContactoCard = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                            const isStageLocked = contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado';
                             if (isStageLocked) {
                               toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
                               return;
@@ -290,7 +290,7 @@ export const ContactoCard = ({
                             waToggle.handleToggle(!waToggle.isBotActivo);
                           }}
                           className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
-                            (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
+                            (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                               ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                               : waToggle.isBotActivo 
                                 ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
@@ -351,7 +351,7 @@ export const ContactoCard = ({
                             toast.warning("Debes activar la IA de Facebook en Configuración para usar esta función");
                             return;
                           }
-                          const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                          const isStageLocked = contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado';
                           if (isStageLocked) {
                             toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
                             return;
@@ -364,7 +364,7 @@ export const ContactoCard = ({
                           fbToggle.handleToggle(!fbToggle.isBotActivo);
                         }}
                         className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
-                          !isFacebookAiEnabled || (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
+                          !isFacebookAiEnabled || (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                             ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                             : fbToggle.isBotActivo 
                               ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 
@@ -389,7 +389,7 @@ export const ContactoCard = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                            const isStageLocked = contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado';
                             if (isStageLocked) {
                               toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
                               return;
@@ -402,7 +402,7 @@ export const ContactoCard = ({
                             fbToggle.handleToggle(!fbToggle.isBotActivo);
                           }}
                           className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
-                            (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
+                            (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                               ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                               : fbToggle.isBotActivo 
                                 ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 cursor-pointer' 

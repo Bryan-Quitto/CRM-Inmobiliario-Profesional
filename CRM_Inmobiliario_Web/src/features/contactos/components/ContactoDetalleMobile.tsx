@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Loader2, X, WifiOff, User, History } from 'lucide-react';
 
 // Sections
@@ -43,7 +43,7 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
     vincularStatus,
     newCycleConfirmation,
     setNewCycleConfirmation,
-    isUpdatingEtapa,
+    isUpdatingEstado,
     activeDropdown,
     setActiveDropdown,
     idInteresABorrar,
@@ -110,7 +110,7 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
       <div className="sticky top-0 z-40 bg-slate-50">
         <ContactoHeader 
           contacto={contacto}
-          isUpdatingEtapa={isUpdatingEtapa}
+          isUpdatingEstado={isUpdatingEstado}
           activeDropdown={activeDropdown}
           setActiveDropdown={setActiveDropdown}
           handleStageChange={handleStageChange}

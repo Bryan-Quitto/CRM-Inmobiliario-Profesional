@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Features.WhatsApp.Services;
@@ -31,7 +31,7 @@ public static class ToggleBotActivoFeature
 
             var contactoStatus = await context.Contactos
                 .Where(c => c.Id == id && c.AgenteId == agenteId)
-                .Select(c => new { c.Id, c.EtapaEmbudo })
+                .Select(c => new { c.Id, c.EstadoEmbudo })
                 .FirstOrDefaultAsync(ct);
 
             if (contactoStatus == null)
@@ -39,7 +39,7 @@ public static class ToggleBotActivoFeature
                 return Results.NotFound();
             }
 
-            if (command.BotActivo && (contactoStatus.EtapaEmbudo == "En Negociación" || contactoStatus.EtapaEmbudo == "Cerrado" || contactoStatus.EtapaEmbudo == "Cerrado Ganado"))
+            if (command.BotActivo && (contactoStatus.EstadoEmbudo == "En Negociación" || contactoStatus.EstadoEmbudo == "Cerrado" || contactoStatus.EstadoEmbudo == "Cerrado Ganado"))
             {
                 return Results.BadRequest(new { Message = "El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA." });
             }

@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Features.Dashboard;
@@ -48,7 +48,7 @@ public static class RegistrarContactoFeature
                 Origen = command.Origen,
                 EsProspecto = command.EsContacto,
                 EsPropietario = command.EsPropietario,
-                EtapaEmbudo = "Nuevo",
+                EstadoEmbudo = "Nuevo",
                 EstadoPropietario = "Activo",
                 FechaCreacion = DateTimeOffset.UtcNow
             };

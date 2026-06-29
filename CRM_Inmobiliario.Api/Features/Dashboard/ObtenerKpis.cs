@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Diagnostics;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Dashboard;
 
-public record ContactoDashboardItem(Guid Id, string Nombre, string Apellido, string EtapaEmbudo);
+public record ContactoDashboardItem(Guid Id, string Nombre, string Apellido, string EstadoEmbudo);
 
 public record DashboardKpisResponse(
     int TotalPropiedadesDisponibles,
@@ -17,10 +17,10 @@ public record DashboardKpisResponse(
     int TareasPendientesHoy,
     int SeguimientoRequerido,
     List<ContactoDashboardItem> ContactosSeguimiento,
-    List<EtapaEmbudoItem> EmbudoVentas
+    List<EstadoEmbudoItem> EmbudoVentas
 );
 
-public record EtapaEmbudoItem(string Etapa, int Cantidad);
+public record EstadoEmbudoItem(string Etapa, int Cantidad);
 
 public static class ObtenerKpisEndpoint
 {
@@ -42,7 +42,7 @@ public static class ObtenerKpisEndpoint
             var baseDate = (clientDate ?? DateTimeOffset.UtcNow).ToOffset(TimeSpan.FromHours(-5));
             var limiteHoyUtc = new DateTimeOffset(baseDate.Year, baseDate.Month, baseDate.Day, 23, 59, 59, TimeSpan.FromHours(-5)).ToUniversalTime();
 
-            var etapasExcluidas = new[] { "En Negociación", "Cerrado", "Perdido" };
+            var estadosExcluidos = new[] { "En Negociación", "Cerrado", "Perdido" };
 
             // OPTIMIZACIÓN SUPREMA: "THE ONE TRIP PATTERN"
             // Agrupamos TODOS los cálculos en un solo comando SQL para minimizar el impacto 
@@ -55,18 +55,18 @@ public static class ObtenerKpisEndpoint
                 .Select(a => new
                 {
                     Propiedades = a.Properties.Count(p => p.EstadoComercial == "Disponible"),
-                    ContactosActivos = a.Contactos.Count(l => l.EtapaEmbudo != "Perdido" && l.EtapaEmbudo != "Cerrado"),
+                    ContactosActivos = a.Contactos.Count(l => l.EstadoEmbudo != "Perdido" && l.EstadoEmbudo != "Cerrado"),
                     Tareas = a.Tasks.Count(t => t.Estado == "Pendiente" && t.FechaInicio <= limiteHoyUtc),
                     
                     // Seguimiento (Proyectamos solo lo necesario)
                     ContactosSeguimiento = a.Contactos
-                        .Where(l => !etapasExcluidas.Contains(l.EtapaEmbudo) && l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
-                        .Select(l => new ContactoDashboardItem(l.Id, l.Nombre, l.Apellido ?? "", l.EtapaEmbudo))
+                        .Where(l => !estadosExcluidos.Contains(l.EstadoEmbudo) && l.PropertyInterests.Any(i => i.NivelInteres == "Medio" || i.NivelInteres == "Alto"))
+                        .Select(l => new ContactoDashboardItem(l.Id, l.Nombre, l.Apellido ?? "", l.EstadoEmbudo))
                         .ToList(),
 
                     // Embudo (Agrupación en memoria tras traer el resumen por etapa)
                     EmbudoRaw = a.Contactos
-                        .GroupBy(l => l.EtapaEmbudo)
+                        .GroupBy(l => l.EstadoEmbudo)
                         .Select(g => new { Etapa = g.Key, Cantidad = g.Count() })
                         .ToList()
                 })
@@ -76,7 +76,7 @@ public static class ObtenerKpisEndpoint
             if (megaData == null) return Results.NotFound("Agente no encontrado");
 
             var embudoFinal = megaData.EmbudoRaw
-                .Select(x => new EtapaEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad))
+                .Select(x => new EstadoEmbudoItem(x.Etapa ?? "Sin Etapa", x.Cantidad))
                 .ToList();
 
             var kpis = new DashboardKpisResponse(

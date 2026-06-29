@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { buscarContactos } from '../../contactos/api/buscarContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
@@ -96,7 +96,7 @@ export const useClosingModal = ({
         const isOwner = mode === 'property' && initialData?.propietarioId === c.id;
         // Solo mostrar si NO es el dueño, es un prospecto comercial (esContacto) 
         // y NO está en estados terminales que impiden nuevas transacciones
-        const isTerminal = ['Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.etapaEmbudo);
+        const isTerminal = ['Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.estadoEmbudo);
         return !isOwner && c.esContacto && !isTerminal;
       })
       .map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
@@ -173,7 +173,7 @@ export const useClosingModal = ({
     // 2. Filtrar a quienes NO son prospectos (solo son propietarios)
     const filteredResults = results.filter(c => {
       const isOwner = mode === 'property' && initialData?.propietarioId === c.id;
-      const isTerminal = ['Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.etapaEmbudo || '');
+      const isTerminal = ['Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.estadoEmbudo || '');
       return !isOwner && c.esContacto && !isTerminal;
     });
 

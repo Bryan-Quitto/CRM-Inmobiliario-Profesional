@@ -3,8 +3,8 @@ import type { Contacto } from '../../types';
 
 interface ContactoModalsOrchestratorProps {
   contacto: Contacto;
-  newCycleConfirmation: { etapa: string } | null;
-  setNewCycleConfirmation: (conf: { etapa: string } | null) => void;
+  newCycleConfirmation: { estado: string } | null;
+  setNewCycleConfirmation: (conf: { estado: string } | null) => void;
   executeStageChange: (etapa: string) => Promise<void>;
 }
 
@@ -25,7 +25,7 @@ export const ContactoModalsOrchestrator = ({
               </div>
               <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight text-center">Nuevo Ciclo Comercial</h3>
               <p className="text-slate-500 font-medium mb-6 leading-relaxed text-center">
-                Estás moviendo a <span className="text-slate-900 font-bold">{contacto.nombre}</span> a la etapa <span className="text-blue-600 font-bold uppercase tracking-wider">{newCycleConfirmation.etapa}</span>.
+                Estás moviendo a <span className="text-slate-900 font-bold">{contacto.nombre}</span> a la etapa <span className="text-blue-600 font-bold uppercase tracking-wider">{newCycleConfirmation.estado}</span>.
               </p>
 
               <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3 mb-8">
@@ -35,9 +35,9 @@ export const ContactoModalsOrchestrator = ({
                     Esto NO es un fin de contrato
                   </p>
                   <p className="text-amber-700/80">
-                    Esto colocará al cliente en estado {newCycleConfirmation.etapa} para iniciar una nueva búsqueda, pero <strong>mantendrá intacto</strong> el contrato histórico. 
+                    Esto colocará al cliente en estado {newCycleConfirmation.estado} para iniciar una nueva búsqueda, pero <strong>mantendrá intacto</strong> el contrato histórico. 
                     <br/><br/>
-                    La propiedad anterior <strong>NO</strong> volverá a estar Disponible. Si lo que deseas es finalizar un arrendamiento o anular una venta para liberar el inmueble, debes hacerlo exclusivamente desde el Catálogo de Propiedades.
+                    La propiedad anterior <strong>NO</strong> volverá a estar Disponible. Si lo que deseas es finalizar un arrendamiento o anular una venta para liberar la propiedad, debes hacerlo exclusivamente desde el Catálogo de Propiedades.
                   </p>
                 </div>
               </div>
@@ -50,7 +50,7 @@ export const ContactoModalsOrchestrator = ({
                   Cancelar
                 </button>
                 <button 
-                  onClick={() => executeStageChange(newCycleConfirmation.etapa)}
+                  onClick={() => executeStageChange(newCycleConfirmation.estado)}
                   className="flex-1 px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all active:scale-95 cursor-pointer"
                 >
                   Confirmar
@@ -63,3 +63,4 @@ export const ContactoModalsOrchestrator = ({
     </>
   );
 };
+

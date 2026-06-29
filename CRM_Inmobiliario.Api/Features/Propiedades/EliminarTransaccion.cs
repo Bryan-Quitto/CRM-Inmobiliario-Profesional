@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Features.Dashboard;
@@ -67,12 +67,12 @@ public static class EliminarTransaccionFeature
 
                             if (tieneOtrasReservadas)
                             {
-                                contactoToRevert.EtapaEmbudo = "En Negociación";
+                                contactoToRevert.EstadoEmbudo = "En Negociación";
                                 contactoToRevert.FechaCierre = null;
                             }
                             else
                             {
-                                contactoToRevert.EtapaEmbudo = "Contactado";
+                                contactoToRevert.EstadoEmbudo = "Contactado";
                                 contactoToRevert.FechaCierre = null;
                             }
                         }

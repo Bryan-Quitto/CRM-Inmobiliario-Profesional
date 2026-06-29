@@ -11,66 +11,66 @@ interface Params {
 }
 
 export const useContactoStage = ({ contacto, id, mutate }: Params) => {
-  const [isUpdatingEtapa, setIsUpdatingEtapa] = useState(false);
+  const [isUpdatingEstado, setIsUpdatingEstado] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<'cliente' | 'propietario' | null>(null);
-  const [newCycleConfirmation, setNewCycleConfirmation] = useState<{ etapa: string } | null>(null);
+  const [newCycleConfirmation, setNewCycleConfirmation] = useState<{ estado: string } | null>(null);
 
-  const { cambiarEtapa } = useContactoCommercialLogic();
+  const { cambiarEstado } = useContactoCommercialLogic();
 
-  const handleStageChange = async (nuevaEtapa: string, tipo: 'cliente' | 'propietario' = 'cliente') => {
+  const handleStageChange = async (nuevoEstado: string, tipo: 'cliente' | 'propietario' = 'cliente') => {
     if (!id || !contacto) return;
     
-    const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
-    if (etapaActual === nuevaEtapa) return;
+    const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.estadoEmbudo;
+    if (etapaActual === nuevoEstado) return;
     
     setActiveDropdown(null);
 
     if (tipo === 'cliente') {
-      if (contacto.etapaEmbudo === 'En Negociación') {
+      if (contacto.estadoEmbudo === 'En Negociación') {
         import('sonner').then(({ toast }) => {
           toast.error('El cliente está en medio de una negociación. Cualquier cambio debe realizarse desde el catálogo de propiedades.');
         });
         return;
       }
 
-      if (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') {
-        if (nuevaEtapa === 'Perdido') {
+      if (contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') {
+        if (nuevoEstado === 'Perdido') {
           import('sonner').then(({ toast }) => {
             toast.error('Para dar por terminado un contrato, debe hacerlo desde la propiedad asociada. No puede marcar al cliente como perdido desde aquí.');
           });
           return;
         }
 
-        if (nuevaEtapa === 'Nuevo' || nuevaEtapa === 'Contactado' || nuevaEtapa === 'Cita') {
-          setNewCycleConfirmation({ etapa: nuevaEtapa });
+        if (nuevoEstado === 'Nuevo' || nuevoEstado === 'Contactado' || nuevoEstado === 'Visita') {
+          setNewCycleConfirmation({ estado: nuevoEstado });
           return;
         }
       }
     }
 
-    await executeStageChange(nuevaEtapa, tipo);
+    await executeStageChange(nuevoEstado, tipo);
   };
 
-  const executeStageChange = async (nuevaEtapa: string, tipo: 'cliente' | 'propietario' = 'cliente') => {
+  const executeStageChange = async (nuevoEstado: string, tipo: 'cliente' | 'propietario' = 'cliente') => {
     if (!id || !contacto) return;
     
-    setIsUpdatingEtapa(true);
+    setIsUpdatingEstado(true);
 
-    await cambiarEtapa(id, nuevaEtapa, tipo, undefined, {
+    await cambiarEstado(id, nuevoEstado, tipo, undefined, {
       onOptimisticUpdate: () => mutate(tipo === 'propietario' 
-        ? { ...contacto, estadoPropietario: nuevaEtapa }
-        : { ...contacto, etapaEmbudo: nuevaEtapa }, 
+        ? { ...contacto, estadoPropietario: nuevoEstado }
+        : { ...contacto, estadoEmbudo: nuevoEstado }, 
       false),
       onSuccess: async () => { await mutate(); },
       onError: () => mutate()
     });
 
-    setIsUpdatingEtapa(false);
+    setIsUpdatingEstado(false);
     setNewCycleConfirmation(null);
   };
 
   return {
-    isUpdatingEtapa,
+    isUpdatingEstado,
     activeDropdown,
     setActiveDropdown,
     newCycleConfirmation,

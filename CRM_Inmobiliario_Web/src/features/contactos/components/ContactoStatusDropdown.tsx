@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronDown, Check, Lock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ETAPAS, ETAPAS_PROPIETARIO } from '../constants/contactos';
+import { ESTADOS, ESTADOS_PROPIETARIO } from '../constants/contactos';
 import type { Contacto } from '../types';
 
 interface ContactoStatusDropdownProps {
@@ -26,8 +26,8 @@ export const ContactoStatusDropdown: React.FC<ContactoStatusDropdownProps> = ({
   dropdownRef
 }) => {
   const isPropietario = tipo === 'propietario';
-  const currentState = isPropietario ? contacto.estadoPropietario : contacto.etapaEmbudo;
-  const list = isPropietario ? ETAPAS_PROPIETARIO : ETAPAS;
+  const currentState = isPropietario ? contacto.estadoPropietario : contacto.estadoEmbudo;
+  const list = isPropietario ? ESTADOS_PROPIETARIO : ESTADOS;
   
   // Filter specific stages for 'cliente' variant
   const displayList = isPropietario 

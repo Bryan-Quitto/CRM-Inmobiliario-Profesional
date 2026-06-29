@@ -1,4 +1,4 @@
-using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using CRM_Inmobiliario.Api.Domain.Entities;
@@ -64,7 +64,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                     Origen = isFacebook ? "IA Facebook" : "IA WhatsApp",
                     AgenteId = agentIdToUse.Value,
                     FechaCreacion = DateTimeOffset.UtcNow,
-                    EtapaEmbudo = "Nuevo",
+                    EstadoEmbudo = "Nuevo",
                     EsProspecto = false,
                     EsPropietario = true,
                     BotActivoWA = !isFacebook ? false : true,
@@ -152,7 +152,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
             ? "Excelente," 
             : $"Excelente {nombreParaSaludo},";
 
-        return $"INSTRUCCIÓN PARA LA IA: Dile al cliente textualmente: '{saludo} un agente especializado en captación de propiedades se comunicará contigo en breve para asesorarte de manera personalizada con tu inmueble. ¡Gracias por confiar en nosotros!'";
+        return $"INSTRUCCIÓN PARA LA IA: Dile al cliente textualmente: '{saludo} un agente especializado en captación de propiedades se comunicará contigo en breve para atenderte de manera personalizada con tu propiedad. ¡Gracias por confiar en nosotros!'";
     }
 }
 

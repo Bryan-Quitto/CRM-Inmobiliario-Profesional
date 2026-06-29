@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,7 @@ public static class GetDropdownContactosFeature
         string Referencia,
         string? Apellido,
         string Telefono,
-        string EtapaEmbudo,
+        string EstadoEmbudo,
         bool EsContacto,
         bool EsCompartido);
 
@@ -57,7 +57,7 @@ public static class GetDropdownContactosFeature
                     c.AgenteId,
                     c.Apellido,
                     c.Telefono,
-                    c.EtapaEmbudo,
+                    c.EstadoEmbudo,
                     c.EsProspecto
                 })
                 .OrderBy(x => x.Nombre + " " + (x.Apellido ?? ""))
@@ -71,7 +71,7 @@ public static class GetDropdownContactosFeature
                 x.Referencia,
                 x.Apellido,
                 x.Telefono ?? "",
-                x.EtapaEmbudo ?? "Nuevo",
+                x.EstadoEmbudo ?? "Nuevo",
                 x.EsProspecto,
                 x.AgenteId != currentUserId
             )).ToList();

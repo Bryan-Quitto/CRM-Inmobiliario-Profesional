@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -84,13 +84,13 @@ public static class VolverAListarPropiedadFeature
                             if (tieneOtrasReservadas)
                             {
                                 logger.LogInformation("[RELIST] Contacto {ContactoId} baja a En Negociación por otras reservas activas.", contactoToRevert.Id);
-                                contactoToRevert.EtapaEmbudo = "En Negociación";
+                                contactoToRevert.EstadoEmbudo = "En Negociación";
                                 contactoToRevert.FechaCierre = null;
                             }
                             else
                             {
                                 logger.LogInformation("[RELIST] Revirtiendo contacto {ContactoId} a Contactado", contactoToRevert.Id);
-                                contactoToRevert.EtapaEmbudo = "Contactado"; // Reversión automática
+                                contactoToRevert.EstadoEmbudo = "Contactado"; // Reversión automática
                                 contactoToRevert.FechaCierre = null;
                             }
                         }

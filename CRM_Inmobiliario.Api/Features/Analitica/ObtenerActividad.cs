@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -56,18 +56,18 @@ public static class ObtenerActividadEndpoint
                 .Select(a => new
                 {
                     // Conteos Rápidos
-                    VisitasCount = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin),
+                    VisitasCount = a.Tasks.Count(t => (t.TipoTarea == "Visita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin),
                     CierresCount = context.PropertyTransactions.Count(t => 
                         (t.TransactionType == "Sale" || t.TransactionType == "Rent") && 
                         t.TransactionStatus != "Cancelled" && 
                         t.TransactionDate >= inicio && t.TransactionDate <= fin &&
                         (t.Property!.AgenteId == agenteId || (t.Contacto != null && t.Contacto.AgenteId == agenteId))),
-                    OfertasCount = context.ContactoHistorialEmbudos.Where(h => h.EtapaNueva == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin && h.Contacto!.AgenteId == agenteId).Select(h => h.ContactoId).Distinct().Count(),
+                    OfertasCount = context.ContactoHistorialEmbudos.Where(h => h.EstadoNuevo == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin && h.Contacto!.AgenteId == agenteId).Select(h => h.ContactoId).Distinct().Count(),
                     CaptacionesCount = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicio && p.FechaIngreso <= fin),
 
                     // Detalles para Modales (Proyectados directamente a DTOs)
                     DetallesVisitas = a.Tasks
-                        .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
+                        .Where(t => (t.TipoTarea == "Visita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
                         .OrderByDescending(t => t.FechaInicio)
                         .Select(t => new KpiVisita(t.Id, t.Titulo, t.FechaInicio.ToString("yyyy-MM-dd HH:mm"), t.Contacto != null ? (t.Contacto.Nombre + " " + t.Contacto.Apellido) : null, t.Propiedad != null ? t.Propiedad.Titulo : null))
                         .ToList(),
@@ -80,12 +80,12 @@ public static class ObtenerActividadEndpoint
                         .Select(t => new KpiCierre(t.Id, t.Contacto != null ? t.Contacto.Nombre + " " + t.Contacto.Apellido : "Sin Contacto", t.Property!.Titulo, t.TransactionDate.ToString("yyyy-MM-dd")))
                         .ToList(),
                     DetallesOfertas = context.Contactos
-                        .Where(c => c.AgenteId == agenteId && c.HistorialEmbudo.Any(h => h.EtapaNueva == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin))
+                        .Where(c => c.AgenteId == agenteId && c.HistorialEmbudo.Any(h => h.EstadoNuevo == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin))
                         .Select(c => new KpiOferta(
                             c.Id, 
                             c.Nombre + " " + c.Apellido, 
                             context.Properties.Where(p => p.CerradoConId == c.Id && p.EstadoComercial == "Reservada").Select(p => p.Titulo).FirstOrDefault() ?? "Sin Propiedad", 
-                            c.HistorialEmbudo.Where(h => h.EtapaNueva == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin).Max(h => h.FechaCambio).ToString("yyyy-MM-dd")
+                            c.HistorialEmbudo.Where(h => h.EstadoNuevo == "En Negociación" && h.FechaCambio >= inicio && h.FechaCambio <= fin).Max(h => h.FechaCambio).ToString("yyyy-MM-dd")
                         ))
                         .ToList(),
                     DetallesCaptaciones = a.Properties
@@ -96,7 +96,7 @@ public static class ObtenerActividadEndpoint
 
                     // Datos para Tendencias (Raw dates para procesar en memoria)
                     RawVisitas = a.Tasks
-                        .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
+                        .Where(t => (t.TipoTarea == "Visita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
                         .Select(t => t.FechaInicio)
                         .ToList(),
                     RawCierres = context.PropertyTransactions

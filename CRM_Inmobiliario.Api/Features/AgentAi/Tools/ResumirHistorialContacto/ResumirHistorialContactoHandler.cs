@@ -1,4 +1,4 @@
-using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 using System.Text.Json;
@@ -53,7 +53,7 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
                                 ContactId = c.Id,
                                 Nombre = c.Nombre,
                                 Telefono = c.Telefono,
-                                EtapaEmbudo = c.EtapaEmbudo,
+                                EstadoEmbudo = c.EstadoEmbudo,
                                 EsProspecto = c.EsProspecto,
                                 EsPropietario = c.EsPropietario,
                                 UltimasTareas = _context.Tasks
@@ -100,7 +100,7 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
             result.ContactId,
             result.Nombre,
             result.Telefono,
-            result.EtapaEmbudo,
+            result.EstadoEmbudo,
             result.EsProspecto,
             result.EsPropietario,
             result.UltimasTareas,

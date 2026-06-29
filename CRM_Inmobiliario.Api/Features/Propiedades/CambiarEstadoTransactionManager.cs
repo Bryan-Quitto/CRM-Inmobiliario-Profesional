@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -54,7 +54,7 @@ public static class CambiarEstadoTransactionManager
     {
         if (esReserva && contacto != null)
         {
-            contacto.EtapaEmbudo = "En Negociación";
+            contacto.EstadoEmbudo = "En Negociación";
             logger.LogInformation("🤝 [PROCESSOR] Propiedad {Titulo} Reservada. Contacto {Nombre} pasó a En Negociación.", property.Titulo, contacto.Nombre);
 
             string reservaTexto = (precioCierre.HasValue && precioCierre.Value > 0)
@@ -98,7 +98,7 @@ public static class CambiarEstadoTransactionManager
     {
         if (esCierre && contacto != null)
         {
-            contacto.EtapaEmbudo = "Cerrado";
+            contacto.EstadoEmbudo = "Cerrado";
             contacto.FechaCierre = ecuadorNow;
 
             var tipoTransaccion = nuevoEstado == "Alquilada" ? "Rent" : "Sale";

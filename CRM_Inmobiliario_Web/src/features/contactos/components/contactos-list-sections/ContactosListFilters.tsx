@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, List, LayoutGrid, ChevronDown, Check, SlidersHorizontal, Globe, Users, Briefcase, ArrowUp, ArrowDown, ArrowUpDown, Eye } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { ETAPAS, ETAPAS_PROPIETARIO, ORIGENES } from '../../constants/contactos';
+import { ESTADOS, ESTADOS_PROPIETARIO, ORIGENES } from '../../constants/contactos';
 import type { SortOptionContacto, SortDirectionContacto } from '../../hooks/useContactosFiltering';
 
 const SORT_OPTIONS: { value: SortOptionContacto; label: string }[] = [
@@ -281,7 +281,7 @@ export const ContactosListFilters = ({
                     Todos los estados
                     {filterEstadoCliente === 'Todos' && <Check className="h-4 w-4" />}
                   </button>
-                  {[...ETAPAS, { label: 'Escalado', value: 'Escalado' }].map((option) => (
+                  {[...ESTADOS, { label: 'Escalado', value: 'Escalado' }].map((option) => (
                     <button
                       key={option.value}
                       onClick={() => { setFilterEstadoCliente(option.value); setOpenDropdownId(null); }}
@@ -324,7 +324,7 @@ export const ContactosListFilters = ({
                     Todos los estados
                     {filterEstadoPropietario === 'Todos' && <Check className="h-4 w-4" />}
                   </button>
-                  {ETAPAS_PROPIETARIO.map((option) => (
+                  {ESTADOS_PROPIETARIO.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => { setFilterEstadoPropietario(option.value); setOpenDropdownId(null); }}

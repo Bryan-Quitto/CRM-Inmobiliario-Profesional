@@ -1,4 +1,4 @@
-import { Phone, Mail, Tag, Bot, ChevronDown, Check } from 'lucide-react';
+﻿import { Phone, Mail, Tag, Bot, ChevronDown, Check } from 'lucide-react';
 import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
@@ -311,7 +311,7 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
                   toast.warning(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
                   return;
                 }
-                const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                const isStageLocked = contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado';
                 if (isStageLocked) {
                   toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
                   return;
@@ -326,7 +326,7 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 !isGlobalEnabled
                   ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                  : (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                  : (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado')
                     ? 'bg-slate-300 opacity-50 cursor-not-allowed'
                     : contacto.isArchivedForCurrentUser
                       ? 'bg-slate-300 opacity-50 cursor-not-allowed'
@@ -352,7 +352,7 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                const isStageLocked = contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado';
+                const isStageLocked = contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado';
                 if (isStageLocked) {
                   toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
                   return;
@@ -365,7 +365,7 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
                 handleToggle(!isBotActivo);
               }}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                (contacto.etapaEmbudo === 'En Negociación' || contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado')
+                (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado')
                   ? 'bg-slate-300 opacity-50 cursor-not-allowed'
                   : contacto.isArchivedForCurrentUser
                     ? 'bg-slate-300 opacity-50 cursor-not-allowed'

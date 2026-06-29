@@ -1,4 +1,4 @@
-using CRM_Inmobiliario.Api.Domain.Entities;
+﻿using CRM_Inmobiliario.Api.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,11 +13,11 @@ public class ContactoConfiguration : IEntityTypeConfiguration<Contacto>
         builder.Property(e => e.Email).HasMaxLength(150);
         builder.Property(e => e.Telefono).HasMaxLength(20);
         builder.Property(e => e.Origen).HasMaxLength(50);
-        builder.Property(e => e.EtapaEmbudo).HasMaxLength(50);
+        builder.Property(e => e.EstadoEmbudo).HasMaxLength(50);
 
         // ÍNDICE DE RENDIMIENTO: Búsqueda y conteo por agente, etapa y fechas
-        builder.HasIndex(e => new { e.AgenteId, e.EtapaEmbudo, e.FechaCierre, e.FechaCreacion })
-              .HasDatabaseName("IX_Contactos_Performance_AgenteEtapaFecha");
+        builder.HasIndex(e => new { e.AgenteId, e.EstadoEmbudo, e.FechaCierre, e.FechaCreacion })
+              .HasDatabaseName("IX_Contactos_Performance_AgenteEstadoFecha");
 
         // ÍNDICE ÚNICO: Un agente no puede tener dos contactos con el mismo teléfono (ignora vacíos)
         builder.HasIndex(e => new { e.Telefono, e.AgenteId })

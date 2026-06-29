@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, ChevronDown, ChevronRight, User } from 'lucide-react';
 import type { DashboardKpis, ContactoDashboardItem } from '../types';
@@ -56,7 +56,7 @@ export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) 
                         {[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}
                       </p>
                       <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest">
-                        {contacto.etapaEmbudo}
+                        {contacto.estadoEmbudo}
                       </p>
                     </div>
                     <ChevronRight className="h-4 w-4 text-rose-300 group-hover/item:translate-x-1 transition-transform" />

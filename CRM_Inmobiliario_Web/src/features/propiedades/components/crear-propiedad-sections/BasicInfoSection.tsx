@@ -45,7 +45,7 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
         {errors.titulo && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.titulo.message}</p>}
       </div>
 
-      {/* 2. DESCRIPCIÓN */}
+      {/* 2. DESCRIPCI�N */}
       <div className="md:col-span-6 space-y-2">
         <div className="flex items-center justify-between pl-1">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Descripción Detallada</label>
@@ -105,7 +105,7 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
                   className={`cursor-pointer w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.tipoPropiedad ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group disabled:opacity-50`}
                 >
                   <span className={field.value ? 'text-slate-900' : 'text-slate-400'}>
-                    {field.value || 'Seleccionar tipo de inmueble...'}
+                    {field.value || 'Seleccionar tipo de propiedad...'}
                   </span>
                   <ChevronDown className={`h-4 w-4 text-slate-300 transition-transform duration-300 ${activeSelect ? 'rotate-180' : ''}`} />
                 </button>
@@ -133,3 +133,4 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
     </>
   );
 };
+

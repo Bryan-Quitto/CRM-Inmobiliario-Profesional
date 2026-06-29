@@ -25,7 +25,7 @@ export const ContactoPropertiesOwned = ({ contacto }: ContactoPropertiesOwnedPro
         <div className="space-y-1">
           <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Sin propiedades captadas</h3>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest contactoing-relaxed">
-            Este propietario aún no tiene inmuebles registrados a su nombre.
+            Este propietario aún no tiene propiedades registradas a su nombre.
           </p>
         </div>
       </div>
@@ -45,7 +45,7 @@ export const ContactoPropertiesOwned = ({ contacto }: ContactoPropertiesOwnedPro
           </div>
         </div>
         <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-black text-slate-600 uppercase tracking-wider shadow-sm">
-          {propiedades.length} Inmuebles
+          {propiedades.length} Propiedades
         </span>
       </div>
 
@@ -97,3 +97,4 @@ export const ContactoPropertiesOwned = ({ contacto }: ContactoPropertiesOwnedPro
     </div>
   );
 };
+

@@ -1,14 +1,14 @@
 import { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
-import { actualizarEtapaContacto } from '../api/actualizarEtapaContacto';
+import { actualizarEstadoContacto } from '../api/actualizarEtapaContacto';
 import { revertirEstadoContacto } from '../api/revertirEstadoContacto';
 
 export const useContactoCommercialLogic = () => {
   const { mutate: globalMutate } = useSWRConfig();
 
-  const cambiarEtapa = async (
+  const cambiarEstado = async (
     id: string, 
-    nuevaEtapa: string, 
+    nuevoEstado: string, 
     tipo: 'contacto' | 'propietario' | 'cliente',
     confirmedData?: { propiedadId: string, precioCierre: number, nuevoEstadoPropiedad: string },
     options?: {
@@ -23,16 +23,16 @@ export const useContactoCommercialLogic = () => {
     try {
       if (options?.onOptimisticUpdate) options.onOptimisticUpdate();
       
-      await actualizarEtapaContacto(
+      await actualizarEstadoContacto(
         id, 
-        nuevaEtapa, 
+        nuevoEstado, 
         confirmedData?.propiedadId, 
         confirmedData?.precioCierre, 
         confirmedData?.nuevoEstadoPropiedad, 
         tipoApi
       );
       
-      toast.success(`${nombreTipo} movido a ${nuevaEtapa}`);
+      toast.success(`${nombreTipo} movido a ${nuevoEstado}`);
       
       if (options?.onSuccess) await options.onSuccess();
 
@@ -48,9 +48,9 @@ export const useContactoCommercialLogic = () => {
     }
   };
 
-  const revertirEtapa = async (
+  const revertirEstado = async (
     id: string,
-    nuevaEtapa: string,
+    nuevoEstado: string,
     liberarPropiedades: boolean,
     options?: {
       onOptimisticUpdate?: () => void;
@@ -61,8 +61,8 @@ export const useContactoCommercialLogic = () => {
     try {
       if (options?.onOptimisticUpdate) options.onOptimisticUpdate();
 
-      await revertirEstadoContacto(id, nuevaEtapa, liberarPropiedades);
-      toast.success(`Estado revertido a ${nuevaEtapa}`);
+      await revertirEstadoContacto(id, nuevoEstado, liberarPropiedades);
+      toast.success(`Estado revertido a ${nuevoEstado}`);
       
       if (options?.onSuccess) await options.onSuccess();
 
@@ -78,5 +78,5 @@ export const useContactoCommercialLogic = () => {
     }
   };
 
-  return { cambiarEtapa, revertirEtapa };
+  return { cambiarEstado, revertirEstado };
 };

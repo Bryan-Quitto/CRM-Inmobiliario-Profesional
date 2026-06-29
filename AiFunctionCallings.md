@@ -75,7 +75,7 @@ Estas herramientas están diseñadas estrictamente para interactuar de forma pro
   - `tipoInteraccion` *(string, opcional)*: Permite filtrar por un tipo de interacción (ej. 'Llamada', 'Reunión', 'Nota').
 
 ### 10. CrearTareaCRM
-- **Descripción:** Crea un recordatorio o cita en la agenda del agente.
+- **Descripción:** Crea un recordatorio o visita en la agenda del agente.
 - **Parámetros:**
   - `titulo` *(string, requerido)*, `descripcion` *(string, requerido)*, `fechaProgramada` *(string, requerido)*.
   - `contactoId`, `propiedadId` *(opcionales)*.

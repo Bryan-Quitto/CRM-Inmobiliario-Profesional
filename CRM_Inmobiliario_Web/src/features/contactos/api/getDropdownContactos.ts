@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios';
+﻿import { api } from '@/lib/axios';
 
 export interface DropdownContactoResponse {
   id: string;
@@ -6,7 +6,7 @@ export interface DropdownContactoResponse {
   referencia: string;
   apellido: string | null;
   telefono: string;
-  etapaEmbudo: string;
+  estadoEmbudo: string;
   esContacto: boolean;
   esCompartido: boolean;
 }

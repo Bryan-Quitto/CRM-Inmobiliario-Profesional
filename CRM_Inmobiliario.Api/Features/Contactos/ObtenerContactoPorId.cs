@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +14,7 @@ public static class ObtenerContactoPorIdFeature
         string? Email,
         string? Telefono,
         string Origen,
-        string EtapaEmbudo,
+        string EstadoEmbudo,
         string EstadoPropietario,
         bool EsContacto,
         bool EsPropietario,
@@ -71,7 +71,7 @@ public static class ObtenerContactoPorIdFeature
                     c.AgenteId == agenteId ? c.Email : "oculto@privado.com",
                     c.AgenteId == agenteId ? c.Telefono : "***-***-****",
                     c.Origen,
-                    c.EtapaEmbudo,
+                    c.EstadoEmbudo,
                     c.EstadoPropietario,
                     c.EsProspecto,
                     c.EsPropietario,

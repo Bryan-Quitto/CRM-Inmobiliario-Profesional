@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Clock, Lock, RefreshCcw } from 'lucide-react';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
@@ -10,7 +10,7 @@ export interface ContactosKanbanMobileProps {
 
 export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ logic }) => {
   const {
-    currentEtapas,
+    currentEstados,
     columns,
     handleDragEnd,
     formatTimeAgo,
@@ -21,7 +21,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex flex-col gap-2 pb-6 w-full overflow-y-auto">
-        {currentEtapas.map((etapa) => {
+        {currentEstados.map((etapa) => {
           const count = columns[etapa.value]?.length || 0;
 
           return (
@@ -65,7 +65,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                         key={contacto.id} 
                         draggableId={contacto.id} 
                         index={index}
-                        isDragDisabled={contacto.etapaEmbudo === 'En Negociación'}
+                        isDragDisabled={contacto.estadoEmbudo === 'En Negociación'}
                       >
                         {(provided, snapshot) => (
                           <div

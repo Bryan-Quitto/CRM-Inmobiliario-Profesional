@@ -1,4 +1,4 @@
-import { Loader2, X, WifiOff } from 'lucide-react';
+﻿import { Loader2, X, WifiOff } from 'lucide-react';
 
 // Sections
 import { ContactoHeader } from './contacto-detalle-sections/ContactoHeader';
@@ -40,7 +40,7 @@ export const ContactoDetalleDesktop = ({ logic }: { logic: ReturnType<typeof use
     vincularStatus,
     newCycleConfirmation,
     setNewCycleConfirmation,
-    isUpdatingEtapa,
+    isUpdatingEstado,
     activeDropdown,
     setActiveDropdown,
     idInteresABorrar,
@@ -106,7 +106,7 @@ export const ContactoDetalleDesktop = ({ logic }: { logic: ReturnType<typeof use
     <div className="bg-slate-50 min-h-screen pb-20 font-sans antialiased">
       <ContactoHeader 
         contacto={contacto}
-        isUpdatingEtapa={isUpdatingEtapa}
+        isUpdatingEstado={isUpdatingEstado}
         activeDropdown={activeDropdown}
         setActiveDropdown={setActiveDropdown}
         handleStageChange={handleStageChange}

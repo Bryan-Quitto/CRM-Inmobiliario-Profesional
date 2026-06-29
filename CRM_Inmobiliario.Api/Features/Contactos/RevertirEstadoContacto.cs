@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -8,7 +8,7 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class RevertirEstadoContactoFeature
 {
-    public record Request(string NuevaEtapa, bool LiberarPropiedades, string? Notas);
+    public record Request(string NuevoEstado, bool LiberarPropiedades, string? Notas);
 
     public static RouteHandlerBuilder MapRevertirEstadoContactoEndpoint(this IEndpointRouteBuilder app)
     {
@@ -25,10 +25,10 @@ public static class RevertirEstadoContactoFeature
                 return Results.NotFound(new { Message = "Contacto no encontrado o no autorizado" });
             }
 
-            var etapaAnterior = contacto.EtapaEmbudo;
+            var estadoAnterior = contacto.EstadoEmbudo;
 
             // Revertimos la etapa del contacto
-            contacto.EtapaEmbudo = request.NuevaEtapa;
+            contacto.EstadoEmbudo = request.NuevoEstado;
             contacto.FechaCierre = null;
 
             // Transacción para asegurar consistencia
@@ -40,13 +40,13 @@ public static class RevertirEstadoContactoFeature
                 {
                     // Dependiendo de si estábamos en Negociación o Cerrado, liberamos Reservadas o Vendidas
                     var propiedadesALiberar = new List<Property>();
-                    if (etapaAnterior == "En Negociación")
+                    if (estadoAnterior == "En Negociación")
                     {
                         propiedadesALiberar = await context.Properties
                             .Where(p => p.CerradoConId == id && p.EstadoComercial == "Reservada")
                             .ToListAsync();
                     }
-                    else if (etapaAnterior == "Cerrado")
+                    else if (estadoAnterior == "Cerrado")
                     {
                         propiedadesALiberar = await context.Properties
                             .Where(p => p.CerradoConId == id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"))
@@ -61,10 +61,10 @@ public static class RevertirEstadoContactoFeature
                             var propDetails = string.Join(", ", propiedadesALiberar.Select(p => $"[{p.Id}: {p.Titulo} - {p.EstadoComercial}]"));
                             logger.LogWarning("⚠️ [REVERSIÓN FALLIDA] El contacto {ContactoId} tiene {Count} propiedades a liberar. Propiedades: {Propiedades}", id, propiedadesALiberar.Count, propDetails);
 
-                            return Results.BadRequest(new { Message = $"No se puede revertir el estado automáticamente porque el contacto tiene más de 1 propiedad {(etapaAnterior == "En Negociación" ? "reservada" : "alquilada o vendida")}. Realice el ajuste desde el catálogo de inmuebles para cada propiedad." });
+                            return Results.BadRequest(new { Message = $"No se puede revertir el estado automáticamente porque el contacto tiene más de 1 propiedad {(estadoAnterior == "En Negociación" ? "reservada" : "alquilada o vendida")}. Realice el ajuste desde el catálogo de propiedades para cada propiedad." });
                         }
 
-                        bool esTratoCaido = request.NuevaEtapa == "Perdido" || request.NuevaEtapa == "Cerrado Perdido";
+                        bool esTratoCaido = request.NuevoEstado == "Perdido" || request.NuevoEstado == "Cerrado Perdido";
 
                         // Obtener los IDs de las propiedades que vamos a revertir
                         var propertyIds = propiedadesALiberar.Select(p => p.Id).ToList();

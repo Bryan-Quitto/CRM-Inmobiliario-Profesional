@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -45,13 +45,13 @@ public static class ObtenerVentasMensualesEndpoint
                 .Where(a => a.Id == agenteId)
                 .Select(a => new
                 {
-                    Visitas = a.Tasks.Count(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc),
+                    Visitas = a.Tasks.Count(t => (t.TipoTarea == "Visita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc),
                     Cierres = a.Properties.SelectMany(p => p.Transactions).Count(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && t.TransactionStatus != "Cancelled" && t.TransactionDate >= inicioMesUtc && t.TransactionDate <= finMesUtc),
-                    Ofertas = a.Contactos.Count(l => l.EtapaEmbudo == "En Negociación" && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc),
+                    Ofertas = a.Contactos.Count(l => l.EstadoEmbudo == "En Negociación" && l.FechaCreacion >= inicioMesUtc && l.FechaCreacion <= finMesUtc),
                     Captaciones = a.Properties.Count(p => p.EsCaptacionPropia && p.FechaIngreso >= inicioMesUtc && p.FechaIngreso <= finMesUtc),
 
                     RawVisitas = a.Tasks
-                        .Where(t => (t.TipoTarea == "Visita" || t.TipoTarea == "Cita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc)
+                        .Where(t => (t.TipoTarea == "Visita") && t.Estado == "Completada" && t.FechaInicio >= inicioMesUtc && t.FechaInicio <= finMesUtc)
                         .Select(t => t.FechaInicio)
                         .ToList(),
                     RawCierres = a.Properties.SelectMany(p => p.Transactions)

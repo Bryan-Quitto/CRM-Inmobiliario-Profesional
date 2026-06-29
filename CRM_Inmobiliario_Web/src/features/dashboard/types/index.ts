@@ -1,4 +1,4 @@
-export interface EtapaEmbudoItem {
+﻿export interface EstadoEmbudoItem {
   etapa: string;
   cantidad: number;
 }
@@ -7,7 +7,7 @@ export interface ContactoDashboardItem {
   id: string;
   nombre: string;
   apellido: string;
-  etapaEmbudo: string;
+  estadoEmbudo: string;
 }
 
 export interface DashboardKpis {
@@ -16,5 +16,5 @@ export interface DashboardKpis {
   tareasPendientesHoy: number;
   seguimientoRequerido: number;
   contactosSeguimiento: ContactoDashboardItem[];
-  embudoVentas: EtapaEmbudoItem[];
+  embudoVentas: EstadoEmbudoItem[];
 }

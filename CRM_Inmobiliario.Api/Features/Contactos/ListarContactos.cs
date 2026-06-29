@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +20,7 @@ public static class ListarContactosFeature
         string? Email,
         string? Telefono,
         string Origen,
-        string EtapaEmbudo,
+        string EstadoEmbudo,
         string EstadoPropietario,
         bool EsContacto,
         bool EsPropietario,
@@ -92,7 +92,7 @@ public static class ListarContactosFeature
 
             if (!string.IsNullOrEmpty(request.Estado))
             {
-                baseQuery = baseQuery.Where(c => c.EtapaEmbudo == request.Estado);
+                baseQuery = baseQuery.Where(c => c.EstadoEmbudo == request.Estado);
             }
 
             if (!string.IsNullOrEmpty(request.Segmento) && request.Segmento != "Todos")
@@ -145,8 +145,8 @@ public static class ListarContactosFeature
                             .GroupBy(c => 1)
                             .Select(g => new {
                                 TotalCount = g.Count(),
-                                NuevosCount = g.Count(c => c.EtapaEmbudo == "Nuevo"),
-                                EnNegociacionCount = g.Count(c => c.EtapaEmbudo == "En Negociacion")
+                                NuevosCount = g.Count(c => c.EstadoEmbudo == "Nuevo"),
+                                EnNegociacionCount = g.Count(c => c.EstadoEmbudo == "En Negociacion")
                             })
                             .OrderBy(g => g.TotalCount) // Suprime warning [10103]
                             .FirstOrDefaultAsync(cancellationToken);
@@ -189,7 +189,7 @@ public static class ListarContactosFeature
                     l.AgenteId == agenteId ? l.Email : "oculto@privado.com",
                     l.AgenteId == agenteId ? l.Telefono : "***-***-****",
                     l.Origen,
-                    l.EtapaEmbudo,
+                    l.EstadoEmbudo,
                     l.EstadoPropietario,
                     l.EsProspecto,
                     l.EsPropietario,

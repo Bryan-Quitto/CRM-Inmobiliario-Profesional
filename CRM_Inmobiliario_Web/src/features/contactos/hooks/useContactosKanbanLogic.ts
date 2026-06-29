@@ -1,19 +1,19 @@
 import { useMemo, useState } from 'react';
 import type { DropResult } from '@hello-pangea/dnd';
-import { ETAPAS, ETAPAS_PROPIETARIO } from '../constants/contactos';
+import { ESTADOS, ESTADOS_PROPIETARIO } from '../constants/contactos';
 import type { Contacto } from '../types';
 
 export interface UseContactosKanbanLogicProps {
   contactos: Contacto[];
   activeSegment: 'clientes' | 'propietarios' | 'todos';
-  onStageChange: (id: string, nuevaEtapa: string, tipo?: 'contacto' | 'propietario') => void;
+  onStageChange: (id: string, nuevoEstado: string, tipo?: 'contacto' | 'propietario') => void;
   onNavigate: (id: string) => void;
 }
 
 export const useContactosKanbanLogic = ({ contactos, activeSegment, onStageChange, onNavigate }: UseContactosKanbanLogicProps) => {
   const [collapsedColumns, setCollapsedColumns] = useState<string[]>([]);
   const isOwnerMode = activeSegment === 'propietarios';
-  const currentEtapas = isOwnerMode ? ETAPAS_PROPIETARIO : ETAPAS;
+  const currentEstados = isOwnerMode ? ESTADOS_PROPIETARIO : ESTADOS;
 
   const toggleColumn = (value: string) => {
     setCollapsedColumns(prev => 
@@ -23,20 +23,20 @@ export const useContactosKanbanLogic = ({ contactos, activeSegment, onStageChang
 
   const columns = useMemo(() => {
     const grouped: Record<string, Contacto[]> = {};
-    currentEtapas.forEach(e => { grouped[e.value] = []; });
+    currentEstados.forEach(e => { grouped[e.value] = []; });
     
     contactos.forEach(contacto => {
-      const etapa = isOwnerMode ? contacto.estadoPropietario : contacto.etapaEmbudo;
+      const etapa = isOwnerMode ? contacto.estadoPropietario : contacto.estadoEmbudo;
       if (grouped[etapa]) {
         grouped[etapa].push(contacto);
       } else {
-        const defaultEtapa = currentEtapas[0].value;
+        const defaultEtapa = currentEstados[0].value;
         if (grouped[defaultEtapa]) grouped[defaultEtapa].push(contacto);
       }
     });
     
     return grouped;
-  }, [contactos, currentEtapas, isOwnerMode]);
+  }, [contactos, currentEstados, isOwnerMode]);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -55,7 +55,7 @@ export const useContactosKanbanLogic = ({ contactos, activeSegment, onStageChang
   };
 
   const getEtapaColor = (value: string) => {
-    const found = currentEtapas.find(e => e.value === value);
+    const found = currentEstados.find(e => e.value === value);
     if (found?.color.includes('blue')) return 'border-t-blue-500 bg-blue-50/50';
     if (found?.color.includes('amber')) return 'border-t-amber-500 bg-amber-50/50';
     if (found?.color.includes('indigo')) return 'border-t-indigo-500 bg-indigo-50/50';
@@ -66,7 +66,7 @@ export const useContactosKanbanLogic = ({ contactos, activeSegment, onStageChang
 
   return {
     collapsedColumns,
-    currentEtapas,
+    currentEstados,
     columns,
     toggleColumn,
     handleDragEnd,

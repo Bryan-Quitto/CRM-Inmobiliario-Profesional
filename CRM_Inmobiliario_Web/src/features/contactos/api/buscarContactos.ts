@@ -1,11 +1,11 @@
-import { api } from '../../../lib/axios';
+﻿import { api } from '../../../lib/axios';
 
 export interface ContactoBusqueda {
   id: string;
   nombreCompleto: string;
   telefono: string;
   esContacto: boolean;
-  etapaEmbudo?: string;
+  estadoEmbudo?: string;
 }
 
 export const buscarContactos = async (query: string): Promise<ContactoBusqueda[]> => {

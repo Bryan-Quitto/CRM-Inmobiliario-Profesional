@@ -1,4 +1,4 @@
-import { ChevronLeft, UserCheck, Search, MessageSquare, MessageCircle, Pencil, Merge } from 'lucide-react';
+﻿import { ChevronLeft, UserCheck, Search, MessageSquare, MessageCircle, Pencil, Merge } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import type { Contacto } from '../../types';
 import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
@@ -7,7 +7,7 @@ import { useCopilotStore } from '@/features/copilot/store/useCopilotStore';
 
 interface ContactoHeaderProps {
   contacto: Contacto;
-  isUpdatingEtapa: boolean;
+  isUpdatingEstado: boolean;
   activeDropdown: 'cliente' | 'propietario' | null;
   setActiveDropdown: (show: 'cliente' | 'propietario' | null) => void;
   handleStageChange: (etapa: string, tipo?: 'cliente' | 'propietario') => void;
@@ -20,7 +20,7 @@ interface ContactoHeaderProps {
 
 export const ContactoHeader = ({
   contacto,
-  isUpdatingEtapa,
+  isUpdatingEstado,
   activeDropdown,
   setActiveDropdown,
   handleStageChange,
@@ -67,7 +67,7 @@ export const ContactoHeader = ({
                     contacto={contacto}
                     tipo="cliente"
                     isOpen={activeDropdown === 'cliente'}
-                    isUpdating={isUpdatingEtapa}
+                    isUpdating={isUpdatingEstado}
                     onToggle={(tipo) => setActiveDropdown(tipo)}
                     onStatusChange={(_id, etapa, t) => handleStageChange(etapa, t === 'contacto' ? 'cliente' : 'propietario')}
                     variant="header"
@@ -87,7 +87,7 @@ export const ContactoHeader = ({
                     contacto={contacto}
                     tipo="propietario"
                     isOpen={activeDropdown === 'propietario'}
-                    isUpdating={isUpdatingEtapa}
+                    isUpdating={isUpdatingEstado}
                     onToggle={(tipo) => setActiveDropdown(tipo)}
                     onStatusChange={(_id, etapa, t) => handleStageChange(etapa, t === 'contacto' ? 'cliente' : 'propietario')}
                     variant="header"

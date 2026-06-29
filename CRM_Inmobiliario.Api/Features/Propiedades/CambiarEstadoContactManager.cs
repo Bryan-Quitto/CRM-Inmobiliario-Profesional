@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +44,7 @@ public static class CambiarEstadoContactManager
                     if (tieneOtrasReservadas)
                     {
                         logger.LogInformation("🤝 [PROCESSOR] Contacto {Nombre} retiene estado de Negociación por otras reservas activas.", contactoToRevert.Nombre);
-                        contactoToRevert.EtapaEmbudo = "En Negociación";
+                        contactoToRevert.EstadoEmbudo = "En Negociación";
                         contactoToRevert.FechaCierre = null;
                     }
                     else
@@ -52,11 +52,11 @@ public static class CambiarEstadoContactManager
                         // No tiene nada más, downgrade completo
                         if (property.EstadoComercial == "Reservada")
                         {
-                            contactoToRevert.EtapaEmbudo = "Contactado";
+                            contactoToRevert.EstadoEmbudo = "Contactado";
                         }
                         else
                         {
-                            contactoToRevert.EtapaEmbudo = "Contactado";
+                            contactoToRevert.EstadoEmbudo = "Contactado";
                         }
                         contactoToRevert.FechaCierre = null;
                     }

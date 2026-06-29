@@ -1,4 +1,4 @@
-export interface Interaccion {
+﻿export interface Interaccion {
   id: string;
   tipoInteraccion: string;
   notas: string;
@@ -30,7 +30,7 @@ export interface Contacto {
   email?: string;
   telefono: string;
   origen: string;
-  etapaEmbudo: string;
+  estadoEmbudo: string;
   esContacto: boolean;
   estadoPropietario: string;
   esPropietario: boolean;

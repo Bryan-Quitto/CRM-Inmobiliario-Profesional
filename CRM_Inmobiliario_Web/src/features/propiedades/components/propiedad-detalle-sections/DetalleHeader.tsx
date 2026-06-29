@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { X, Pencil, MessageSquare, Copy, Check } from 'lucide-react';
 import PDFLinkInternal from '../PDFLinkInternal';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
@@ -53,7 +53,7 @@ export const DetalleHeader = ({
             <X className="h-6 w-6" />
           </button>
           <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight contactoing-none">Detalles del Inmueble</h2>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight contactoing-none">Detalles de la Propiedad</h2>
             <div className="flex items-center gap-3 mt-1">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ID: {id.split('-')[0]}</p>
               {propiedad.codigoCorto && (
@@ -141,3 +141,4 @@ export const DetalleHeader = ({
     </div>
   );
 };
+

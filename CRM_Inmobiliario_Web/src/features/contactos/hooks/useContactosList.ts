@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import useSWR, { preload } from 'swr';
 import { getContactos, type GetContactosParams, type GetContactosResponse } from '../api/getContactos';
@@ -57,7 +57,7 @@ export const useContactosList = () => {
     { ...swrDefaultConfig, keepPreviousData: true }
   );
 
-  const { cambiarEtapa } = useContactoCommercialLogic();
+  const { cambiarEstado } = useContactoCommercialLogic();
 
   // Server-side filtered items
   const allContactos = useMemo(() => responseData?.items || [], [responseData?.items]);
@@ -109,48 +109,48 @@ export const useContactosList = () => {
     return () => clearTimeout(timer);
   }, [page, totalPages, params, responseData]);
 
-  const handleStageChange = (id: string, nuevaEtapa: string, tipo: 'contacto' | 'propietario' = 'contacto') => {
+  const handleStageChange = (id: string, nuevoEstado: string, tipo: 'contacto' | 'propietario' = 'contacto') => {
     const contacto = allContactos.find(c => c.id === id);
     if (!contacto) return;
 
-    const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.etapaEmbudo;
-    if (etapaActual === nuevaEtapa) return;
+    const etapaActual = tipo === 'propietario' ? contacto.estadoPropietario : contacto.estadoEmbudo;
+    if (etapaActual === nuevoEstado) return;
 
     if (tipo === 'contacto') {
-      if (contacto.etapaEmbudo === 'En Negociación') {
+      if (contacto.estadoEmbudo === 'En Negociación') {
         import('sonner').then(({ toast }) => {
           toast.error('El cliente está en medio de una negociación. Cualquier cambio debe realizarse desde el catálogo de propiedades.');
         });
         return;
       }
 
-      if (contacto.etapaEmbudo === 'Cerrado' || contacto.etapaEmbudo === 'Cerrado Ganado') {
-        if (nuevaEtapa === 'Perdido') {
+      if (contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') {
+        if (nuevoEstado === 'Perdido') {
           import('sonner').then(({ toast }) => {
             toast.error('Para dar por terminado un contrato, debe hacerlo desde la propiedad asociada. No puede marcar al cliente como perdido desde aquí.');
           });
           return;
         }
 
-        if (nuevaEtapa === 'Nuevo' || nuevaEtapa === 'Contactado' || nuevaEtapa === 'Cita') {
-          setNewCycleConfirmation({ id: contacto.id, etapa: nuevaEtapa, nombre: contacto.nombre });
+        if (nuevoEstado === 'Nuevo' || nuevoEstado === 'Contactado' || nuevoEstado === 'Visita') {
+          setNewCycleConfirmation({ id: contacto.id, etapa: nuevoEstado, nombre: contacto.nombre });
           return;
         }
       }
     }
 
-    executeStageChange(id, nuevaEtapa, tipo);
+    executeStageChange(id, nuevoEstado, tipo);
   };
 
-  const executeStageChange = (id: string, nuevaEtapa: string, tipo: 'contacto' | 'propietario' = 'contacto') => {
-    cambiarEtapa(id, nuevaEtapa, tipo, undefined, {
+  const executeStageChange = (id: string, nuevoEstado: string, tipo: 'contacto' | 'propietario' = 'contacto') => {
+    cambiarEstado(id, nuevoEstado, tipo, undefined, {
       onOptimisticUpdate: () => {
         if (!responseData) return;
         const optimisticItems = responseData.items.map(c => {
           if (c.id === id) {
             return tipo === 'propietario'
-              ? { ...c, estadoPropietario: nuevaEtapa }
-              : { ...c, etapaEmbudo: nuevaEtapa };
+              ? { ...c, estadoPropietario: nuevoEstado }
+              : { ...c, estadoEmbudo: nuevoEstado };
           }
           return c;
         });

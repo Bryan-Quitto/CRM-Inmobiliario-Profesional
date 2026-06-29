@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Clock, Maximize2, Minimize2, Lock, RefreshCcw } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -11,7 +11,7 @@ export interface ContactosKanbanDesktopProps {
 export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ logic }) => {
   const {
     collapsedColumns,
-    currentEtapas,
+    currentEstados,
     columns,
     toggleColumn,
     handleDragEnd,
@@ -23,7 +23,7 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-[calc(100vh-280px)] min-h-[600px] gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200">
-        {currentEtapas.map((etapa) => {
+        {currentEstados.map((etapa) => {
           const isCollapsed = collapsedColumns.includes(etapa.value);
           const count = columns[etapa.value]?.length || 0;
 
@@ -104,7 +104,7 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                           key={contacto.id} 
                           draggableId={contacto.id} 
                           index={index}
-                          isDragDisabled={contacto.etapaEmbudo === 'En Negociación'}
+                          isDragDisabled={contacto.estadoEmbudo === 'En Negociación'}
                         >
                           {(provided, snapshot) => (
                             <div

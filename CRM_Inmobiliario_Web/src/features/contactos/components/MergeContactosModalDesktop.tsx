@@ -1,4 +1,4 @@
-import { X, ArrowRightLeft, Loader2, AlertCircle, Phone, MessageCircle, HelpCircle } from 'lucide-react';
+﻿import { X, ArrowRightLeft, Loader2, AlertCircle, Phone, MessageCircle, HelpCircle } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
 import type { UseMergeContactosLogicReturn } from '../hooks/useMergeContactosLogic';
 
@@ -65,7 +65,7 @@ export const MergeContactosModalDesktop = ({ logic }: MergeContactosModalDesktop
                   </div>
                 )}
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">
-                  Etapa: {localPrincipal.etapaEmbudo}
+                  Etapa: {localPrincipal.estadoEmbudo}
                 </div>
               </div>
             </div>
@@ -120,7 +120,7 @@ export const MergeContactosModalDesktop = ({ logic }: MergeContactosModalDesktop
                     </div>
                   )}
                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">
-                    Etapa: {localSecundario.etapaEmbudo}
+                    Etapa: {localSecundario.estadoEmbudo}
                   </div>
                 </div>
               </div>

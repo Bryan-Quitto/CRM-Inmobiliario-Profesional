@@ -32,12 +32,12 @@ const STATIC_OPTIONS: StaticOption[] = [
   // Dashboard
   { id: 'route-dashboard', title: 'Inicio', subtitle: 'Dashboard Principal', icon: 'Home', path: '/', keywords: ['inicio', 'dashboard', 'home', 'principal', 'resumen'] },
   // Calendario
-  { id: 'route-calendario', title: 'Calendario', subtitle: 'Gestión de Agenda', icon: 'Calendar', path: '/calendario', keywords: ['calendario', 'agenda', 'eventos', 'citas', 'reuniones'] },
+  { id: 'route-calendario', title: 'Calendario', subtitle: 'Gestión de Agenda', icon: 'Calendar', path: '/calendario', keywords: ['calendario', 'agenda', 'eventos', 'visitas', 'reuniones'] },
   // CRM y Entidades
   { id: 'route-contactos', title: 'Contactos', subtitle: 'Gestión de Contactos', icon: 'Users', path: '/contactos', keywords: ['contactos', 'directorio', 'personas'] },
-  { id: 'route-clientes', title: 'Clientes', subtitle: 'Gestión de Clientes', icon: 'Users', path: '/clientes', keywords: ['clientes', 'compradores'] },
+  { id: 'route-clientes', title: 'Clientes', subtitle: 'Gestión de Clientes', icon: 'Users', path: '/clientes', keywords: ['clientes'] },
   { id: 'route-propietarios', title: 'Propietarios', subtitle: 'Gestión de Propietarios', icon: 'Users', path: '/propietarios', keywords: ['propietarios', 'dueños'] },
-  { id: 'route-propiedades', title: 'Propiedades', subtitle: 'Catálogo de Inmuebles', icon: 'Building', path: '/propiedades', keywords: ['propiedades', 'inmuebles', 'casas', 'departamentos', 'inventario'] },
+  { id: 'route-propiedades', title: 'Propiedades', subtitle: 'Catálogo de Inmuebles', icon: 'Building', path: '/propiedades', keywords: ['propiedades', 'casas', 'departamentos', 'inventario'] },
   // Analítica
   { id: 'route-kpis', title: 'Analítica y KPIs', subtitle: 'Métricas y Reportes', icon: 'BarChart', path: '/kpis', keywords: ['kpis', 'analitica', 'estadisticas', 'reportes', 'graficos', 'metricas'] },
   // Registros IA
@@ -170,3 +170,4 @@ export const useCommandPaletteLogic = () => {
     handleSelectDynamic,
   };
 };
+

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace CRM_Inmobiliario.Api.Domain.Entities;
 
@@ -27,7 +27,7 @@ public sealed class Contacto
     public string Origen { get; set; } = "Directo";
 
     [MaxLength(50)]
-    public string EtapaEmbudo { get; set; } = "Nuevo";
+    public string EstadoEmbudo { get; set; } = "Nuevo";
 
     [Required]
     public bool EsProspecto { get; set; } = true;

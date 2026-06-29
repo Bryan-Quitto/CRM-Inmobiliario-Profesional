@@ -1,4 +1,4 @@
-using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using CRM_Inmobiliario.Api.Domain.Entities;
@@ -54,7 +54,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                 Origen = isFacebook ? "IA Facebook" : "IA WhatsApp",
                 AgenteId = agentIdToUse ?? Guid.Empty,
                 FechaCreacion = DateTimeOffset.UtcNow,
-                EtapaEmbudo = "Nuevo",
+                EstadoEmbudo = "Nuevo",
                 EstadoIA_WA = isFacebook ? null : "Escalado",
                 EstadoIA_FB = isFacebook ? "Escalado" : null,
                 EsProspecto = true,

@@ -1,4 +1,4 @@
-using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using System.Text;
@@ -110,7 +110,7 @@ public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
             return $"Utiliza OBLIGATORIAMENTE la siguiente información para responder a la duda del usuario. Si la respuesta no está aquí, dile que un humano le puede ayudar. NUNCA inventes políticas:\n\n{contextText}";
         }
 
-        return "No encontré información sobre este tema en los documentos corporativos. Indica amablemente al usuario que no tienes ese dato e invítalo a hablar con un asesor.";
+        return "No encontré información sobre este tema en los documentos corporativos. Indica amablemente al usuario que no tienes ese dato e invítalo a hablar con un agente.";
     }
 }
 
