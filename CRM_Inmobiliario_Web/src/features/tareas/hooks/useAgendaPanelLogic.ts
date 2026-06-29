@@ -71,7 +71,7 @@ export function useAgendaPanelLogic() {
           contactoLabel = contactos[0].nombre;
         }
       } catch (e) {
-        console.error('[AsistenteParser] Error resolviendo contacto:', e);
+        console.error('[CommandParser] Error resolviendo contacto:', e);
       }
     }
 
@@ -85,7 +85,7 @@ export function useAgendaPanelLogic() {
           lugar = resultado.lugarTexto;
         }
       } catch (e) {
-        console.error('[AsistenteParser] Error resolviendo propiedad:', e);
+        console.error('[CommandParser] Error resolviendo propiedad:', e);
         lugar = resultado.lugarTexto;
       }
     }

@@ -1,4 +1,4 @@
-import { Bot, Mic, MicOff, X, Info } from 'lucide-react';
+import { Zap, Mic, MicOff, X, Info } from 'lucide-react';
 import { useComandoPanel } from '../hooks/useComandoPanel';
 import { InstruccionesModal } from './comando-panel-sections/InstruccionesModal';
 import type { ComandoParseado } from '../utils/parseComando';
@@ -37,7 +37,7 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Asistente de Agenda"
+        aria-label="Comando Rápido"
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg animate-in fade-in zoom-in-95 duration-300"
       >
         <div className="bg-white rounded-3xl shadow-2xl shadow-black/20 border border-slate-100 overflow-hidden">
@@ -47,7 +47,7 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
             {/* Botón cerrar */}
             <button
               onClick={onClose}
-              aria-label="Cerrar asistente"
+              aria-label="Cerrar comando"
               className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer"
             >
               <X className="h-4 w-4" />
@@ -58,13 +58,13 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
               <div className="relative shrink-0">
                 <div className="absolute inset-0 bg-violet-500/30 rounded-2xl blur-md animate-pulse" />
                 <div className="relative h-12 w-12 bg-gradient-to-br from-violet-500 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/30">
-                  <Bot className="h-6 w-6 text-white" aria-hidden="true" />
+                  <Zap className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
               </div>
               <div>
-                <h2 className="text-lg font-black text-white tracking-tight">Asistente de Agenda</h2>
+                <h2 className="text-lg font-black text-white tracking-tight">Comando Rápido</h2>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                  Describe tu tarea y la agendaré automáticamente
+                  Describe tu tarea y se agendará automáticamente
                 </p>
               </div>
             </div>

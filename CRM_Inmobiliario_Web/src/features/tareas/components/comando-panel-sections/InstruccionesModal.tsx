@@ -101,7 +101,7 @@ export const InstruccionesModal = ({ onClose }: InstruccionesModalProps) => (
             <div>
               <h3 className="text-base font-black text-white tracking-tight">Formatos Aceptados</h3>
               <p className="text-[10px] text-violet-300 font-medium mt-0.5 uppercase tracking-widest">
-                Cómo describir tu tarea al asistente
+                Cómo estructurar tu comando rápido
               </p>
             </div>
           </div>
@@ -139,8 +139,8 @@ export const InstruccionesModal = ({ onClose }: InstruccionesModalProps) => (
           {/* Nota al pie */}
           <div className="pt-2 border-t border-slate-100">
             <p className="text-[10px] text-slate-400 italic text-center contactoing-relaxed">
-              El asistente intentará reconocer variaciones naturales del lenguaje.<br />
-              Si no puede interpretar un campo, te lo pedirá en el formulario.
+              El sistema intentará reconocer variaciones del lenguaje.<br />
+              Si no se puede interpretar un campo, usted deberá llenarlo en el formulario.
             </p>
           </div>
         </div>

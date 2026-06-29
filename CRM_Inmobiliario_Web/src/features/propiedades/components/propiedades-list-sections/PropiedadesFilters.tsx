@@ -100,14 +100,14 @@ export const PropiedadesFilters = ({
         {/* Primera Línea: Títulos y Acción Principal */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex flex-col gap-3">
-            <div className="flex items-start gap-4">
-              <div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-3">
                 <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Catálogo de Inmuebles</h2>
-                <p className="text-slate-600 mt-1 font-medium italic">Explora y gestiona el inventario de propiedades.</p>
+                <div className="pt-0.5">
+                  <HelpButton title="Propiedades e Inventario" path="/docs/manuales/manual_propiedades.md" />
+                </div>
               </div>
-              <div className="pt-1">
-                <HelpButton title="Propiedades e Inventario" path="/docs/manuales/manual_propiedades.md" />
-              </div>
+              <p className="text-slate-600 mt-1 font-medium italic">Explora y gestiona el inventario de propiedades.</p>
             </div>
 
             {/* Segmented Control - Inbox vs Archive */}

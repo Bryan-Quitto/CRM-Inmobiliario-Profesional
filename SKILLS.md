@@ -19,6 +19,10 @@ This file defines the strict technical standards and architectural rules for the
 
 ### Architectural Standards
 
+### Ubiquitous Language (Lenguaje Ubicuo) & Domain Integrity
+- **CRITICAL RULE (SSoT Terminológico):** Strict adherence to Domain-Driven Design (DDD) Ubiquitous Language. There MUST ONLY BE ONE term for each business entity across the entire system (Frontend, Backend, DB, AI Prompts, UI). Never use aliases or interchangeable terms (e.g., if we use "Visita", never use "Cita" in code or prompts; if "Estado", never "Etapa").
+- **AI Behavior Protocol:** IF there is ANY ambiguity regarding domain terminology, OR if the user introduces a new alias for an existing entity, the AI MUST STRICTLY PAUSE, ask the user for clarification, and agree on the official terminology BEFORE writing any code. Never generate code with mismatched or ambiguous terminology, as this causes severe technical debt.
+
 ### Backend (Vertical Slice Architecture)
 - **Rule:** Strict prohibition of MVC, Clean Architecture, or Onion.
 - **Organization:** Code must be organized by features in `/Features`.

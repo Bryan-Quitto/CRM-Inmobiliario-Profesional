@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Plus, XCircle, Filter } from 'lucide-react';
+import { Zap, Plus, XCircle, Filter } from 'lucide-react';
 import { HelpButton } from '../../../../components/ui/HelpButton';
 
 interface AgendaHeaderProps {
@@ -20,19 +20,19 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
   onClose
 }) => {
   return (
-    <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
-      <div className="flex items-start gap-3">
-        <div>
-          <h2 className="text-lg font-black text-slate-900 tracking-tight">Agenda Diaria</h2>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+    <div className="px-4 py-5 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10 gap-2 overflow-hidden">
+      <div className="flex items-start gap-2 overflow-hidden">
+        <div className="shrink-0">
+          <h2 className="text-base font-black text-slate-900 tracking-tight whitespace-nowrap">Agenda Diaria</h2>
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 whitespace-nowrap">
             {tareasPendientesCount} Tareas Pendientes
           </p>
         </div>
-        <div className="pt-0.5">
+        <div className="pt-0.5 shrink-0">
           <HelpButton title="Productividad y Organización" path="/docs/manuales/manual_productividad.md" />
         </div>
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={onToggleToolbar}
           aria-label="Alternar filtros"
@@ -45,12 +45,12 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
           <Filter className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
         <button
-          title="Asistente de Agenda"
+          title="Comando Rápido"
           onClick={onOpenComando}
-          aria-label="Abrir asistente de agenda"
+          aria-label="Abrir comando rápido"
           className="h-7 w-7 bg-gradient-to-br from-violet-600 to-violet-700 text-white rounded-lg flex items-center justify-center hover:from-violet-500 hover:to-violet-600 transition-all shadow-md shadow-violet-500/20 active:scale-95 cursor-pointer"
         >
-          <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+          <Zap className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
         <button 
           onClick={onCreateTask}
@@ -63,9 +63,9 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
           <button 
             onClick={onClose}
             aria-label="Cerrar panel de agenda"
-            className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors active:scale-95 border border-slate-100 cursor-pointer"
+            className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors active:scale-95 border border-slate-100 cursor-pointer"
           >
-            <XCircle className="h-5 w-5" aria-hidden="true" />
+            <XCircle className="h-4 w-4" aria-hidden="true" />
           </button>
         )}
       </div>

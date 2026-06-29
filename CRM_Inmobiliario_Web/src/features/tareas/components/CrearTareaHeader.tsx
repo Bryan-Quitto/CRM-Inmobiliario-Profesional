@@ -18,13 +18,13 @@ export const CrearTareaHeader = ({ onCancel, isPrefill }: CrearTareaHeaderProps)
       <div>
         <h2 className="text-lg font-black text-slate-900 tracking-tight">Nueva Tarea</h2>
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-          {isPrefill ? 'Completado por el asistente · revisa y guarda' : 'Programar seguimiento'}
+          {isPrefill ? 'Autocompletado por el comando · revisa y guarda' : 'Programar seguimiento'}
         </p>
       </div>
       {isPrefill && (
         <div className="ml-auto shrink-0 flex items-center gap-1.5 px-2.5 py-1 bg-violet-50 border border-violet-100 rounded-full">
           <span className="h-1.5 w-1.5 bg-violet-500 rounded-full animate-pulse" />
-          <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest">Asistente</span>
+          <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest">Comando</span>
         </div>
       )}
     </div>

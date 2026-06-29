@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { Bot, Activity } from 'lucide-react';
+import { HelpButton } from '../../../components/ui/HelpButton';
 import type { IaLogsLayoutLogicReturn } from '../hooks/useIaLogsLayoutLogic';
 
 interface Props {
@@ -16,7 +17,12 @@ export const IaLogsLayoutDesktop = ({ logic }: Props) => {
           <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-2xl shadow-blue-600/30 rotate-3">
             <Bot className="h-8 w-8" />
           </div>
-          Auditoría Sistema/IA
+          <div className="flex items-center gap-3">
+            Auditoría Sistema/IA
+            <div className="pt-1.5">
+              <HelpButton title="Auditoría Sistema" path="/docs/manuales/manual_comunicaciones.md" />
+            </div>
+          </div>
         </h2>
         <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em] mt-3 flex items-center gap-2">
           <Activity className="h-3 w-3 text-emerald-500" />

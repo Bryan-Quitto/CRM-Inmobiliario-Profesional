@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 import type { AuditoriaGeneralLogic, AuditoriaSessionWithStats } from '../hooks/useAuditoriaGeneralViewLogic';
-import { HelpButton } from '../../../components/ui/HelpButton';
+
 
 const SessionCard: React.FC<{ sesion: AuditoriaSessionWithStats }> = ({ sesion }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -206,12 +206,7 @@ export const AuditoriaGeneralViewDesktop: React.FC<{ logic: AuditoriaGeneralLogi
   return (
     <div className="flex flex-col h-full max-w-5xl mx-auto w-full pb-10">
       <div className="mb-6">
-        <div className="flex items-start gap-3">
-          <h1 className="text-2xl font-bold text-slate-900">Auditoría General IA</h1>
-          <div className="pt-1">
-            <HelpButton title="Comunicaciones" path="/docs/manuales/manual_comunicaciones.md" />
-          </div>
-        </div>
+        <h1 className="text-2xl font-bold text-slate-900">Auditoría General IA</h1>
         <p className="text-slate-500 mt-1">
           Visión unificada de sesiones y acciones de inteligencia artificial.
         </p>

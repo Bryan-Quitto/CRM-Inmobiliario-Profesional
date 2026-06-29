@@ -84,14 +84,14 @@ export const ContactosListFilters = ({
     <div className="flex flex-col space-y-6 mb-10">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex flex-col gap-3">
-          <div className="flex items-start gap-4">
-            <div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-3">
               <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Directorio de Contactos</h2>
-              <p className="text-slate-600 mt-1 font-medium italic">Gestión integral de la base de datos inmobiliaria.</p>
+              <div className="pt-0.5">
+                <HelpButton title="Contactos y CRM" path="/docs/manuales/manual_contactos.md" />
+              </div>
             </div>
-            <div className="pt-1">
-              <HelpButton title="Contactos y CRM" path="/docs/manuales/manual_contactos.md" />
-            </div>
+            <p className="text-slate-600 mt-1 font-medium italic">Gestión integral de la base de datos inmobiliaria.</p>
           </div>
           
           {/* Segmented Control - Inbox vs Archive */}
