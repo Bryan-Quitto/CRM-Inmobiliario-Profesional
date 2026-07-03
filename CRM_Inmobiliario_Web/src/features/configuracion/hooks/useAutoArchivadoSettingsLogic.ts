@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useUpdateAgentArchivingConfig, type ArchivingConfig } from '../api/useUpdateAgentArchivingConfig';
+import { useArchivingCandidates, type SortByOptions } from '../api/useArchivingCandidates';
 import { toast } from 'sonner';
 
 export const useAutoArchivadoSettingsLogic = () => {
   const { data, isLoading, updateConfig } = useUpdateAgentArchivingConfig();
   const [isSaving, setIsSaving] = useState(false);
+
+  const [candidatesSortBy, setCandidatesSortBy] = useState<SortByOptions>('ProximosArchivar');
+  const { data: candidatesData, isLoading: isLoadingCandidates } = useArchivingCandidates(candidatesSortBy);
 
   const [settings, setSettings] = useState<ArchivingConfig>({
     autoArchivarContactos: false,
@@ -52,7 +56,11 @@ export const useAutoArchivadoSettingsLogic = () => {
     isInvalidPropiedades,
     isFormValid,
     handleChange,
-    handleSubmit
+    handleSubmit,
+    candidatesSortBy,
+    setCandidatesSortBy,
+    candidatesData,
+    isLoadingCandidates
   };
 };
 

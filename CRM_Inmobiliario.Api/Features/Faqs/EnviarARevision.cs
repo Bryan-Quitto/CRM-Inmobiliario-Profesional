@@ -34,6 +34,7 @@ public static class EnviarARevisionFeature
             faq.FechaActualizacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 
             await context.SaveChangesAsync();
+            await context.UpsertAgentPropertyActivityAsync(agenteId, faq.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), CancellationToken.None);
 
             return Results.Ok(new { faq.Id, faq.Estado, faq.FechaActualizacion });
         })

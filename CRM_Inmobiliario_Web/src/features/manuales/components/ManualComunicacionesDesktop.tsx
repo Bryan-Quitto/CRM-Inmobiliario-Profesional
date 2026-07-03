@@ -10,16 +10,16 @@ export const ManualComunicacionesDesktop = () => {
           <p className="text-lg text-slate-600">Guía completa para la gestión de mensajes, canales y alertas</p>
         </div>
 
-        <ManualSection title="1. Integración de Canales (WhatsApp y Globe)" icon={<MessageCircle className="w-6 h-6 text-blue-600" />}>
+        <ManualSection title="1. Integración de Canales (WhatsApp y Facebook)" icon={<MessageCircle className="w-6 h-6 text-blue-600" />}>
           <p className="text-slate-700 leading-relaxed mb-4">
-            El sistema te permite recibir y responder mensajes tanto de WhatsApp como de Globe Messenger utilizando una única pantalla de conversación, apoyado por nuestra Inteligencia Artificial.
+            El sistema te permite recibir y responder mensajes tanto de WhatsApp como de Facebook Messenger utilizando una única pantalla de conversación, apoyado por nuestra Inteligencia Artificial.
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-start space-x-3">
               <ShieldCheck className="w-5 h-5 text-emerald-500 mt-1 flex-shrink-0" />
               <div>
                 <h4 className="font-semibold text-slate-900">Protección Antifraude</h4>
-                <p className="text-sm text-slate-600 mt-1">El sistema verifica automáticamente que cada mensaje que recibes provenga realmente de WhatsApp o Globe, evitando mensajes falsos.</p>
+                <p className="text-sm text-slate-600 mt-1">El sistema verifica automáticamente que cada mensaje que recibes provenga realmente de WhatsApp o Facebook, evitando mensajes falsos.</p>
               </div>
             </div>
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-start space-x-3">
@@ -73,8 +73,8 @@ export const ManualComunicacionesDesktop = () => {
            </div>
         </ManualSection>
 
-        <ManualSection title="4. Campañas y Anuncios (Globe)" icon={<Megaphone className="w-6 h-6 text-pink-600" />}>
-           <ManualAlert title="Seguimiento Inteligente" description="La IA es capaz de identificar exactamente desde qué anuncio de Globe te está escribiendo un cliente, vinculándolo de forma automática a la propiedad correcta." />
+        <ManualSection title="4. Campañas y Anuncios (Facebook)" icon={<Megaphone className="w-6 h-6 text-pink-600" />}>
+           <ManualAlert title="Seguimiento Inteligente" description="La IA es capaz de identificar exactamente desde qué anuncio de Facebook te está escribiendo un cliente, vinculándolo de forma automática a la propiedad correcta." />
         </ManualSection>
         
         <ManualSection title="5. Alertas y Notificaciones" icon={<Bell className="w-6 h-6 text-orange-600" />}>

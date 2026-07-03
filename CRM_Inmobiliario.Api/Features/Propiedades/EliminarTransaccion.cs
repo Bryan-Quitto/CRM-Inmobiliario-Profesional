@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Features.Dashboard;
@@ -98,6 +98,12 @@ public static class EliminarTransaccionFeature
             transaction.Notes = (transaction.Notes ?? "") + " [Anulado por el agente]";
             
             await context.SaveChangesAsync(ct);
+
+            await context.UpsertAgentPropertyActivityAsync(agenteId, property.Id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
+            if (transaction.ContactoId.HasValue)
+            {
+                await context.UpsertAgentContactActivityAsync(agenteId, transaction.ContactoId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
+            }
 
             // 3. Invalidar caches e informar al warming service
             warmingService.NotifyChange(agenteId);

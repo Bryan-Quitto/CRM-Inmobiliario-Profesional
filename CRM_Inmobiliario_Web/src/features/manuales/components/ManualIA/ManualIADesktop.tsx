@@ -1,4 +1,5 @@
-import { Bot, MessageSquare, BrainCircuit, Smartphone, Globe, ShieldCheck } from 'lucide-react';
+import { Bot, MessageSquare, BrainCircuit, Smartphone, ShieldCheck } from 'lucide-react';
+import { FacebookIcon as Facebook } from '../../../../components/ui/FacebookIcon';
 import { ManualSection } from '../../../../components/ui/manuales/ManualSection';
 import type { ManualIASection } from './index';
 
@@ -105,7 +106,7 @@ export const ManualIADesktop: React.FC<Props> = ({ section }) => {
           )}
 
           {showFacebook && (
-            <ManualSection title={showAll ? "3. Integración con Facebook Messenger" : "Integración con Facebook Messenger"} icon={<Globe className="w-6 h-6 text-sky-500" />}>
+            <ManualSection title={showAll ? "3. Integración con Facebook Messenger" : "Integración con Facebook Messenger"} icon={<Facebook className="w-6 h-6 text-sky-500" />}>
               <p className="mb-4 text-slate-600">Funciona exactamente igual que el asistente de WhatsApp en cuanto a funcionalidades, pero atiende a los clientes que te escriben por Facebook Messenger o mediante anuncios en redes sociales.</p>
               <div className="bg-sky-50/50 p-4 rounded-xl border border-sky-100/50">
                 <h4 className="font-bold text-sky-900 mb-1">Seguimiento Inteligente de Anuncios</h4>

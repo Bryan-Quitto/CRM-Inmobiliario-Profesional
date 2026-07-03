@@ -1,5 +1,6 @@
 import { ManualSection, ManualAlert, ManualBadge } from '../../../components/ui/manuales';
-import { Users, ShieldCheck, Mail, UserPlus, MessageSquare, Globe, Brain, ShieldAlert, Key } from 'lucide-react';
+import { Users, ShieldCheck, Mail, UserPlus, MessageSquare, Brain, ShieldAlert, Key } from 'lucide-react';
+import { FacebookIcon as Facebook } from '../../../components/ui/FacebookIcon';
 
 export const ManualAdministracionDesktop = () => {
   return (
@@ -54,8 +55,8 @@ export const ManualAdministracionDesktop = () => {
                    <p className="text-xs text-slate-600 mt-1">Respuestas automáticas en WA.</p>
                  </div>
                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center hover:shadow-md transition-shadow">
-                   <Globe className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                   <p className="font-semibold text-slate-900 text-sm">IA Globe</p>
+                   <Facebook className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                   <p className="font-semibold text-slate-900 text-sm">IA Facebook</p>
                    <p className="text-xs text-slate-600 mt-1">Respuestas en FB Messenger.</p>
                  </div>
                </div>

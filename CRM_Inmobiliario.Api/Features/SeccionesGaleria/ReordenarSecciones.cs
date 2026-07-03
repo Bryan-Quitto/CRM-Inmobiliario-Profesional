@@ -1,5 +1,9 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
+using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -14,22 +18,23 @@ public static class ReordenarSeccionesFeature
 
     public static RouteHandlerBuilder MapReordenarSeccionesEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPut("/propiedades/{propiedadId}/secciones/orden", async (Guid propiedadId, Request request, ClaimsPrincipal user, CrmDbContext context) =>
+        return app.MapPut("/propiedades/{propiedadId}/secciones/orden", async (Guid propiedadId, Request request, ClaimsPrincipal user, CrmDbContext context, CancellationToken ct) =>
         {
             if (propiedadId != request.PropiedadId) return Results.BadRequest("ID de propiedad no coincide");
 
-            var agenteId = user.GetRequiredUserId();
+            var currentUserId = user.GetRequiredUserId();
             
-            // Consolidar verificación de propiedad y carga de IDs de secciones en una sola llamada
-            var propiedadData = await context.Properties
-                .Where(p => p.Id == propiedadId && p.AgenteId == agenteId)
-                .Select(p => new {
-                    Existe = true,
-                    SeccionesIds = p.GallerySections.Select(s => s.Id).ToList()
-                })
-                .FirstOrDefaultAsync();
+            var propiedad = await context.Properties
+                .Include(p => p.Agente)
+                .Include(p => p.Transactions)
+                .FirstOrDefaultAsync(p => p.Id == propiedadId, ct);
 
-            if (propiedadData == null) return Results.Forbid();
+            if (propiedad == null) return Results.NotFound();
+
+            if (!PropertyPermissionsHelper.CanManage(propiedad, currentUserId))
+            {
+                return Results.Forbid();
+            }
 
             var idsSolicitados = request.SeccionesIds.ToList();
             
@@ -47,6 +52,8 @@ public static class ReordenarSeccionesFeature
                         i, sectionId, propiedadId);
                 }
 
+                await context.UpsertAgentPropertyActivityAsync(currentUserId, propiedad.Id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
+
                 Console.WriteLine($"DEBUG [ReordenarSecciones]: SQL Directo ejecutado. Secciones afectadas: {totalActualizados}");
                 return Results.NoContent();
             }
@@ -60,7 +67,7 @@ public static class ReordenarSeccionesFeature
             }
         })
         .WithTags("Propiedades - Galería")
-        .WithName("ReordenarSeccionesGaleria");
+        .WithName("ReordenarSeccionesGaleria")
+        .RequireAuthorization();
     }
 }
-

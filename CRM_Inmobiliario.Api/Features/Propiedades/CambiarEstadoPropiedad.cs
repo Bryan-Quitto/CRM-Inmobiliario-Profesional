@@ -70,6 +70,10 @@ public static class CambiarEstadoPropiedadFeature
                 logger.LogInformation("💾 [ESTADO] Ejecutando SaveChangesAsync...");
                 await context.SaveChangesAsync(CancellationToken.None);
                 await context.UpsertAgentPropertyActivityAsync(currentUserId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), CancellationToken.None);
+                if (command.CerradoConId.HasValue)
+                {
+                    await context.UpsertAgentContactActivityAsync(currentUserId, command.CerradoConId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), CancellationToken.None);
+                }
                 
                 // Notificaciones y Limpieza de Caché
                 warmingService.NotifyChange(currentUserId);

@@ -1,7 +1,9 @@
 import React from 'react';
+import { HelpButton } from '../../../components/ui/HelpButton';
 import { Save, Loader2, Archive } from 'lucide-react';
 import { TimeDurationDaysInput } from './TimeDurationDaysInput';
 import type { AutoArchivadoSettingsLogic } from '../hooks/useAutoArchivadoSettingsLogic';
+import { AutoArchivadoCandidatesList } from './AutoArchivadoCandidatesList';
 
 interface Props {
   logic: AutoArchivadoSettingsLogic;
@@ -36,7 +38,10 @@ export const AutoArchivadoSettingsDesktop: React.FC<Props> = ({ logic }) => {
               <Archive className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Auto-Archivado</h2>
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                Auto-Archivado
+                <div className="pt-0.5"><HelpButton title="Auto-Archivado" path="/docs/manuales/manual_autoarchivado.md" /></div>
+              </h2>
               <p className="text-slate-500 text-sm mt-1">Configura el archivado automático de registros inactivos.</p>
             </div>
           </div>
@@ -99,6 +104,23 @@ export const AutoArchivadoSettingsDesktop: React.FC<Props> = ({ logic }) => {
               </button>
             </div>
           </form>
+
+          <AutoArchivadoCandidatesList
+            type="contactos"
+            candidates={logic.candidatesData?.contactos || []}
+            isLoading={logic.isLoadingCandidates}
+            sortBy={logic.candidatesSortBy}
+            setSortBy={logic.setCandidatesSortBy}
+            isEnabled={settings.autoArchivarContactos}
+          />
+          <AutoArchivadoCandidatesList
+            type="propiedades"
+            candidates={logic.candidatesData?.propiedades || []}
+            isLoading={logic.isLoadingCandidates}
+            sortBy={logic.candidatesSortBy}
+            setSortBy={logic.setCandidatesSortBy}
+            isEnabled={settings.autoArchivarPropiedades}
+          />
         </div>
       </div>
     </div>

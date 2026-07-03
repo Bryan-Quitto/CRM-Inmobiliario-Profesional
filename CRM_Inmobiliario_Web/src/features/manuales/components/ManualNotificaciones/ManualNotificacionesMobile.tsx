@@ -20,7 +20,7 @@ export const ManualNotificacionesMobile: React.FC = () => {
         <ManualSection title="2. Notificaciones Recurrentes" icon={<Clock className="w-5 h-5" />}>
           <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
             <h3 className="font-bold text-slate-800 text-xs mb-1 flex items-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 text-indigo-500" /> Activar Notificaciones</h3>
-            <p className="text-xs text-slate-600">Botón para autorizar a tu celular a recibir notificaciones emergentes (Push).</p>
+            <p className="text-xs text-slate-600">Botón para autorizar a tu celular a recibir notificaciones emergentes.</p>
           </div>
 
           <div className="space-y-3">

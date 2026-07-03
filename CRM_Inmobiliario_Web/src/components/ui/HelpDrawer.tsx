@@ -16,6 +16,9 @@ import { ManualContactos } from '../../features/manuales/components/ManualContac
 import { ManualIA } from '../../features/manuales/components/ManualIA';
 import { ManualSistemaIARegistros } from '../../features/manuales/components/ManualSistemaIARegistros';
 import { ManualNotificaciones } from '../../features/manuales/components/ManualNotificaciones';
+import { ManualAutoArchivado } from '../../features/manuales/components/ManualAutoArchivado';
+import { ManualConsecuenciasContacto } from '../../features/manuales/components/ManualConsecuenciasContacto';
+import { ManualConsecuenciasPropiedad } from '../../features/manuales/components/ManualConsecuenciasPropiedad';
 
 const componentMap: Record<string, React.ReactNode> = {
   '/docs/manuales/manual_busqueda.md': <ManualBusqueda />,
@@ -23,6 +26,9 @@ const componentMap: Record<string, React.ReactNode> = {
   '/docs/manuales/manual_dashboard.md': <ManualDashboard />,
   '/docs/manuales/manual_productividad.md': <ManualProductividad />,
   '/docs/manuales/manual_notificaciones.md': <ManualNotificaciones />,
+  '/docs/manuales/manual_autoarchivado.md': <ManualAutoArchivado />,
+  '/docs/manuales/manual_consecuencias_archivado_contacto.md': <ManualConsecuenciasContacto />,
+  '/docs/manuales/manual_consecuencias_archivado_propiedad.md': <ManualConsecuenciasPropiedad />,
   '/docs/manuales/manual_knowledge.md': <ManualKnowledge />,
   '/docs/manuales/manual_administracion.md': <ManualAdministracion />,
   '/docs/manuales/manual_propiedades.md': <ManualPropiedades />,
@@ -35,7 +41,8 @@ const componentMap: Record<string, React.ReactNode> = {
   '/docs/manuales/manual_sistema-ia_registros.md#whatsapp': <ManualSistemaIARegistros section="whatsapp" />,
   '/docs/manuales/manual_sistema-ia_registros.md#facebook': <ManualSistemaIARegistros section="facebook" />,
   '/docs/manuales/manual_sistema-ia_registros.md#personal': <ManualSistemaIARegistros section="personal" />,
-  '/docs/manuales/manual_sistema-ia_registros.md#general': <ManualSistemaIARegistros section="general" />
+  '/docs/manuales/manual_sistema-ia_registros.md#general': <ManualSistemaIARegistros section="general" />,
+  '/docs/manuales/manual_comunicaciones.md': <ManualComunicaciones />
 };
 
 export const HelpDrawer = () => {

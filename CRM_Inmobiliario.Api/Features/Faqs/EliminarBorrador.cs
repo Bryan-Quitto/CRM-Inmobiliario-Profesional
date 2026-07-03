@@ -32,6 +32,7 @@ public static class EliminarBorradorFeature
 
             context.PropertyFaqs.Remove(faq);
             await context.SaveChangesAsync();
+            await context.UpsertAgentPropertyActivityAsync(agenteId, faq.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), CancellationToken.None);
 
             return Results.NoContent();
         })

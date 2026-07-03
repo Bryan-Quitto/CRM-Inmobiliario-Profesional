@@ -1,4 +1,4 @@
-﻿using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -141,6 +141,11 @@ public sealed class FacebookContextBuilder
             Fecha = DateTimeOffset.UtcNow
         });
         await db.SaveChangesAsync(ct);
+
+        if (contactoId.HasValue)
+        {
+            await db.UpsertAgentContactActivityAsync(agenteId, contactoId.Value, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
+        }
     }
 
     private static List<(string Role, string Content)> DeserializeHistory(string json)

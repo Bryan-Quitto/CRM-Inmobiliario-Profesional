@@ -1,5 +1,6 @@
 import { ManualSection, ManualAlert, ManualBadge } from '../../../components/ui/manuales';
-import { Users, ShieldCheck, Mail, MessageSquare, Globe, Brain, ShieldAlert, Key } from 'lucide-react';
+import { Users, ShieldCheck, Mail, MessageSquare, Brain, ShieldAlert, Key } from 'lucide-react';
+import { FacebookIcon as Facebook } from '../../../components/ui/FacebookIcon';
 
 export const ManualAdministracionMobile = () => {
   return (
@@ -41,8 +42,8 @@ export const ManualAdministracionMobile = () => {
                <p className="font-semibold text-slate-900 text-[10px]">WhatsApp</p>
              </div>
              <div className="bg-white p-2 rounded-lg border border-slate-100 shadow-sm text-center">
-               <Globe className="w-6 h-6 text-blue-500 mx-auto mb-1" />
-               <p className="font-semibold text-slate-900 text-[10px]">Globe</p>
+               <Facebook className="w-6 h-6 text-blue-500 mx-auto mb-1" />
+               <p className="font-semibold text-slate-900 text-[10px]">Facebook</p>
              </div>
            </div>
 

@@ -1,4 +1,5 @@
-import { Bot, BrainCircuit, Smartphone, Globe, ShieldCheck } from 'lucide-react';
+import { Bot, BrainCircuit, Smartphone, ShieldCheck } from 'lucide-react';
+import { FacebookIcon as Facebook } from '../../../../components/ui/FacebookIcon';
 import { ManualSection } from '../../../../components/ui/manuales/ManualSection';
 import type { ManualIASection } from './index';
 
@@ -48,7 +49,7 @@ export const ManualIAMobile: React.FC<Props> = ({ section }) => {
         )}
 
         {showFacebook && (
-          <ManualSection title={showAll ? "3. Facebook Messenger" : "Facebook Messenger"} icon={<Globe className="w-5 h-5" />}>
+          <ManualSection title={showAll ? "3. Facebook Messenger" : "Facebook Messenger"} icon={<Facebook className="w-5 h-5" />}>
             <div className="space-y-3">
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                 <p className="text-xs text-slate-600">Funciona igual que WhatsApp.</p>

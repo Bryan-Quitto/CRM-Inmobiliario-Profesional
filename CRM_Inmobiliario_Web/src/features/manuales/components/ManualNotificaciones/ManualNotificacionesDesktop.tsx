@@ -23,7 +23,7 @@ export const ManualNotificacionesDesktop: React.FC = () => {
 
             <div className="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-200">
               <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2"><RefreshCw className="w-5 h-5 text-indigo-500" /> Botones de Activación</h3>
-              <p className="text-sm text-slate-700"><strong>Activar Notificaciones / Sincronizar Dispositivo / Desactivar:</strong> Sirve para autorizar a tu navegador o celular a recibir las alertas (notificaciones emergentes push).</p>
+              <p className="text-sm text-slate-700"><strong>Activar Notificaciones / Sincronizar Dispositivo / Desactivar:</strong> Sirve para autorizar a tu navegador o celular a recibir las alertas (notificaciones emergentes).</p>
             </div>
 
             <h3 className="font-bold text-slate-900 mb-3 text-lg">Campos de Configuración:</h3>

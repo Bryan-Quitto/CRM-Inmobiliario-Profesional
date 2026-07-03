@@ -25,7 +25,7 @@ namespace CRM_Inmobiliario.Tests
                 new ChatMessage(ChatRole.User, "User msg 4 - NUEVA_BUSQUEDA")
             };
 
-            var manager = new WhatsAppConversationManager(null!, null!, null!, null!, null!, null!); // We don't need dependencies for this method if it doesn't use them.
+            var manager = new WhatsAppConversationManager(null!, null!, null!, null!, null!, null!, null!); // We don't need dependencies for this method if it doesn't use them.
 
             // Act
             manager.ApplyNuevaBusqueda(history);

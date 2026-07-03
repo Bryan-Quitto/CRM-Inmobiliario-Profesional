@@ -1,4 +1,5 @@
-import { Shield, Smartphone, Globe, BrainCircuit, LayoutGrid } from 'lucide-react';
+import { Shield, Smartphone, BrainCircuit, LayoutGrid } from 'lucide-react';
+import { FacebookIcon as Facebook } from '../../../../components/ui/FacebookIcon';
 import { ManualSection } from '../../../../components/ui/manuales/ManualSection';
 import type { ManualSistemaIARegistrosSection } from './index';
 
@@ -49,7 +50,7 @@ export const ManualSistemaIARegistrosMobile: React.FC<Props> = ({ section }) => 
       <div className="space-y-6">
         {showWhatsapp && renderChannelLogs(showAll ? "1. WhatsApp" : "WhatsApp", <Smartphone className="w-5 h-5" />, "bg-emerald-50", "text-emerald-900", "border-emerald-100")}
         
-        {showFacebook && renderChannelLogs(showAll ? "2. Facebook" : "Facebook", <Globe className="w-5 h-5" />, "bg-sky-50", "text-sky-900", "border-sky-100")}
+        {showFacebook && renderChannelLogs(showAll ? "2. Facebook" : "Facebook", <Facebook className="w-5 h-5" />, "bg-sky-50", "text-sky-900", "border-sky-100")}
 
         {showPersonal && (
           <ManualSection title={showAll ? "3. IA del Sistema" : "IA Personal"} icon={<BrainCircuit className="w-5 h-5" />}>

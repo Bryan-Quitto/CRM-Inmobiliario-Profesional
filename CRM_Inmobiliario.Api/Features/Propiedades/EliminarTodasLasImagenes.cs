@@ -80,6 +80,7 @@ public static class EliminarTodasLasImagenesFeature
                 }
 
                 logger.LogInformation("Eliminación masiva completada con éxito");
+                await context.UpsertAgentPropertyActivityAsync(agenteId, propiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
                 return Results.NoContent();
             }
             catch (OperationCanceledException)

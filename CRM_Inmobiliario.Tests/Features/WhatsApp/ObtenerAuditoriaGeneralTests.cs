@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using static CRM_Inmobiliario.Api.Features.IA.ObtenerAuditoriaGeneral;
+using CRM_Inmobiliario.Api.Features.IA;
 
 namespace CRM_Inmobiliario.Tests.Features.WhatsApp
 {
@@ -23,7 +23,7 @@ namespace CRM_Inmobiliario.Tests.Features.WhatsApp
             };
 
             // Act
-            var sessions = AgruparEventos(events);
+            var sessions = ObtenerAuditoriaGeneralProcessor.AgruparEventos(events);
 
             // Assert
             Assert.Single(sessions); // Solo 1 sesión
@@ -51,7 +51,7 @@ namespace CRM_Inmobiliario.Tests.Features.WhatsApp
             };
 
             // Act
-            var sessions = AgruparEventos(events);
+            var sessions = ObtenerAuditoriaGeneralProcessor.AgruparEventos(events);
 
             // Assert
             Assert.Equal(2, sessions.Count);
@@ -83,7 +83,7 @@ namespace CRM_Inmobiliario.Tests.Features.WhatsApp
             };
 
             // Act
-            var sessions = AgruparEventos(events);
+            var sessions = ObtenerAuditoriaGeneralProcessor.AgruparEventos(events);
 
             // Assert
             Assert.Equal(2, sessions.Count); // 1 per contact

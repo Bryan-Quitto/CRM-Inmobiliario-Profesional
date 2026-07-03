@@ -63,6 +63,8 @@ public static class LimpiarImagenesPropiedadFeature
                     .Where(s => s.PropiedadId == propiedadId)
                     .ExecuteDeleteAsync(ct);
 
+                await context.UpsertAgentPropertyActivityAsync(agenteId, propiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
+
                 return Results.NoContent();
             }
             catch (Exception ex)

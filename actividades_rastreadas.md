@@ -1,6 +1,7 @@
-# Actividades que Actualizan la FechaUltimaActividad
+# Actividades que Actualizan el Timeline del Agente (LastActivityUtc)
 
-A continuación se enumera el inventario completo de acciones dentro del CRM que dispararán la actualización del campo `FechaUltimaActividad` para asegurar que el registro se mantenga "vivo" y no sea archivado por el daemon.
+A continuación se enumera el inventario completo de acciones dentro del CRM que dispararán la actualización de la actividad reciente. 
+*Nota de Arquitectura:* A nivel de base de datos, no se utiliza un único campo monolítico; el tracking se delega a las entidades puente `AgentContactActivity` y `AgentPropertyActivity` actualizando el campo `LastActivityUtc` mediante Upserts. Esto asegura que la actividad reciente es específica por Agente, manteniendo el registro "vivo" y evitando que sea archivado por el daemon.
 
 ## Contactos
 

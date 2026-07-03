@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, Filter, ChevronDown, LayoutGrid, List } from 'lucide-react';
-import { SearchInput } from '@/components/ui/SearchInput';
+import { SearchInput } from '../../../../components/ui/SearchInput';
 import { ORIGENES } from '../../constants/contactos';
 import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { ContactosListLogic } from '../../hooks/useContactosListLogic';
@@ -60,19 +60,24 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
         >
           Principal
         </button>
-        <button 
-          onClick={() => logic.setIsArchived(true)}
-          className={`w-full py-2 text-xs font-bold rounded-lg transition-all ${
-            logic.isArchived ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          Archivados
-        </button>
+        <div className={`w-full flex items-center justify-center gap-1 rounded-lg transition-all ${
+            logic.isArchived ? 'bg-white shadow-sm' : ''
+          }`}>
+          <button 
+            onClick={() => logic.setIsArchived(true)}
+            className={`py-2 text-xs font-bold transition-all ${
+              logic.isArchived ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Archivados
+          </button>
+          {logic.isArchived && <HelpButton title="Registro Archivado" path="/docs/manuales/manual_consecuencias_archivado_contacto.md" iconSize={14} />}
+        </div>
       </div>
 
       <SearchInput 
         value={logic.searchQuery}
-        onChange={(e) => logic.setSearchQuery(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => logic.setSearchQuery(e.target.value)}
         placeholder="Buscar contacto..." 
         className="py-3"
       />

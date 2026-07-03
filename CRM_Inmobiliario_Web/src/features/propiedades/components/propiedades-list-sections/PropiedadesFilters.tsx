@@ -121,15 +121,20 @@ export const PropiedadesFilters = ({
               >
                 Catálogo Principal
               </button>
-              <button 
-                data-testid="tab-archived"
-                onClick={() => setIsArchived(true)}
-                className={`cursor-pointer px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${
-                  isArchived ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                Archivados
-              </button>
+              <div className={`flex items-center gap-1 pr-1 pl-0.5 rounded-lg transition-all ${
+                  isArchived ? 'bg-white shadow-sm' : ''
+                }`}>
+                <button 
+                  data-testid="tab-archived"
+                  onClick={() => setIsArchived(true)}
+                  className={`cursor-pointer px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                    isArchived ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  Archivados
+                </button>
+                <HelpButton title="Registro Archivado" path="/docs/manuales/manual_consecuencias_archivado_propiedad.md" iconSize={16} />
+              </div>
             </div>
           </div>
           

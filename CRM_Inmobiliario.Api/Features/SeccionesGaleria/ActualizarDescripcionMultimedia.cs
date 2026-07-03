@@ -1,3 +1,6 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
+using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -12,12 +15,29 @@ public static class ActualizarDescripcionMultimediaFeature
 
     public static RouteHandlerBuilder MapActualizarDescripcionMultimediaEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPut("/propiedades/imagenes/{id}/descripcion", async (Guid id, Request request, CrmDbContext context) =>
+        return app.MapPut("/propiedades/imagenes/{id}/descripcion", async (Guid id, Request request, CrmDbContext context, ClaimsPrincipal user, CancellationToken ct) =>
         {
+            var currentUserId = user.GetRequiredUserId();
+            var propertyMedia = await context.PropertyMedia
+                .Include(m => m.Propiedad)
+                    .ThenInclude(p => p!.Agente)
+                .Include(m => m.Propiedad)
+                    .ThenInclude(p => p!.Transactions)
+                .FirstOrDefaultAsync(m => m.Id == id, ct);
+
+            if (propertyMedia == null) return Results.NotFound();
+
+            if (!PropertyPermissionsHelper.CanManage(propertyMedia.Propiedad!, currentUserId))
+            {
+                return Results.Forbid();
+            }
+
             var rowsAffected = await context.PropertyMedia
                 .Where(m => m.Id == id)
                 .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(m => m.Descripcion, request.Descripcion));
+                    .SetProperty(m => m.Descripcion, request.Descripcion), ct);
+
+            await context.UpsertAgentPropertyActivityAsync(currentUserId, propertyMedia.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
             if (rowsAffected > 0)
             {
@@ -27,7 +47,7 @@ public static class ActualizarDescripcionMultimediaFeature
             return Results.NotFound();
         })
         .WithTags("Propiedades - Galería")
-        .WithName("ActualizarDescripcionMultimedia");
+        .WithName("ActualizarDescripcionMultimedia")
+        .RequireAuthorization();
     }
 }
-

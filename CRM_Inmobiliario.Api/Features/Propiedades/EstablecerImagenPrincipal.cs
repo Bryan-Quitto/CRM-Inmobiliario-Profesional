@@ -17,7 +17,8 @@ public static class EstablecerImagenPrincipalFeature
             [FromRoute] Guid propiedadId,
             [FromRoute] Guid imagenId,
             ClaimsPrincipal user,
-            CrmDbContext context) =>
+            CrmDbContext context,
+            CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -42,6 +43,8 @@ public static class EstablecerImagenPrincipalFeature
 
                 if (filasAfectadas == 0)
                     return Results.NotFound("No se encontró la imagen especificada.");
+
+                await context.UpsertAgentPropertyActivityAsync(agenteId, propiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
                 return Results.Ok(new { Message = "Imagen de portada actualizada correctamente." });
             }

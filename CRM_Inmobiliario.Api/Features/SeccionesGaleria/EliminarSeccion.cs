@@ -1,3 +1,8 @@
+using System;
+using System.Linq;
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
+using CRM_Inmobiliario.Api.Features.Propiedades;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -10,17 +15,30 @@ public static class EliminarSeccionFeature
 {
     public static RouteHandlerBuilder MapEliminarSeccionEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, CrmDbContext context, Supabase.Client supabase) =>
+        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, CrmDbContext context, Supabase.Client supabase, ClaimsPrincipal user, CancellationToken ct) =>
         {
+            var currentUserId = user.GetRequiredUserId();
+
             // 0. Obtener ID de propiedad antes de borrar
-            var seccion = await context.PropertyGallerySections.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            var seccion = await context.PropertyGallerySections
+                .Include(s => s.Propiedad)
+                    .ThenInclude(p => p!.Agente)
+                .Include(s => s.Propiedad)
+                    .ThenInclude(p => p!.Transactions)
+                .FirstOrDefaultAsync(s => s.Id == id, ct);
+
             if (seccion == null) return Results.NotFound();
+
+            if (!PropertyPermissionsHelper.CanManage(seccion.Propiedad!, currentUserId))
+            {
+                return Results.Forbid();
+            }
 
             // 1. Obtener las rutas de almacenamiento de las imágenes de la sección antes de borrarlas de la DB
             var storagePaths = await context.PropertyMedia
                 .Where(m => m.SectionId == id && !string.IsNullOrEmpty(m.StoragePath))
                 .Select(m => m.StoragePath!)
-                .ToListAsync();
+                .ToListAsync(ct);
 
             try 
             {
@@ -33,7 +51,9 @@ public static class EliminarSeccionFeature
                 // 3. Borrar la sección de la base de datos
                 var rowsAffected = await context.PropertyGallerySections
                     .Where(s => s.Id == id)
-                    .ExecuteDeleteAsync();
+                    .ExecuteDeleteAsync(ct);
+
+                await context.UpsertAgentPropertyActivityAsync(currentUserId, seccion.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
                 if (rowsAffected > 0)
                 {
@@ -50,7 +70,7 @@ public static class EliminarSeccionFeature
             }
         })
         .WithTags("Propiedades - Galería")
-        .WithName("EliminarSeccionGaleria");
+        .WithName("EliminarSeccionGaleria")
+        .RequireAuthorization();
     }
 }
-

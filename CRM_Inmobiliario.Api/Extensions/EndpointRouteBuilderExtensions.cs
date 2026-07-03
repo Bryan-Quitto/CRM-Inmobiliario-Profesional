@@ -1,4 +1,4 @@
-﻿using CRM_Inmobiliario.Api.Features.Analitica;
+using CRM_Inmobiliario.Api.Features.Analitica;
 using CRM_Inmobiliario.Api.Features.Calendario;
 using CRM_Inmobiliario.Api.Features.Contactos;
 using CRM_Inmobiliario.Api.Features.Contactos.FusionarContactos;
@@ -107,6 +107,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapInvitarAgenteEndpoint();
         apiGroup.MapAgenciasEndpoints();
         apiGroup.MapUpdateAgentArchivingConfigEndpoint();
+        apiGroup.MapObtenerCandidatosArchivadoEndpoint();
         apiGroup.MapActivarPerfilEndpoint();
         apiGroup.MapListarAgentesEndpoint();
         apiGroup.MapDesactivarAgenteEndpoint();

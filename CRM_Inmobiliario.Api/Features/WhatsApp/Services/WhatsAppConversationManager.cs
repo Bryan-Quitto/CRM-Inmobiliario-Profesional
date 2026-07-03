@@ -111,6 +111,12 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
             Fecha = DateTimeOffset.UtcNow 
         });
         await _context.SaveChangesAsync(cancellationToken);
+
+        var contacto = await _context.Contactos.FindAsync(new object[] { contactoId }, cancellationToken);
+        if (contacto != null)
+        {
+            await _context.UpsertAgentContactActivityAsync(contacto.AgenteId, contacto.Id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), cancellationToken);
+        }
     }
 
     public async Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default)

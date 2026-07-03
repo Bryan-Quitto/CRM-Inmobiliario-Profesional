@@ -53,6 +53,8 @@ public static class VincularPropiedadFeature
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(i => i.NivelInteres, request.NivelInteres)
                         .SetProperty(i => i.FechaRegistro, DateTimeOffset.UtcNow), ct);
+                
+                await context.UpsertAgentContactActivityAsync(user.GetRequiredUserId(), contactoId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
             }
             else
             {
