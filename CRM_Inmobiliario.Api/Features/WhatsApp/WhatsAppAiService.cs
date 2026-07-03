@@ -65,6 +65,16 @@ public sealed class WhatsAppAiService
             {
                 bool autoCreate = agente.AutoCreateWhatsAppContacts || agente.IsWhatsAppAiEnabled;
                 contacto = await _conversationManager.GetOrCreateContactAsync(phone, phoneNumberId, autoCreate, cancellationToken);
+                
+                if (contacto != null)
+                {
+                    var isArchived = await dbContextCheck.AgentArchivedContacts.AnyAsync(a => a.AgentId == agente.Id && a.ContactoId == contacto.Id, cancellationToken);
+                    if (isArchived)
+                    {
+                        _logger.LogInformation("Bot inactivo para WhatsApp {Phone} porque el contacto está archivado. Mensaje ignorado y NO registrado en BD.", phone);
+                        return;
+                    }
+                }
             }
 
             if (agente != null && !agente.IsWhatsAppAiEnabled)

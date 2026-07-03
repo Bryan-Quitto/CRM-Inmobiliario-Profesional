@@ -1,4 +1,4 @@
-﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 using System.Text.Json;
@@ -48,9 +48,11 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
 
         var result = await (from c in _context.Contactos
                             where c.AgenteId == agent.Id && c.Id.ToString() == searchTerm
+                            let isArchived = _context.AgentArchivedContacts.Any(a => a.AgentId == agent.Id && a.ContactoId == c.Id)
                             select new 
                             {
                                 ContactId = c.Id,
+                                IsArchived = isArchived,
                                 Nombre = c.Nombre,
                                 Telefono = c.Telefono,
                                 EstadoEmbudo = c.EstadoEmbudo,
@@ -82,6 +84,11 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
         if (result == null)
         {
             return "{\"error\": \"Contacto no encontrado\"}";
+        }
+
+        if (result.IsArchived)
+        {
+            return "{\"error\": \"Contacto archivado. No se puede analizar un contacto que ha sido archivado.\"}";
         }
 
         var historialUnificado = result.WaMessages.Select(m => new { m.Fecha, Canal = "WhatsApp", Origen = m.OrigenMensaje ?? (m.Rol == "user" ? "Cliente" : "IA"), Mensaje = m.Contenido })

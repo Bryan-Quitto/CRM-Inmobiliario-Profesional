@@ -5,7 +5,7 @@ export const Footer = () => (
       <div className="flex items-center gap-4">
         <span className="flex items-center gap-2 text-slate-500">
           <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse"></div>
-          Cloud Systems Active
+          Sistemas Operativos en la Nube
         </span>
       </div>
     </div>

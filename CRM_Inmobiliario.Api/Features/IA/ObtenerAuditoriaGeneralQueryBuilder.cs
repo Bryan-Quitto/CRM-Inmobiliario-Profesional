@@ -23,6 +23,7 @@ public static class ObtenerAuditoriaGeneralQueryBuilder
                     LEFT JOIN ""Contactos"" c ON c.""Id"" = l.""ContactoId""
                     WHERE l.""Fecha"" >= @StartDate AND l.""Fecha"" <= @EndDate AND (c.""AgenteId"" = @AgenteId OR l.""TelefonoContacto"" = @AgenteIdStr)
                     " + (string.IsNullOrWhiteSpace(dbCanal) ? "" : @" AND (l.""Canal"" = @Canal OR (@Canal = 'Copilot' AND l.""Canal"" = 'Personal')) ") + @"
+                    AND (l.""ContactoId"" IS NULL OR NOT EXISTS (SELECT 1 FROM ""AgentArchivedContacts"" arc WHERE arc.""AgentId"" = @AgenteId AND arc.""ContactoId"" = l.""ContactoId""))
 
                     UNION ALL
 
@@ -43,6 +44,7 @@ public static class ObtenerAuditoriaGeneralQueryBuilder
                     LEFT JOIN ""Contactos"" c ON c.""Id"" = w.""ContactoId""
                     WHERE w.""Fecha"" >= @StartDate AND w.""Fecha"" <= @EndDate AND w.""AgenteId"" = @AgenteId
                     " + (!string.IsNullOrWhiteSpace(canal) && canal != "WhatsApp" ? " AND 1=0 " : "") + @"
+                    AND (w.""ContactoId"" IS NULL OR NOT EXISTS (SELECT 1 FROM ""AgentArchivedContacts"" arc WHERE arc.""AgentId"" = @AgenteId AND arc.""ContactoId"" = w.""ContactoId""))
 
                     UNION ALL
 
@@ -63,6 +65,7 @@ public static class ObtenerAuditoriaGeneralQueryBuilder
                     LEFT JOIN ""Contactos"" c ON c.""Id"" = f.""ContactoId""
                     WHERE f.""Fecha"" >= @StartDate AND f.""Fecha"" <= @EndDate AND f.""AgenteId"" = @AgenteId
                     " + (!string.IsNullOrWhiteSpace(canal) && canal != "Facebook" ? " AND 1=0 " : "") + @"
+                    AND (f.""ContactoId"" IS NULL OR NOT EXISTS (SELECT 1 FROM ""AgentArchivedContacts"" arc WHERE arc.""AgentId"" = @AgenteId AND arc.""ContactoId"" = f.""ContactoId""))
 
                     UNION ALL
 

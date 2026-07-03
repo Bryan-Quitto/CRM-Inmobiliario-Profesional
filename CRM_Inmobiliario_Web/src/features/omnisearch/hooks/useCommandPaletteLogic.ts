@@ -30,7 +30,7 @@ export interface StaticOption {
 
 const STATIC_OPTIONS: StaticOption[] = [
   // Dashboard
-  { id: 'route-dashboard', title: 'Inicio', subtitle: 'Dashboard Principal', icon: 'Home', path: '/', keywords: ['inicio', 'dashboard', 'home', 'principal', 'resumen'] },
+  { id: 'route-dashboard', title: 'Inicio', subtitle: 'Panel de Control Principal', icon: 'Home', path: '/', keywords: ['inicio', 'dashboard', 'home', 'principal', 'resumen'] },
   // Calendario
   { id: 'route-calendario', title: 'Calendario', subtitle: 'Gestión de Agenda', icon: 'Calendar', path: '/calendario', keywords: ['calendario', 'agenda', 'eventos', 'visitas', 'reuniones'] },
   // CRM y Entidades

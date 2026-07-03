@@ -1,4 +1,4 @@
-﻿import { ChevronLeft, UserCheck, Search, MessageSquare, MessageCircle, Pencil, Merge } from 'lucide-react';
+import { ChevronLeft, UserCheck, Search, MessageSquare, MessageCircle, Pencil, Merge } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import type { Contacto } from '../../types';
 import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
@@ -124,13 +124,15 @@ export const ContactoHeader = ({
           </a>
         )}
 
-        <button
-          onClick={handleAnalizarConIA}
-          title="Analizar con IA"
-          className="h-10 px-3 md:px-4 bg-indigo-50 text-indigo-600 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1.5 md:gap-2 cursor-pointer shrink-0"
-        >
-          ✨ <span className="hidden md:inline">Analizar con IA</span>
-        </button>
+        {!contacto.isArchivedForCurrentUser && (
+          <button
+            onClick={handleAnalizarConIA}
+            title="Analizar con IA"
+            className="h-10 px-3 md:px-4 bg-indigo-50 text-indigo-600 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1.5 md:gap-2 cursor-pointer shrink-0"
+          >
+            ✨ <span className="hidden md:inline">Analizar con IA</span>
+          </button>
+        )}
 
         <ArchiveToggleButton
           isArchived={!!contacto.isArchivedForCurrentUser}

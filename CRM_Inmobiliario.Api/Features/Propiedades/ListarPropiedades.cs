@@ -67,6 +67,7 @@ public static class ListarPropiedadesFeature
                 })
                 .Select(x => new Response(
                     x.Property.Id,
+                    x.Property.CodigoCorto,
                     x.Property.Titulo,
                     x.Property.TipoPropiedad,
                     x.Property.Operacion,

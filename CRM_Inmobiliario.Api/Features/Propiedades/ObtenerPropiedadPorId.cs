@@ -12,6 +12,7 @@ public static class ObtenerPropiedadPorIdFeature
 {
     public record Response(
         Guid Id,
+        string? CodigoCorto,
         string Titulo,
         string Descripcion,
         string TipoPropiedad,
@@ -110,6 +111,7 @@ public static class ObtenerPropiedadPorIdFeature
                 })
                 .Select(x => new Response(
                     x.Property.Id,
+                    x.Property.CodigoCorto,
                     x.Property.Titulo,
                     x.Property.Descripcion,
                     x.Property.TipoPropiedad,

@@ -69,7 +69,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
               <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center gap-2 mb-2 border-b border-slate-100 pb-3">
                   <KeyRound className="text-slate-400 shrink-0" size={18} />
-                  <h3 className="text-base font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Credenciales (Bring Your Own Key)</h3>
+                  <h3 className="text-base font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Credenciales (Clave API Propia)</h3>
                 </div>
                 
                 <div className="space-y-2">

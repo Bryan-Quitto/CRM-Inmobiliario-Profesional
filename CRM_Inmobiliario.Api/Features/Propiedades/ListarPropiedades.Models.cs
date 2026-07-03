@@ -24,6 +24,7 @@ public record GetPropiedadesRequest(
 
 public record Response(
     Guid Id,
+    string? CodigoCorto,
     string Titulo,
     string TipoPropiedad,
     string Operacion,

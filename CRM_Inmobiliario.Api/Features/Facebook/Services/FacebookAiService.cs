@@ -52,6 +52,16 @@ public sealed class FacebookAiService
 
             var builder = new FacebookContextBuilder(_dbFactory, _logger, _httpClientFactory);
             var contacto = await builder.GetOrCreateContactAsync(agente, senderId, ct);
+            
+            if (contacto != null)
+            {
+                var isArchived = await dbContextCheck.AgentArchivedContacts.AnyAsync(a => a.AgentId == agente.Id && a.ContactoId == contacto.Id, ct);
+                if (isArchived)
+                {
+                    _logger.LogInformation("Bot inactivo para PSID {SenderId} porque el contacto está archivado. Mensaje ignorado y NO registrado en BD.", senderId);
+                    return;
+                }
+            }
 
             if (!agente.IsFacebookAiEnabled)
             {

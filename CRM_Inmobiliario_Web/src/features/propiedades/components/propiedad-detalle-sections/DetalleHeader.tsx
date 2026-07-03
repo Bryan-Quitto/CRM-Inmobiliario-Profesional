@@ -1,5 +1,8 @@
-﻿import { useState } from 'react';
-import { X, Pencil, MessageSquare, Copy, Check } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { X, Pencil, MessageSquare, Copy, Check, RefreshCw } from 'lucide-react';
+import { useSWRConfig } from 'swr';
+import { generarCodigoCorto } from '../../api/generarCodigoCorto';
 import PDFLinkInternal from '../PDFLinkInternal';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
 import type { Propiedad } from '../../types';
@@ -22,7 +25,6 @@ interface DetalleHeaderProps {
 }
 
 export const DetalleHeader = ({
-  id,
   propiedad,
   onClose,
   onShowEditModal,
@@ -37,10 +39,27 @@ export const DetalleHeader = ({
   onToggleArchive
 }: DetalleHeaderProps) => {
   const [copied, setCopied] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { mutate } = useSWRConfig();
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      await generarCodigoCorto(propiedad.id);
+      toast.success('Código corto generado con éxito');
+      mutate(`/propiedades/${propiedad.id}`);
+      mutate('/propiedades');
+    } catch {
+      toast.error('Error al generar código corto');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleCopyCode = () => {
     if (!propiedad.codigoCorto) return;
     navigator.clipboard.writeText(propiedad.codigoCorto);
+    toast.success('Código copiado al portapapeles');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -54,9 +73,8 @@ export const DetalleHeader = ({
           </button>
           <div>
             <h2 className="text-xl font-black text-slate-900 tracking-tight contactoing-none">Detalles de la Propiedad</h2>
-            <div className="flex items-center gap-3 mt-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ID: {id.split('-')[0]}</p>
-              {propiedad.codigoCorto && (
+            <div className="flex items-center gap-3 mt-1 h-6">
+              {propiedad.codigoCorto ? (
                   <button
                     title="Copiar para Anuncios de Meta (Payload)"
                     onClick={handleCopyCode}
@@ -64,6 +82,16 @@ export const DetalleHeader = ({
                   >
                     Ref: {propiedad.codigoCorto}
                     {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                  </button>
+              ) : (
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                    title="Generar Código Corto"
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-md text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    Generar Ref
+                    <RefreshCw className={`h-3 w-3 ${isGenerating ? 'animate-spin' : ''}`} />
                   </button>
               )}
             </div>

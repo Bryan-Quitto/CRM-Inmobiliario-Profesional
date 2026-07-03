@@ -68,7 +68,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center gap-2 mb-2 border-b border-slate-100 pb-4">
                   <KeyRound className="text-slate-400" size={20} />
-                  <h3 className="text-lg font-bold text-slate-800">Credenciales (Bring Your Own Key)</h3>
+                  <h3 className="text-lg font-bold text-slate-800">Credenciales (Clave API Propia)</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="relative">

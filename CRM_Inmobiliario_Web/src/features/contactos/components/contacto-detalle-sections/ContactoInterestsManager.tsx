@@ -72,7 +72,7 @@ export const ContactoInterestsManager = ({
                 <p className="text-xs font-bold text-slate-500 uppercase m-0">Nivel de Interés para la propiedad</p>
                 <HelpButton 
                   title="Niveles de Interés" 
-                  content={`**¿Para qué sirven estos niveles?**\n\nAyudan a medir el nivel de interés de los contactos en las propiedades (🔥 Alto, ⚡ Medio, ❄️ Bajo). Esta métrica es fundamental para el **Dashboard de Inicio**, ya que te permite visualizar la temperatura de tus prospectos y priorizar tus esfuerzos de venta.`} 
+                  content={`**¿Para qué sirven estos niveles?**\n\nAyudan a medir el nivel de interés de los contactos en las propiedades (🔥 Alto, ⚡ Medio, ❄️ Bajo). Esta métrica es fundamental para el **Panel de Control de Inicio**, ya que te permite visualizar la temperatura de tus prospectos y priorizar tus esfuerzos de venta.`} 
                 />
               </div>
               <div className="grid grid-cols-2 gap-2 mb-4">

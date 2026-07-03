@@ -47,7 +47,7 @@ public static class ObtenerLogsIa
             {
                 var rawLogs = await context.AiActionLogs
                     .AsNoTracking()
-                    .Where(l => l.Canal == canal)
+                    .Where(l => l.Canal == canal && (l.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == l.ContactoId)))
                     .OrderByDescending(l => l.Fecha)
                     .Take(400)
                     .ToListAsync();
@@ -64,7 +64,7 @@ public static class ObtenerLogsIa
 
                 if (canal == "WhatsApp")
                 {
-                    var recentWa = await context.WhatsappMessages.AsNoTracking().OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
+                    var recentWa = await context.WhatsappMessages.AsNoTracking().Where(m => m.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == m.ContactoId)).OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
                     activities.AddRange(recentWa.Select(m => new { 
                         ContactoId = (Guid?)m.ContactoId, 
                         TelefonoContacto = m.Telefono, 
@@ -77,7 +77,7 @@ public static class ObtenerLogsIa
                 }
                 else if (canal == "Facebook")
                 {
-                    var recentFb = await context.FacebookMessages.AsNoTracking().OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
+                    var recentFb = await context.FacebookMessages.AsNoTracking().Where(m => m.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == m.ContactoId)).OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
                     activities.AddRange(recentFb.Select(m => new { 
                         ContactoId = (Guid?)m.ContactoId, 
                         TelefonoContacto = m.FacebookSenderId, 

@@ -48,7 +48,7 @@ export const AnaliticaViewMobile: React.FC<Props> = ({ logic }) => {
             <div className="flex items-start gap-2">
               <h2 className="text-sm md:text-lg font-black text-slate-900 uppercase tracking-tight">Pulso del Negocio</h2>
               <div className="pt-0.5 shrink-0">
-                <HelpButton title="Analítica y Dashboard" path="/docs/manuales/manual_analitica.md" />
+                <HelpButton title="Analítica y Panel de Control" path="/docs/manuales/manual_analitica.md" />
               </div>
             </div>
             <div className="flex items-center gap-1.5 mt-1">

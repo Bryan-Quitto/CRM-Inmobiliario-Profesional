@@ -53,7 +53,7 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
 
             <div className="space-y-1.5">
               <label className="text-xs font-black text-miui-slate-400 uppercase tracking-widest ml-1" htmlFor="email-mobile">
-                Email
+                Correo Electrónico
               </label>
               <div className="relative group">
                 <Mail color="url(#miui-icon-slate-500)" className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 group-focus-within:text-blue-500 transition-colors" />
