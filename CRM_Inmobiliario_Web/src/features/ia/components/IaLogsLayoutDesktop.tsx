@@ -20,7 +20,7 @@ export const IaLogsLayoutDesktop = ({ logic }: Props) => {
           <div className="flex items-center gap-3">
             Auditoría Sistema/IA
             <div className="pt-1.5">
-              <HelpButton title="Auditoría Sistema" path="/docs/manuales/manual_comunicaciones.md" />
+              <HelpButton title="Auditoría Sistema" path="/docs/manuales/manual_sistema-ia_registros.md" />
             </div>
           </div>
         </h2>
@@ -47,7 +47,12 @@ export const IaLogsLayoutDesktop = ({ logic }: Props) => {
               }
             >
               <Icon className="h-4 w-4" />
-              {tab.label}
+              <span className="flex items-center gap-1.5">
+                {tab.label}
+                <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                  <HelpButton title={`Registros de ${tab.label}`} path={`/docs/manuales/manual_sistema-ia_registros.md#${tab.label.toLowerCase()}`} />
+                </div>
+              </span>
             </NavLink>
           );
         })}

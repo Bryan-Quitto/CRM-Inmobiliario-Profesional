@@ -432,7 +432,7 @@ export const FacebookIntegracionTab: React.FC<Props> = ({
             </div>
             <h3 className="text-lg font-bold text-slate-800">Integración con Facebook Messenger</h3>
           </div>
-          <HelpButton title="Integración con Facebook Messenger" path="/docs/manuales/manual_comunicaciones.md" />
+          <HelpButton title="Integración con Facebook Messenger" path="/docs/manuales/manual_ia.md#facebook" />
         </div>
 
         {/* Feedback banners */}

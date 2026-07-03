@@ -32,7 +32,7 @@ export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) 
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em]">Seguimiento Crítico</p>
-              <HelpButton title="Seguimiento Crítico" path="/docs/manuales/manual_analitica.md" className="text-rose-400 hover:text-rose-600 hover:bg-rose-100" />
+              <HelpButton title="Seguimiento Crítico" path="/docs/manuales/manual_dashboard.md" className="text-rose-400 hover:text-rose-600 hover:bg-rose-100" />
             </div>
             <ChevronDown className={`h-4 w-4 text-rose-400 transition-transform duration-300 ${isSeguimientoOpen ? 'rotate-180' : ''}`} />
           </div>

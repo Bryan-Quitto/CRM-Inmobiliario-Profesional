@@ -109,7 +109,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                     <h3 className="text-base font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">Integración con WhatsApp</h3>
                   </div>
                   <div className="shrink-0">
-                    <HelpButton title="Integración con WhatsApp" path="/docs/manuales/manual_comunicaciones.md" />
+                    <HelpButton title="Integración con WhatsApp" path="/docs/manuales/manual_ia.md#whatsapp" />
                   </div>
                 </div>
 
@@ -196,7 +196,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                     <h3 className="text-base font-bold text-slate-800 leading-tight flex-1 min-w-0 break-words">IA del Sistema (Personal)</h3>
                   </div>
                   <div className="shrink-0">
-                    <HelpButton title="IA del Sistema (Personal)" path="/docs/manuales/manual_comunicaciones.md" />
+                    <HelpButton title="IA del Sistema (Personal)" path="/docs/manuales/manual_ia.md#personal" />
                   </div>
                 </div>
 

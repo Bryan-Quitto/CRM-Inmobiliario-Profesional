@@ -29,7 +29,7 @@ export const EmbudoVentas: React.FC<EmbudoVentasProps> = ({ data, syncing }) => 
           <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
             <Filter className="h-5 w-5 text-blue-600" />
             Embudo de Ventas
-            <HelpButton title="Embudo de Ventas" path="/docs/manuales/manual_analitica.md" />
+            <HelpButton title="Embudo de Ventas" path="/docs/manuales/manual_dashboard.md" />
           </h3>
           <p className="text-sm font-medium text-slate-500">Distribución estratégica por etapa comercial</p>
         </div>

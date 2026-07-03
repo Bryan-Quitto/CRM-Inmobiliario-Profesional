@@ -50,7 +50,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ data, syncing }) => {
                 <TrendingUp className="h-3 w-3" />
                 Actual
               </div>
-              <HelpButton title="Métricas y Analítica" path="/docs/manuales/manual_analitica.md" />
+              <HelpButton title="Métricas y Analítica" path="/docs/manuales/manual_dashboard.md" />
             </div>
           </div>
           <div className="mt-4">

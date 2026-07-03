@@ -1,4 +1,5 @@
 import React from 'react';
+import { HelpButton } from '../../../components/ui/HelpButton';
 import { Loader2, Bell, RefreshCw, BellOff, Info, Save } from 'lucide-react';
 import { TimeDurationInput, type TimeUnit } from './TimeDurationInput';
 import type { ConfiguracionNotificacionesLogicReturn } from '../hooks/useConfiguracionNotificacionesLogic';
@@ -55,7 +56,10 @@ export const ConfiguracionNotificacionesMobile: React.FC<Props> = ({ logic }) =>
               <Bell className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-bold text-slate-900 leading-tight break-words">Notificaciones Recurrentes</h2>
+              <h2 className="text-lg font-bold text-slate-900 leading-tight break-words flex items-center gap-2">
+                Notificaciones Recurrentes
+                <div className="shrink-0"><HelpButton title="Notificaciones Recurrentes" path="/docs/manuales/manual_notificaciones.md" /></div>
+              </h2>
               <p className="text-slate-500 text-xs mt-1 leading-snug break-words">Configura la frecuencia de alertas sobre tus tareas.</p>
             </div>
           </div>

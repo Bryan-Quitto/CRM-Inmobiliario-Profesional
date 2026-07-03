@@ -56,7 +56,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
             <History className="h-4 w-4" />
           </Link>
           <div className="shrink-0">
-            <HelpButton title="Inteligencia Artificial" path="/docs/manuales/manual_ia.md" />
+            <HelpButton title="Inteligencia Artificial" path="/docs/manuales/manual_ia.md#personal" />
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">

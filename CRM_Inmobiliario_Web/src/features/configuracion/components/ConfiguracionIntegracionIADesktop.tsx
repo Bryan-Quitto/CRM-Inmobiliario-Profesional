@@ -108,7 +108,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                     <Smartphone className="text-slate-400" size={20} />
                     <h3 className="text-lg font-bold text-slate-800">Integración con WhatsApp</h3>
                   </div>
-                  <HelpButton title="Integración con WhatsApp" path="/docs/manuales/manual_comunicaciones.md" />
+                  <HelpButton title="Integración con WhatsApp" path="/docs/manuales/manual_ia.md#whatsapp" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -218,7 +218,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                     <Bot className="text-slate-400" size={20} />
                     <h3 className="text-lg font-bold text-slate-800">IA del Sistema (Personal)</h3>
                   </div>
-                  <HelpButton title="IA del Sistema (Personal)" path="/docs/manuales/manual_comunicaciones.md" />
+                  <HelpButton title="IA del Sistema (Personal)" path="/docs/manuales/manual_ia.md#personal" />
                 </div>
 
                 <div className="space-y-4">

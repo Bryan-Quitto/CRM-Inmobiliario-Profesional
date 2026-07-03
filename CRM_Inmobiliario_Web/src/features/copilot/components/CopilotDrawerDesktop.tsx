@@ -107,7 +107,7 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
                 <History className="h-4 w-4" />
               </Link>
               <div className="no-drag" onPointerDown={(e) => e.stopPropagation()}>
-                <HelpButton title="Inteligencia Artificial" path="/docs/manuales/manual_ia.md" />
+                <HelpButton title="Inteligencia Artificial" path="/docs/manuales/manual_ia.md#personal" />
               </div>
             </div>
             <div className="flex items-center gap-1">

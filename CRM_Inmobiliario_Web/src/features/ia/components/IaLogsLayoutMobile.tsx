@@ -20,7 +20,7 @@ export const IaLogsLayoutMobile = ({ logic }: Props) => {
           <div className="flex flex-1 items-center gap-3 min-w-0">
             <span className="min-w-0 break-words">Auditoría Sistema/IA</span>
             <div className="shrink-0 pt-0.5">
-              <HelpButton title="Auditoría Sistema" path="/docs/manuales/manual_comunicaciones.md" />
+              <HelpButton title="Auditoría Sistema" path="/docs/manuales/manual_sistema-ia_registros.md" />
             </div>
           </div>
         </h2>
@@ -46,7 +46,12 @@ export const IaLogsLayoutMobile = ({ logic }: Props) => {
                 }
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
-                {tab.label}
+                <span className="flex items-center gap-1.5">
+                  {tab.label}
+                  <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                    <HelpButton title={`Registros de ${tab.label}`} path={`/docs/manuales/manual_sistema-ia_registros.md#${tab.label.toLowerCase()}`} />
+                  </div>
+                </span>
               </NavLink>
             );
           })}
