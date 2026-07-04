@@ -3,15 +3,24 @@ import { ShieldCheck, User, Building, Lock, Loader2, CheckCircle2, AlertCircle, 
 import type { ConfirmarInvitacionLogic } from '../hooks/useConfirmarInvitacionLogic';
 import { PasswordRequirements } from './confirmar-invitacion/PasswordRequirements';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
+import { LegalModal } from '../../legal/components/LegalModal';
 
 interface Props {
   logic: ConfirmarInvitacionLogic;
 }
 
 export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
-  const { formData, isLoading, error, hasPredefinedAgency, validations, allValid, handleChange, handleActivate } = logic;
+  const { formData, isLoading, error, hasPredefinedAgency, validations, allValid, legalAccepted, setLegalAccepted, handleChange, handleActivate } = logic;
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [modalType, setModalType] = React.useState<'privacidad' | 'terminos' | null>(null);
+
+  const openModal = (type: 'privacidad' | 'terminos') => {
+    setModalType(type);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col p-4">
@@ -125,6 +134,27 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
             <PasswordRequirements validations={validations} />
           </div>
 
+          {/* Consentimiento Legal */}
+          <div className="flex items-start gap-3 mt-2">
+            <div className="flex items-center h-5">
+              <input
+                id="legal-checkbox-mobile"
+                type="checkbox"
+                checked={legalAccepted}
+                onChange={(e) => setLegalAccepted(e.target.checked)}
+                className="w-4 h-4 border border-slate-700 rounded bg-slate-900 checked:bg-emerald-500 checked:border-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-800 focus:ring-2 transition-all cursor-pointer"
+              />
+            </div>
+            <div className="text-[11px] text-slate-400 leading-snug">
+              <label htmlFor="legal-checkbox-mobile" className="cursor-pointer select-none">
+                He leído y acepto los{' '}
+              </label>
+              <button type="button" onClick={() => openModal('terminos')} className="text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Términos de Servicio</button>
+              {' '}y la{' '}
+              <button type="button" onClick={() => openModal('privacidad')} className="text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Política de Privacidad</button>.
+            </div>
+          </div>
+
           <button 
             type="submit" 
             disabled={isLoading || !allValid}
@@ -135,6 +165,12 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
           </button>
         </form>
       </div>
+
+      <LegalModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        type={modalType}
+      />
     </div>
   );
 };

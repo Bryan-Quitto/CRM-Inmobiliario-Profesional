@@ -118,9 +118,16 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
           </form>
         </div>
 
-        <p className="mt-4 mb-2 text-center text-miui-slate-400 text-xs font-bold uppercase tracking-widest">
-          © 2026 Lúmina CRM
-        </p>
+        <div className="mt-4 mb-2 flex flex-col items-center gap-3">
+          <div className="flex items-center gap-4 text-[10px] font-bold text-miui-slate-400 uppercase tracking-widest">
+            <a href="/terminos" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Términos</a>
+            <span>•</span>
+            <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Privacidad</a>
+          </div>
+          <p className="text-center text-miui-slate-500 text-[10px] font-bold uppercase tracking-widest">
+            © 2026 Lúmina CRM
+          </p>
+        </div>
       </div>
     </div>
   );

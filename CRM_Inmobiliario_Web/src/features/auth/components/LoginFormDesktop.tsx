@@ -108,9 +108,16 @@ export const LoginFormDesktop: React.FC<LoginFormDesktopProps> = ({ logic }) => 
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-          © 2026 Lúmina CRM • v1.1.0-Elite
-        </p>
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <a href="/terminos" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Términos</a>
+            <span>•</span>
+            <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Privacidad</a>
+          </div>
+          <p className="text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+            © 2026 Lúmina CRM • v1.1.0-Elite
+          </p>
+        </div>
       </div>
     </div>
   );

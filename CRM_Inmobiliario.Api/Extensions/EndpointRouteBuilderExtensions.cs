@@ -20,6 +20,7 @@ using CRM_Inmobiliario.Api.Features.FinOps.GetAgentTokenUsage;
 using CRM_Inmobiliario.Api.Features.PushNotifications;
 using CRM_Inmobiliario.Api.Features.Faqs;
 using CRM_Inmobiliario.Api.Features.Shared.OmniSearch;
+using CRM_Inmobiliario.Api.Features.Portabilidad.ExportarDatos;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -103,6 +104,7 @@ public static class EndpointRouteBuilderExtensions
 
         // Configuracion
         apiGroup.MapObtenerPerfilEndpoint();
+        apiGroup.MapExportarDatosEndpoint();
         apiGroup.MapActualizarPerfilEndpoint();
         apiGroup.MapUpdateNotificationSettingsEndpoint();
         apiGroup.MapInvitarAgenteEndpoint();

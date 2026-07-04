@@ -35,6 +35,8 @@ export const ConfirmarInvitacionDesktop: React.FC<Props> = ({ logic }) => {
           allValid={logic.allValid}
           handleChange={logic.handleChange}
           handleActivate={logic.handleActivate}
+          legalAccepted={logic.legalAccepted}
+          setLegalAccepted={logic.setLegalAccepted}
         />
       </div>
     </div>

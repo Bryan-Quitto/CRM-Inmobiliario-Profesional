@@ -1,0 +1,92 @@
+# Política de Privacidad de Lúmina
+
+**Fecha de última actualización:** 3 de julio de 2026
+
+Lúmina ("nosotros", "nuestro", "la Plataforma") está comprometida con la protección de los datos personales. Esta Política de Privacidad describe cómo recopilamos, utilizamos, almacenamos y protegemos la información personal, en cumplimiento de la Ley Orgánica de Protección de Datos Personales (LOPDP) del Ecuador, el Reglamento General de Protección de Datos (GDPR) y otros estándares internacionales aplicables.
+
+Esta política se aplica a todos los usuarios de nuestra plataforma de CRM Inmobiliario profesional (Software como Servicio), es decir, a los Agentes Inmobiliarios Independientes (en adelante, "Usuario" o "Agente"). La funcionalidad de "Agencias" dentro de la plataforma opera únicamente como un mecanismo de agrupación y colaboración (espacio de trabajo o equipo) para compartir propiedades, y no genera un vínculo contractual directo entre Lúmina y dichas franquicias o empresas.
+
+## 1. Roles en el Tratamiento de Datos
+
+En el contexto de nuestros servicios, existen dos roles claramente diferenciados:
+
+*   **Lúmina como Responsable del Tratamiento:** Actuamos como Responsables respecto a los datos personales de nuestros Usuarios (agentes y representantes legales de agencias) necesarios para la prestación del servicio, gestión de cuentas y facturación.
+*   **Lúmina como Encargado del Tratamiento:** Actuamos como Encargados respecto a los datos personales de los clientes finales (contactos, prospectos, y propietarios de inmuebles) introducidos o vinculados a la plataforma por el Usuario. El Agente actúa como el **Responsable del Tratamiento** de los datos de su propia cartera de clientes y es el único responsable de recabar el consentimiento lícito para su tratamiento, incluyendo su procesamiento mediante herramientas de Inteligencia Artificial (IA) y canales de comunicación como WhatsApp.
+
+## 2. Datos que Recopilamos
+
+### 2.1. Datos de los Usuarios (Agentes y Agencias)
+Como Responsables del Tratamiento, recopilamos:
+*   **Información de Identificación y Contacto:** Nombre, apellido, correo electrónico (ID vinculado a Supabase Auth), teléfono y dirección física.
+*   **Datos de Personalización:** Foto de perfil del agente y logotipo de la agencia.
+*   **Integraciones y Credenciales:** Identificadores para canales de comunicación (WhatsApp Phone Number ID, Facebook Page ID, Facebook Page Access Tokens).
+*   **Configuración de Inteligencia Artificial:** Preferencias de modelos de lenguaje, indicaciones (prompts) personalizadas y claves de integración propias cuando aplique.
+*   **Datos Técnicos y de Uso:** Suscripciones a notificaciones WebPush, logs de auditoría de seguridad y de interacciones con la IA, uso de tokens y métricas de desempeño del agente dentro del CRM.
+
+### 2.2. Datos de los Clientes Finales (Contactos y Propietarios)
+Como Encargados del Tratamiento, procesamos por cuenta del Agente:
+*   **Información de Contacto:** Nombre, apellido, correo electrónico y número de teléfono.
+*   **Identidad Digital:** Identificadores únicos en plataformas de mensajería (ej. Facebook Sender ID, número de WhatsApp).
+*   **Comunicaciones:** Historial completo de conversaciones (vía WhatsApp y Facebook Messenger), interacciones registradas manualmente y notas del agente.
+*   **Perfil Comercial:** Origen del contacto, estado en el embudo de ventas, propiedades de interés o en propiedad, historial de transacciones y cierres.
+
+## 3. Uso de los Datos
+
+Utilizamos la información recopilada con las siguientes finalidades:
+*   Proveer, mantener y mejorar los servicios del CRM Lúmina.
+*   Gestionar la autenticación segura y el acceso a la plataforma.
+*   Facilitar la comunicación omnicanal entre los Agentes y sus clientes mediante integraciones oficiales de Meta (WhatsApp, Facebook Messenger).
+*   Procesar consultas, mensajes e información comercial mediante servicios de Inteligencia Artificial para asistir a los agentes (clasificación, resúmenes, y respuestas automáticas).
+*   Enviar notificaciones push relacionadas con la operatividad del sistema.
+*   Cumplir con obligaciones legales y prevenir fraudes o usos indebidos de la plataforma.
+
+## 4. Subencargados del Tratamiento (Terceros)
+
+Para proveer nuestro servicio, compartimos información de manera segura con proveedores externos estrictamente necesarios (Subencargados). Todos ellos cumplen con altos estándares de seguridad y protección de datos:
+
+*   **Supabase:** Proveedor principal de autenticación (Auth) y alojamiento de base de datos (PostgreSQL). Alberga los datos de registro de agentes y la base de datos completa.
+*   **Meta Platforms, Inc.:** Provee la infraestructura de WhatsApp Business API y Facebook Messenger para la recepción y envío de mensajes automatizados o manuales (vía Webhooks y Graph API).
+*   **Servicios de Inteligencia Artificial (OpenAI, Google Gemini):** Empleados para el procesamiento de lenguaje natural (generación de texto, transcripciones con Whisper, embeddings). Cierta información de los contactos viaja a estas APIs para ser procesada exclusivamente para las funcionalidades del CRM.
+*   **Servicios WebPush:** Para el enrutamiento de notificaciones al navegador del agente.
+
+## 5. Almacenamiento Local
+
+Lúmina utiliza tecnologías de almacenamiento en el navegador del usuario final (Agente) para el correcto funcionamiento de la aplicación web. La plataforma es una Aplicación de Página Única (SPA) que utiliza tokens JWT en cabeceras de autorización (`Bearer`), y **no emplea cookies de sesión**:
+
+*   **LocalStorage:** Utilizamos `localStorage` para persistir la sesión de Supabase Auth (tokens JWT) de forma segura en el navegador, evitando reconexiones constantes.
+*   **Caché de Aplicación (Zustand / SWR):** Ciertas preferencias de usuario y datos de la interfaz se almacenan temporalmente en la memoria o almacenamiento local/sesión para garantizar una experiencia rápida y fluida.
+*   **Notificaciones Push Nativas (WebPush/VAPID):** El Agente puede habilitar notificaciones push del sistema operativo (Windows, Android, macOS, iOS) mediante la tecnología estándar Web Push con claves VAPID propias. Estas notificaciones alertan sobre tareas pendientes, vencidas y solicitudes de asistencia de la IA. Su activación es completamente voluntaria y configurable desde el panel de ajustes.
+
+*Nota: Lúmina no utiliza cookies de sesión ni cookies de rastreo publicitario de terceros en su plataforma de software.*
+
+## 6. Base Legal para el Tratamiento
+
+*   **Para Usuarios (Agentes):** El tratamiento se basa en la ejecución del contrato de prestación de servicios (Términos de Servicio), el consentimiento expreso al crear una cuenta y el interés legítimo de mejorar nuestra plataforma.
+*   **Para Clientes Finales:** Los Agentes actúan como Responsables y basan su tratamiento en el consentimiento de sus clientes o en la relación precontractual/contractual que mantienen con ellos.
+
+## 7. Derechos de los Titulares de los Datos
+
+De acuerdo con la LOPDP y el GDPR, los titulares de los datos tienen derecho a:
+*   **Acceso:** Conocer qué datos personales tratamos.
+*   **Rectificación y Actualización:** Corregir datos inexactos o incompletos.
+*   **Eliminación (Olvido):** Solicitar el borrado de sus datos cuando ya no sean necesarios o se retire el consentimiento.
+*   **Oposición y Limitación:** Oponerse a ciertos tratamientos o solicitar su restricción.
+*   **Portabilidad:** Recibir sus datos en un formato estructurado y legible por máquina.
+
+Los Usuarios pueden ejercer estos derechos directamente desde su panel de configuración o contactándonos a través de nuestros canales de soporte. Para el caso de clientes finales, deberán ejercer estos derechos directamente ante el Agente inmobiliario correspondiente; Lúmina asistirá técnicamente al Agente para cumplir con tales solicitudes.
+
+## 8. Seguridad de los Datos
+
+Implementamos medidas técnicas y organizativas robustas para proteger los datos contra accesos no autorizados, alteraciones, divulgaciones o destrucción. Esto incluye cifrado en tránsito (HTTPS/TLS), autenticación segura (JWT), y control de acceso basado en roles (RLS) a nivel de base de datos en Supabase.
+
+## 9. Transferencias Internacionales
+
+Dado que utilizamos infraestructura en la nube (como Supabase, OpenAI, Google y Meta), los datos pueden ser transferidos y procesados en servidores ubicados fuera de Ecuador (ej. Estados Unidos o la Unión Europea). Nos aseguramos de que estos proveedores ofrezcan garantías adecuadas de protección, como cláusulas contractuales tipo y certificaciones de cumplimiento de privacidad.
+
+## 10. Cambios a la Política de Privacidad
+
+Nos reservamos el derecho de actualizar esta política periódicamente. Notificaremos a los Usuarios sobre cambios sustanciales mediante avisos en la plataforma o por correo electrónico, garantizando un tiempo prudencial para su revisión.
+
+## 11. Contacto
+
+Para dudas sobre esta Política de Privacidad o consultas legales respecto a la protección de datos, por favor contáctese con: `bryanleninqn@gmail.com`.

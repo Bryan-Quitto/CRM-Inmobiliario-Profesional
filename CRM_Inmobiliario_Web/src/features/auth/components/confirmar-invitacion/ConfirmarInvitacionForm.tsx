@@ -2,6 +2,7 @@ import React from 'react';
 import { User, Building, Lock, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { PasswordRequirements } from './PasswordRequirements';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
+import { LegalModal } from '../../../legal/components/LegalModal';
 
 interface ConfirmarInvitacionFormProps {
   formData: {
@@ -23,10 +24,13 @@ interface ConfirmarInvitacionFormProps {
     hasLower: boolean;
     hasNumber: boolean;
     match: boolean;
+    legalAccepted?: boolean;
   };
   allValid: boolean;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleActivate: (e: React.FormEvent) => void;
+  legalAccepted: boolean;
+  setLegalAccepted: (val: boolean) => void;
 }
 
 export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = ({
@@ -37,10 +41,21 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
   validations,
   allValid,
   handleChange,
-  handleActivate
+  handleActivate,
+  legalAccepted,
+  setLegalAccepted
 }) => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [modalType, setModalType] = React.useState<'privacidad' | 'terminos' | null>(null);
+
+  const openModal = (type: 'privacidad' | 'terminos') => {
+    setModalType(type);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 p-8 rounded-[2rem] shadow-2xl">
       <form onSubmit={handleActivate} className="space-y-6">
@@ -142,6 +157,27 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
         {/* Checklist */}
         <PasswordRequirements validations={validations} />
 
+        {/* Consentimiento Legal */}
+        <div className="flex items-start gap-3 mt-4">
+          <div className="flex items-center h-5">
+            <input
+              id="legal-checkbox-desktop"
+              type="checkbox"
+              checked={legalAccepted}
+              onChange={(e) => setLegalAccepted(e.target.checked)}
+              className="w-4 h-4 border border-slate-700 rounded bg-slate-900/50 checked:bg-emerald-500 checked:border-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-800 focus:ring-2 transition-all cursor-pointer"
+            />
+          </div>
+          <div className="text-[11px] text-slate-400 leading-snug">
+            <label htmlFor="legal-checkbox-desktop" className="cursor-pointer select-none">
+              He leído y acepto los{' '}
+            </label>
+            <button type="button" onClick={() => openModal('terminos')} className="text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Términos de Servicio</button>
+            {' '}y la{' '}
+            <button type="button" onClick={() => openModal('privacidad')} className="text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Política de Privacidad</button>.
+          </div>
+        </div>
+
         <button 
           type="submit" 
           disabled={isLoading || !allValid}
@@ -151,6 +187,12 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
           {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : <><CheckCircle2 className="h-5 w-5" /> Activar mi Cuenta</>}
         </button>
       </form>
+
+      <LegalModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        type={modalType}
+      />
     </div>
   );
 };

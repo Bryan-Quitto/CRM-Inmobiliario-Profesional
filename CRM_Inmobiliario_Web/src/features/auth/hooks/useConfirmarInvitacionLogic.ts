@@ -19,6 +19,7 @@ export const useConfirmarInvitacionLogic = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasPredefinedAgency, setHasPredefinedAgency] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   useEffect(() => {
     const checkMetadata = async () => {
@@ -58,7 +59,8 @@ export const useConfirmarInvitacionLogic = () => {
     hasUpper: /[A-Z]/.test(formData.password),
     hasLower: /[a-z]/.test(formData.password),
     hasNumber: /[0-9]/.test(formData.password),
-    match: formData.password === formData.confirmPassword && formData.password !== ''
+    match: formData.password === formData.confirmPassword && formData.password !== '',
+    legalAccepted
   };
 
   const allValid = Object.values(validations).every(v => v);
@@ -125,6 +127,8 @@ export const useConfirmarInvitacionLogic = () => {
     hasPredefinedAgency,
     validations,
     allValid,
+    legalAccepted,
+    setLegalAccepted,
     handleChange,
     handleActivate
   };

@@ -41,6 +41,9 @@ const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/compo
 const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
 const ConfiguracionNotificaciones = lazy(() => import('./features/configuracion/components/ConfiguracionNotificaciones').then(m => ({ default: m.ConfiguracionNotificaciones })));
 const AutoArchivadoSettings = lazy(() => import('./features/configuracion/components/AutoArchivadoSettings').then(m => ({ default: m.AutoArchivadoSettings })));
+const ConfiguracionPortabilidad = lazy(() => import('./features/configuracion/components/ConfiguracionPortabilidad').then(m => ({ default: m.ConfiguracionPortabilidad })));
+const PoliticaPrivacidadView = lazy(() => import('./features/legal/components/PoliticaPrivacidadView').then(m => ({ default: m.PoliticaPrivacidadView })));
+const TerminosServicioView = lazy(() => import('./features/legal/components/TerminosServicioView').then(m => ({ default: m.TerminosServicioView })));
 
 import { CopilotDrawer } from './features/copilot/components/CopilotDrawer';
 import { GlobalContactoModal } from './components/layout/GlobalContactoModal';
@@ -153,6 +156,8 @@ function AppContent({ session }: { session: Session | null }) {
         <main className="p-3 md:p-8 w-full max-w-full">
           <Suspense fallback={<PageLoader />}>
             <Routes>
+              <Route path="/privacidad" element={<PoliticaPrivacidadView />} />
+              <Route path="/terminos" element={<TerminosServicioView />} />
               <Route path="/" element={<DashboardPrincipal />} />
               <Route path="/calendario" element={<CalendarioView />} />
               <Route path="/contactos" element={<ContactosList />} />
@@ -181,6 +186,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="agencias" element={<AdminRoute><ConfiguracionAgencias /></AdminRoute>} />
                 <Route path="seguridad" element={<AdminRoute><ConfiguracionSeguridad /></AdminRoute>} />
                 <Route path="auto-archivado" element={<AutoArchivadoSettings />} />
+                <Route path="portabilidad" element={<ConfiguracionPortabilidad />} />
               </Route>
               <Route path="/confirmar-password" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
               {/* Fallback global para usuarios logueados que intentan acceder a una ruta inexistente o vienen del login */}
@@ -237,6 +243,8 @@ function MainApp() {
     return (
       <GlobalErrorBoundary>
         <Routes>
+          <Route path="/privacidad" element={<Suspense fallback={<PageLoader />}><PoliticaPrivacidadView /></Suspense>} />
+          <Route path="/terminos" element={<Suspense fallback={<PageLoader />}><TerminosServicioView /></Suspense>} />
           <Route 
             path="*" 
             element={isInviteFlow ? (
