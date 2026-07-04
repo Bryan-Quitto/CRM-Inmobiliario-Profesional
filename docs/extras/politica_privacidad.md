@@ -49,15 +49,15 @@ Para proveer nuestro servicio, compartimos información de manera segura con pro
 *   **Servicios de Inteligencia Artificial (OpenAI, Google Gemini):** Empleados para el procesamiento de lenguaje natural (generación de texto, transcripciones con Whisper, embeddings). Cierta información de los contactos viaja a estas APIs para ser procesada exclusivamente para las funcionalidades del CRM.
 *   **Servicios WebPush:** Para el enrutamiento de notificaciones al navegador del agente.
 
-## 5. Cookies y Almacenamiento Local
+## 5. Almacenamiento Local
 
-Lúmina utiliza tecnologías de almacenamiento en el navegador del usuario final (Agente) para el correcto funcionamiento de la aplicación web:
+Lúmina utiliza tecnologías de almacenamiento en el navegador del usuario final (Agente) para el correcto funcionamiento de la aplicación web. La plataforma es una Aplicación de Página Única (SPA) que utiliza tokens JWT en cabeceras de autorización (`Bearer`), y **no emplea cookies de sesión**:
 
 *   **LocalStorage:** Utilizamos `localStorage` para persistir la sesión de Supabase Auth (tokens JWT) de forma segura en el navegador, evitando reconexiones constantes.
 *   **Caché de Aplicación (Zustand / SWR):** Ciertas preferencias de usuario y datos de la interfaz se almacenan temporalmente en la memoria o almacenamiento local/sesión para garantizar una experiencia rápida y fluida.
-*   **Cookies Estrictamente Necesarias:** Se emplean cookies propias establecidas por nuestros proveedores (ej. Supabase) orientadas exclusivamente a la gestión de sesiones y mitigación de ataques de falsificación de petición en sitios cruzados. 
+*   **Notificaciones Push Nativas (WebPush/VAPID):** El Agente puede habilitar notificaciones push del sistema operativo (Windows, Android, macOS, iOS) mediante la tecnología estándar Web Push con claves VAPID propias. Estas notificaciones alertan sobre tareas pendientes, vencidas y solicitudes de asistencia de la IA. Su activación es completamente voluntaria y configurable desde el panel de ajustes.
 
-*Nota: Lúmina no utiliza cookies de rastreo publicitario de terceros en su plataforma de software.*
+*Nota: Lúmina no utiliza cookies de sesión ni cookies de rastreo publicitario de terceros en su plataforma de software.*
 
 ## 6. Base Legal para el Tratamiento
 
@@ -77,16 +77,44 @@ Los Usuarios pueden ejercer estos derechos directamente desde su panel de config
 
 ## 8. Seguridad de los Datos
 
-Implementamos medidas técnicas y organizativas robustas para proteger los datos contra accesos no autorizados, alteraciones, divulgaciones o destrucción. Esto incluye cifrado en tránsito (HTTPS/TLS), autenticación segura (JWT), y control de acceso basado en roles (RLS) a nivel de base de datos en Supabase.
+Implementamos medidas técnicas y organizativas robustas para proteger los datos contra accesos no autorizados, alteraciones, divulgaciones o destrucción. Esto incluye cifrado en tránsito (HTTPS/TLS), autenticación segura (JWT), control de acceso basado en roles (RLS) a nivel de base de datos en Supabase, y **cifrado en reposo** transparente (usando la **ASP.NET Core Data Protection API**) para salvaguardar información crítica como las claves de integración de terceros (API Keys de Inteligencia Artificial).
 
-## 9. Transferencias Internacionales
+## 9. Datos de Plataformas Meta (WhatsApp y Facebook Messenger)
+
+Cuando el Usuario vincula sus canales de WhatsApp Business o Facebook Messenger a la plataforma, Lúmina accede a los mensajes, metadatos de conversaciones y configuración de página exclusivamente para proveer las funcionalidades del CRM descritas en esta política. Lúmina declara expresamente que:
+
+*   Los datos provenientes de plataformas de Meta **no son utilizados para publicidad** de ningún tipo, ni para crear perfiles comerciales propios de Lúmina ajenos a las funcionalidades del CRM.
+*   Los datos de conversaciones de WhatsApp y Messenger son tratados únicamente para mostrar el historial en el CRM, automatizar respuestas en nombre del Agente y generar alertas de asistencia para el Agente.
+*   El Agente (Usuario) es el único responsable de obtener el consentimiento leal y lícito de sus contactos para el uso de mensajería automatizada o asistida por IA, conforme a las Políticas de Negocio de Meta.
+*   Lúmina opera bajo el modelo de Proveedor de Tecnología (Tech Provider / ISV) sobre cuentas de WhatsApp Business API gestionadas por los propios Agentes.
+
+## 10. Menores de Edad
+
+Lúmina es un servicio exclusivamente destinado a profesionales y empresas (B2B). No está dirigido a personas menores de 18 años. No recopilamos intencionalmente datos personales de menores. Si tuviesemos conocimiento de haber recopilado datos de un menor sin consentimiento parental válido, procederemos a su eliminación inmediata.
+
+## 11. Retención de Datos
+
+Conservamos los datos personales únicamente durante el tiempo estrictamente necesario para los fines para los que fueron recopilados:
+
+| Tipo de Dato | Plazo de Retención |
+|---|---|
+| Datos de cuenta del Agente (perfil, credenciales) | Mientras la cuenta esté activa + 30 días tras eliminación |
+| Contactos y propiedades (datos del cliente final) | Mientras el Agente mantenga activa su cuenta |
+| Historial de conversaciones (WhatsApp / Messenger) | 12 meses desde la última interacción |
+| Logs de IA y uso de tokens | 6 meses |
+| Logs de auditoría de seguridad | 12 meses |
+| Suscripciones WebPush | Hasta que el Agente las revoque o elimine su cuenta |
+
+Una vez vencido el plazo, los datos son eliminados o anonimizados de forma segura.
+
+## 12. Transferencias Internacionales
 
 Dado que utilizamos infraestructura en la nube (como Supabase, OpenAI, Google y Meta), los datos pueden ser transferidos y procesados en servidores ubicados fuera de Ecuador (ej. Estados Unidos o la Unión Europea). Nos aseguramos de que estos proveedores ofrezcan garantías adecuadas de protección, como cláusulas contractuales tipo y certificaciones de cumplimiento de privacidad.
 
-## 10. Cambios a la Política de Privacidad
+## 13. Cambios a la Política de Privacidad
 
-Nos reservamos el derecho de actualizar esta política periódicamente. Notificaremos a los Usuarios sobre cambios sustanciales mediante avisos en la plataforma o por correo electrónico, garantizando un tiempo prudencial para su revisión.
+Nos reservamos el derecho de actualizar esta política periódicamente. Los Usuarios serán notificados sobre cambios sustanciales mediante **notificaciones obligatorias dentro de la plataforma (in-app)** al iniciar sesión, requiriendo su aceptación explícita para continuar utilizando el servicio.
 
-## 11. Contacto
+## 14. Contacto
 
-Para dudas sobre esta Política de Privacidad o consultas legales respecto a la protección de datos, por favor contáctese con: `bryanleninqn@gmail.com`.
+Para dudas sobre esta Política de Privacidad o consultas legales respecto a la protección de datos, por favor contáctese con: `soporte@luminacrminmobiliario.com`.

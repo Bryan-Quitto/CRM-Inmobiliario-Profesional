@@ -1,4 +1,5 @@
-﻿using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Domain.Entities;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
@@ -9,8 +10,11 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence;
 
 public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
 {
-    public CrmDbContext(DbContextOptions<CrmDbContext> options) : base(options)
+    private readonly IDataProtectionProvider? _dataProtectionProvider;
+
+    public CrmDbContext(DbContextOptions<CrmDbContext> options, IDataProtectionProvider? dataProtectionProvider = null) : base(options)
     {
+        _dataProtectionProvider = dataProtectionProvider;
     }
 
     // Requerido por IDataProtectionKeyContext para persistir claves en PostgreSQL (Railway-safe)
@@ -146,6 +150,21 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
         // CONVERTIDOR GLOBAL UTC (Spec 011 / Npgsql Fix)
         // PostgreSQL timestamp with time zone requiere offset 0 (UTC)
         ConfigureGlobalDateTimeOffsetConverter(modelBuilder);
+
+        // ENCRIPTACIÓN ESTRICTA DE API KEYS EN REPOSO
+        if (_dataProtectionProvider != null)
+        {
+            var protector = _dataProtectionProvider.CreateProtector("AiApiKey_Encryption");
+            
+            var aiApiKeyConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<string?, string?>(
+                v => v == null ? null : protector.Protect(v),
+                v => v == null ? null : protector.Unprotect(v)
+            );
+
+            modelBuilder.Entity<Agent>()
+                .Property(e => e.AiApiKey)
+                .HasConversion(aiApiKeyConverter);
+        }
     }
 
     private static void ConfigureGlobalDateTimeOffsetConverter(ModelBuilder modelBuilder)

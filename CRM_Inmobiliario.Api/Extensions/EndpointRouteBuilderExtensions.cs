@@ -104,6 +104,7 @@ public static class EndpointRouteBuilderExtensions
 
         // Configuracion
         apiGroup.MapObtenerPerfilEndpoint();
+        apiGroup.MapAceptarTerminosServicioEndpoint();
         apiGroup.MapExportarDatosEndpoint();
         apiGroup.MapActualizarPerfilEndpoint();
         apiGroup.MapUpdateNotificationSettingsEndpoint();

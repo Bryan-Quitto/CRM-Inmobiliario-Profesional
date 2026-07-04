@@ -61,7 +61,7 @@ Lúmina realiza sus mejores esfuerzos para garantizar una disponibilidad continu
 
 ## 7. Modificaciones a los Términos
 
-Nos reservamos el derecho de actualizar estos Términos en cualquier momento. Notificaremos a los Usuarios sobre cambios materiales con al menos 15 días de anticipación mediante **correo electrónico** dirigido a la dirección registrada en su cuenta. El uso continuado del sistema tras la entrada en vigor de los cambios constituye la aceptación de los nuevos Términos.
+Nos reservamos el derecho de actualizar estos Términos en cualquier momento. Los Usuarios serán notificados sobre cambios materiales mediante **notificaciones obligatorias dentro de la plataforma (in-app)** al iniciar sesión. El Usuario deberá aceptar explícitamente los nuevos Términos para continuar utilizando el servicio.
 
 ## 8. Legislación Aplicable y Jurisdicción
 

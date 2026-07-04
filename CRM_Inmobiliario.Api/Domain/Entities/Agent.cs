@@ -49,7 +49,7 @@ public sealed class Agent
 
     public bool Activo { get; set; } = true;
 
-    [MaxLength(255)]
+    [MaxLength(2000)]
     public string? AiApiKey { get; set; }
 
     [MaxLength(50)]
@@ -103,6 +103,9 @@ public sealed class Agent
     public bool AutoArchivarPropiedades { get; set; } = false;
     [Range(100, 1095)]
     public int DiasInactividadPropiedades { get; set; } = 365;
+
+    [MaxLength(50)]
+    public string? TerminosAceptadosVersion { get; set; }
 
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
 

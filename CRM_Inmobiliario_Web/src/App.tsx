@@ -17,6 +17,7 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { PageLoader, SidebarLoader } from './components/layout/Loaders';
 import { AdminRoute } from './components/layout/AdminRoute';
+import { TermsOfServiceWrapper } from './components/layout/TermsOfServiceWrapper';
 
 // Lazy Loading de Features
 const DashboardPrincipal = lazy(() => import('./features/dashboard/components/DashboardPrincipal').then(m => ({ default: m.DashboardPrincipal })));
@@ -265,7 +266,9 @@ function MainApp() {
       <NetworkStatusListener />
       <TareasProvider>
         <UploadProvider>
-          <AppContent session={session} />
+          <TermsOfServiceWrapper>
+            <AppContent session={session} />
+          </TermsOfServiceWrapper>
         </UploadProvider>
       </TareasProvider>
     </GlobalErrorBoundary>

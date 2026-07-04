@@ -77,16 +77,44 @@ Users can exercise these rights directly from their settings dashboard or by con
 
 ## 8. Data Security
 
-We implement robust technical and organizational measures to protect data against unauthorized access, alterations, disclosure, or destruction. This includes encryption in transit (HTTPS/TLS), secure authentication (JWT), and role-based access control (RLS) at the database level in Supabase.
+We implement robust technical and organizational measures to protect data against unauthorized access, alteration, disclosure, or destruction. This includes encryption in transit (HTTPS/TLS), secure authentication (JWT), role-based access control (RLS) at the database level in Supabase, and transparent **encryption at rest** (using the **ASP.NET Core Data Protection API**) to safeguard critical information such as third-party integration keys (Artificial Intelligence API Keys).
 
-## 9. International Transfers
+## 9. Meta Platform Data (WhatsApp and Facebook Messenger)
+
+When the User links their WhatsApp Business or Facebook Messenger channels to the platform, Lúmina accesses messages, conversation metadata, and page configuration exclusively to provide the CRM functionalities described in this policy. Lúmina expressly declares that:
+
+*   Data from Meta platforms **is not used for advertising** of any kind, nor to create Lúmina's own commercial profiles unrelated to the CRM's functionalities.
+*   WhatsApp and Messenger conversation data is processed solely to display the history in the CRM, automate responses on behalf of the Agent, and generate assistance alerts for the Agent.
+*   The Agent (User) is solely responsible for obtaining the lawful and legitimate consent of their contacts for the use of automated or AI-assisted messaging, in accordance with Meta's Business Policies.
+*   Lúmina operates under the Technology Provider (Tech Provider / ISV) model on WhatsApp Business API accounts managed by the Agents themselves.
+
+## 10. Minors
+
+Lúmina is a service exclusively intended for professionals and businesses (B2B). It is not directed at persons under 18 years of age. We do not intentionally collect personal data from minors. If we became aware of having collected data from a minor without valid parental consent, we will proceed with its immediate deletion.
+
+## 11. Data Retention
+
+We retain personal data only for the time strictly necessary for the purposes for which it was collected:
+
+| Data Type | Retention Period |
+|---|---|
+| Agent account data (profile, credentials) | While the account is active + 30 days after deletion |
+| Contacts and properties (end client data) | While the Agent maintains an active account |
+| Conversation history (WhatsApp / Messenger) | 12 months from the last interaction |
+| AI logs and token usage | 6 months |
+| Security audit logs | 12 months |
+| WebPush subscriptions | Until the Agent revokes them or deletes their account |
+
+Once the retention period expires, data is securely deleted or anonymized.
+
+## 12. International Transfers
 
 Given that we use cloud infrastructure (such as Supabase, OpenAI, Google, and Meta), data may be transferred and processed on servers located outside of Ecuador (e.g., United States or the European Union). We ensure that these providers offer adequate protection guarantees, such as standard contractual clauses and privacy compliance certifications.
 
-## 10. Changes to the Privacy Policy
+## 13. Changes to the Privacy Policy
 
-We reserve the right to update this policy periodically. We will notify Users of material changes via platform notices or email, ensuring a reasonable time frame for their review.
+We reserve the right to update this policy periodically. Users will be notified of material changes via **mandatory in-app notifications** upon logging in, requiring their explicit acceptance to continue using the service.
 
-## 11. Contact
+## 14. Contact
 
-For questions about this Privacy Policy or legal inquiries regarding data protection, please contact: `bryanleninqn@gmail.com`.
+For questions about this Privacy Policy or legal inquiries regarding data protection, please contact: `soporte@luminacrminmobiliario.com`.

@@ -61,7 +61,7 @@ Lúmina makes its best efforts to ensure continuous availability (uptime) of the
 
 ## 7. Modifications to the Terms
 
-We reserve the right to update these Terms at any time. We will notify Users of material changes at least 15 days in advance via notifications within the CRM or via email. Continued use of the system following the effective date of the changes constitutes acceptance of the new Terms.
+We reserve the right to update these Terms at any time. Users will be notified of material changes via **mandatory in-app notifications** upon logging in. The User must explicitly accept the new Terms to continue using the service.
 
 ## 8. Applicable Law and Jurisdiction
 

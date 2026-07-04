@@ -13,6 +13,7 @@ export interface PerfilAgente {
   logoUrl?: string;
   direccionFisica?: string;
   promptPersonalIA?: string;
+  terminosAceptadosVersion?: string;
   rol: string;
   fechaCreacion: string;
 }

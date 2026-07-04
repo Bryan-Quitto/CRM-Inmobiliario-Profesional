@@ -23,6 +23,7 @@ public static class ObtenerPerfil
         string? DireccionFisica,
         string? PromptPersonalIA,
         string Rol,
+        string? TerminosAceptadosVersion,
         DateTimeOffset FechaCreacion);
 
     public static IEndpointRouteBuilder MapObtenerPerfilEndpoint(this IEndpointRouteBuilder endpoints)
@@ -51,6 +52,7 @@ public static class ObtenerPerfil
                     a.DireccionFisica,
                     a.PromptPersonalIA,
                     a.Rol,
+                    a.TerminosAceptadosVersion,
                     a.FechaCreacion))
                 .FirstOrDefaultAsync();
 
@@ -70,6 +72,7 @@ public static class ObtenerPerfil
                     null,
                     null,
                     "Agente",
+                    null,
                     DateTimeOffset.UtcNow
                 ));
             }
