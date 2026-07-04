@@ -1,4 +1,4 @@
-# Manual de Contactos y Clientes
+# Manual de Contactos: Clientes y Propietarios
 
 Este manual documenta cómo gestionar a tus clientes y las etapas de venta en el CRM.
 
@@ -21,9 +21,9 @@ Las etapas varían dependiendo de si el cliente busca comprar/alquilar o si es e
   2. El proceso para pasar un cliente a "Cerrado" es poner una propiedad como "Vendida" o "Alquilada" y asignar a este cliente.
 
 ### Para Dueños de Propiedades (Propietarios)
-- **Activo:** Es un dueño que actualmente tiene propiedades. Se puede asignar este estado manualmente, o el sistema lo hará automáticamente cuando le asignes una propiedad.
-- **Inactivo:** Es un propietario con el que has dejado de trabajar. Si se selecciona el estado "Inactivo" manualmente, todas las propiedades enlazadas a ese dueño pasarán a estado "Inactiva".
-- **Cerrado:** Es el propietario con el que se logró un cierre exitoso. Este estado es automático y ocurre cuando sus propiedades pasan a estado "Vendida" o "Alquilada".
+- **Activo:** Es un dueño que actualmente tiene propiedades. Se puede asignar este estado manualmente, o el sistema lo hará automáticamente si al menos una de sus propiedades vuelve a estar activa.
+- **Inactivo:** Es un propietario con el que has dejado de trabajar. Si se selecciona el estado "Inactivo" manualmente, todas las propiedades enlazadas a ese dueño pasarán a estado "Inactiva". También se asignará automáticamente si TODAS sus propiedades pasan a estado "Inactiva".
+- **Cerrado:** *(Automático)* Es el propietario con el que se logró un cierre exitoso. Este estado es **estrictamente automático** y solo ocurre cuando **TODAS** sus propiedades pasan a estado "Vendida" o "Alquilada". No se puede seleccionar manualmente.
 
 ## 3. Reglas de Protección de Datos
 

@@ -29,27 +29,36 @@ public static class CambiarEstadoOwnerSync
             if (propietario != null)
             {
                 string estadoAnterior = propietario.EstadoPropietario;
-                bool esEstadoCierreOInactiva = nuevoEstado is "Vendida" or "Alquilada" or "Inactiva";
                 
-                if (esEstadoCierreOInactiva)
-                {
-                    // Si estamos cerrando o inactivando, verificamos si le quedan otras propiedades ACTIVAS (no cerradas ni inactivas)
-                    bool tieneOtrasActivas = propietario.PropertiesOwned
-                        .Any(p => p.Id != property.Id && p.EstadoComercial != "Vendida" && p.EstadoComercial != "Alquilada" && p.EstadoComercial != "Inactiva");
+                // Obtener todos los estados de las propiedades actuales, reemplazando el de la propiedad que está cambiando
+                var estadosPropiedades = propietario.PropertiesOwned
+                    .Where(p => p.Id != property.Id)
+                    .Select(p => p.EstadoComercial)
+                    .ToList();
+                estadosPropiedades.Add(nuevoEstado);
 
-                    if (!tieneOtrasActivas)
+                bool tieneActivas = estadosPropiedades.Any(e => e != "Vendida" && e != "Alquilada" && e != "Inactiva");
+                bool todasVendidasOAlquiladas = estadosPropiedades.Count > 0 && estadosPropiedades.All(e => e == "Vendida" || e == "Alquilada");
+                bool todasInactivas = estadosPropiedades.Count > 0 && estadosPropiedades.All(e => e == "Inactiva");
+                
+                if (todasVendidasOAlquiladas)
+                {
+                    if (propietario.EstadoPropietario != "Cerrado")
                     {
-                        logger.LogInformation("🏁 [PROCESSOR] El propietario {Nombre} no tiene otras propiedades activas. Cambiando: {Old} -> Cerrado", propietario.Nombre, estadoAnterior);
+                        logger.LogInformation("🏁 [PROCESSOR] Todas las propiedades del propietario {Nombre} están vendidas o alquiladas. Cambiando: {Old} -> Cerrado", propietario.Nombre, estadoAnterior);
                         propietario.EstadoPropietario = "Cerrado";
                     }
-                    else 
+                }
+                else if (todasInactivas)
+                {
+                    if (propietario.EstadoPropietario != "Inactivo")
                     {
-                        logger.LogInformation("🏠 [PROCESSOR] El propietario {Nombre} aún tiene otras propiedades activas.", propietario.Nombre);
+                        logger.LogInformation("📉 [PROCESSOR] Todas las propiedades de {Nombre} están inactivas. Cambiando: {Old} -> Inactivo", propietario.Nombre, estadoAnterior);
+                        propietario.EstadoPropietario = "Inactivo";
                     }
                 }
-                else
+                else if (tieneActivas)
                 {
-                    // Si la propiedad vuelve a estar disponible, reservada, etc., el dueño debe estar Activo
                     if (propietario.EstadoPropietario != "Activo")
                     {
                         logger.LogInformation("📈 [PROCESSOR] Reactivando propietario {Nombre}: {Old} -> Activo", propietario.Nombre, estadoAnterior);

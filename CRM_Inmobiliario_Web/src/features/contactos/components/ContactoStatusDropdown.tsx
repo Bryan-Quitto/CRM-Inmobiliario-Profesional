@@ -29,9 +29,9 @@ export const ContactoStatusDropdown: React.FC<ContactoStatusDropdownProps> = ({
   const currentState = isPropietario ? contacto.estadoPropietario : contacto.estadoEmbudo;
   const list = isPropietario ? ESTADOS_PROPIETARIO : ESTADOS;
   
-  // Filter specific stages for 'cliente' variant
+  // Filter specific stages
   const displayList = isPropietario 
-    ? list 
+    ? list.filter(e => e.value !== 'Cerrado')
     : list.filter(e => e.value !== 'En Negociación' && e.value !== 'Cerrado' && e.value !== 'Cerrado Ganado' && e.value !== 'Cerrado Perdido');
 
   const getEtapaStyles = (etapa: string) => {

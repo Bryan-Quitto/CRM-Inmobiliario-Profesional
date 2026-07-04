@@ -119,9 +119,9 @@ public sealed class WhatsAppConversationManager : IWhatsAppConversationManager
         }
     }
 
-    public async Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default)
+    public async Task RecordTokenUsageAsync(Guid agentId, Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default)
     {
-        await _tokenProcessor.RecordTokenUsageAsync(contactoId, totalTokens, inputTokens, cachedTokens, outputTokens, provider, cancellationToken);
+        await _tokenProcessor.RecordTokenUsageAsync(agentId, contactoId, totalTokens, inputTokens, cachedTokens, outputTokens, provider, cancellationToken);
     }
 
     public void ApplyNuevaBusqueda(List<ChatMessage> history)

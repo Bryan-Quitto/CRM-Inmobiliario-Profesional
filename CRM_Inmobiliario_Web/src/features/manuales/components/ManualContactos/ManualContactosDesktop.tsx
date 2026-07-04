@@ -50,8 +50,11 @@ export const ManualContactosDesktop: React.FC = () => {
               <h3 className="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Propietarios (Dueños)</h3>
               <ul className="space-y-4">
                 <li><ManualBadge color="emerald">Activo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Dueño con propiedades actuales.</span></li>
-                <li><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Has dejado de trabajar con él. Oculta sus propiedades.</span></li>
-                <li><ManualBadge color="indigo">Cerrado</ManualBadge> <span className="text-sm text-slate-600 ml-2">Estado automático al vender o alquilar sus propiedades.</span></li>
+                <li><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Manual al dejar de trabajar, o automático si todas sus propiedades se inactivan.</span></li>
+                <li className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                  <div className="mb-2"><ManualBadge color="indigo">Cerrado</ManualBadge></div>
+                  <span className="text-sm text-slate-600 block"><strong>Estado estrictamente automático.</strong> Solo ocurre cuando TODAS sus propiedades se venden o alquilan. No se selecciona manualmente.</span>
+                </li>
               </ul>
             </div>
           </div>

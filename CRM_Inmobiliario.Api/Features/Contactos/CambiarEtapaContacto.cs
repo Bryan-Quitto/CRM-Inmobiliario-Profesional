@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Features.Dashboard;
@@ -23,7 +23,7 @@ public static class CambiarEstadoContactoFeature
 
             // 1. Validar que la nueva etapa sea válida para el tipo
             var estadosValidos = esTipoPropietario
-                ? new[] { "Activo", "Inactivo", "Cerrado" }
+                ? new[] { "Activo", "Inactivo" } // 'Cerrado' es exclusivamente automático
                 : new[] { "Nuevo", "Contactado", "Visita", "Perdido" }; // Restricción estricta de SSoT
 
             if (!estadosValidos.Contains(command.NuevoEstado))

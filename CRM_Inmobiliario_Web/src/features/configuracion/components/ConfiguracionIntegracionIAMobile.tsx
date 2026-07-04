@@ -271,10 +271,10 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
         )}
       </section>
 
-      {!isFetching && (activeTab === 'Personal' || (activeTab === 'Facebook' && facebookPageId)) && (
+      {!isFetching && (activeTab === 'Personal' || (activeTab === 'WhatsApp' && whatsAppId) || (activeTab === 'Facebook' && facebookPageId)) && (
         <section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mx-2 animate-in fade-in duration-300">
           <h3 className="text-base font-black text-slate-800 mb-4 break-words">Consumo de Tokens</h3>
-          <TokenUsageTable channel={activeTab === 'Personal' ? 'Copilot' : 'Facebook'} />
+          <TokenUsageTable channel={activeTab === 'Personal' ? 'Copilot' : activeTab === 'WhatsApp' ? 'WhatsApp' : 'Facebook'} />
         </section>
       )}
     </div>

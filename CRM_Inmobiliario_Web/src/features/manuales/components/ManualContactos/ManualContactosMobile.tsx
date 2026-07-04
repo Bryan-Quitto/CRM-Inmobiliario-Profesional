@@ -45,7 +45,10 @@ export const ManualContactosMobile: React.FC = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-2"><ManualBadge color="emerald">Activo</ManualBadge> <span className="text-xs text-slate-600">Con propiedades</span></li>
               <li className="flex items-center gap-2"><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-xs text-slate-600">Oculta sus casas</span></li>
-              <li className="flex items-center gap-2"><ManualBadge color="indigo">Cerrado</ManualBadge> <span className="text-xs text-slate-600">Automático al vender</span></li>
+              <li className="bg-indigo-50 p-3 rounded-lg text-xs text-slate-700 border border-indigo-100 mt-2">
+                <span className="font-bold block mb-1">Cerrado:</span>
+                Solo automático cuando TODAS se venden o alquilan.
+              </li>
             </ul>
           </div>
         </div>

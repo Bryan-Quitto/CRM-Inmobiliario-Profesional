@@ -9,7 +9,7 @@ namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
 public interface IWhatsAppTokenUsageProcessor
 {
-    Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default);
+    Task RecordTokenUsageAsync(Guid agentId, Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default);
 }
 
 public sealed class WhatsAppTokenUsageProcessor : IWhatsAppTokenUsageProcessor
@@ -21,7 +21,7 @@ public sealed class WhatsAppTokenUsageProcessor : IWhatsAppTokenUsageProcessor
         _context = context;
     }
 
-    public async Task RecordTokenUsageAsync(Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default)
+    public async Task RecordTokenUsageAsync(Guid agentId, Guid contactoId, int totalTokens, int inputTokens, int cachedTokens, int outputTokens, string provider = "OpenAI", CancellationToken cancellationToken = default)
     {
         var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
         var targetDate = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.FromHours(-5));
@@ -48,6 +48,34 @@ public sealed class WhatsAppTokenUsageProcessor : IWhatsAppTokenUsageProcessor
         bool saved = false;
         while (!saved)
         {
+            var agentUsage = await _context.AgentDailyTokenUsages
+                .FirstOrDefaultAsync(u => u.AgentId == agentId && u.Date == targetDate && u.Channel == "WhatsApp", cancellationToken);
+
+            if (agentUsage == null)
+            {
+                agentUsage = new AgentDailyTokenUsage
+                {
+                    Id = Guid.NewGuid(),
+                    AgentId = agentId,
+                    Date = targetDate,
+                    TokensUsed = totalTokens,
+                    InputTokens = inputTokens,
+                    CachedTokens = cachedTokens,
+                    OutputTokens = outputTokens,
+                    CostoUSD = costoTransaccion,
+                    Channel = "WhatsApp"
+                };
+                _context.AgentDailyTokenUsages.Add(agentUsage);
+            }
+            else
+            {
+                agentUsage.TokensUsed += totalTokens;
+                agentUsage.InputTokens += inputTokens;
+                agentUsage.CachedTokens += cachedTokens;
+                agentUsage.OutputTokens += outputTokens;
+                agentUsage.CostoUSD += costoTransaccion;
+            }
+
             var usage = await _context.ContactDailyTokenUsages
                 .FirstOrDefaultAsync(u => u.ContactoId == contactoId && u.Date == targetDate && u.Channel == "WhatsApp", cancellationToken);
 
@@ -85,7 +113,8 @@ public sealed class WhatsAppTokenUsageProcessor : IWhatsAppTokenUsageProcessor
             }
             catch (DbUpdateException)
             {
-                _context.Entry(usage).State = EntityState.Detached;
+                if (agentUsage != null) _context.Entry(agentUsage).State = EntityState.Detached;
+                if (usage != null) _context.Entry(usage).State = EntityState.Detached;
             }
         }
     }

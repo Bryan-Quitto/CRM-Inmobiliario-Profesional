@@ -314,7 +314,9 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
                 cached = int.MaxValue;
                 output = int.MaxValue;
             }
-            await _conversationManager.RecordTokenUsageAsync(context.Contacto.Id, 
+            await _conversationManager.RecordTokenUsageAsync(
+                context.Contacto.AgenteId,
+                context.Contacto.Id, 
                 total, 
                 input, 
                 cached, 

@@ -310,10 +310,10 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
 
           </div>
 
-          {(activeTab === 'Personal' || (activeTab === 'Facebook' && facebookPageId)) && (
+          {(activeTab === 'Personal' || (activeTab === 'WhatsApp' && whatsAppId) || (activeTab === 'Facebook' && facebookPageId)) && (
             <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-sm border border-slate-200 mt-6 animate-in fade-in duration-300">
               <h3 className="text-xl font-black text-slate-800 mb-6">Consumo Total de Tokens</h3>
-              <TokenUsageTable channel={activeTab === 'Personal' ? 'Copilot' : 'Facebook'} />
+              <TokenUsageTable channel={activeTab === 'Personal' ? 'Copilot' : activeTab === 'WhatsApp' ? 'WhatsApp' : 'Facebook'} />
             </div>
           )}
         </>
