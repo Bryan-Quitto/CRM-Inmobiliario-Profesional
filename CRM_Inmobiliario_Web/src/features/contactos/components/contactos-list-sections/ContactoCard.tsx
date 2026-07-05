@@ -1,5 +1,6 @@
 import { Mail, Phone, Clock, Pencil, ArrowUpRight, Share2, Bot } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { CompartirContactoModal } from './CompartirContactoModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useSWRConfig } from 'swr';
@@ -17,7 +18,6 @@ interface ContactoCardProps {
   contacto: Contacto;
   activeSegment: 'todos' | 'clientes' | 'propietarios';
   syncing: boolean;
-  onNavigate: (id: string) => void;
   onEdit: (contacto: Contacto) => void;
   onStageChange: (id: string, etapa: string, tipo?: 'contacto' | 'propietario') => void;
 }
@@ -26,7 +26,6 @@ export const ContactoCard = ({
   contacto,
   activeSegment,
   syncing,
-  onNavigate,
   onEdit,
   onStageChange,
 }: ContactoCardProps) => {
@@ -122,13 +121,13 @@ export const ContactoCard = ({
                 isToggling={isTogglingArchive}
                 onToggle={handleToggleArchive}
               />
-              <button 
+              <Link 
                 title="Ver Detalles"
-                onClick={() => onNavigate(contacto.id)}
+                to={`/contactos/${contacto.id}`}
                 className="shrink-0 h-10 w-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-600/20 transition-all cursor-pointer group/nav"
               >
                 <ArrowUpRight className="h-5 w-5 transition-transform group-hover/nav:translate-x-0.5 group-hover/nav:-translate-y-0.5" />
-              </button>
+              </Link>
             </>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { Home, ExternalLink, Calendar } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { Contacto } from '../../types';
 
 interface ContactoPropertiesOwnedProps {
@@ -84,12 +85,14 @@ export const ContactoPropertiesOwned = ({ contacto }: ContactoPropertiesOwnedPro
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={() => window.open(`/propiedades?id=${prop.id}`, '_blank')}
-                className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all shadow-sm cursor-pointer"
+              <Link 
+                to={`/propiedades?id=${prop.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all shadow-sm cursor-pointer inline-flex items-center justify-center"
               >
                 <ExternalLink className="h-4 w-4" />
-              </button>
+              </Link>
             </div>
           </div>
         ))}

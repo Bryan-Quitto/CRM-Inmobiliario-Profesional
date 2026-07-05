@@ -1,5 +1,6 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Loader2, X, WifiOff, User, History } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Sections
 import { ContactoHeader } from './contacto-detalle-sections/ContactoHeader';
@@ -95,12 +96,21 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
             ? 'No se pudo cargar la información del contacto. Verifica tu conexión a internet.' 
             : 'El contacto que buscas no existe o ha sido eliminado.'}
         </p>
-        <button 
-          onClick={() => isNetworkError ? window.location.reload() : navigate('/contactos')}
-          className="px-3 py-3 bg-slate-900 text-white font-black rounded-lg hover:bg-slate-800 transition-all cursor-pointer w-full max-w-xs"
-        >
-          {isNetworkError ? 'Reintentar' : 'Volver a Cartera'}
-        </button>
+        {isNetworkError ? (
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-3 py-3 bg-slate-900 text-white font-black rounded-lg hover:bg-slate-800 transition-all cursor-pointer w-full max-w-xs inline-flex items-center justify-center"
+          >
+            Reintentar
+          </button>
+        ) : (
+          <Link 
+            to="/contactos"
+            className="px-3 py-3 bg-slate-900 text-white font-black rounded-lg hover:bg-slate-800 transition-all cursor-pointer w-full max-w-xs inline-flex items-center justify-center"
+          >
+            Volver a Cartera
+          </Link>
+        )}
       </div>
     );
   }
@@ -114,7 +124,6 @@ export const ContactoDetalleMobile = ({ logic }: { logic: ReturnType<typeof useC
           activeDropdown={activeDropdown}
           setActiveDropdown={setActiveDropdown}
           handleStageChange={handleStageChange}
-          navigate={navigate}
           onEdit={() => window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action: 'edit', contacto } }))}
           onMerge={() => setIsMergeModalOpen(true)}
           isTogglingArchive={isTogglingArchive}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Users, ChevronDown, ChevronRight, User } from 'lucide-react';
 import type { DashboardKpis, ContactoDashboardItem } from '../types';
 import { HelpButton } from '../../../components/ui/HelpButton';
@@ -18,7 +18,6 @@ const ContactoAvatar = ({ nombre, apellido }: { nombre: string, apellido: string
 };
 
 export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) => {
-  const navigate = useNavigate();
   const [isSeguimientoOpen, setIsSeguimientoOpen] = useState(false);
 
   return (
@@ -49,9 +48,9 @@ export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) 
             ) : (
               <div className="divide-y divide-rose-100">
                 {data.contactosSeguimiento.map((contacto: ContactoDashboardItem) => (
-                  <div 
+                  <Link 
                     key={contacto.id}
-                    onClick={() => navigate(`/contactos/${contacto.id}`)}
+                    to={`/contactos/${contacto.id}`}
                     className="p-4 hover:bg-white transition-all flex items-center gap-3 group/item cursor-pointer"
                   >
                     <ContactoAvatar nombre={contacto.nombre} apellido={contacto.apellido} />
@@ -64,7 +63,7 @@ export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) 
                       </p>
                     </div>
                     <ChevronRight className="h-4 w-4 text-rose-300 group-hover/item:translate-x-1 transition-transform" />
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

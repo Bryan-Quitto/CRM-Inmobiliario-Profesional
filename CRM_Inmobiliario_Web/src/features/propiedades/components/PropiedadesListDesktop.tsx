@@ -1,4 +1,5 @@
 import { Loader2, Home, ChevronUp, ChevronDown } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { usePropiedadesListLogic } from '../hooks/usePropiedadesListLogic';
 
 import { PropiedadesStatsHeader } from './propiedades-list-sections/PropiedadesStatsHeader';
@@ -12,6 +13,14 @@ interface Props {
 }
 
 export const PropiedadesListDesktop = ({ logic }: Props) => {
+  const location = useLocation();
+  const getPageUrl = (page: number) => {
+    const sp = new URLSearchParams(location.search);
+    if (page <= 1) sp.delete('page');
+    else sp.set('page', page.toString());
+    return `?${sp.toString()}`;
+  };
+
   const {
     propiedades,
     filteredPropiedades,
@@ -34,14 +43,12 @@ export const PropiedadesListDesktop = ({ logic }: Props) => {
     sortDirection,
     setSortDirection,
     currentPage,
-    setCurrentPage,
     totalPages,
     setIsModalOpen,
     updatingId,
     openDropdownId,
     setOpenDropdownId,
     setSelectedPropiedadIdForEdit,
-    handleOpenDetail,
     handleStatusChange,
     dropdownRef
   } = logic;
@@ -108,7 +115,6 @@ export const PropiedadesListDesktop = ({ logic }: Props) => {
               updatingId={updatingId}
               openDropdownId={openDropdownId}
               setOpenDropdownId={setOpenDropdownId}
-              handleOpenDetail={handleOpenDetail}
               handleStatusChange={handleStatusChange}
               setSelectedPropiedadIdForEdit={setSelectedPropiedadIdForEdit}
               dropdownRef={dropdownRef}
@@ -129,51 +135,71 @@ export const PropiedadesListDesktop = ({ logic }: Props) => {
 
         return (
           <div className="mt-12 flex justify-center items-center gap-2 sm:gap-4 flex-wrap">
-            <button 
-              onClick={() => setCurrentPage(1)}
-              disabled={currentPage === 1}
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${currentPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed hidden sm:block' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm hidden sm:block'}`}
-            >
-              Primera
-            </button>
+            {currentPage === 1 ? (
+              <span className="px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-400 cursor-not-allowed hidden sm:block">
+                Primera
+              </span>
+            ) : (
+              <Link 
+                to={getPageUrl(1)}
+                className="px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm hidden sm:block"
+              >
+                Primera
+              </Link>
+            )}
 
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${currentPage === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm'}`}
-            >
-              Anterior
-            </button>
+            {currentPage === 1 ? (
+              <span className="px-4 py-2 rounded-xl text-sm font-bold transition-all bg-slate-100 text-slate-400 cursor-not-allowed">
+                Anterior
+              </span>
+            ) : (
+              <Link 
+                to={getPageUrl(Math.max(1, currentPage - 1))}
+                className="px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm"
+              >
+                Anterior
+              </Link>
+            )}
             
             <div className="flex items-center gap-1 sm:gap-2">
               {visiblePages[0] > 1 && <span className="text-slate-400">...</span>}
               {visiblePages.map(page => (
-                <button
+                <Link
                   key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center justify-center ${currentPage === page ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}
+                  to={getPageUrl(page)}
+                  className={`w-10 h-10 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center justify-center ${currentPage === page ? 'bg-blue-600 text-white shadow-md pointer-events-none' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}
                 >
                   {page}
-                </button>
+                </Link>
               ))}
               {visiblePages[visiblePages.length - 1] < totalPages && <span className="text-slate-400">...</span>}
             </div>
 
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${currentPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm'}`}
-            >
-              Siguiente
-            </button>
+            {currentPage === totalPages ? (
+              <span className="px-4 py-2 rounded-xl text-sm font-bold transition-all bg-slate-100 text-slate-400 cursor-not-allowed">
+                Siguiente
+              </span>
+            ) : (
+              <Link 
+                to={getPageUrl(Math.min(totalPages, currentPage + 1))}
+                className="px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm"
+              >
+                Siguiente
+              </Link>
+            )}
 
-            <button 
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={currentPage === totalPages}
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${currentPage === totalPages ? 'bg-slate-100 text-slate-400 cursor-not-allowed hidden sm:block' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm hidden sm:block'}`}
-            >
-              Última
-            </button>
+            {currentPage === totalPages ? (
+              <span className="px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-400 cursor-not-allowed hidden sm:block">
+                Última
+              </span>
+            ) : (
+              <Link 
+                to={getPageUrl(totalPages)}
+                className="px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm hidden sm:block"
+              >
+                Última
+              </Link>
+            )}
           </div>
         );
       })()}

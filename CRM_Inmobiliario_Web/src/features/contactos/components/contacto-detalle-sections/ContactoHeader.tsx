@@ -1,5 +1,5 @@
 import { ChevronLeft, UserCheck, Search, MessageSquare, MessageCircle, Pencil, Merge } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import type { Contacto } from '../../types';
 import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
@@ -11,7 +11,6 @@ interface ContactoHeaderProps {
   activeDropdown: 'cliente' | 'propietario' | null;
   setActiveDropdown: (show: 'cliente' | 'propietario' | null) => void;
   handleStageChange: (etapa: string, tipo?: 'cliente' | 'propietario') => void;
-  navigate: (path: string) => void;
   onEdit: () => void;
   onMerge: () => void;
   isTogglingArchive: boolean;
@@ -24,7 +23,6 @@ export const ContactoHeader = ({
   activeDropdown,
   setActiveDropdown,
   handleStageChange,
-  navigate,
   onEdit,
   onMerge,
   isTogglingArchive,
@@ -44,12 +42,12 @@ export const ContactoHeader = ({
   return (
     <div className="bg-white border-b border-slate-100 px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
       <div className="flex items-start md:items-center gap-3 md:gap-4 w-full md:w-auto">
-        <button 
-          onClick={() => navigate(backPath)}
-          className="p-1.5 md:p-2 mt-0.5 md:mt-0 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer shrink-0"
+        <Link 
+          to={backPath}
+          className="p-1.5 md:p-2 mt-0.5 md:mt-0 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer shrink-0 flex items-center justify-center"
         >
           <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
-        </button>
+        </Link>
         <div className="min-w-0 flex-1">
           <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-3 items-start">
             <h1 className="text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight truncate w-full md:w-auto">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</h1>

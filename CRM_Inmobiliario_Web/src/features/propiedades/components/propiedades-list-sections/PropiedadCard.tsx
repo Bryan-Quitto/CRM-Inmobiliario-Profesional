@@ -1,4 +1,5 @@
 import { Handshake, Pencil, MapPin, Plus, Image as ImageIcon, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '../../constants/propiedades';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
@@ -15,7 +16,6 @@ interface PropiedadCardProps {
   updatingId: string | null;
   openDropdownId: string | null;
   setOpenDropdownId: (id: string | null) => void;
-  handleOpenDetail: (id: string) => void;
   handleStatusChange: (id: string, nuevoEstado: string) => void;
   setSelectedPropiedadIdForEdit: (id: string | null) => void;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
@@ -27,7 +27,6 @@ export const PropiedadCard = ({
   updatingId,
   openDropdownId,
   setOpenDropdownId,
-  handleOpenDetail,
   handleStatusChange,
   setSelectedPropiedadIdForEdit,
   dropdownRef
@@ -35,6 +34,13 @@ export const PropiedadCard = ({
   const { mutate } = useSWRConfig();
   const [isTogglingArchive, setIsTogglingArchive] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const location = useLocation();
+
+  const getDetailUrl = (id: string) => {
+    const sp = new URLSearchParams(location.search);
+    sp.set('id', id);
+    return `?${sp.toString()}`;
+  };
 
   const handleToggleArchive = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -160,16 +166,16 @@ export const PropiedadCard = ({
               isToggling={isTogglingArchive}
               onToggle={handleToggleArchive}
             />
-            <button 
+            <Link 
               title="Ver Expediente"
+              to={getDetailUrl(p.id)}
               onClick={(e) => {
                 e.stopPropagation();
-                handleOpenDetail(p.id);
               }}
               className="h-10 w-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-blue-600 hover:text-white transition-all border border-slate-100 cursor-pointer hover:scale-110 active:scale-95 shadow-sm"
             >
               <Plus className="h-5 w-5" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>

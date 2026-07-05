@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { 
   Users, 
   Home, 
@@ -21,7 +21,6 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const menuItems = [
     { id: 'dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Inicio' },
@@ -75,11 +74,11 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
 
       <nav className="flex-1 py-6 px-3 space-y-2">
         {menuItems.map((item) => (
-          <button
+          <Link
             key={item.id}
-            onClick={() => navigate(item.path)}
+            to={item.path}
             aria-label={`Ir a ${item.label}`}
-            className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative ${
+            className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative block ${
               isActive(item.path)
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                 : 'hover:bg-slate-800 hover:text-slate-200'
@@ -93,15 +92,15 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
                 {item.label}
               </span>
             )}
-          </button>
+          </Link>
         ))}
       </nav>
 
       <div className="p-3 border-t border-slate-800/50 space-y-2">
-        <button 
-          onClick={() => navigate('/configuracion/perfil')}
+        <Link 
+          to="/configuracion/perfil"
           aria-label="Abrir Configuración"
-          className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative ${
+          className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative block ${
             isActive('/configuracion')
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
               : 'hover:bg-slate-800 hover:text-slate-200'
@@ -109,7 +108,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
         >
           <Settings className={`h-5 w-5 ${isActive('/configuracion') ? '' : 'group-hover:rotate-45'} transition-transform`} />
           {isOpen && <span className="text-sm font-bold">Configuración</span>}
-        </button>
+        </Link>
         <button 
           onClick={handleLogout}
           aria-label="Cerrar Sesión"

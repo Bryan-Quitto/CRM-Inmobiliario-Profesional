@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Search, X, Settings, Calendar, PlusSquare, User, Home, CheckCircle, Loader2, Users, Building, BarChart, Bot } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useCommandPaletteLogic, type OmniSearchResult } from '../hooks/useCommandPaletteLogic';
 import { HelpButton } from '../../../components/ui/HelpButton';
 
@@ -30,8 +31,7 @@ export const CommandPaletteDesktop: React.FC<Props> = ({ logic }) => {
     isLoading,
     isSyncing,
     filteredStaticOptions,
-    handleSelectStatic,
-    handleSelectDynamic,
+    handleSelectStatic
   } = logic;
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -101,20 +101,37 @@ export const CommandPaletteDesktop: React.FC<Props> = ({ logic }) => {
                   <ul className="space-y-1">
                     {filteredStaticOptions.map(option => {
                       const Icon = IconMap[option.icon] || Search;
+                      const content = (
+                        <>
+                          <div className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center mr-3 group-hover:bg-white group-hover:shadow-sm">
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">{option.title}</p>
+                            <p className="text-xs text-slate-500">{option.subtitle}</p>
+                          </div>
+                        </>
+                      );
+                      const className = "w-full flex items-center px-3 py-2.5 rounded-xl hover:bg-slate-50 focus:bg-slate-50 text-left transition-colors group cursor-pointer no-underline block";
+                      
                       return (
                         <li key={option.id}>
-                          <button
-                            onClick={() => handleSelectStatic(option)}
-                            className="w-full flex items-center px-3 py-2.5 rounded-xl hover:bg-slate-50 focus:bg-slate-50 text-left transition-colors group cursor-pointer"
-                          >
-                            <div className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center mr-3 group-hover:bg-white group-hover:shadow-sm">
-                              <Icon className="h-4 w-4" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-slate-900">{option.title}</p>
-                              <p className="text-xs text-slate-500">{option.subtitle}</p>
-                            </div>
-                          </button>
+                          {option.path ? (
+                            <Link
+                              to={option.path}
+                              onClick={() => { setIsOpen(false); setQuery(''); }}
+                              className={className}
+                            >
+                              {content}
+                            </Link>
+                          ) : (
+                            <button
+                              onClick={() => handleSelectStatic(option)}
+                              className={className}
+                            >
+                              {content}
+                            </button>
+                          )}
                         </li>
                       );
                     })}
@@ -138,28 +155,36 @@ export const CommandPaletteDesktop: React.FC<Props> = ({ logic }) => {
                           {groupLabel}
                         </h3>
                         <ul className="space-y-1">
-                          {items.map(item => (
-                            <li key={item.entityId}>
-                              <button
-                                onClick={() => handleSelectDynamic(item)}
-                                className="w-full flex items-center px-3 py-2.5 rounded-xl hover:bg-slate-50 focus:bg-slate-50 text-left transition-colors group cursor-pointer"
-                              >
-                                <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3 group-hover:bg-white group-hover:shadow-sm shrink-0 overflow-hidden border border-indigo-100/50">
-                                  {item.imageUrl ? (
-                                    <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
-                                  ) : (
-                                    <Icon className="h-4 w-4" />
-                                  )}
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-slate-900">{item.title}</p>
-                                  {item.subtitle && (
-                                    <p className="text-xs text-slate-500 line-clamp-1">{item.subtitle}</p>
-                                  )}
-                                </div>
-                              </button>
-                            </li>
-                          ))}
+                          {items.map(item => {
+                            let path = '';
+                            if (item.entityType === 'Contacto') path = `/contactos/${item.entityId}`;
+                            else if (item.entityType === 'Propiedad') path = `/propiedades?id=${item.entityId}`;
+                            else if (item.entityType === 'Tarea') path = `/?tarea=${item.entityId}`;
+
+                            return (
+                              <li key={item.entityId}>
+                                <Link
+                                  to={path}
+                                  onClick={() => { setIsOpen(false); setQuery(''); }}
+                                  className="w-full flex items-center px-3 py-2.5 rounded-xl hover:bg-slate-50 focus:bg-slate-50 text-left transition-colors group cursor-pointer no-underline block"
+                                >
+                                  <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3 group-hover:bg-white group-hover:shadow-sm shrink-0 overflow-hidden border border-indigo-100/50">
+                                    {item.imageUrl ? (
+                                      <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+                                    ) : (
+                                      <Icon className="h-4 w-4" />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-slate-900">{item.title}</p>
+                                    {item.subtitle && (
+                                      <p className="text-xs text-slate-500 line-clamp-1">{item.subtitle}</p>
+                                    )}
+                                  </div>
+                                </Link>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     );

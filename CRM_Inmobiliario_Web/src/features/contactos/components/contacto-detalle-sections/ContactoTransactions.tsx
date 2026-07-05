@@ -1,4 +1,5 @@
 import { Award, ExternalLink, Building2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../constants/contactos';
 import type { Contacto, Interes } from '../../types';
 
@@ -70,12 +71,14 @@ export const ContactoTransactions = ({ contacto }: ContactoTransactionsProps) =>
               </div>
             </div>
             
-            <button 
-              onClick={() => window.open(`/propiedades?id=${transaccion.propiedadId}`, '_blank')}
-              className="p-1.5 text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer"
+            <Link 
+              to={`/propiedades?id=${transaccion.propiedadId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-            </button>
+            </Link>
           </div>
         ))}
       </div>

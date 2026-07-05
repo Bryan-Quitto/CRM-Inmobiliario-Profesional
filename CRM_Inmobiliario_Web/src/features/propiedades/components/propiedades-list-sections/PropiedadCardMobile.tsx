@@ -1,4 +1,5 @@
 import { Handshake, Pencil, MapPin, Plus, Image as ImageIcon, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '../../constants/propiedades';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
@@ -15,7 +16,6 @@ interface PropiedadCardMobileProps {
   updatingId: string | null;
   openDropdownId: string | null;
   setOpenDropdownId: (id: string | null) => void;
-  handleOpenDetail: (id: string) => void;
   handleStatusChange: (id: string, nuevoEstado: string) => void;
   setSelectedPropiedadIdForEdit: (id: string | null) => void;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
@@ -27,7 +27,6 @@ export const PropiedadCardMobile = ({
   updatingId,
   openDropdownId,
   setOpenDropdownId,
-  handleOpenDetail,
   handleStatusChange,
   setSelectedPropiedadIdForEdit,
   dropdownRef
@@ -35,6 +34,13 @@ export const PropiedadCardMobile = ({
   const { mutate } = useSWRConfig();
   const [isTogglingArchive, setIsTogglingArchive] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const location = useLocation();
+
+  const getDetailUrl = (id: string) => {
+    const sp = new URLSearchParams(location.search);
+    sp.set('id', id);
+    return `?${sp.toString()}`;
+  };
 
   const handleToggleArchive = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -157,16 +163,16 @@ export const PropiedadCardMobile = ({
                   onToggle={handleToggleArchive}
                   className="h-10 w-10 !p-0 shrink-0"
                 />
-                <button 
+                <Link 
                   title="Ver"
+                  to={getDetailUrl(p.id)}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleOpenDetail(p.id);
                   }}
                   className="h-10 w-10 shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-white active:bg-blue-700 shadow-sm cursor-pointer"
                 >
                   <Plus className="h-5 w-5 shrink-0" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>

@@ -7,10 +7,9 @@ export interface UseContactosKanbanLogicProps {
   contactos: Contacto[];
   activeSegment: 'clientes' | 'propietarios' | 'todos';
   onStageChange: (id: string, nuevoEstado: string, tipo?: 'contacto' | 'propietario') => void;
-  onNavigate: (id: string) => void;
 }
 
-export const useContactosKanbanLogic = ({ contactos, activeSegment, onStageChange, onNavigate }: UseContactosKanbanLogicProps) => {
+export const useContactosKanbanLogic = ({ contactos, activeSegment, onStageChange }: UseContactosKanbanLogicProps) => {
   const [collapsedColumns, setCollapsedColumns] = useState<string[]>([]);
   const isOwnerMode = activeSegment === 'propietarios';
   const currentEstados = isOwnerMode ? ESTADOS_PROPIETARIO : ESTADOS;
@@ -71,8 +70,7 @@ export const useContactosKanbanLogic = ({ contactos, activeSegment, onStageChang
     toggleColumn,
     handleDragEnd,
     formatTimeAgo,
-    getEtapaColor,
-    onNavigate
+    getEtapaColor
   };
 };
 

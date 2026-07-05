@@ -13,6 +13,7 @@ import {
   User,
   ExternalLink
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { TareaDetalleLogicReturn } from '../hooks/useTareaDetalleLogic';
 
 interface Props {
@@ -29,9 +30,7 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
     Icon,
     colorClass,
     isPending,
-    formatFecha,
-    handleNavigateToClient,
-    handleNavigateToProperty
+    formatFecha
   } = logic;
 
   return (
@@ -142,8 +141,8 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
         {/* Relaciones Mobile */}
         <div className="w-full space-y-3 pt-6 border-t border-slate-100">
           {tarea.contactoNombre && (
-            <button 
-              onClick={handleNavigateToClient}
+            <Link 
+              to={`/contactos/${tarea.contactoId}`}
               className="w-full flex flex-row items-center gap-3 group text-left hover:bg-slate-50 p-2 rounded-xl transition-all cursor-pointer bg-slate-50/50 border border-slate-100"
             >
               <div className="h-10 w-10 shrink-0 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 shadow-sm shadow-blue-100">
@@ -156,12 +155,12 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
                 </p>
                 <p className="text-sm md:text-lg font-black text-slate-900 mt-1 break-words">{tarea.contactoNombre}</p>
               </div>
-            </button>
+            </Link>
           )}
 
           {tarea.propiedadTitulo && (
-            <button 
-              onClick={handleNavigateToProperty}
+            <Link 
+              to={`/propiedades?id=${tarea.propiedadId}`}
               className="w-full flex flex-row items-center gap-3 group text-left hover:bg-slate-50 p-2 rounded-xl transition-all cursor-pointer bg-slate-50/50 border border-slate-100"
             >
               <div className="h-10 w-10 shrink-0 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm shadow-emerald-100 overflow-hidden">
@@ -178,7 +177,7 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
                 </p>
                 <p className="text-sm md:text-lg font-black text-slate-900 mt-1 break-words">{tarea.propiedadTitulo}</p>
               </div>
-            </button>
+            </Link>
           )}
 
           {(tarea.lugar || tarea.propiedadDireccion) && (

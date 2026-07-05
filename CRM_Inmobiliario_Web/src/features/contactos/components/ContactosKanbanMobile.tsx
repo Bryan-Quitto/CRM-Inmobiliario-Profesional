@@ -1,5 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Link } from 'react-router-dom';
 import { Clock, Lock, RefreshCcw } from 'lucide-react';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
 import type { ContactosKanbanLogicReturn } from '../hooks/useContactosKanbanLogic';
@@ -14,8 +15,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
     columns,
     handleDragEnd,
     formatTimeAgo,
-    getEtapaColor,
-    onNavigate
+    getEtapaColor
   } = logic;
 
   return (
@@ -68,18 +68,21 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                         isDragDisabled={contacto.estadoEmbudo === 'En Negociación'}
                       >
                         {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            style={provided.draggableProps.style as React.CSSProperties}
-                            {...provided.dragHandleProps}
-                            onClick={() => !snapshot.isDragging && onNavigate(contacto.id)}
-                            className={`cursor-pointer w-full min-w-0 flex-1 bg-white p-3 rounded-lg shadow-sm border mb-2 transition-all group ${
-                              snapshot.isDragging 
-                                ? 'scale-105 shadow-xl border-blue-400 z-50 ring-2 blue-500/10' 
-                                : 'border-slate-100'
-                            }`}
-                          >
+                            <Link
+                              to={`/contactos/${contacto.id}`}
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              style={{ ...(provided.draggableProps.style as React.CSSProperties), display: 'block' }}
+                              {...provided.dragHandleProps}
+                              onClick={(e) => {
+                                if (snapshot.isDragging) e.preventDefault();
+                              }}
+                              className={`cursor-pointer w-full min-w-0 flex-1 bg-white p-3 rounded-lg shadow-sm border mb-2 transition-all group block ${
+                                snapshot.isDragging 
+                                  ? 'scale-105 shadow-xl border-blue-400 z-50 ring-2 blue-500/10' 
+                                  : 'border-slate-100'
+                              }`}
+                            >
                             <div className="flex items-center gap-3 mb-2 w-full min-w-0 flex-1">
                               <div className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-[10px] shrink-0">
                                 {contacto.nombre[0]}{contacto.apellido?.[0] || ''}
@@ -102,7 +105,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                                 </div>
                               )}
                             </div>
-                          </div>
+                            </Link>
                         )}
                       </Draggable>
                     ))}

@@ -46,7 +46,6 @@ export const ContactosListMobile: React.FC<ContactosListMobileProps> = ({ logic 
           activeSegment={logic.activeSegment}
           viewMode={logic.viewMode}
           syncing={logic.syncing}
-          onNavigate={(id) => logic.navigate(`${logic.basePath}/${id}`)}
           onEdit={(contacto) => logic.handleOpenCreateModal('edit', { contacto })}
           onStageChange={logic.handleStageChange}
         />

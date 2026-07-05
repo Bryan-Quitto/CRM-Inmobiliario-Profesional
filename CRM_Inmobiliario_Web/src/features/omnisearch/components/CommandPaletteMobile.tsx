@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Search, X, Settings, Calendar, PlusSquare, User, Home, CheckCircle, Loader2, Users, Building, BarChart, Bot } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useCommandPaletteLogic, type OmniSearchResult } from '../hooks/useCommandPaletteLogic';
 import { HelpButton } from '../../../components/ui/HelpButton';
 
@@ -30,8 +31,7 @@ export const CommandPaletteMobile: React.FC<Props> = ({ logic }) => {
     isLoading,
     isSyncing,
     filteredStaticOptions,
-    handleSelectStatic,
-    handleSelectDynamic,
+    handleSelectStatic
   } = logic;
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -93,20 +93,37 @@ export const CommandPaletteMobile: React.FC<Props> = ({ logic }) => {
                 <ul className="space-y-1">
                   {filteredStaticOptions.map(option => {
                     const Icon = IconMap[option.icon] || Search;
+                    const content = (
+                      <>
+                        <div className="h-10 w-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mr-3 shrink-0">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">{option.title}</p>
+                          <p className="text-xs text-slate-500 truncate">{option.subtitle}</p>
+                        </div>
+                      </>
+                    );
+                    const className = "w-full flex items-center px-3 py-3 rounded-xl active:bg-slate-100 text-left transition-colors cursor-pointer touch-manipulation no-underline block";
+                    
                     return (
                       <li key={option.id}>
-                        <button
-                          onClick={() => handleSelectStatic(option)}
-                          className="w-full flex items-center px-3 py-3 rounded-xl active:bg-slate-100 text-left transition-colors cursor-pointer touch-manipulation"
-                        >
-                          <div className="h-10 w-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mr-3 shrink-0">
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 truncate">{option.title}</p>
-                            <p className="text-xs text-slate-500 truncate">{option.subtitle}</p>
-                          </div>
-                        </button>
+                        {option.path ? (
+                          <Link
+                            to={option.path}
+                            onClick={() => { setIsOpen(false); setQuery(''); }}
+                            className={className}
+                          >
+                            {content}
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => handleSelectStatic(option)}
+                            className={className}
+                          >
+                            {content}
+                          </button>
+                        )}
                       </li>
                     );
                   })}
@@ -130,28 +147,36 @@ export const CommandPaletteMobile: React.FC<Props> = ({ logic }) => {
                         {groupLabel}
                       </h3>
                       <ul className="space-y-1">
-                        {items.map(item => (
-                          <li key={item.entityId}>
-                            <button
-                              onClick={() => handleSelectDynamic(item)}
-                              className="w-full flex items-center px-3 py-3 rounded-xl active:bg-slate-100 text-left transition-colors cursor-pointer touch-manipulation"
-                            >
-                              <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3 shrink-0 overflow-hidden border border-indigo-100/50">
-                                {item.imageUrl ? (
-                                  <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
-                                ) : (
-                                  <Icon className="h-5 w-5" />
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold text-slate-900 truncate">{item.title}</p>
-                                {item.subtitle && (
-                                  <p className="text-xs text-slate-500 truncate">{item.subtitle}</p>
-                                )}
-                              </div>
-                            </button>
-                          </li>
-                        ))}
+                        {items.map(item => {
+                          let path = '';
+                          if (item.entityType === 'Contacto') path = `/contactos/${item.entityId}`;
+                          else if (item.entityType === 'Propiedad') path = `/propiedades?id=${item.entityId}`;
+                          else if (item.entityType === 'Tarea') path = `/?tarea=${item.entityId}`;
+
+                          return (
+                            <li key={item.entityId}>
+                              <Link
+                                to={path}
+                                onClick={() => { setIsOpen(false); setQuery(''); }}
+                                className="w-full flex items-center px-3 py-3 rounded-xl active:bg-slate-100 text-left transition-colors cursor-pointer touch-manipulation no-underline block"
+                              >
+                                <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3 shrink-0 overflow-hidden border border-indigo-100/50">
+                                  {item.imageUrl ? (
+                                    <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <Icon className="h-5 w-5" />
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-semibold text-slate-900 truncate">{item.title}</p>
+                                  {item.subtitle && (
+                                    <p className="text-xs text-slate-500 truncate">{item.subtitle}</p>
+                                  )}
+                                </div>
+                              </Link>
+                            </li>
+                          );
+                        })}
                       </ul>
                     </div>
                   );

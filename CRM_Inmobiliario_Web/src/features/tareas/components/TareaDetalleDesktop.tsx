@@ -13,6 +13,7 @@ import {
   User,
   ExternalLink
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { TareaDetalleLogicReturn } from '../hooks/useTareaDetalleLogic';
 
 interface Props {
@@ -29,9 +30,7 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
     Icon,
     colorClass,
     isPending,
-    formatFecha,
-    handleNavigateToClient,
-    handleNavigateToProperty
+    formatFecha
   } = logic;
 
   return (
@@ -143,8 +142,8 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
         {/* Relaciones */}
         <div className="space-y-4 pt-6 border-t border-slate-50">
           {tarea.contactoNombre && (
-            <button 
-              onClick={handleNavigateToClient}
+            <Link 
+              to={`/contactos/${tarea.contactoId}`}
               className="w-full flex items-center gap-4 group text-left hover:bg-slate-50 p-2 -m-2 rounded-2xl transition-all cursor-pointer"
             >
               <div className="h-12 w-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform shadow-sm shadow-blue-100">
@@ -157,12 +156,12 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
                 </p>
                 <p className="text-base font-black text-slate-900 contactoing-none mt-1 truncate">{tarea.contactoNombre}</p>
               </div>
-            </button>
+            </Link>
           )}
 
           {tarea.propiedadTitulo && (
-            <button 
-              onClick={handleNavigateToProperty}
+            <Link 
+              to={`/propiedades?id=${tarea.propiedadId}`}
               className="w-full flex items-center gap-4 group text-left hover:bg-slate-50 p-2 -m-2 rounded-2xl transition-all cursor-pointer"
             >
               <div className="h-12 w-12 shrink-0 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform shadow-sm shadow-emerald-100 overflow-hidden">
@@ -179,7 +178,7 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
                 </p>
                 <p className="text-base font-black text-slate-900 contactoing-none mt-1 truncate">{tarea.propiedadTitulo}</p>
               </div>
-            </button>
+            </Link>
           )}
 
           {(tarea.lugar || tarea.propiedadDireccion) && (

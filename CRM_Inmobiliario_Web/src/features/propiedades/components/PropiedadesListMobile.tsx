@@ -1,4 +1,5 @@
 import { Loader2, Home } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { usePropiedadesListLogic } from '../hooks/usePropiedadesListLogic';
 
 import { PropiedadesStatsHeader } from './propiedades-list-sections/PropiedadesStatsHeader';
@@ -12,6 +13,14 @@ interface Props {
 }
 
 export const PropiedadesListMobile = ({ logic }: Props) => {
+  const location = useLocation();
+  const getPageUrl = (page: number) => {
+    const sp = new URLSearchParams(location.search);
+    if (page <= 1) sp.delete('page');
+    else sp.set('page', page.toString());
+    return `?${sp.toString()}`;
+  };
+
   const {
     propiedades,
     filteredPropiedades,
@@ -34,14 +43,12 @@ export const PropiedadesListMobile = ({ logic }: Props) => {
     sortDirection,
     setSortDirection,
     currentPage,
-    setCurrentPage,
     totalPages,
     setIsModalOpen,
     updatingId,
     openDropdownId,
     setOpenDropdownId,
     setSelectedPropiedadIdForEdit,
-    handleOpenDetail,
     handleStatusChange,
     dropdownRef
   } = logic;
@@ -110,7 +117,6 @@ export const PropiedadesListMobile = ({ logic }: Props) => {
               updatingId={updatingId}
               openDropdownId={openDropdownId}
               setOpenDropdownId={setOpenDropdownId}
-              handleOpenDetail={handleOpenDetail}
               handleStatusChange={handleStatusChange}
               setSelectedPropiedadIdForEdit={setSelectedPropiedadIdForEdit}
               dropdownRef={dropdownRef}
@@ -131,35 +137,45 @@ export const PropiedadesListMobile = ({ logic }: Props) => {
 
         return (
           <div className="mt-6 flex flex-row items-center justify-between gap-1 px-2 pb-6 w-full">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${currentPage === 1 ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200 shadow-sm active:bg-slate-50'}`}
-            >
-              Anterior
-            </button>
+            {currentPage === 1 ? (
+              <span className="py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 cursor-not-allowed bg-slate-100 text-slate-400">
+                Anterior
+              </span>
+            ) : (
+              <Link 
+                to={getPageUrl(Math.max(1, currentPage - 1))}
+                className="py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer bg-white text-slate-700 border border-slate-200 shadow-sm active:bg-slate-50"
+              >
+                Anterior
+              </Link>
+            )}
             
             <div className="flex items-center gap-1 overflow-x-auto justify-center min-w-0">
               {visiblePages[0] > 1 && <span className="text-slate-400 text-xs shrink-0">...</span>}
               {visiblePages.map(page => (
-                <button
+                <Link
                   key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 shrink-0 rounded-lg text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${currentPage === page ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 active:bg-slate-50'}`}
+                  to={getPageUrl(page)}
+                  className={`w-8 h-8 shrink-0 rounded-lg text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${currentPage === page ? 'bg-blue-600 text-white shadow-md pointer-events-none' : 'bg-white text-slate-600 border border-slate-200 active:bg-slate-50'}`}
                 >
                   {page}
-                </button>
+                </Link>
               ))}
               {visiblePages[visiblePages.length - 1] < totalPages && <span className="text-slate-400 text-xs shrink-0">...</span>}
             </div>
 
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${currentPage === totalPages ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200 shadow-sm active:bg-slate-50'}`}
-            >
-              Siguiente
-            </button>
+            {currentPage === totalPages ? (
+              <span className="py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 cursor-not-allowed bg-slate-100 text-slate-400">
+                Siguiente
+              </span>
+            ) : (
+              <Link 
+                to={getPageUrl(Math.min(totalPages, currentPage + 1))}
+                className="py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer bg-white text-slate-700 border border-slate-200 shadow-sm active:bg-slate-50"
+              >
+                Siguiente
+              </Link>
+            )}
           </div>
         );
       })()}

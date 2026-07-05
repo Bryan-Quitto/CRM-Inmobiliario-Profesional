@@ -1,4 +1,5 @@
-﻿import { Loader2, X, WifiOff } from 'lucide-react';
+import { Loader2, X, WifiOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Sections
 import { ContactoHeader } from './contacto-detalle-sections/ContactoHeader';
@@ -92,12 +93,21 @@ export const ContactoDetalleDesktop = ({ logic }: { logic: ReturnType<typeof use
             ? 'No se pudo cargar la información del contacto. Verifica tu conexión a internet.' 
             : 'El contacto que buscas no existe o ha sido eliminado.'}
         </p>
-        <button 
-          onClick={() => isNetworkError ? window.location.reload() : navigate('/contactos')}
-          className="px-8 py-3 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
-        >
-          {isNetworkError ? 'Reintentar' : 'Volver a Cartera'}
-        </button>
+        {isNetworkError ? (
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-8 py-3 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all cursor-pointer inline-flex items-center justify-center"
+          >
+            Reintentar
+          </button>
+        ) : (
+          <Link 
+            to="/contactos"
+            className="px-8 py-3 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all cursor-pointer inline-flex items-center justify-center"
+          >
+            Volver a Cartera
+          </Link>
+        )}
       </div>
     );
   }
@@ -110,7 +120,6 @@ export const ContactoDetalleDesktop = ({ logic }: { logic: ReturnType<typeof use
         activeDropdown={activeDropdown}
         setActiveDropdown={setActiveDropdown}
         handleStageChange={handleStageChange}
-        navigate={navigate}
         onEdit={() => window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action: 'edit', contacto } }))}
         onMerge={() => setIsMergeModalOpen(true)}
         isTogglingArchive={isTogglingArchive}

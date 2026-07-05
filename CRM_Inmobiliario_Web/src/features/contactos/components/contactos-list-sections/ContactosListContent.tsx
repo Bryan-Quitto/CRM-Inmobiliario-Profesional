@@ -7,7 +7,6 @@ interface ContactosListContentProps {
   activeSegment: 'todos' | 'clientes' | 'propietarios';
   viewMode: 'list' | 'kanban';
   syncing: boolean;
-  onNavigate: (id: string) => void;
   onEdit: (contacto: Contacto) => void;
   onStageChange: (id: string, etapa: string, tipo?: 'contacto' | 'propietario') => void;
 }
@@ -17,7 +16,6 @@ export const ContactosListContent = ({
   activeSegment,
   viewMode,
   syncing,
-  onNavigate,
   onEdit,
   onStageChange,
 }: ContactosListContentProps) => {
@@ -26,7 +24,6 @@ export const ContactosListContent = ({
       <ContactosKanban 
         contactos={filteredContactos}
         activeSegment={activeSegment}
-        onNavigate={onNavigate}
         onStageChange={onStageChange}
       />
     );
@@ -40,7 +37,6 @@ export const ContactosListContent = ({
           contacto={contacto}
           activeSegment={activeSegment}
           syncing={syncing}
-          onNavigate={onNavigate}
           onEdit={onEdit}
           onStageChange={onStageChange}
         />

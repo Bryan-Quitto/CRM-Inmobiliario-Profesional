@@ -1,5 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Link } from 'react-router-dom';
 import { Clock, Maximize2, Minimize2, Lock, RefreshCcw } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { ContactosKanbanLogicReturn } from '../hooks/useContactosKanbanLogic';
@@ -16,8 +17,7 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
     toggleColumn,
     handleDragEnd,
     formatTimeAgo,
-    getEtapaColor,
-    onNavigate
+    getEtapaColor
   } = logic;
 
   return (
@@ -107,18 +107,21 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                           isDragDisabled={contacto.estadoEmbudo === 'En Negociación'}
                         >
                           {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              style={provided.draggableProps.style as React.CSSProperties}
-                              {...provided.dragHandleProps}
-                              onClick={() => !snapshot.isDragging && onNavigate(contacto.id)}
-                              className={`cursor-pointer bg-white p-3 rounded-xl shadow-sm border mb-2 transition-all group cursor-grab active:cursor-grabbing ${
-                                snapshot.isDragging 
-                                  ? 'rotate-1 scale-105 shadow-xl border-blue-400 z-50 ring-2 blue-500/10' 
-                                  : 'border-slate-100 hover:border-blue-200 hover:shadow-md'
-                              }`}
-                            >
+                              <Link
+                                to={`/contactos/${contacto.id}`}
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                style={{ ...(provided.draggableProps.style as React.CSSProperties), display: 'block' }}
+                                {...provided.dragHandleProps}
+                                onClick={(e) => {
+                                  if (snapshot.isDragging) e.preventDefault();
+                                }}
+                                className={`cursor-pointer bg-white p-3 rounded-xl shadow-sm border mb-2 transition-all group cursor-grab active:cursor-grabbing block ${
+                                  snapshot.isDragging 
+                                    ? 'rotate-1 scale-105 shadow-xl border-blue-400 z-50 ring-2 blue-500/10' 
+                                    : 'border-slate-100 hover:border-blue-200 hover:shadow-md'
+                                }`}
+                              >
                               <div className="flex items-center gap-3 mb-2">
                                 <div className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-[10px] group-hover:bg-blue-600 transition-colors shrink-0">
                                   {contacto.nombre[0]}{contacto.apellido?.[0] || ''}
@@ -142,8 +145,8 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                                   </div>
                                 )}
                               </div>
-                            </div>
-                          )}
+                              </Link>
+                            )}
                         </Draggable>
                       ))}
                       {provided.placeholder}

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import type { Contacto } from '../types';
 import { useContactosKanbanLogic } from '../hooks/useContactosKanbanLogic';
 import { ContactosKanbanDesktop } from './ContactosKanbanDesktop';
@@ -8,7 +8,6 @@ interface ContactosKanbanProps {
   contactos: Contacto[];
   activeSegment: 'clientes' | 'propietarios' | 'todos';
   onStageChange: (id: string, nuevoEstado: string, tipo?: 'contacto' | 'propietario') => void;
-  onNavigate: (id: string) => void;
 }
 
 export const ContactosKanban: React.FC<ContactosKanbanProps> = (props) => {
