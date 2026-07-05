@@ -1,6 +1,6 @@
 import React from 'react';
 import { User, Building, Lock, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { PasswordRequirements } from './PasswordRequirements';
+import { PasswordRequirements } from '../shared/PasswordRequirements';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
 import { LegalModal } from '../../../legal/components/LegalModal';
 

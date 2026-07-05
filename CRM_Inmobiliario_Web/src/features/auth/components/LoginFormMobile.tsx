@@ -95,6 +95,11 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
                   {showPassword ? <EyeOff color="url(#miui-icon-slate-500)" className="h-4 w-4" /> : <Eye color="url(#miui-icon-slate-500)" className="h-4 w-4" />}
                 </button>
               </div>
+              <div className="flex justify-end mt-1.5 mr-1">
+                <a href="/olvide-mi-clave" className="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider">
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </div>
             </div>
 
             <button

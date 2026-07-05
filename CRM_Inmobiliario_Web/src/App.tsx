@@ -7,6 +7,8 @@ import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { NetworkStatusListener } from './components/NetworkStatusListener';
 import { supabase } from './lib/supabase';
 import { LoginForm } from './features/auth/components/LoginForm';
+import { OlvideMiClave } from './features/auth/components/OlvideMiClave';
+import { ActualizarClave } from './features/auth/components/ActualizarClave';
 import { Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { api } from './lib/axios';
@@ -189,7 +191,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="auto-archivado" element={<AutoArchivadoSettings />} />
                 <Route path="portabilidad" element={<ConfiguracionPortabilidad />} />
               </Route>
-              <Route path="/confirmar-password" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
+              <Route path="/confirmar-clave" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
               {/* Fallback global para usuarios logueados que intentan acceder a una ruta inexistente o vienen del login */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
@@ -230,7 +232,8 @@ function MainApp() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const isInviteFlow = initialHash.includes('type=invite') || initialHash.includes('type=recovery');
+  const isInviteFlow = initialHash.includes('type=invite');
+  const isRecoveryFlow = initialHash.includes('type=recovery') || window.location.pathname === '/actualizar-clave';
 
   if (loading) {
     return (
@@ -240,18 +243,22 @@ function MainApp() {
     );
   }
 
-  if (!session || isInviteFlow) {
+  if (!session || isInviteFlow || isRecoveryFlow) {
     return (
       <GlobalErrorBoundary>
         <Routes>
           <Route path="/privacidad" element={<Suspense fallback={<PageLoader />}><PoliticaPrivacidadView /></Suspense>} />
           <Route path="/terminos" element={<Suspense fallback={<PageLoader />}><TerminosServicioView /></Suspense>} />
+          <Route path="/olvide-mi-clave" element={<OlvideMiClave />} />
+          <Route path="/actualizar-clave" element={<ActualizarClave />} />
           <Route 
             path="*" 
             element={isInviteFlow ? (
               <Suspense fallback={<PageLoader />}>
                 <ConfirmarInvitacion />
               </Suspense>
+            ) : isRecoveryFlow ? (
+              <Navigate to="/actualizar-clave" replace />
             ) : (
               <LoginForm />
             )} 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, User, Building, Lock, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import type { ConfirmarInvitacionLogic } from '../hooks/useConfirmarInvitacionLogic';
-import { PasswordRequirements } from './confirmar-invitacion/PasswordRequirements';
+import { PasswordRequirements } from './shared/PasswordRequirements';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
 import { LegalModal } from '../../legal/components/LegalModal';
 
