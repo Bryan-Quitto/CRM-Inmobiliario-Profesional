@@ -17,7 +17,8 @@ public record OmniSearchResult(
     string Title, 
     string? Subtitle, 
     string SearchText, 
-    Guid VisibleToAgenteId
+    Guid VisibleToAgenteId,
+    string? ImageUrl
 );
 
 public record OmniSearchResponse(

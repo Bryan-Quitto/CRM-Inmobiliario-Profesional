@@ -1,4 +1,4 @@
-﻿export interface Interaccion {
+export interface Interaccion {
   id: string;
   tipoInteraccion: string;
   notas: string;
@@ -12,6 +12,7 @@ export interface Interes {
   estadoComercial: string;
   nivelInteres: string;
   fechaRegistro: string;
+  imagenPortadaUrl?: string;
 }
 
 export interface PropiedadCaptada {

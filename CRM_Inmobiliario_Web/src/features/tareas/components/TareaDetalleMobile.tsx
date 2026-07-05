@@ -164,8 +164,12 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
               onClick={handleNavigateToProperty}
               className="w-full flex flex-row items-center gap-3 group text-left hover:bg-slate-50 p-2 rounded-xl transition-all cursor-pointer bg-slate-50/50 border border-slate-100"
             >
-              <div className="h-10 w-10 shrink-0 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm shadow-emerald-100">
-                <Home size={24} />
+              <div className="h-10 w-10 shrink-0 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm shadow-emerald-100 overflow-hidden">
+                {tarea.propiedadImagenPortadaUrl ? (
+                  <img src={tarea.propiedadImagenPortadaUrl} alt={tarea.propiedadTitulo} className="w-full h-full object-cover" />
+                ) : (
+                  <Home size={24} />
+                )}
               </div>
               <div className="flex-1 w-full min-w-0">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between gap-2 break-words w-full">

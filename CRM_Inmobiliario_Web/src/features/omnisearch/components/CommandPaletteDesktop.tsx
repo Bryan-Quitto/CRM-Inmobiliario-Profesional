@@ -144,8 +144,12 @@ export const CommandPaletteDesktop: React.FC<Props> = ({ logic }) => {
                                 onClick={() => handleSelectDynamic(item)}
                                 className="w-full flex items-center px-3 py-2.5 rounded-xl hover:bg-slate-50 focus:bg-slate-50 text-left transition-colors group cursor-pointer"
                               >
-                                <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3 group-hover:bg-white group-hover:shadow-sm">
-                                  <Icon className="h-4 w-4" />
+                                <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3 group-hover:bg-white group-hover:shadow-sm shrink-0 overflow-hidden border border-indigo-100/50">
+                                  {item.imageUrl ? (
+                                    <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <Icon className="h-4 w-4" />
+                                  )}
                                 </div>
                                 <div>
                                   <p className="text-sm font-medium text-slate-900">{item.title}</p>

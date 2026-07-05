@@ -136,8 +136,12 @@ export const CommandPaletteMobile: React.FC<Props> = ({ logic }) => {
                               onClick={() => handleSelectDynamic(item)}
                               className="w-full flex items-center px-3 py-3 rounded-xl active:bg-slate-100 text-left transition-colors cursor-pointer touch-manipulation"
                             >
-                              <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3 shrink-0">
-                                <Icon className="h-5 w-5" />
+                              <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mr-3 shrink-0 overflow-hidden border border-indigo-100/50">
+                                {item.imageUrl ? (
+                                  <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+                                ) : (
+                                  <Icon className="h-5 w-5" />
+                                )}
                               </div>
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-slate-900 truncate">{item.title}</p>

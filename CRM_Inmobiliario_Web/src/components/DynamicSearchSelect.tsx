@@ -8,6 +8,7 @@ export interface SearchItem {
   id: string;
   title: string;
   subtitle?: string;
+  imageUrl?: string;
   [key: string]: unknown; // Permite pasar datos extra como el objeto 'raw'
 }
 
@@ -162,15 +163,22 @@ export const DynamicSearchSelect = ({
                     onClick={() => handleSelect(item)}
                     className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-all border-b border-slate-50 last:border-0 group flex items-center justify-between cursor-pointer"
                   >
-                    <div>
-                      <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
-                        {item.title}
-                      </p>
-                      {item.subtitle && (
-                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter mt-0.5">
-                          {item.subtitle}
-                        </p>
+                    <div className="flex items-center gap-3">
+                      {item.imageUrl && (
+                        <div className="h-10 w-10 shrink-0 bg-slate-100 rounded-lg overflow-hidden border border-slate-200/60 flex items-center justify-center">
+                          <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+                        </div>
                       )}
+                      <div>
+                        <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+                          {item.title}
+                        </p>
+                        {item.subtitle && (
+                          <p className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter mt-0.5">
+                            {item.subtitle}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     {value === item.id && <Check className="h-4 w-4 text-blue-500" />}
                   </button>

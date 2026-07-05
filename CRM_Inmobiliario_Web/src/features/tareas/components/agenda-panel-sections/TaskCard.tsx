@@ -107,7 +107,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
           {/* Relaciones */}
           {(tarea.contactoNombre || tarea.propiedadTitulo || tarea.lugar) && (
-            <div className="mt-2 space-y-1">
+            <div className="mt-2 space-y-2">
               {tarea.contactoNombre && (
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
                   <Users className="h-3 w-3 text-slate-300" />
@@ -115,13 +115,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 </div>
               )}
               {tarea.propiedadTitulo && (
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                  <MapPin className="h-3 w-3 text-slate-300" />
-                  <span className="truncate italic">{tarea.propiedadTitulo}</span>
+                <div className="flex items-center gap-2 mt-1 bg-slate-50/50 p-1 rounded-lg border border-slate-100/50 w-fit pr-3">
+                  <div className="h-6 w-6 bg-white rounded-md overflow-hidden shrink-0 flex items-center justify-center border border-slate-200/60 shadow-sm">
+                    {tarea.propiedadImagenPortadaUrl ? (
+                      <img src={tarea.propiedadImagenPortadaUrl} alt={tarea.propiedadTitulo} className="w-full h-full object-cover" />
+                    ) : (
+                      <MapPin className="h-3 w-3 text-slate-300" />
+                    )}
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-600 italic truncate max-w-[150px]">{tarea.propiedadTitulo}</span>
                 </div>
               )}
               {tarea.lugar && !tarea.propiedadTitulo && (
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-1">
                   <MapPin className="h-3 w-3 text-slate-300" />
                   <span className="truncate">{tarea.lugar}</span>
                 </div>

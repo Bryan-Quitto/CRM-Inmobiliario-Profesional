@@ -1,4 +1,5 @@
-import { Handshake, Pencil, MapPin, Plus, Image as ImageIcon } from 'lucide-react';
+import { Handshake, Pencil, MapPin, Plus, Image as ImageIcon, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { formatCurrency } from '../../constants/propiedades';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
 import { togglePropertyArchive } from '../../api/togglePropertyArchive';
@@ -33,6 +34,7 @@ export const PropiedadCardMobile = ({
 }: PropiedadCardMobileProps) => {
   const { mutate } = useSWRConfig();
   const [isTogglingArchive, setIsTogglingArchive] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const handleToggleArchive = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -67,7 +69,15 @@ export const PropiedadCardMobile = ({
       {/* Vertical Layout for Mobile Card */}
       <div className="flex flex-col p-2 gap-2 w-full">
         {/* Top: Thumbnail */}
-        <div className="w-full h-48 shrink-0 bg-slate-200 relative overflow-hidden rounded-lg flex items-center justify-center">
+        <div 
+          className="w-full aspect-[4/3] shrink-0 bg-slate-200 relative overflow-hidden rounded-lg flex items-center justify-center cursor-pointer"
+          onClick={(e) => {
+            if (p.imagenPortadaUrl) {
+              e.stopPropagation();
+              setIsLightboxOpen(true);
+            }
+          }}
+        >
           {p.imagenPortadaUrl ? (
             <img 
               src={p.imagenPortadaUrl} 
@@ -174,6 +184,32 @@ export const PropiedadCardMobile = ({
           dropdownRef={dropdownRef}
         />
       </div>
+
+      {isLightboxOpen && p.imagenPortadaUrl && createPortal(
+        <div 
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/95 p-4 cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsLightboxOpen(false);
+          }}
+        >
+          <button 
+            className="absolute top-4 right-4 h-10 w-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLightboxOpen(false);
+            }}
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <img 
+            src={p.imagenPortadaUrl} 
+            alt={p.titulo} 
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+          />
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

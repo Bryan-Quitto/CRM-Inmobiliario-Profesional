@@ -43,8 +43,12 @@ export const ContactoTransactions = ({ contacto }: ContactoTransactionsProps) =>
         {transacciones.map((transaccion) => (
           <div key={transaccion.propiedadId} className="group relative bg-white border border-slate-100 p-4 rounded-2xl hover:border-emerald-200 hover:shadow-md transition-all flex items-start justify-between gap-4">
             <div className="flex items-start gap-3 flex-1 min-w-0">
-              <div className="h-12 w-12 bg-emerald-50 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
-                <Building2 className="h-5 w-5 text-emerald-600" />
+              <div className="h-12 w-12 bg-emerald-50 rounded-xl overflow-hidden shrink-0 flex items-center justify-center border border-emerald-100/60">
+                {transaccion.imagenPortadaUrl ? (
+                  <img src={transaccion.imagenPortadaUrl} alt={transaccion.titulo} className="w-full h-full object-cover" />
+                ) : (
+                  <Building2 className="h-5 w-5 text-emerald-600" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <h4 className="text-xs font-black text-slate-900 uppercase truncate tracking-tight group-hover:text-emerald-600 transition-colors">

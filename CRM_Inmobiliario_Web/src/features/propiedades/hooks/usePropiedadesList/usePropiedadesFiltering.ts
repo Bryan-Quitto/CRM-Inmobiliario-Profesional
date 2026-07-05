@@ -170,7 +170,7 @@ export const usePropiedadesFiltering = () => {
     if (sortDirection) params.set('sortDirection', sortDirection);
     
     params.set('pageNumber', currentPage.toString());
-    params.set('pageSize', '50');
+    params.set('pageSize', '20');
 
     Object.entries(advancedFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '' && value !== 'Todas' && value !== 'Todos') {

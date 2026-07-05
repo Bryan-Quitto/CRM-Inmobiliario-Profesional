@@ -165,8 +165,12 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
               onClick={handleNavigateToProperty}
               className="w-full flex items-center gap-4 group text-left hover:bg-slate-50 p-2 -m-2 rounded-2xl transition-all cursor-pointer"
             >
-              <div className="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform shadow-sm shadow-emerald-100">
-                <Home size={24} />
+              <div className="h-12 w-12 shrink-0 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform shadow-sm shadow-emerald-100 overflow-hidden">
+                {tarea.propiedadImagenPortadaUrl ? (
+                  <img src={tarea.propiedadImagenPortadaUrl} alt={tarea.propiedadTitulo} className="w-full h-full object-cover" />
+                ) : (
+                  <Home size={24} />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">

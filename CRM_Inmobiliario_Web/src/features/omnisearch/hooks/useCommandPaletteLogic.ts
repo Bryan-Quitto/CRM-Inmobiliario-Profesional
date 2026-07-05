@@ -10,6 +10,7 @@ export interface OmniSearchResult {
   title: string;
   subtitle: string | null;
   searchText: string;
+  imageUrl?: string;
 }
 
 export interface OmniSearchResponse {
@@ -26,6 +27,7 @@ export interface StaticOption {
   path?: string;
   action?: string;
   keywords: string[];
+  imageUrl?: string;
 }
 
 const STATIC_OPTIONS: StaticOption[] = [

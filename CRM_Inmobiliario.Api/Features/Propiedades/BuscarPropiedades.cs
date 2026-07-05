@@ -11,7 +11,7 @@ namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
 public static class BuscarPropiedadesFeature
 {
-    public record PropiedadBusquedaResponse(Guid Id, string Titulo, string Ciudad, string Sector, Guid? PropietarioId, Guid GestorId, bool AlreadyHasContact = false);
+    public record PropiedadBusquedaResponse(Guid Id, string Titulo, string Ciudad, string Sector, Guid? PropietarioId, Guid GestorId, bool AlreadyHasContact = false, string? ImagenPortadaUrl = null);
 
     public static RouteHandlerBuilder MapBuscarPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
@@ -65,7 +65,8 @@ public static class BuscarPropiedadesFeature
                     x.Property.Sector,
                     x.Property.PropietarioId,
                     x.GestorId,
-                    false
+                    false,
+                    x.Property.Media.Where(m => m.EsPrincipal).Select(m => m.UrlPublica).FirstOrDefault()
                 ))
                 .ToListAsync();
 

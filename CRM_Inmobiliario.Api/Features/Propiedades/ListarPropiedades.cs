@@ -16,7 +16,7 @@ public static class ListarPropiedadesFeature
         return app.MapGet("/propiedades", async ([AsParameters] GetPropiedadesRequest request, ClaimsPrincipal user, CrmDbContext context, IServiceProvider serviceProvider, CancellationToken cancellationToken) =>
         {
             var actualPageNumber = request.PageNumber ?? 1;
-            var actualPageSize = request.PageSize ?? 50;
+            var actualPageSize = request.PageSize ?? 20;
 
             var currentUserId = user.GetRequiredUserId();
 

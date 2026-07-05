@@ -9,6 +9,7 @@ export interface Tarea {
   contactoNombre?: string;
   propiedadTitulo?: string;
   propiedadDireccion?: string;
+  propiedadImagenPortadaUrl?: string;
   contactoId?: string;
   propiedadId?: string;
   lugar?: string;

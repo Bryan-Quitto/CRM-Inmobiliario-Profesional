@@ -33,7 +33,7 @@ export const usePropiedadesData = (queryParams: URLSearchParams, checkContactoId
   const countVentas = data?.countVentas || 0;
   const countAlquiler = data?.countAlquiler || 0;
 
-  const totalPages = Math.ceil(totalCount / (Number(urlParams.get('pageSize')) || 50));
+  const totalPages = Math.ceil(totalCount / (Number(urlParams.get('pageSize')) || 20));
   const currentPage = Number(urlParams.get('pageNumber')) || 1;
 
   // Prefetch de la siguiente página para zero-wait

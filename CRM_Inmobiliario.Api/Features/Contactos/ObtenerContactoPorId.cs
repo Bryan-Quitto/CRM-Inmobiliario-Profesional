@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +44,8 @@ public static class ObtenerContactoPorIdFeature
         decimal Precio,
         string EstadoComercial,
         string NivelInteres,
-        DateTimeOffset FechaRegistro);
+        DateTimeOffset FechaRegistro,
+        string? ImagenPortadaUrl);
 
     public record PropiedadCaptadaResponse(
         Guid Id,
@@ -95,7 +96,8 @@ public static class ObtenerContactoPorIdFeature
                             i.Propiedad.Precio,
                             i.Propiedad.EstadoComercial,
                             i.NivelInteres,
-                            i.FechaRegistro))
+                            i.FechaRegistro,
+                            i.Propiedad.Media.Where(m => m.EsPrincipal).Select(m => m.UrlPublica).FirstOrDefault()))
                         .ToList(),
                     c.PropertiesOwned
                         .OrderByDescending(p => p.FechaIngreso)

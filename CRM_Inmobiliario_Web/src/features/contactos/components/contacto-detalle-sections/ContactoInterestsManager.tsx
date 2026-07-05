@@ -132,8 +132,12 @@ export const ContactoInterestsManager = ({
                 {(isUpdating || (isDeletingInteres && isThisBeingDeleted)) && <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-2xl"><Loader2 className="h-5 w-5 text-blue-600 animate-spin" /></div>}
                 
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 md:h-12 md:w-12 bg-slate-100 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
-                    <Building2 className="h-4 w-4 md:h-5 md:w-5 text-slate-300" />
+                  <div className="h-10 w-10 md:h-12 md:w-12 bg-slate-100 rounded-xl overflow-hidden shrink-0 flex items-center justify-center border border-slate-100/60">
+                    {interes.imagenPortadaUrl ? (
+                      <img src={interes.imagenPortadaUrl} alt={interes.titulo} className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="h-4 w-4 md:h-5 md:w-5 text-slate-300" />
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs font-black text-slate-900 uppercase truncate group-hover:text-blue-600 transition-colors tracking-tight">{interes.titulo}</h4>

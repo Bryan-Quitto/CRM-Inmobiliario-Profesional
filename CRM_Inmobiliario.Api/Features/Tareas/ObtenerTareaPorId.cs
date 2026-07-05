@@ -24,7 +24,8 @@ public static class ObtenerTareaPorIdFeature
         Guid? ContactoId,
         Guid? PropiedadId,
         string? Lugar,
-        string? PropiedadDireccion);
+        string? PropiedadDireccion,
+        string? PropiedadImagenPortadaUrl);
 
     public static RouteHandlerBuilder MapObtenerTareaPorIdEndpoint(this IEndpointRouteBuilder app)
     {
@@ -36,6 +37,7 @@ public static class ObtenerTareaPorIdFeature
                 .AsNoTracking()
                 .Include(t => t.Contacto)
                 .Include(t => t.Propiedad)
+                    .ThenInclude(p => p!.Media)
                 .FirstOrDefaultAsync(t => t.Id == id && t.AgenteId == agenteId);
 
             if (tarea is null) return Results.NotFound();
@@ -54,7 +56,8 @@ public static class ObtenerTareaPorIdFeature
                 tarea.ContactoId,
                 tarea.PropiedadId,
                 tarea.Lugar,
-                tarea.Propiedad?.Direccion
+                tarea.Propiedad?.Direccion,
+                tarea.Propiedad?.Media.Where(m => m.EsPrincipal).Select(m => m.UrlPublica).FirstOrDefault()
             );
 
             return Results.Ok(response);

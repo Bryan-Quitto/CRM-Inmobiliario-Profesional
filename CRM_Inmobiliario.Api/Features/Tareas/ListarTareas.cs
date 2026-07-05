@@ -25,7 +25,8 @@ public static class ListarTareasFeature
         string? Lugar,
         Guid? ContactoId,
         Guid? PropiedadId,
-        string? PropiedadDireccion);
+        string? PropiedadDireccion,
+        string? PropiedadImagenPortadaUrl);
 
     public static RouteHandlerBuilder MapListarTareasEndpoint(this IEndpointRouteBuilder app)
     {
@@ -52,7 +53,8 @@ public static class ListarTareasFeature
                     t.Lugar,
                     t.ContactoId,
                     t.PropiedadId,
-                    t.Propiedad != null ? t.Propiedad.Direccion : null))
+                    t.Propiedad != null ? t.Propiedad.Direccion : null,
+                    t.Propiedad != null ? t.Propiedad.Media.Where(m => m.EsPrincipal).Select(m => m.UrlPublica).FirstOrDefault() : null))
                 .ToListAsync();
 
             return Results.Ok(tareas);
