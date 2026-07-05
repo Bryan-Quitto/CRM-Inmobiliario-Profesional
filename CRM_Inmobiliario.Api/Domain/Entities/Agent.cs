@@ -108,6 +108,7 @@ public sealed class Agent
     public string? TerminosAceptadosVersion { get; set; }
 
     public DateTimeOffset FechaCreacion { get; set; } = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
+    public DateTimeOffset? FechaEliminacion { get; set; }
 
     // Relaciones de navegación
     public ICollection<ContactoAgenteCompartido> ContactosCompartidos { get; set; } = new List<ContactoAgenteCompartido>();

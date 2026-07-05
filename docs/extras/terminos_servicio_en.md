@@ -1,6 +1,6 @@
 # Lúmina Terms of Service
 
-**Effective Date:** July 3, 2026
+**Date of last update:** July 4, 2026
 
 Welcome to Lúmina, the Professional Real Estate CRM ("Lúmina", "we", "the Platform"). These Terms of Service ("Terms") govern the access and use of our Software as a Service platform by Professional Real Estate Agents ("User", "Agent", or "you"). The figure of "Agency" within the system operates solely as a collaborative grouping functionality, and does not constitute a contractual link between Lúmina and such companies or franchises.
 
@@ -68,4 +68,4 @@ We reserve the right to update these Terms at any time. Users will be notified o
 These Terms are governed and construed in accordance with the laws of the Republic of Ecuador. For any dispute arising from the application, interpretation, or execution of this contract, the parties submit to mediation and arbitration centers, and subsidiarily to the jurisdiction of the competent judges of the city of Quito, Ecuador.
 
 ---
-If you have questions about these Terms of Service, you may contact us at: `bryanleninqn@gmail.com`.
+If you have questions about these Terms of Service, you may contact us at: `soporte@luminacrminmobiliario.com`.

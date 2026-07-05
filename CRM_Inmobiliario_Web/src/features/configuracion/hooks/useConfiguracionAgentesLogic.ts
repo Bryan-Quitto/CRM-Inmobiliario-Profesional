@@ -17,9 +17,17 @@ export const useConfiguracionAgentesLogic = () => {
   const [activarInvitadoModalOpen, setActivarInvitadoModalOpen] = useState(false);
   const [selectedInvitadoAgent, setSelectedInvitadoAgent] = useState<{ id: string, nombre: string } | null>(null);
 
+  const [eliminarModalOpen, setEliminarModalOpen] = useState(false);
+  const [selectedEliminarAgent, setSelectedEliminarAgent] = useState<{ id: string, nombre: string } | null>(null);
+
   const handleDesactivarClick = (agenteId: string, nombre: string, apellido: string) => {
     setSelectedAgent({ id: agenteId, nombre: `${nombre} ${apellido}` });
     setModalOpen(true);
+  };
+
+  const handleEliminarClick = (agenteId: string, nombre: string, apellido: string) => {
+    setSelectedEliminarAgent({ id: agenteId, nombre: `${nombre} ${apellido}` });
+    setEliminarModalOpen(true);
   };
 
   const handleReactivarClick = (agenteId: string, nombre: string, apellido: string) => {
@@ -68,6 +76,9 @@ export const useConfiguracionAgentesLogic = () => {
     modalOpen,
     setModalOpen,
     selectedAgent,
+    eliminarModalOpen,
+    setEliminarModalOpen,
+    selectedEliminarAgent,
     reactivarModalOpen,
     setReactivarModalOpen,
     selectedReactivarAgent,
@@ -75,6 +86,7 @@ export const useConfiguracionAgentesLogic = () => {
     setActivarInvitadoModalOpen,
     selectedInvitadoAgent,
     handleDesactivarClick,
+    handleEliminarClick,
     handleReactivarClick,
     handleActivarInvitadoClick,
     handleActivarInvitadoSubmit,

@@ -1,6 +1,6 @@
 # Lúmina Privacy Policy
 
-**Date of last update:** July 3, 2026
+**Date of last update:** July 4, 2026
 
 Lúmina ("we", "our", "the Platform") is committed to protecting personal data. This Privacy Policy describes how we collect, use, store, and protect personal information, in compliance with the Organic Law on Personal Data Protection (LOPDP) of Ecuador, the General Data Protection Regulation (GDPR), and other applicable international standards.
 
@@ -105,7 +105,7 @@ We retain personal data only for the time strictly necessary for the purposes fo
 | Security audit logs | 12 months |
 | WebPush subscriptions | Until the Agent revokes them or deletes their account |
 
-Once the retention period expires, data is securely deleted or anonymized.
+Once the retention period expires, data is securely deleted or anonymized. In the specific case of User (Agent) accounts, after 30 days from the deletion request, a logical deletion and anonymization is applied. This involves the permanent removal of identifying data (name, phone, email, profile photo, etc.), leaving the account as an "Anonymous Agent". This process is performed to preserve the integrity of the platform's historical metrics without maintaining personally identifiable information.
 
 ## 12. International Transfers
 

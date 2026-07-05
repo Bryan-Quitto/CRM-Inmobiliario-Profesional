@@ -4,6 +4,7 @@ import type { ConfiguracionAgentesLogic } from '../hooks/useConfiguracionAgentes
 import { ReasignacionAgenteModal } from './ReasignacionAgenteModal';
 import { ReactivacionAgenteModal } from './ReactivacionAgenteModal';
 import { ActivarAgenteInvitadoModal } from './ActivarAgenteInvitadoModal';
+import { EliminarAgenteModal } from './EliminarAgenteModal';
 
 interface Props {
   logic: ConfiguracionAgentesLogic;
@@ -19,6 +20,9 @@ export const ConfiguracionAgentesMobile: React.FC<Props> = ({ logic }) => {
     modalOpen,
     setModalOpen,
     selectedAgent,
+    eliminarModalOpen,
+    setEliminarModalOpen,
+    selectedEliminarAgent,
     reactivarModalOpen,
     setReactivarModalOpen,
     selectedReactivarAgent,
@@ -26,6 +30,7 @@ export const ConfiguracionAgentesMobile: React.FC<Props> = ({ logic }) => {
     setActivarInvitadoModalOpen,
     selectedInvitadoAgent,
     handleDesactivarClick,
+    handleEliminarClick,
     handleReactivarClick,
     handleActivarInvitadoClick,
     handleActivarInvitadoSubmit,
@@ -68,13 +73,21 @@ export const ConfiguracionAgentesMobile: React.FC<Props> = ({ logic }) => {
                 {isAdmin && agente.id !== user?.id && (
                   <div className="pt-2 border-t border-slate-200 w-full">
                     {agente.activo ? (
-                      <button
-                        onClick={() => handleDesactivarClick(agente.id, agente.nombre, agente.apellido)}
-                        className="w-full py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                      >
-                        <ShieldAlert size={18} className="shrink-0" />
-                        Desactivar Agente
-                      </button>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => handleDesactivarClick(agente.id, agente.nombre, agente.apellido)}
+                          className="w-full py-3 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                        >
+                          <ShieldAlert size={18} className="shrink-0" />
+                          Desactivar Agente
+                        </button>
+                        <button
+                          onClick={() => handleEliminarClick(agente.id, agente.nombre, agente.apellido)}
+                          className="w-full py-3 bg-red-100 text-red-700 hover:bg-red-200 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                        >
+                          Eliminar Cuenta
+                        </button>
+                      </div>
                     ) : agente.email?.includes('invitado_') ? (
                       <button
                         onClick={() => handleActivarInvitadoClick(agente.id, agente.nombre, agente.apellido)}
@@ -104,6 +117,16 @@ export const ConfiguracionAgentesMobile: React.FC<Props> = ({ logic }) => {
               agenteDesactivarId={selectedAgent.id}
               agenteDesactivarNombre={selectedAgent.nombre}
               onClose={() => setModalOpen(false)}
+              onSuccess={() => mutate()}
+            />
+          )}
+
+          {selectedEliminarAgent && (
+            <EliminarAgenteModal
+              isOpen={eliminarModalOpen}
+              agenteEliminarId={selectedEliminarAgent.id}
+              agenteEliminarNombre={selectedEliminarAgent.nombre}
+              onClose={() => setEliminarModalOpen(false)}
               onSuccess={() => mutate()}
             />
           )}

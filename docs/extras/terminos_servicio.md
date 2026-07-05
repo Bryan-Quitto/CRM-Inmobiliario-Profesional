@@ -1,6 +1,6 @@
 # Términos de Servicio de Lúmina
 
-**Fecha de vigencia:** 3 de julio de 2026
+**Fecha de última actualización:** 4 de julio de 2026
 
 Bienvenidos a Lúmina, el CRM Inmobiliario Profesional ("Lúmina", "nosotros", "la Plataforma"). Estos Términos de Servicio ("Términos") regulan el acceso y uso de nuestra plataforma de Software como Servicio por parte de Agentes Profesionales Inmobiliarios ("Usuario", "Agente", o "usted"). La figura de "Agencia" dentro del sistema opera únicamente como una funcionalidad de agrupación colaborativa, y no constituye un vínculo contractual entre Lúmina y dichas empresas o franquicias.
 
@@ -68,4 +68,4 @@ Nos reservamos el derecho de actualizar estos Términos en cualquier momento. Lo
 Estos Términos se rigen e interpretan conforme a las leyes de la República del Ecuador. Para cualquier controversia derivada de la aplicación, interpretación o ejecución de este contrato, las partes se someten a los centros de mediación y arbitraje, y subsidiariamente a la jurisdicción de los jueces competentes de la ciudad de Quito, Ecuador.
 
 ---
-Si tiene dudas sobre estos Términos de Servicio, puede comunicarse con nosotros en: `bryanleninqn@gmail.com`.
+Si tiene dudas sobre estos Términos de Servicio, puede comunicarse con nosotros en: `soporte@luminacrminmobiliario.com`.

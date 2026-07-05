@@ -1,6 +1,6 @@
 # Política de Privacidad de Lúmina
 
-**Fecha de última actualización:** 3 de julio de 2026
+**Fecha de última actualización:** 4 de julio de 2026
 
 Lúmina ("nosotros", "nuestro", "la Plataforma") está comprometida con la protección de los datos personales. Esta Política de Privacidad describe cómo recopilamos, utilizamos, almacenamos y protegemos la información personal, en cumplimiento de la Ley Orgánica de Protección de Datos Personales (LOPDP) del Ecuador, el Reglamento General de Protección de Datos (GDPR) y otros estándares internacionales aplicables.
 
@@ -105,7 +105,7 @@ Conservamos los datos personales únicamente durante el tiempo estrictamente nec
 | Logs de auditoría de seguridad | 12 meses |
 | Suscripciones WebPush | Hasta que el Agente las revoque o elimine su cuenta |
 
-Una vez vencido el plazo, los datos son eliminados o anonimizados de forma segura.
+Una vez vencido el plazo, los datos son eliminados o anonimizados de forma segura. En el caso específico de las cuentas de Usuario (Agente), pasados los 30 días de su solicitud de eliminación, se aplica un borrado lógico y anonimización. Esto implica la eliminación definitiva de datos identificativos (nombre, teléfono, email, foto de perfil, etc.), quedando la cuenta como un "Agente Anónimo". Este proceso se realiza para preservar la integridad de las métricas históricas de la plataforma sin mantener información personal identificable.
 
 ## 12. Transferencias Internacionales
 

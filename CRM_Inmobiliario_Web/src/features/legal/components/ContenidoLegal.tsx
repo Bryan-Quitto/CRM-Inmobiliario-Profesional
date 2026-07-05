@@ -25,6 +25,16 @@ export const ContenidoLegal = ({ content }: Props) => {
           blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-slate-300 pl-4 italic my-4 text-slate-600" {...props} />,
           code: ({node, ...props}) => <code className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm font-mono" {...props} />,
           hr: ({node, ...props}) => <hr className="my-8 border-slate-200" {...props} />,
+          table: ({node, ...props}) => (
+            <div className="overflow-x-auto my-6">
+              <table className="w-full text-left border-collapse border border-slate-200 rounded-lg" {...props} />
+            </div>
+          ),
+          thead: ({node, ...props}) => <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200" {...props} />,
+          tbody: ({node, ...props}) => <tbody className="divide-y divide-slate-200" {...props} />,
+          tr: ({node, ...props}) => <tr className="hover:bg-slate-50 transition-colors" {...props} />,
+          th: ({node, ...props}) => <th className="px-4 py-3 border border-slate-200" {...props} />,
+          td: ({node, ...props}) => <td className="px-4 py-3 border border-slate-200" {...props} />,
         }}
       >
         {content}
