@@ -2,6 +2,8 @@ import { usePropiedadesData } from './usePropiedadesList/usePropiedadesData';
 import { usePropiedadesFiltering } from './usePropiedadesList/usePropiedadesFiltering';
 import { usePropiedadesUI } from './usePropiedadesList/usePropiedadesUI';
 import { usePropiedadesActions } from './usePropiedadesList/usePropiedadesActions';
+import { useScrollButtons } from '@/hooks/useScrollButtons';
+
 
 export const usePropiedadesListLogic = (checkContactoId?: string) => {
   // 1. Filtering Layer
@@ -62,6 +64,9 @@ export const usePropiedadesListLogic = (checkContactoId?: string) => {
   const handleClosingConfirm = (precioCierre: number | null, cerradoConId: string, agenteCerradorId: string | undefined, tipoCierre: string) => 
     handleClosingConfirmBase(precioCierre, cerradoConId, agenteCerradorId, tipoCierre, ui.closingPropiedad);
 
+  const scrollButtons = useScrollButtons();
+
+
   return {
     // Data
     propiedades,
@@ -99,6 +104,9 @@ export const usePropiedadesListLogic = (checkContactoId?: string) => {
     updatingId,
     handleStatusChange,
     handleClosingConfirm,
-    handleRelistPropiedad
+    handleRelistPropiedad,
+    
+    // Scroll
+    ...scrollButtons
   };
 };

@@ -1,4 +1,4 @@
-﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using System.Text;
@@ -138,7 +138,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
                     .OrderBy(p => p.GeminiEmbedding!.CosineDistance(queryEmbedding))
                     .Take(3)
                     .Select(p => new PropiedadResultDto(
-                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.GoogleMapsUrl, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
                         p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
                         p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un agente te avisará si vuelve a estar disponible.'" :
                         p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un agente te avisará si hay similares disponibles.'" : null,
@@ -153,7 +153,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
                     .OrderBy(p => p.VectorEmbedding!.CosineDistance(queryEmbedding))
                     .Take(3)
                     .Select(p => new PropiedadResultDto(
-                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.GoogleMapsUrl, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
                         p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
                         p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un agente te avisará si vuelve a estar disponible.'" :
                         p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un agente te avisará si hay similares disponibles.'" : null,
@@ -191,7 +191,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
                     .OrderByDescending(p => p.Id)
                     .Take(3)
                     .Select(p => new PropiedadResultDto(
-                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
+                        p.Id, p.Titulo, p.Precio, p.Sector, p.Ciudad, p.Direccion, p.GoogleMapsUrl, p.Habitaciones, p.Banos, p.Estacionamientos, p.AniosAntiguedad, 
                         p.AreaTotal, p.AreaConstruccion, p.AreaTerreno, p.MediosBanos, p.UrlRemax, p.Operacion, p.TipoPropiedad, p.EstadoComercial,
                         p.EstadoComercial == "Reservada" ? "INSTRUCCIÓN: Esta propiedad está RESERVADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente RESERVADA. Un agente te avisará si vuelve a estar disponible.'" :
                         p.EstadoComercial == "Alquilada" ? "INSTRUCCIÓN: Esta propiedad está ALQUILADA. Usa este mensaje: 'Esta propiedad se encuentra actualmente ALQUILADA. Un agente te avisará si hay similares disponibles.'" : null,
@@ -213,6 +213,8 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
                     r.Precio,
                     r.Sector,
                     r.Ciudad,
+                    r.Direccion,
+                    r.GoogleMapsUrl,
                     r.Habitaciones,
                     r.Banos,
                     r.Operacion
@@ -230,7 +232,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
     {
         var sb = new StringBuilder();
         if (!string.IsNullOrEmpty(aviso)) sb.AppendLine(aviso);
-        sb.AppendLine("Id|Titulo|Tipo|Precio|Ubicacion|DireccionExacta|Operacion|Habitaciones|Baños|MediosBaños|Parqueaderos|AñosAntigüedad|Area|Url|NotaIA|DescripcionSanitizada");
+        sb.AppendLine("Id|Titulo|Tipo|Precio|Ubicacion|Operacion|Habitaciones|Baños|MediosBaños|Parqueaderos|AñosAntigüedad|Area|Url|NotaIA|DescripcionSanitizada");
         foreach(var p in resultados)
         {
             var area = p.AreaTotal ?? p.AreaConstruccion ?? p.AreaTerreno;
@@ -240,14 +242,13 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
             var estac = p.Estacionamientos?.ToString() ?? "0";
             var anios = p.AniosAntiguedad?.ToString() ?? "N/A";
             var tipo = p.TipoPropiedad ?? "N/A";
-            var direccion = p.Direccion?.Replace("|", "-") ?? "";
-            sb.AppendLine($"{p.Id}|{p.Titulo}|{tipo}|{p.Precio}|{p.Sector},{p.Ciudad}|{direccion}|{p.Operacion}|{p.Habitaciones}|{p.Banos}|{medBan}|{estac}|{anios}|{area}|{p.UrlRemax}|{p.NotaIA}|{desc}");
+            sb.AppendLine($"{p.Id}|{p.Titulo}|{tipo}|{p.Precio}|{p.Sector},{p.Ciudad}|{p.Operacion}|{p.Habitaciones}|{p.Banos}|{medBan}|{estac}|{anios}|{area}|{p.UrlRemax}|{p.NotaIA}|{desc}");
         }
         return sb.ToString();
     }
 }
 
-public record PropiedadResultDto(Guid Id, string Titulo, decimal Precio, string? Sector, string? Ciudad, string? Direccion, int? Habitaciones, decimal? Banos, int? Estacionamientos, int? AniosAntiguedad, decimal? AreaTotal, decimal? AreaConstruccion, decimal? AreaTerreno, int? MediosBanos, string? UrlRemax, string? Operacion, string? TipoPropiedad, string? EstadoComercial, string? NotaIA, string? Descripcion);
+public record PropiedadResultDto(Guid Id, string Titulo, decimal Precio, string? Sector, string? Ciudad, string? Direccion, string? GoogleMapsUrl, int? Habitaciones, decimal? Banos, int? Estacionamientos, int? AniosAntiguedad, decimal? AreaTotal, decimal? AreaConstruccion, decimal? AreaTerreno, int? MediosBanos, string? UrlRemax, string? Operacion, string? TipoPropiedad, string? EstadoComercial, string? NotaIA, string? Descripcion);
 
 
 

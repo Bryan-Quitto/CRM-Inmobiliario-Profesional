@@ -131,8 +131,6 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
         sb.AppendLine($"Estado Comercial: {propiedad.EstadoComercial}");
         sb.AppendLine($"Ciudad: {propiedad.Ciudad}");
         sb.AppendLine($"Sector: {propiedad.Sector}");
-        sb.AppendLine($"Dirección Exacta: {propiedad.Direccion}");
-        sb.AppendLine($"Google Maps: {propiedad.GoogleMapsUrl ?? "No disponible"}");
         sb.AppendLine($"Habitaciones: {propiedad.Habitaciones}");
         sb.AppendLine($"Baños Completos: {propiedad.Banos}");
         sb.AppendLine($"Medios Baños: {propiedad.MediosBanos?.ToString() ?? "N/A"}");
@@ -148,6 +146,8 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
         if (string.Equals(context.Channel, "Copilot", StringComparison.OrdinalIgnoreCase))
         {
             sb.AppendLine($"--- INFORMACIÓN PRIVADA (SOLO USO INTERNO) ---");
+            sb.AppendLine($"Dirección Exacta: {propiedad.Direccion}");
+            sb.AppendLine($"Google Maps: {propiedad.GoogleMapsUrl ?? "No disponible"}");
             sb.AppendLine($"Porcentaje de Comisión: {propiedad.PorcentajeComision}%");
             if (propiedad.PropietarioId.HasValue)
             {

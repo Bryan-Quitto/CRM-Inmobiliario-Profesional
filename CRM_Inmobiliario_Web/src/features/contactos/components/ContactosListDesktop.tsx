@@ -126,21 +126,25 @@ export const ContactosListDesktop: React.FC<ContactosListDesktopProps> = ({ logi
       )}
 
       {/* Floating Scroll Buttons */}
-      <div className="fixed bottom-24 right-6 sm:right-8 flex flex-col gap-2 z-[90]">
-        <button 
-          title="Ir al inicio"
-          onClick={logic.scrollToTop}
-          className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-        </button>
-        <button 
-          title="Ir al final"
-          onClick={logic.scrollToBottom}
-          className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
+      <div className="fixed bottom-24 right-6 sm:right-8 hidden md:flex flex-col gap-2 z-[90]">
+        {logic.showScrollTop && (
+          <button 
+            title="Ir al inicio"
+            onClick={logic.scrollToTop}
+            className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+          </button>
+        )}
+        {logic.showScrollBottom && (
+          <button 
+            title="Ir al final"
+            onClick={logic.scrollToBottom}
+            className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        )}
       </div>
 
       <ContactosListModals 

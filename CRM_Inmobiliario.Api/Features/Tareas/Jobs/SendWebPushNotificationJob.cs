@@ -71,9 +71,12 @@ public class SendWebPushNotificationJob
             }
             catch (WebPushException ex)
             {
-                if (ex.StatusCode == System.Net.HttpStatusCode.Gone || ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                if (ex.StatusCode == System.Net.HttpStatusCode.Gone || 
+                    ex.StatusCode == System.Net.HttpStatusCode.NotFound ||
+                    ex.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                    ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    _logger.LogWarning($"Subscription is gone or not found for endpoint {outbox.Endpoint}. Status code: {ex.StatusCode}");
+                    _logger.LogWarning($"Subscription is invalid or gone for endpoint {outbox.Endpoint}. Status code: {ex.StatusCode}");
                     _dbContext.PushNotificationsOutbox.Remove(outbox);
                     deadEndpoints.Add(outbox.Endpoint);
                     _logger.LogInformation($"Suscripción inactiva marcada para eliminación: {outbox.Endpoint}");
@@ -85,6 +88,7 @@ public class SendWebPushNotificationJob
                     {
                         _logger.LogError(ex, "Drop permanente tras 3 reintentos fallidos. Endpoint: {Endpoint}, Payload: {Payload}", outbox.Endpoint, outbox.Payload);
                         _dbContext.PushNotificationsOutbox.Remove(outbox);
+                        deadEndpoints.Add(outbox.Endpoint);
                     }
                 }
             }
@@ -95,6 +99,7 @@ public class SendWebPushNotificationJob
                 {
                     _logger.LogError(ex, "Drop permanente tras 3 reintentos fallidos. Endpoint: {Endpoint}, Payload: {Payload}", outbox.Endpoint, outbox.Payload);
                     _dbContext.PushNotificationsOutbox.Remove(outbox);
+                    deadEndpoints.Add(outbox.Endpoint);
                 }
             }
         }

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContactosList } from './useContactosList';
+import { useScrollButtons } from '@/hooks/useScrollButtons';
 
 export const useContactosListLogic = () => {
   const navigate = useNavigate();
@@ -28,8 +29,7 @@ export const useContactosListLogic = () => {
     window.dispatchEvent(new CustomEvent('open-crear-contacto-modal', { detail: { action, ...extraProps } }));
   };
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-  const scrollToBottom = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  const { showScrollTop, showScrollBottom, scrollToTop, scrollToBottom } = useScrollButtons();
 
   return {
     navigate,
@@ -39,6 +39,8 @@ export const useContactosListLogic = () => {
     activeAdvancedCount,
     visiblePages,
     handleOpenCreateModal,
+    showScrollTop,
+    showScrollBottom,
     scrollToTop,
     scrollToBottom,
     ...listContext,

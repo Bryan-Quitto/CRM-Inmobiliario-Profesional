@@ -179,21 +179,25 @@ export const PropiedadesListDesktop = ({ logic }: Props) => {
       })()}
 
       {/* Floating Scroll Buttons */}
-      <div className="fixed bottom-24 right-6 sm:right-8 flex flex-col gap-2 z-[90]">
-        <button 
-          title="Ir al inicio"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
-        >
-          <ChevronUp className="w-5 h-5" />
-        </button>
-        <button 
-          title="Ir al final"
-          onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
-          className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
-        >
-          <ChevronDown className="w-5 h-5" />
-        </button>
+      <div className="fixed bottom-24 right-6 sm:right-8 hidden md:flex flex-col gap-2 z-[90]">
+        {logic.showScrollTop && (
+          <button 
+            title="Ir al inicio"
+            onClick={logic.scrollToTop}
+            className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
+          >
+            <ChevronUp className="w-5 h-5" />
+          </button>
+        )}
+        {logic.showScrollBottom && (
+          <button 
+            title="Ir al final"
+            onClick={logic.scrollToBottom}
+            className="w-10 h-10 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
 
