@@ -83,7 +83,7 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
           <button
             onMouseDown={handlePriorityToggle} // PRIORIDAD MÁXIMA
             type="button"
-            className={`font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 ${
+            className={`font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 ${
               variant === 'header' 
                 ? 'px-3 py-1.5 rounded-full text-[10px]' 
                 : 'px-3 py-1 rounded-full text-[10px] border'

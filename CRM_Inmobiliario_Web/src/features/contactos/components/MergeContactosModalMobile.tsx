@@ -1,4 +1,4 @@
-﻿import { X, ArrowUpDown, Loader2, AlertCircle, Phone, MessageCircle, HelpCircle } from 'lucide-react';
+import { X, ArrowUpDown, Loader2, AlertCircle, Phone, MessageCircle, HelpCircle } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
 import type { UseMergeContactosLogicReturn } from '../hooks/useMergeContactosLogic';
 
@@ -82,7 +82,7 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
                 title="Invertir Principal y Secundario"
                 onClick={handleSwap}
                 disabled={!localSecundario}
-                className={`p-3 rounded-full transition-all border-4 border-white ${
+                className={`p-3 rounded-full transition-all border-4 border-white cursor-pointer ${
                   localSecundario 
                     ? 'bg-slate-900 text-white hover:scale-110 shadow-lg cursor-pointer' 
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -203,7 +203,7 @@ export const MergeContactosModalMobile = ({ logic }: MergeContactosModalMobilePr
             <button
               onClick={handleMerge}
               disabled={!localSecundario || isMerging}
-              className={`w-full py-3.5 sm:py-3 text-sm font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-3.5 sm:py-3 text-sm font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 localSecundario && !isMerging
                   ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20 cursor-pointer'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'

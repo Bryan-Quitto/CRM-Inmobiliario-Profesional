@@ -75,7 +75,7 @@ export const OlvideMiClaveDesktop: React.FC<OlvideMiClaveDesktopProps> = ({ logi
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full text-white rounded-xl py-4 font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4"
+                className="cursor-pointer w-full text-white rounded-xl py-4 font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4"
                 style={{ backgroundImage: 'linear-gradient(to right, #2563eb, #2563eb)' }}
               >
                 {isLoading ? (

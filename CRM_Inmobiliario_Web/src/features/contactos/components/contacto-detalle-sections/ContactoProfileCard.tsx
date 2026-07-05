@@ -1,4 +1,4 @@
-﻿import { Phone, Mail, Tag, Bot, ChevronDown, Check } from 'lucide-react';
+import { Phone, Mail, Tag, Bot, ChevronDown, Check } from 'lucide-react';
 import { useContactoBotToggle } from '../../hooks/useContactoBotToggle';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
@@ -323,7 +323,7 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
                 if (isLoading || contacto.esCompartido) return;
                 handleToggle(!isBotActivo);
               }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
                 !isGlobalEnabled
                   ? 'bg-slate-300 opacity-50 cursor-not-allowed'
                   : (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado')
@@ -343,7 +343,7 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
           {(!isGlobalEnabled) ? (
             <MobileInfoPopover content={`Debes activar la IA de ${channel} en Configuración para usar esta función`}>
               <button
-                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-slate-300 opacity-50 cursor-not-allowed"
+                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-slate-300 opacity-50 cursor-not-allowed cursor-pointer"
               >
                 <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
               </button>
@@ -364,7 +364,7 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
                 if (isLoading || contacto.esCompartido) return;
                 handleToggle(!isBotActivo);
               }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
                 (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado')
                   ? 'bg-slate-300 opacity-50 cursor-not-allowed'
                   : contacto.isArchivedForCurrentUser

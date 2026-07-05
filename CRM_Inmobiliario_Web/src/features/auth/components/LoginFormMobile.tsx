@@ -89,14 +89,14 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  className="cursor-pointer absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff color="url(#miui-icon-slate-500)" className="h-4 w-4" /> : <Eye color="url(#miui-icon-slate-500)" className="h-4 w-4" />}
                 </button>
               </div>
               <div className="flex justify-end mt-1.5 mr-1">
-                <a href="/olvide-mi-clave" className="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider">
+                <a href="/olvide-mi-clave" className="cursor-pointer text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
@@ -105,7 +105,7 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-miui-white rounded-xl py-3.5 font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+              className="cursor-pointer w-full text-miui-white rounded-xl py-3.5 font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
               style={{ backgroundImage: 'linear-gradient(to right, #2563eb, #2563eb)' }}
             >
               {isLoading ? (
@@ -125,9 +125,9 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
 
         <div className="mt-4 mb-2 flex flex-col items-center gap-3">
           <div className="flex items-center gap-4 text-[10px] font-bold text-miui-slate-400 uppercase tracking-widest">
-            <a href="/terminos" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Términos</a>
+            <a href="/terminos" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:text-blue-400 transition-colors">Términos</a>
             <span>•</span>
-            <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Privacidad</a>
+            <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:text-blue-400 transition-colors">Privacidad</a>
           </div>
           <p className="text-center text-miui-slate-500 text-[10px] font-bold uppercase tracking-widest">
             © 2026 Lúmina CRM

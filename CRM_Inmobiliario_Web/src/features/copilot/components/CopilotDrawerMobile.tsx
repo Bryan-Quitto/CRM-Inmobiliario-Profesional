@@ -86,7 +86,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
           </div>
           <button 
             onClick={() => setFocusedContext(null)}
-            className="p-1 hover:bg-indigo-100 rounded-full text-indigo-400 hover:text-indigo-600 transition-colors shrink-0"
+            className="cursor-pointer p-1 hover:bg-indigo-100 rounded-full text-indigo-400 hover:text-indigo-600 transition-colors shrink-0"
             title="Quitar contexto"
           >
             <X className="h-3.5 w-3.5" />
@@ -166,7 +166,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
             <Link
               to="/configuracion/integracion-ia"
               onClick={toggleOpen}
-              className="text-[11px] font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20 w-full text-center break-words min-w-0"
+              className="cursor-pointer text-[11px] font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20 w-full text-center break-words min-w-0"
             >
               Actívala en Configuración
             </Link>
@@ -179,13 +179,13 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
               <Link
                 to="/configuracion/integracion-ia"
                 onClick={toggleOpen}
-                className="text-[11px] font-black uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 w-full text-center break-words min-w-0"
+                className="cursor-pointer text-[11px] font-black uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 w-full text-center break-words min-w-0"
               >
                 Aumentar Límite
               </Link>
               <button
                 onClick={() => setIsResetModalOpen(true)}
-                className="text-[11px] font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20 w-full text-center break-words min-w-0"
+                className="cursor-pointer text-[11px] font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20 w-full text-center break-words min-w-0"
               >
                 Reiniciar Contador
               </button>
@@ -200,7 +200,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
                 <Link
                   to="/configuracion/integracion-ia"
                   onClick={toggleOpen}
-                  className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20 text-center"
+                  className="cursor-pointer text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20 text-center"
                 >
                   Configurar IA
                 </Link>
@@ -220,7 +220,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
                   type="button"
                   onClick={toggleListening}
                   disabled={isByokExhausted}
-                  className={`flex items-center justify-center p-2 rounded-full transition-all active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`cursor-pointer flex items-center justify-center p-2 rounded-full transition-all active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                     isListening 
                       ? 'bg-rose-500 text-white animate-pulse' 
                       : 'bg-slate-100 text-slate-500'
@@ -240,7 +240,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
                   <button
                     onClick={handleSend}
                     disabled={!inputValue.trim() || isByokExhausted}
-                    className="p-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
+                    className="cursor-pointer p-2 text-white bg-indigo-600 rounded-full hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
                   >
                     <Send className="h-4 w-4" />
                   </button>

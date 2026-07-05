@@ -40,7 +40,7 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
           <button
             key={tab.id}
             onClick={() => logic.setActiveSegment(tab.id as 'todos' | 'clientes' | 'propietarios')}
-            className={`w-full py-2 text-xs font-bold rounded-lg transition-all ${
+            className={`w-full py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               logic.activeSegment === tab.id 
                 ? 'bg-white text-blue-600 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-700'
@@ -54,7 +54,7 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
       <div className="flex flex-col gap-1 w-full bg-slate-100 p-1 rounded-xl mt-2">
         <button 
           onClick={() => logic.setIsArchived(false)}
-          className={`w-full py-2 text-xs font-bold rounded-lg transition-all ${
+          className={`w-full py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
             !logic.isArchived ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -65,7 +65,7 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
           }`}>
           <button 
             onClick={() => logic.setIsArchived(true)}
-            className={`py-2 text-xs font-bold transition-all ${
+            className={`py-2 text-xs font-bold transition-all cursor-pointer ${
               logic.isArchived ? 'text-blue-700' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -112,7 +112,7 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
       <div className="w-full flex flex-col gap-3 min-w-0">
         <button 
           onClick={() => logic.setIsAdvancedFiltersOpen(true)}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl font-bold shadow-sm"
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl font-bold shadow-sm cursor-pointer"
         >
           <Filter className="h-4 w-4 shrink-0" />
           Filtros {logic.activeAdvancedCount > 0 && `(${logic.activeAdvancedCount})`}
@@ -121,7 +121,7 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
         {logic.activeSegment !== 'todos' && !logic.isArchived && (
           <button 
             onClick={() => logic.setViewMode(logic.viewMode === 'list' ? 'kanban' : 'list')}
-            className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+            className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
           >
             {logic.viewMode === 'list' ? <LayoutGrid className="h-4 w-4 shrink-0" /> : <List className="h-4 w-4 shrink-0" />}
             <span>{logic.viewMode === 'list' ? 'Vista Kanban' : 'Vista Lista'}</span>

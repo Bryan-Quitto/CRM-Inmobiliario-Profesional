@@ -53,7 +53,7 @@ export const ConfiguracionAgenciasMobile: React.FC<Props> = ({ logic }) => {
               <div 
                 key={agencia.id} 
                 onClick={() => handleOpenEdit(agencia)}
-                className="bg-white p-4 rounded-2xl border border-slate-200 active:bg-slate-50 transition-colors flex flex-col gap-2 shadow-sm"
+                className="bg-white p-4 rounded-2xl border border-slate-200 active:bg-slate-50 transition-colors flex flex-col gap-2 shadow-sm cursor-pointer"
               >
                 <div className="flex justify-between items-start gap-2">
                   <h3 className="text-base font-black text-slate-800 tracking-tight break-words flex-1 min-w-0">{agencia.nombre}</h3>

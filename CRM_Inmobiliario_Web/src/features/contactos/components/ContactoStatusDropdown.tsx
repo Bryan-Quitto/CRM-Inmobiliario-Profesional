@@ -78,7 +78,7 @@ export const ContactoStatusDropdown: React.FC<ContactoStatusDropdownProps> = ({
         onMouseDown={handleToggle}
         type="button"
         disabled={isUpdating}
-        className={`${buttonClasses} ${
+        className={`${buttonClasses} cursor-pointer ${
           isBlocked 
             ? 'cursor-not-allowed opacity-70 bg-slate-50 text-slate-400 border-slate-100' 
             : 'cursor-pointer hover:shadow-sm hover:scale-105 active:scale-95'

@@ -82,7 +82,7 @@ export const AuditoriaSectionIntereses = ({ contactoId, intereses, logs, mutate 
                     <div className="flex items-center gap-3 mt-3">
                       {/* Dropdown Nivel de Interés */}
                       <div className="relative">
-                        <button 
+                        <button
                           onClick={(e) => {
                             if (dropdownInteresOpenId === interes.propiedadId) {
                               setDropdownInteresOpenId(null);
@@ -108,7 +108,7 @@ export const AuditoriaSectionIntereses = ({ contactoId, intereses, logs, mutate 
                         {dropdownInteresOpenId === interes.propiedadId && dropdownPosition && (
                           <>
                             <div
-                              className="fixed inset-0 z-40 cursor-default"
+                              className="cursor-pointer fixed inset-0 z-40 cursor-default"
                               onClick={() => { setDropdownInteresOpenId(null); setDropdownPosition(null); }}
                             />
                             <div

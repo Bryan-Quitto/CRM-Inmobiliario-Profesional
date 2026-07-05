@@ -55,21 +55,21 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
           <div className="flex flex-col gap-2 w-full">
             <button 
               onClick={onCompleteTask}
-              className="w-full flex items-center justify-center gap-2 p-3 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-all font-bold text-sm"
+              className="cursor-pointer w-full flex items-center justify-center gap-2 p-3 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-all font-bold text-sm"
             >
               <CheckCircle2 className="h-5 w-5 shrink-0" />
               Completar Tarea
             </button>
             <button 
               onClick={onEdit}
-              className="w-full flex items-center justify-center gap-2 p-3 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all font-bold text-sm"
+              className="cursor-pointer w-full flex items-center justify-center gap-2 p-3 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all font-bold text-sm"
             >
               <Pencil className="h-5 w-5 shrink-0" />
               Editar Tarea
             </button>
             <button 
               onClick={onCancelTask}
-              className="w-full flex items-center justify-center gap-2 p-3 text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all font-bold text-sm"
+              className="cursor-pointer w-full flex items-center justify-center gap-2 p-3 text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all font-bold text-sm"
             >
               <Trash2 className="h-5 w-5 shrink-0" />
               Cancelar Tarea

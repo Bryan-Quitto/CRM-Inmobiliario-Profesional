@@ -85,7 +85,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                       <button
                         type="button"
                         onClick={() => setShowApiKey(!showApiKey)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none cursor-pointer"
                         tabIndex={-1}
                       >
                         {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -152,7 +152,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                   </div>
 
                   <div 
-                    className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4"
+                    className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4 cursor-pointer"
                     onClick={() => {
                       if (isWhatsAppAiEnabled) {
                         toast.warning("La Inteligencia Artificial requiere la creación automática de contactos para funcionar. Apaga la IA primero si deseas deshabilitar esta opción.");

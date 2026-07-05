@@ -28,7 +28,7 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+        className="cursor-pointer fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
         aria-hidden="true"
       />

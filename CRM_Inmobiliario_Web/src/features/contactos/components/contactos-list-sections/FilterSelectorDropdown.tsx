@@ -57,7 +57,7 @@ export const FilterSelectorDropdown = ({ activeKeys, onAddFilter }: FilterSelect
 
       {/* Overlay to close */}
       {isOpen && (
-        <div className="fixed inset-0 z-[210]" onClick={() => setIsOpen(false)} />
+        <div className="fixed inset-0 z-[210] cursor-pointer" onClick={() => setIsOpen(false)} />
       )}
 
       <button

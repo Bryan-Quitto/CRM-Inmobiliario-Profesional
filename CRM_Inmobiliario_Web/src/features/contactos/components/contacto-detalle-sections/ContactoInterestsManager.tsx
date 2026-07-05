@@ -155,7 +155,7 @@ export const ContactoInterestsManager = ({
                         
                         {dropdownInteresOpenId === interes.propiedadId && (
                           <>
-                            <div className="fixed inset-0 z-40 cursor-default" onClick={() => setDropdownInteresOpenId(null)}></div>
+                            <div className="fixed inset-0 z-40 cursor-pointer" onClick={() => setDropdownInteresOpenId(null)}></div>
                             <div className="absolute left-0 bottom-full mb-2 z-50 bg-white border border-slate-100 rounded-xl shadow-2xl p-1 w-32 animate-in fade-in zoom-in-95 duration-200">
                               {NIVELES_INTERES.map(n => (
                                 <button 

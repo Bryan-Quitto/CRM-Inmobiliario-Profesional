@@ -214,7 +214,7 @@ export const MediaCard = React.memo<MediaCardProps>(({
           }}
           readOnly={isReadOnly}
           placeholder={isReadOnly ? "Sin pie de foto..." : "Añade un detalle..."}
-          className={`w-full border-none rounded-2xl p-4 text-sm font-bold text-slate-700 placeholder:text-slate-300 placeholder:font-medium transition-all resize-none min-h-[80px] shadow-sm ${isReadOnly ? 'bg-slate-50 cursor-default' : 'bg-white focus:ring-4 focus:ring-indigo-100'}`}
+          className={`w-full border-none rounded-2xl p-4 text-sm font-bold text-slate-700 placeholder:text-slate-300 placeholder:font-medium transition-all resize-none min-h-[80px] shadow-sm cursor-pointer ${isReadOnly ? 'bg-slate-50 cursor-default' : 'bg-white focus:ring-4 focus:ring-indigo-100'}`}
           onFocus={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         />

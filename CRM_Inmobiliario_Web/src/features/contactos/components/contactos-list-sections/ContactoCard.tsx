@@ -1,4 +1,4 @@
-﻿import { Mail, Phone, Clock, Pencil, ArrowUpRight, Share2, Bot } from 'lucide-react';
+import { Mail, Phone, Clock, Pencil, ArrowUpRight, Share2, Bot } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { CompartirContactoModal } from './CompartirContactoModal';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -251,7 +251,7 @@ export const ContactoCard = ({
                           if (waToggle.isLoading) return;
                           waToggle.handleToggle(!waToggle.isBotActivo);
                         }}
-                        className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
+                        className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all cursor-pointer ${
                           !isWhatsAppAiEnabled || (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                             ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                             : waToggle.isBotActivo 
@@ -267,7 +267,7 @@ export const ContactoCard = ({
                   <div className="block lg:hidden">
                     {(!isWhatsAppAiEnabled) ? (
                       <MobileInfoPopover content="Debes activar la IA de WhatsApp en Configuración para usar esta función">
-                        <button className="shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed">
+                        <button className="shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed cursor-pointer">
                           <Bot className="h-3 w-3" />
                           <span className="text-[9px] font-black uppercase tracking-wider">{waToggle.isBotActivo ? 'SI' : 'NO'}</span>
                         </button>
@@ -289,7 +289,7 @@ export const ContactoCard = ({
                             if (waToggle.isLoading) return;
                             waToggle.handleToggle(!waToggle.isBotActivo);
                           }}
-                          className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
+                          className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all cursor-pointer ${
                             (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                               ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                               : waToggle.isBotActivo 
@@ -363,7 +363,7 @@ export const ContactoCard = ({
                           if (fbToggle.isLoading) return;
                           fbToggle.handleToggle(!fbToggle.isBotActivo);
                         }}
-                        className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
+                        className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all cursor-pointer ${
                           !isFacebookAiEnabled || (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                             ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                             : fbToggle.isBotActivo 
@@ -379,7 +379,7 @@ export const ContactoCard = ({
                   <div className="block lg:hidden">
                     {(!isFacebookAiEnabled) ? (
                       <MobileInfoPopover content="Debes activar la IA de Facebook en Configuración para usar esta función">
-                        <button className="shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed">
+                        <button className="shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed cursor-pointer">
                           <Bot className="h-3 w-3" />
                           <span className="text-[9px] font-black uppercase tracking-wider">{fbToggle.isBotActivo ? 'SI' : 'NO'}</span>
                         </button>
@@ -401,7 +401,7 @@ export const ContactoCard = ({
                             if (fbToggle.isLoading) return;
                             fbToggle.handleToggle(!fbToggle.isBotActivo);
                           }}
-                          className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all ${
+                          className={`shrink-0 h-6 px-1.5 rounded-md flex items-center gap-1 transition-all cursor-pointer ${
                             (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado') || contacto.isArchivedForCurrentUser
                               ? 'bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed'
                               : fbToggle.isBotActivo 

@@ -186,7 +186,7 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
 
     {/* Switch para Creación Automática de Contactos */}
     <div 
-      className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4"
+      className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4 cursor-pointer"
       onClick={() => {
         if (isFacebookAiEnabled) {
           import('sonner').then(({ toast }) => toast.warning("La Inteligencia Artificial requiere la creación automática de contactos para funcionar. Apaga la IA primero si deseas deshabilitar esta opción."));

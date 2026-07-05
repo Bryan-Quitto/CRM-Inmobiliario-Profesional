@@ -58,7 +58,7 @@ export const ContactosListMobile: React.FC<ContactosListMobileProps> = ({ logic 
           <button 
             onClick={() => logic.setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={logic.currentPage === 1}
-            className={`px-3 py-2 rounded-lg text-sm font-bold transition-all ${logic.currentPage === 1 ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200'}`}
+            className={`px-3 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${logic.currentPage === 1 ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200'}`}
           >
             Ant
           </button>
@@ -68,7 +68,7 @@ export const ContactosListMobile: React.FC<ContactosListMobileProps> = ({ logic 
               <button
                 key={page}
                 onClick={() => logic.setCurrentPage(page)}
-                className={`w-9 h-9 rounded-lg text-xs font-bold transition-all flex items-center justify-center ${logic.currentPage === page ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200'}`}
+                className={`w-9 h-9 rounded-lg text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${logic.currentPage === page ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200'}`}
               >
                 {page}
               </button>
@@ -78,7 +78,7 @@ export const ContactosListMobile: React.FC<ContactosListMobileProps> = ({ logic 
           <button 
             onClick={() => logic.setCurrentPage(prev => Math.min(logic.totalPages, prev + 1))}
             disabled={logic.currentPage === logic.totalPages}
-            className={`px-3 py-2 rounded-lg text-sm font-bold transition-all ${logic.currentPage === logic.totalPages ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200'}`}
+            className={`px-3 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${logic.currentPage === logic.totalPages ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200'}`}
           >
             Sig
           </button>

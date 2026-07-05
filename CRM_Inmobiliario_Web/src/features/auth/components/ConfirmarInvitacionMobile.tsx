@@ -103,7 +103,7 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  className="cursor-pointer absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -121,7 +121,7 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  className="cursor-pointer absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
                   tabIndex={-1}
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -149,7 +149,7 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
               <label htmlFor="legal-checkbox-mobile" className="cursor-pointer select-none">
                 He leído y acepto los{' '}
               </label>
-              <button type="button" onClick={() => openModal('terminos')} className="text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Términos de Servicio</button>
+              <button type="button" onClick={() => openModal('terminos')} className="cursor-pointer text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Términos de Servicio</button>
               {' '}y la{' '}
               <button type="button" onClick={() => openModal('privacidad')} className="text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Política de Privacidad</button>.
             </div>

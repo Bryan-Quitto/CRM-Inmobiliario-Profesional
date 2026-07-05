@@ -47,7 +47,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`py-2.5 px-1 break-words text-xs font-bold rounded-xl transition-all duration-300 border ${
+              className={`cursor-pointer py-2.5 px-1 break-words text-xs font-bold rounded-xl transition-all duration-300 border ${
                 activeTab === tab 
                   ? 'bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm' 
                   : 'bg-slate-50 border-transparent text-slate-500 hover:text-slate-700'
@@ -86,7 +86,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                     <button
                       type="button"
                       onClick={() => setShowApiKey(!showApiKey)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none cursor-pointer"
                       tabIndex={-1}
                     >
                       {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -147,7 +147,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                   </div>
 
                   <div 
-                    className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200"
+                    className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer"
                     onClick={() => {
                       if (isWhatsAppAiEnabled) toast.warning("Debes apagar la IA primero.");
                     }}

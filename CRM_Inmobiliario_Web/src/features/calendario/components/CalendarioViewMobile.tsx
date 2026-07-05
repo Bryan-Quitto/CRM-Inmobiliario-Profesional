@@ -51,7 +51,7 @@ export const CalendarioViewMobile: React.FC<Props> = ({ logic }) => {
         </div>
         <button
           onClick={() => handleOpenCrear()}
-          className="bg-blue-600 text-white p-3 rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-transform"
+          className="cursor-pointer bg-blue-600 text-white p-3 rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-transform"
         >
           <Plus size={20} />
         </button>

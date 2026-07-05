@@ -90,7 +90,7 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
               </div>
               <button 
                 onClick={() => logic.setShowForceModal(false)}
-                className="p-2 bg-slate-100 text-slate-500 rounded-full active:bg-slate-200 shrink-0"
+                className="p-2 bg-slate-100 text-slate-500 rounded-full active:bg-slate-200 shrink-0 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -104,13 +104,13 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => logic.handleVectorize(true)}
-                className="w-full py-3.5 font-bold text-white bg-rose-600 rounded-xl active:bg-rose-700 shadow-sm shadow-rose-600/20"
+                className="w-full py-3.5 font-bold text-white bg-rose-600 rounded-xl active:bg-rose-700 shadow-sm shadow-rose-600/20 cursor-pointer"
               >
                 Sí, Forzar Todas
               </button>
               <button
                 onClick={() => logic.setShowForceModal(false)}
-                className="w-full py-3.5 font-bold text-slate-700 bg-slate-100 rounded-xl active:bg-slate-200"
+                className="w-full py-3.5 font-bold text-slate-700 bg-slate-100 rounded-xl active:bg-slate-200 cursor-pointer"
               >
                 Cancelar
               </button>
@@ -129,7 +129,7 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
               </div>
               <button 
                 onClick={() => logic.setShowForceDocsModal(false)}
-                className="p-2 bg-slate-100 text-slate-500 rounded-full active:bg-slate-200 shrink-0"
+                className="p-2 bg-slate-100 text-slate-500 rounded-full active:bg-slate-200 shrink-0 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -143,13 +143,13 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => logic.handleVectorizeDocs(true)}
-                className="w-full py-3.5 font-bold text-white bg-rose-600 rounded-xl active:bg-rose-700 shadow-sm shadow-rose-600/20"
+                className="w-full py-3.5 font-bold text-white bg-rose-600 rounded-xl active:bg-rose-700 shadow-sm shadow-rose-600/20 cursor-pointer"
               >
                 Sí, Forzar Todos
               </button>
               <button
                 onClick={() => logic.setShowForceDocsModal(false)}
-                className="w-full py-3.5 font-bold text-slate-700 bg-slate-100 rounded-xl active:bg-slate-200"
+                className="w-full py-3.5 font-bold text-slate-700 bg-slate-100 rounded-xl active:bg-slate-200 cursor-pointer"
               >
                 Cancelar
               </button>

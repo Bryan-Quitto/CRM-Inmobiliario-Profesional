@@ -78,14 +78,14 @@ export const LoginFormDesktop: React.FC<LoginFormDesktopProps> = ({ logic }) => 
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               <div className="flex justify-end mt-2">
-                <a href="/olvide-mi-clave" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
+                <a href="/olvide-mi-clave" className="cursor-pointer text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
@@ -94,7 +94,7 @@ export const LoginFormDesktop: React.FC<LoginFormDesktopProps> = ({ logic }) => 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-white rounded-xl py-4 font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4"
+              className="cursor-pointer w-full text-white rounded-xl py-4 font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4"
               style={{ backgroundImage: 'linear-gradient(to right, #2563eb, #2563eb)' }}
             >
               {isLoading ? (
@@ -115,9 +115,9 @@ export const LoginFormDesktop: React.FC<LoginFormDesktopProps> = ({ logic }) => 
         {/* Footer */}
         <div className="mt-8 flex flex-col items-center gap-3">
           <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <a href="/terminos" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Términos</a>
+            <a href="/terminos" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:text-blue-400 transition-colors">Términos</a>
             <span>•</span>
-            <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">Privacidad</a>
+            <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:text-blue-400 transition-colors">Privacidad</a>
           </div>
           <p className="text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest">
             © 2026 Lúmina CRM • v1.1.0-Elite

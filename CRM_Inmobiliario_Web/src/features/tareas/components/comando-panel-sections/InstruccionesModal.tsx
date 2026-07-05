@@ -74,7 +74,7 @@ interface InstruccionesModalProps {
 export const InstruccionesModal = ({ onClose }: InstruccionesModalProps) => (
   <>
     <div
-      className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="cursor-pointer fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
       aria-hidden="true"
     />

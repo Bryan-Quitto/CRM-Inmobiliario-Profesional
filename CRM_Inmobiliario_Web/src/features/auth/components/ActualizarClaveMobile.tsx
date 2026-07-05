@@ -74,7 +74,7 @@ export const ActualizarClaveMobile: React.FC<ActualizarClaveMobileProps> = ({ lo
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  className="cursor-pointer absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff color="url(#miui-icon-slate-500-update)" className="h-4 w-4" /> : <Eye color="url(#miui-icon-slate-500-update)" className="h-4 w-4" />}
@@ -103,7 +103,7 @@ export const ActualizarClaveMobile: React.FC<ActualizarClaveMobileProps> = ({ lo
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                  className="cursor-pointer absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
                   tabIndex={-1}
                 >
                   {showConfirmPassword ? <EyeOff color="url(#miui-icon-slate-500-update)" className="h-4 w-4" /> : <Eye color="url(#miui-icon-slate-500-update)" className="h-4 w-4" />}
@@ -116,7 +116,7 @@ export const ActualizarClaveMobile: React.FC<ActualizarClaveMobileProps> = ({ lo
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-miui-white rounded-xl py-3.5 font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+              className="cursor-pointer w-full text-miui-white rounded-xl py-3.5 font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
               style={{ backgroundImage: 'linear-gradient(to right, #2563eb, #2563eb)' }}
             >
               {isLoading ? (

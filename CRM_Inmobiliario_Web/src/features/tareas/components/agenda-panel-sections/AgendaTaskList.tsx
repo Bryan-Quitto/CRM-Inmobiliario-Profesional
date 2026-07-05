@@ -56,7 +56,7 @@ export const AgendaTaskList: React.FC<AgendaTaskListProps> = ({
               </div>
               <div className="space-y-3">
                 {tareasAtrasadas.map((tarea) => (
-                  <TaskCard 
+                  <TaskCard
                     key={tarea.id} 
                     tarea={tarea} 
                     onComplete={onComplete}
@@ -78,7 +78,7 @@ export const AgendaTaskList: React.FC<AgendaTaskListProps> = ({
               </div>
               <div className="space-y-3">
                 {tareasHoy.map((tarea) => (
-                  <TaskCard 
+                  <TaskCard
                     key={tarea.id} 
                     tarea={tarea} 
                     onComplete={onComplete}
@@ -112,7 +112,7 @@ export const AgendaTaskList: React.FC<AgendaTaskListProps> = ({
               {isFuturasExpanded && (
                 <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
                   {tareasFuturas.map((tarea) => (
-                    <TaskCard 
+                    <TaskCard
                       key={tarea.id} 
                       tarea={tarea} 
                       onComplete={onComplete}

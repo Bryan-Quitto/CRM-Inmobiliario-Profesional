@@ -83,7 +83,7 @@ export const OlvideMiClaveMobile: React.FC<OlvideMiClaveMobileProps> = ({ logic 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full text-miui-white rounded-xl py-3.5 font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                className="cursor-pointer w-full text-miui-white rounded-xl py-3.5 font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
                 style={{ backgroundImage: 'linear-gradient(to right, #2563eb, #2563eb)' }}
               >
                 {isLoading ? (

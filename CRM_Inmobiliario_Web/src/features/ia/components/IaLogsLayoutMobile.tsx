@@ -48,7 +48,7 @@ export const IaLogsLayoutMobile = ({ logic }: Props) => {
                 <Icon className="h-3.5 w-3.5 shrink-0" />
                 <span className="flex items-center gap-1.5">
                   {tab.label}
-                  <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                  <div className="cursor-pointer" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                     <HelpButton title={`Registros de ${tab.label}`} path={`/docs/manuales/manual_sistema-ia_registros.md#${tab.label.toLowerCase()}`} />
                   </div>
                 </span>

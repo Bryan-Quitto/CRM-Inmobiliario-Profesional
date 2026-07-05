@@ -147,7 +147,7 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
               </div>
               <button 
                 onClick={() => setFocusedContext(null)}
-                className="p-1 hover:bg-indigo-100 rounded-full text-indigo-400 hover:text-indigo-600 transition-colors shrink-0"
+                className="cursor-pointer p-1 hover:bg-indigo-100 rounded-full text-indigo-400 hover:text-indigo-600 transition-colors shrink-0"
                 title="Quitar contexto"
               >
                 <X className="h-3.5 w-3.5" />

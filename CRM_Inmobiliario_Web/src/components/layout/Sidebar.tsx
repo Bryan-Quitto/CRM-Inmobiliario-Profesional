@@ -52,7 +52,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       {/* Backdrop for mobile */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] md:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] md:hidden transition-opacity duration-300 cursor-pointer"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />

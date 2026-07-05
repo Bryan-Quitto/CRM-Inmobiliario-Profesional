@@ -117,7 +117,7 @@ export const PropiedadCardMobile = ({
                     e.stopPropagation();
                     setSelectedPropiedadIdForEdit(p.id);
                   }}
-                  className="h-8 w-8 shrink-0 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 active:bg-slate-100"
+                  className="h-8 w-8 shrink-0 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 active:bg-slate-100 cursor-pointer"
                 >
                   <Pencil className="h-4 w-4 shrink-0" />
                 </button>
@@ -163,7 +163,7 @@ export const PropiedadCardMobile = ({
                     e.stopPropagation();
                     handleOpenDetail(p.id);
                   }}
-                  className="h-10 w-10 shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-white active:bg-blue-700 shadow-sm"
+                  className="h-10 w-10 shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-white active:bg-blue-700 shadow-sm cursor-pointer"
                 >
                   <Plus className="h-5 w-5 shrink-0" />
                 </button>
@@ -194,7 +194,7 @@ export const PropiedadCardMobile = ({
           }}
         >
           <button 
-            className="absolute top-4 right-4 h-10 w-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors"
+            className="absolute top-4 right-4 h-10 w-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setIsLightboxOpen(false);

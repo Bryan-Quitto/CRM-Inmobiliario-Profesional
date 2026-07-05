@@ -183,7 +183,7 @@ export const PropiedadCard = ({
           }}
         >
           <button 
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 h-10 w-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 h-10 w-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setIsLightboxOpen(false);

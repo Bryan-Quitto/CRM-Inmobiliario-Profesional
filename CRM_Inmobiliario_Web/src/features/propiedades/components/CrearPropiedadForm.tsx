@@ -146,7 +146,7 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
             <button 
               type="submit"
               disabled={isSuccess || !tipoSeleccionado}
-              className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:cursor-not-allowed ${
+              className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed ${
                 isSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700 disabled:bg-slate-300'
               }`}
             >

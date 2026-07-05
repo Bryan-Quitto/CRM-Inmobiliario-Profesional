@@ -23,7 +23,7 @@ const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, title, icon,
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
+      <div className="cursor-pointer fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
       <div className="relative bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[80vh]">
         <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-4">

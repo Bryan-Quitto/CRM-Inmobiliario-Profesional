@@ -134,7 +134,7 @@ export const PropiedadesListMobile = ({ logic }: Props) => {
             <button 
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 ${currentPage === 1 ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200 shadow-sm active:bg-slate-50'}`}
+              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${currentPage === 1 ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200 shadow-sm active:bg-slate-50'}`}
             >
               Anterior
             </button>
@@ -145,7 +145,7 @@ export const PropiedadesListMobile = ({ logic }: Props) => {
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 shrink-0 rounded-lg text-xs font-bold transition-all flex items-center justify-center ${currentPage === page ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 active:bg-slate-50'}`}
+                  className={`w-8 h-8 shrink-0 rounded-lg text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${currentPage === page ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 active:bg-slate-50'}`}
                 >
                   {page}
                 </button>
@@ -156,7 +156,7 @@ export const PropiedadesListMobile = ({ logic }: Props) => {
             <button 
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
-              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 ${currentPage === totalPages ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200 shadow-sm active:bg-slate-50'}`}
+              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${currentPage === totalPages ? 'bg-slate-100 text-slate-400' : 'bg-white text-slate-700 border border-slate-200 shadow-sm active:bg-slate-50'}`}
             >
               Siguiente
             </button>

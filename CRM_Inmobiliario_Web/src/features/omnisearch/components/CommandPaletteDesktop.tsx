@@ -48,7 +48,7 @@ export const CommandPaletteDesktop: React.FC<Props> = ({ logic }) => {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-32 sm:pt-40 hidden lg:flex">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" 
+        className="cursor-pointer fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" 
         onClick={() => setIsOpen(false)}
       />
 
