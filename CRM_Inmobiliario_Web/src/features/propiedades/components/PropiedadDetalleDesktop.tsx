@@ -18,9 +18,9 @@ interface Props {
 export const PropiedadDetalleDesktop = ({ id, onClose, logic }: Props) => {
   const {
     activeTab, setActiveTab, user, propiedad, historial, syncing, isUpdatingStatus,
-    isAddingSection, isCreatingInline, newSectionName, statusConfirmation, isClosingModalOpen,
+    isAddingSection, isCreatingInline, newSectionName, newSectionDesc, statusConfirmation, isClosingModalOpen,
     closingState, isStatusDropdownOpen, showEditModal, showReversionModal,
-    setNewSectionName, setIsCreatingInline, setIsStatusDropdownOpen, setShowEditModal,
+    setNewSectionName, setNewSectionDesc, setIsCreatingInline, setIsStatusDropdownOpen, setShowEditModal,
     setStatusConfirmation, setIsClosingModalOpen, setClosingState, setShowReversionModal,
     handleClosingConfirm, handleSetCover, handleDeleteMedia, handleAddSection,
     handleConfirmAddSection, handleDeleteSection, handleRenameSection, handleClearGallery,
@@ -86,7 +86,9 @@ export const PropiedadDetalleDesktop = ({ id, onClose, logic }: Props) => {
                 isCreatingInline={isCreatingInline}
                 isAddingSection={isAddingSection}
                 newSectionName={newSectionName}
+                newSectionDesc={newSectionDesc}
                 setNewSectionName={setNewSectionName}
+                setNewSectionDesc={setNewSectionDesc}
                 setIsCreatingInline={setIsCreatingInline}
                 handleAddSection={handleAddSection}
                 handleConfirmAddSection={handleConfirmAddSection}

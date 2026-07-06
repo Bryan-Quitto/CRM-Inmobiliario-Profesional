@@ -21,10 +21,12 @@ export const usePropiedadGallery = ({ id, propiedad, mutate, onCoverUpdated }: U
     isAddingSection: sections.isAddingSection,
     isCreatingInline: sections.isCreatingInline,
     newSectionName: sections.newSectionName,
+    newSectionDesc: sections.newSectionDesc,
     isReordering: ordering.isReordering,
     
     // Setters
     setNewSectionName: sections.setNewSectionName,
+    setNewSectionDesc: sections.setNewSectionDesc,
     setIsCreatingInline: sections.setIsCreatingInline,
 
     // Actions

@@ -12,7 +12,7 @@ namespace CRM_Inmobiliario.Api.Features.SeccionesGaleria;
 
 public static class RegistrarSeccionFeature
 {
-    public record Request(Guid PropiedadId, string Nombre, int Orden);
+    public record Request(Guid PropiedadId, string Nombre, string Descripcion, int Orden);
 
     public static RouteHandlerBuilder MapRegistrarSeccionEndpoint(this IEndpointRouteBuilder app)
     {
@@ -36,6 +36,7 @@ public static class RegistrarSeccionFeature
                 Id = Guid.NewGuid(),
                 PropiedadId = request.PropiedadId,
                 Nombre = request.Nombre,
+                Descripcion = request.Descripcion,
                 Orden = request.Orden
             };
 

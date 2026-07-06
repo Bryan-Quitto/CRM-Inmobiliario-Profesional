@@ -54,6 +54,11 @@ public sealed class PropertyGalleryAiDispatcher : IPropertyGalleryAiDispatcher
             return $"No hay más fotos en la sección '{nombreSeccion}' (offset {offset} superó el total de {totalCount}).";
         }
 
+        string sectionDescription = items.FirstOrDefault()?.Section?.Descripcion ?? string.Empty;
+        string persuasionText = !string.IsNullOrWhiteSpace(sectionDescription)
+            ? $"\nDescripción Comercial de la sección: {sectionDescription}"
+            : "";
+
         if (!enviarTodas)
         {
             var summary = $"Se encontraron {totalCount} fotos en '{nombreSeccion}'. Mostrando {items.Count} desde el offset {offset}:\n";
@@ -62,6 +67,7 @@ public sealed class PropertyGalleryAiDispatcher : IPropertyGalleryAiDispatcher
                 summary += $"- Foto {offset + i + 1}: {items[i].Descripcion ?? "Sin descripción"}\n";
             }
             summary += $"\nQuedan {Math.Max(0, totalCount - (offset + items.Count))} fotos. Si el usuario pide enviarlas, llama la herramienta con EnviarTodas=true y el mismo offset.";
+            summary += persuasionText;
             return summary;
         }
 
@@ -106,6 +112,13 @@ public sealed class PropertyGalleryAiDispatcher : IPropertyGalleryAiDispatcher
         }
 
         int remaining = Math.Max(0, totalCount - (offset + items.Count));
-        return $"Se han enviado {successCount} fotos exitosamente al usuario (de las {items.Count} procesadas en este lote). Quedan {remaining} fotos en la sección. Para enviar más, aumenta el offset a {offset + items.Count}.";
+        string finalReturn = $"Se han enviado {successCount} fotos exitosamente al usuario (de las {items.Count} procesadas en este lote). Quedan {remaining} fotos en la sección. Para enviar más, aumenta el offset a {offset + items.Count}.";
+        
+        if (!string.IsNullOrWhiteSpace(persuasionText))
+        {
+            finalReturn += $"{persuasionText}\nIMPORTANTE: Redacta un mensaje al cliente comentándole estos detalles de forma atractiva y persuasiva justo ahora.";
+        }
+        
+        return finalReturn;
     }
 }

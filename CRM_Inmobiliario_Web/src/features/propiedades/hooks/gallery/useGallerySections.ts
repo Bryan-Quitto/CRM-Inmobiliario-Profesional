@@ -16,15 +16,16 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [isCreatingInline, setIsCreatingInline] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
+  const [newSectionDesc, setNewSectionDesc] = useState('');
 
   const handleAddSection = () => {
     setIsCreatingInline(true);
     setNewSectionName('');
+    setNewSectionDesc('');
   };
 
   const handleConfirmAddSection = async () => {
-    if (!newSectionName.trim() || !propiedad) {
-      setIsCreatingInline(false);
+    if (!newSectionName.trim() || !newSectionDesc.trim() || !propiedad) {
       return;
     }
 
@@ -36,12 +37,14 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
       id: tempId,
       clientId: tempId,
       nombre: nombreNuevaSeccion,
+      descripcion: newSectionDesc.trim(),
       orden: orden,
       media: []
     };
 
     setIsCreatingInline(false);
     setNewSectionName('');
+    setNewSectionDesc('');
 
     mutate((prev: Propiedad | undefined) => {
       if (!prev) return prev;
@@ -53,7 +56,7 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
 
     try {
       setIsAddingSection(true);
-      const nuevaSeccionReal = await crearSeccion(id, nombreNuevaSeccion, orden);
+      const nuevaSeccionReal = await crearSeccion(id, nombreNuevaSeccion, newSectionDesc.trim(), orden);
 
       mutate((prev: Propiedad | undefined) => {
         if (!prev) return prev;
@@ -127,7 +130,9 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
     isAddingSection,
     isCreatingInline,
     newSectionName,
+    newSectionDesc,
     setNewSectionName,
+    setNewSectionDesc,
     setIsCreatingInline,
     handleAddSection,
     handleConfirmAddSection,

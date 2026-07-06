@@ -124,7 +124,7 @@ public static class AiToolDefinitions
             tools.Add(new AiToolDefinition
             {
                 Name = "EnviarFotosSeccionPropiedad",
-                Description = "Envía fotos de una sección específica de una propiedad (ej. 'Cocina', 'Baños'). Primero consulta la descripción de las fotos (EnviarTodas=false). Si el cliente las pide, usa EnviarTodas=true para enviarlas. OBLIGATORIO: Llama a RegistrarInteresContacto simultáneamente.",
+                Description = "Envía fotos de una sección específica de una propiedad (ej. 'Cocina', 'Baños'). Primero consulta la descripción de las fotos (EnviarTodas=false). Si el cliente las pide, usa EnviarTodas=true para enviarlas. OBLIGATORIO: Llama a RegistrarInteresContacto simultáneamente. OBLIGATORIO 2: La herramienta te devolverá la 'Descripción Comercial de la sección' (si existe). Úsala para redactar un mensaje persuasivo sobre las características del espacio, justo al responder.",
                 ParametersSchema = """
                 {
                     "type": "object",

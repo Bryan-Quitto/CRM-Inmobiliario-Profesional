@@ -16,8 +16,9 @@ public sealed class PropertyGallerySection
     [MaxLength(100)]
     public string Nombre { get; set; } = string.Empty;
 
+    [Required]
     [MaxLength(500)]
-    public string? Descripcion { get; set; }
+    public string Descripcion { get; set; } = string.Empty;
 
     public int Orden { get; set; }
 

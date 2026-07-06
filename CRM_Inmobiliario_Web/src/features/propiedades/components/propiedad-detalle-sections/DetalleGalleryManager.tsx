@@ -1,4 +1,6 @@
-import { Plus, X, Check, Loader2 } from 'lucide-react';
+import { Plus, X, Check, Loader2, Info } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
 import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { SectionalGallery } from '../SectionalGallery';
 import type { Propiedad, SeccionGaleria } from '../../types';
@@ -9,7 +11,9 @@ interface DetalleGalleryManagerProps {
   isCreatingInline: boolean;
   isAddingSection: boolean;
   newSectionName: string;
+  newSectionDesc: string;
   setNewSectionName: (name: string) => void;
+  setNewSectionDesc: (desc: string) => void;
   setIsCreatingInline: (open: boolean) => void;
   handleAddSection: () => void;
   handleConfirmAddSection: () => void;
@@ -30,7 +34,9 @@ export const DetalleGalleryManager = ({
   isCreatingInline,
   isAddingSection,
   newSectionName,
+  newSectionDesc,
   setNewSectionName,
+  setNewSectionDesc,
   setIsCreatingInline,
   handleAddSection,
   handleConfirmAddSection,
@@ -116,25 +122,69 @@ export const DetalleGalleryManager = ({
       {/* Input Inline para Nueva Sección - World Class UX */}
       {isCreatingInline && canManage && (
         <div className="bg-indigo-50/50 border-2 border-dashed border-indigo-200 rounded-[2rem] p-6 animate-in zoom-in-95 duration-300">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 shrink-0 mt-1">
               <Plus size={24} />
             </div>
-            <div className="flex-1">
-              <input
-                autoFocus
-                value={newSectionName}
-                onChange={(e) => setNewSectionName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConfirmAddSection();
-                  if (e.key === 'Escape') setIsCreatingInline(false);
-                }}
-                placeholder="Ej: Master Suite, Jardín Trasero..."
-                className="w-full bg-transparent border-none text-xl font-black text-slate-900 placeholder:text-slate-300 outline-none"
-              />
-              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-1">Presiona Enter para crear o Esc para cancelar</p>
+            <div className="flex-1 flex flex-col gap-3">
+              <div className="relative">
+                <input
+                  autoFocus
+                  maxLength={50}
+                  value={newSectionName}
+                  onChange={(e) => setNewSectionName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleConfirmAddSection();
+                    if (e.key === 'Escape') setIsCreatingInline(false);
+                  }}
+                  placeholder="Nombre de sección (Ej: Master Suite, Cocina...)"
+                  className="w-full bg-transparent border-none text-xl font-black text-slate-900 placeholder:text-slate-400 outline-none pr-16"
+                />
+                <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                  {newSectionName.length}/50
+                </span>
+              </div>
+              <div className="relative">
+                <textarea
+                  maxLength={300}
+                  value={newSectionDesc}
+                  onChange={(e) => setNewSectionDesc(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleConfirmAddSection();
+                    }
+                    if (e.key === 'Escape') setIsCreatingInline(false);
+                  }}
+                  rows={2}
+                  placeholder="Descripción comercial detallada de esta área..."
+                  className="w-full bg-white/50 border border-indigo-100/50 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 placeholder:text-slate-400 outline-none focus:bg-white focus:border-indigo-200 transition-all resize-none pb-7"
+                />
+                <span className="absolute right-3 bottom-2 text-[10px] font-bold text-slate-400">
+                  {newSectionDesc.length}/300
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Presiona Enter para guardar o Esc para cancelar</p>
+                <div className="flex items-center">
+                  <div className="hidden lg:flex">
+                    <Tooltip content="La IA usará este texto para redactar un mensaje de venta persuasivo al enviar estas fotos.">
+                      <div className="text-indigo-300 hover:text-indigo-600 transition-colors cursor-help flex">
+                        <Info size={14} />
+                      </div>
+                    </Tooltip>
+                  </div>
+                  <div className="flex lg:hidden">
+                    <MobileInfoPopover content="La IA usará este texto para redactar un mensaje de venta persuasivo al enviar estas fotos.">
+                      <div className="text-indigo-300 hover:text-indigo-600 transition-colors cursor-help flex">
+                        <Info size={14} />
+                      </div>
+                    </MobileInfoPopover>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-1">
               <button
                 onClick={() => setIsCreatingInline(false)}
                 className="p-3 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
@@ -143,7 +193,7 @@ export const DetalleGalleryManager = ({
               </button>
               <button
                 onClick={handleConfirmAddSection}
-                disabled={!newSectionName.trim() || isAddingSection}
+                disabled={!newSectionName.trim() || !newSectionDesc.trim() || isAddingSection}
                 className="bg-indigo-600 text-white p-3 rounded-xl shadow-lg hover:bg-indigo-700 transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isAddingSection ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check size={20} />}
