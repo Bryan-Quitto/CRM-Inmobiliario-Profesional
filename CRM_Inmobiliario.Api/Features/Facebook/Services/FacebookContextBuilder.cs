@@ -51,10 +51,7 @@ public sealed class FacebookContextBuilder
                 ? profile.LastName
                 : $"FB-{senderId[^Math.Min(6, senderId.Length)..]}";
 
-            _logger.LogInformation(
-                "Nuevo contacto de Messenger: {Nombre} {Apellido} (PSID: {Psid}, fuente: {Source})",
-                nombre, apellido, senderId,
-                profile.FirstName != null ? "facebook_api" : "fallback");
+
 
             contacto = new Contacto
             {

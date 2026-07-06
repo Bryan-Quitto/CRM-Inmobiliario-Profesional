@@ -37,9 +37,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     if (!isMounted.current) return;
     try {
       await options.revalidate();
-    } catch (e) {
-      console.warn('[COMMERCIAL] Revalidation skipped or failed after unmount', e);
-    }
+    } catch { /* ignore */ }
   };
 
   const safeMutateOptimistic = (nuevoEstado: string) => {
@@ -138,7 +136,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
         
         if (isMounted.current) options.onSuccess?.();
       } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-        console.error(`[COMMERCIAL] Error en cierre:`, error);
+
         safeMutateOptimistic(oldEstado);
 
         const isConflict = error.response?.status === 409;

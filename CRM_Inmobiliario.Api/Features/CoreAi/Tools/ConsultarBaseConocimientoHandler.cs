@@ -1,4 +1,4 @@
-﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using System.Text;
@@ -29,7 +29,7 @@ public sealed class ConsultarBaseConocimientoHandler : BaseCoreAiToolHandler
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         string queryStr = ExtractSafeString(args.RootElement, "query", 500, string.Empty);
 
-        _logger.LogInformation("Iniciando consulta corporativa (RAG): Query={Query}", queryStr ?? "Ninguno");
+
 
         if (string.IsNullOrEmpty(queryStr))
         {

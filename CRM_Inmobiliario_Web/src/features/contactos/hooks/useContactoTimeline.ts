@@ -73,8 +73,8 @@ export const useContactoTimeline = ({ contacto, id, mutate, globalMutate }: Para
       globalMutate('/dashboard/kpis');
       globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
 
-    } catch (err) {
-      console.error('Error al guardar nota:', err);
+    } catch {
+
       toast.error('No se pudo guardar la nota');
       mutate();
     } finally {
@@ -105,8 +105,8 @@ export const useContactoTimeline = ({ contacto, id, mutate, globalMutate }: Para
       await mutate();
       globalMutate('/dashboard/kpis');
       globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-    } catch (err) {
-      console.error('Error al eliminar nota:', err);
+    } catch {
+
       toast.error('No se pudo eliminar la nota');
       mutate();
     }

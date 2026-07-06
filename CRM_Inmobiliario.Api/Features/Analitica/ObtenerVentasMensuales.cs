@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -31,7 +31,6 @@ public static class ObtenerVentasMensualesEndpoint
             if (warmingService.TryGetMonthlySales(agenteId, out var cachedSales))
             {
                 swTotal.Stop();
-                Console.WriteLine($"\n🚀 [SALES CACHE HIT] Agente: {agenteId} | Latencia: {swTotal.ElapsedMilliseconds}ms\n");
                 return Results.Ok(cachedSales);
             }
 
@@ -93,7 +92,6 @@ public static class ObtenerVentasMensualesEndpoint
             warmingService.UpdateSalesCache(agenteId, sales);
 
             swTotal.Stop();
-            Console.WriteLine($"\n⚡ [SALES FALLBACK] Agente: {agenteId} | Latencia: {swTotal.ElapsedMilliseconds}ms\n");
 
             return Results.Ok(sales);
         })

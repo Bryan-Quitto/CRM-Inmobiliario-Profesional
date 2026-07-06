@@ -19,7 +19,6 @@ public class PdfCleanupWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        _logger.LogInformation("🧹 [CLEANUP] Worker de limpieza de PDFs iniciado.");
 
         while (!ct.IsCancellationRequested)
         {
@@ -32,21 +31,16 @@ public class PdfCleanupWorker : BackgroundService
                 {
                     await Task.Delay(waitTime, ct);
                 }
-
-                _logger.LogInformation("🗑️ [CLEANUP] Ejecutando eliminación de PDF para Propiedad: {PropiedadId}", propiedadId);
                 
                 using var scope = _serviceProvider.CreateScope();
                 var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
                 
                 var fileName = $"ficha_{propiedadId}.pdf";
                 await supabase.Storage.From("propiedades").Remove(new List<string> { fileName });
-
-                _logger.LogInformation("✅ [CLEANUP] PDF {FileName} eliminado correctamente de Supabase.", fileName);
             }
             catch (OperationCanceledException) { break; }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "❌ [CLEANUP] Error durante la limpieza de un PDF.");
             }
         }
     }

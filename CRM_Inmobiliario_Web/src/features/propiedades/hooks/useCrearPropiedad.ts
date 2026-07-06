@@ -88,7 +88,7 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
         try {
           const parsed = JSON.parse(saved);
           return { fechaIngreso: ecuadorDate, porcentajeComision: 5, esCaptadorActivo: true, ...parsed };
-        } catch (e) { console.error('Error al parsear borrador:', e); }
+        } catch { /* ignore */ }
       }
     }
 
@@ -156,8 +156,8 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
       mutate('/dashboard/kpis');
       mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
       mutate('/propiedades');
-    }).catch((err) => {
-      console.error('Error al guardar propiedad:', err);
+    }).catch(() => {
+
       toast.error(`Error al ${isEditing ? 'actualizar' : 'registrar'} propiedad`);
     });
   };

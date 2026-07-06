@@ -36,8 +36,8 @@ export const useGalleryCore = () => {
       const blob = await response.blob();
       downloadBlob(blob, filename);
       toast.success('Descarga iniciada');
-    } catch (err) {
-      console.error('Error al descargar:', err);
+    } catch {
+
       toast.error('No se pudo descargar la imagen');
     }
   };
@@ -62,8 +62,8 @@ export const useGalleryCore = () => {
       downloadBlob(content, `${zipName}.zip`);
       toast.dismiss(toastId);
       toast.success('Galería descargada con éxito');
-    } catch (err) {
-      console.error('Error al crear ZIP:', err);
+    } catch {
+
       toast.error('Error al generar el archivo de descarga');
     } finally {
       setIsDownloading(false);

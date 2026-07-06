@@ -51,8 +51,7 @@ public sealed class BuscarPropiedadesHandler : BaseCoreAiToolHandler
             antiguedadMaxima = (int)am;
         }
 
-        _logger.LogInformation("Iniciando búsqueda híbrida: Query={Query}, Tipo={Tipo}, Presupuesto={Presupuesto}, Habitaciones={Habitaciones}, Antiguedad={Antiguedad}, Ciudad={Ciudad}, Sector={Sector}", 
-            queryStr ?? "Ninguno", tipoOperacion ?? "Cualquiera", presupuestoMaximo, habitacionesMinimas, antiguedadMaxima, ciudad ?? "Ninguna", sector ?? "Ninguno");
+
 
         if (string.IsNullOrEmpty(queryStr))
         {

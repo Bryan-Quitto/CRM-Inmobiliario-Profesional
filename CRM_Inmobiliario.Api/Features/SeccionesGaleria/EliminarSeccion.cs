@@ -65,7 +65,6 @@ public static class EliminarSeccionFeature
             catch (Exception ex)
             {
                 // Logueamos el error y devolvemos problema
-                Console.WriteLine($"ERROR [DeleteSection]: {ex.Message}");
                 return Results.Problem($"Error al eliminar sección y archivos: {ex.Message}");
             }
         })

@@ -33,9 +33,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
           esContacto: JSON.parse(saved).esContacto ?? true,
           esPropietario: JSON.parse(saved).esPropietario ?? isOwnersView
         };
-      } catch (e) {
-        console.error('Error al parsear borrador:', e);
-      }
+      } catch { /* ignore */ }
     }
     return {
       telefono: '+593 ',
@@ -164,7 +162,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
       
       toast.success(`Contacto ${isEditing ? 'actualizado' : 'registrado'}.`, { id: toastId });
     }).catch((err: unknown) => {
-      console.error('Error al guardar contacto en background:', err);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const errorObj = err as any;
       const errorMessage = errorObj?.response?.data?.error || 'Hubo un problema de conexión. Por favor revisa tu lista de contactos en unos momentos.';
@@ -233,7 +231,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
         // Retornar true permite que siga hasta que la última llamada real retorne un error si lo hay
         return true;
       }
-      console.error('Error validando teléfono:', e);
+
     }
     return true;
   };

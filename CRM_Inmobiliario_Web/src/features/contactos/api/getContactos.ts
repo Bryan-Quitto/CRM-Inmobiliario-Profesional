@@ -24,10 +24,7 @@ export interface GetContactosResponse {
 }
 
 export const getContactos = async (params?: GetContactosParams): Promise<GetContactosResponse> => {
-  const start = performance.now();
   const { signal, ...restParams } = params || {};
   const { data } = await api.get<GetContactosResponse>('/contactos', { params: restParams, signal });
-  const end = performance.now();
-  console.log(`[API] /contactos (Frontend) tardó ${(end - start).toFixed(2)} ms con params:`, restParams);
   return data;
 };

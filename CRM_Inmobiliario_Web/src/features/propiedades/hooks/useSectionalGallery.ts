@@ -73,7 +73,7 @@ export const useSectionalGallery = ({
   useEffect(() => {
     return () => {
       if (isPendingSaveDesc.current && !isSavingRef.current && sectionId && onRenameSection && !sectionId.startsWith('temp-')) {
-        onRenameSection(sectionId, nombreRef.current, descripcionRef.current || null).catch(console.error);
+        onRenameSection(sectionId, nombreRef.current, descripcionRef.current || null);
       }
     };
   }, [sectionId, onRenameSection]);

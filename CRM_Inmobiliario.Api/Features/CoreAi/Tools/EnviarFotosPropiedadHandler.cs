@@ -44,8 +44,7 @@ public sealed class EnviarFotosPropiedadHandler : BaseCoreAiToolHandler
 
         string nombreSeccion = nombreSeccionEl.GetString()!;
 
-        _logger.LogInformation("Ejecutando EnviarFotosSeccionPropiedad para propiedad {PropiedadId}, sección {Seccion}, enviarTodas={EnviarTodas}, offset={Offset}",
-            propiedadId, nombreSeccion, enviarTodas, offset);
+
 
         if (string.IsNullOrEmpty(context.ChannelIdentifier))
         {

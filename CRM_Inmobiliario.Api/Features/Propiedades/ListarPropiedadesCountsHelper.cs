@@ -41,7 +41,6 @@ public static class ListarPropiedadesCountsHelper
                         .FirstOrDefaultAsync(cancellationToken);
                     
                     swCount.Stop();
-                    Console.WriteLine($"[API] Calculó Counts Propiedades en {swCount.ElapsedMilliseconds}ms (Caché Miss)");
                     
                     counts = (
                         stats?.TotalCount ?? 0,

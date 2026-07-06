@@ -38,7 +38,7 @@ public static class FacebookAiLoopHelper
             iterationCount++;
             if (iterationCount > 5)
             {
-                logger.LogWarning("Límite de iteraciones excedido para PSID {SenderId}. Activando Circuit Breaker.", senderId);
+
                 finalResponse = "Ha ocurrido un fallo inesperado, le pido una disculpa por las molestias. Un agente humano le ayudará en unos momentos.";
                 
                 var execContextCb = new CRM_Inmobiliario.Api.Features.CoreAi.Services.ToolExecutionContext
@@ -61,7 +61,7 @@ public static class FacebookAiLoopHelper
                 break;
             }
 
-            logger.LogInformation("--- ENVIANDO A LLM EN FACEBOOK ({AiCount} mensajes) ---", aiMessages.Count);
+
 
             requiresAction = false;
             var textBuilder = new System.Text.StringBuilder();
@@ -141,7 +141,7 @@ public static class FacebookAiLoopHelper
                             toolResult = "Error Crítico: El JSON de los argumentos es inválido.";
                         }
 
-                        logger.LogInformation("--- TOOL CALL FB: {Tool} ---", call.Name);
+
                         var execContext = new CRM_Inmobiliario.Api.Features.CoreAi.Services.ToolExecutionContext
                         {
                             UserId = contactoId ?? Guid.Empty,
@@ -180,7 +180,7 @@ public static class FacebookAiLoopHelper
                             toolFailureCount++;
                             if (toolFailureCount >= 3)
                             {
-                                logger.LogWarning("Circuit Breaker activado para FB {SenderId}. Demasiados errores críticos de la IA.", senderId);
+
                                 finalResponse = "Ha ocurrido un fallo inesperado, le pido una disculpa por las molestias. Un agente humano le ayudará en unos momentos.";
                                 
                                 var fallbackToolCall = new AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"La IA no pudo generar una respuesta válida y requiere tu ayuda.\"}" };

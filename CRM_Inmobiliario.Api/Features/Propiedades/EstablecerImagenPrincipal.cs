@@ -18,6 +18,7 @@ public static class EstablecerImagenPrincipalFeature
             [FromRoute] Guid imagenId,
             ClaimsPrincipal user,
             CrmDbContext context,
+            Microsoft.Extensions.Logging.ILoggerFactory loggerFactory,
             CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
@@ -50,7 +51,8 @@ public static class EstablecerImagenPrincipalFeature
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en EstablecerImagenPrincipal: {ex.Message}");
+                var logger = loggerFactory.CreateLogger("EstablecerImagenPrincipal");
+                logger.LogError(ex, "Error en EstablecerImagenPrincipal");
                 return Results.Problem($"Error al actualizar la base de datos: {ex.Message}");
             }
         })

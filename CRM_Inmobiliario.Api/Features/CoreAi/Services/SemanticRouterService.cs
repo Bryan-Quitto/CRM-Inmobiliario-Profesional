@@ -56,11 +56,11 @@ public class SemanticRouterService : ISemanticRouterService
 
         if (routerResult == ChatIntent.NUEVA_BUSQUEDA || routerResult == ChatIntent.CAMBIO_TEMA)
         {
-            _logger.LogInformation("Semantic Router: {Intent} detectada.", routerResult.ToString());
+
         }
         else
         {
-            _logger.LogInformation("Semantic Router: CONTINUACION detectada.");
+
         }
 
         return routerResult;

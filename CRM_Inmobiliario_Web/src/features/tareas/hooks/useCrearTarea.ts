@@ -80,9 +80,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
         const draft = JSON.parse(saved);
         delete draft.fechaInicio;
         return { ...draft, fechaInicio: defaultFecha };
-      } catch (e) {
-        console.error('Error al parsear borrador de tarea:', e);
-      }
+      } catch { /* ignore */ }
     }
     return {
       titulo: '',
@@ -123,8 +121,8 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
 
     const savePromise = crearTarea(payload);
 
-    addTarea(nuevaTareaOptimista, savePromise).catch(err => {
-      console.error('Error en sync de addTarea:', err);
+    addTarea(nuevaTareaOptimista, savePromise).catch(() => {
+
       toast.error('No se pudo sincronizar la tarea');
     });
 

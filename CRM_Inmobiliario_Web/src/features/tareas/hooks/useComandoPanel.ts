@@ -77,7 +77,7 @@ export const useComandoPanel = ({ isOpen, onClose, onParsed }: UseComandoPanelPr
       };
 
       recognitionRef.current.onerror = (event: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-        console.error('Speech recognition error:', event.error);
+
         setIsListening(false);
         if (event.error === 'not-allowed') {
           toast.error('Permiso de micrófono denegado.');
@@ -95,9 +95,7 @@ export const useComandoPanel = ({ isOpen, onClose, onParsed }: UseComandoPanelPr
       try {
         recognitionRef.current.start();
         setIsListening(true);
-      } catch (e) {
-        console.error('Error starting recognition:', e);
-      }
+      } catch { /* ignore */ }
     }
   };
 

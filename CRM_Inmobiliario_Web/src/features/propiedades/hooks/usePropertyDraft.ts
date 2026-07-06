@@ -15,13 +15,13 @@ export const usePropertyDraft = (
     // Solo guardar si hay algo real que guardar para no ensuciar
     const hasContent = Object.values(watchedValues).some(v => v && v !== '' && v !== 0);
     if (hasContent) {
-      console.log('[DEBUG] usePropertyDraft - Saving to localStorage');
+
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(watchedValues));
     }
   }, [watchedValues, isEditing]);
 
   const handleClearDraft = () => {
-    console.log('[DEBUG] usePropertyDraft - Clearing localStorage');
+
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     const today = new Date();
     // Ecuador UTC-5

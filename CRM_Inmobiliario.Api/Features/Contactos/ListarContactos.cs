@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -151,7 +151,6 @@ public static class ListarContactosFeature
                             .OrderBy(g => g.TotalCount) // Suprime warning [10103]
                             .FirstOrDefaultAsync(cancellationToken);
                         swCount.Stop();
-                        Console.WriteLine($"[API] Calculó Counts en {swCount.ElapsedMilliseconds}ms (Caché Miss)");
                         counts = (
                             countData?.TotalCount ?? 0,
                             countData?.NuevosCount ?? 0,
@@ -210,7 +209,6 @@ public static class ListarContactosFeature
                 .ToListAsync(cancellationToken);
 
             sw.Stop();
-            Console.WriteLine($"[API] ListarContactos (Backend) tardó {sw.ElapsedMilliseconds} ms (Con Datos) para página {request.Page}");
 
             var result = new GetContactosResponse(items, totalCount, nuevosCount, enNegociacionCount);
             return Results.Ok(result);

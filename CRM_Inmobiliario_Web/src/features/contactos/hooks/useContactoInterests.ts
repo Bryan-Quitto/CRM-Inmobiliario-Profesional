@@ -42,8 +42,8 @@ export const useContactoInterests = ({ contacto, id, mutate, globalMutate }: Par
         globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
       }, 800);
 
-    } catch (err) {
-      console.error('Error al vincular propiedad:', err);
+    } catch {
+
       toast.error('No se pudo vincular la propiedad');
       setVincularStatus('idle');
     } finally {
@@ -68,8 +68,8 @@ export const useContactoInterests = ({ contacto, id, mutate, globalMutate }: Par
       await mutate();
       globalMutate('/dashboard/kpis');
       globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-    } catch (err) {
-      console.error('Error al actualizar interés:', err);
+    } catch {
+
       toast.error('Hubo un error de sincronización, deshaciendo...');
       mutate();
     }
@@ -94,8 +94,8 @@ export const useContactoInterests = ({ contacto, id, mutate, globalMutate }: Par
       await mutate();
       globalMutate('/dashboard/kpis');
       globalMutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-    } catch (err) {
-      console.error('Error al desvincular:', err);
+    } catch {
+
       toast.error('Error en el servidor al desvincular');
       mutate();
     } finally {

@@ -29,8 +29,7 @@ export const useCopilotChat = () => {
       setMessages(data);
       setConversationId(id);
       setOpen(true);
-    } catch (error) {
-      console.error('Error loading conversation:', error);
+    } catch {
       // Fallback for UI if error
     }
   };
@@ -140,14 +139,12 @@ export const useCopilotChat = () => {
       }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('Generación de IA abortada por el usuario');
         if (!fullText.trim()) {
           overwriteLastMessage('*(Generación cancelada)*');
         } else {
           updateLastMessage('\n\n*(Generación cancelada)*');
         }
       } else {
-        console.error('Error in useCopilotChat stream:', error);
         updateLastMessage('\n\n*(Error conectando con el servidor)*');
       }
     } finally {

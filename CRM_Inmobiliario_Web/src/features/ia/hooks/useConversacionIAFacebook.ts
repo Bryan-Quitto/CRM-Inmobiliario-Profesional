@@ -24,7 +24,6 @@ export const useConversacionIAFacebook = (psid: string | null, isActive: boolean
 
     try {
       const encodedPsid = encodeURIComponent(psid);
-      console.log(`[DEBUG] Llamando a endpoint de facebook: /ia/facebook-conversacion/${encodedPsid}?skip=${skip}&take=10`);
       const res = await api.get(`/ia/facebook-conversacion/${encodedPsid}?skip=${skip}&take=10`);
       if (isMore) {
         setMensajesRaw(prev => [...res.data.mensajes, ...prev]);

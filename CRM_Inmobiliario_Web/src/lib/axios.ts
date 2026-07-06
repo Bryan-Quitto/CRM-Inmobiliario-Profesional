@@ -23,9 +23,7 @@ const getLocalTokenSync = () => {
         return data.access_token || null;
       }
     }
-  } catch (e) {
-    console.error('Error al leer token de local storage', e);
-  }
+  } catch { /* ignore */ }
   return null;
 };
 
@@ -62,9 +60,8 @@ api.interceptors.request.use(async (config) => {
         config.headers.Authorization = `Bearer ${session.access_token}`;
       }
     }
-  } catch (error) {
+  } catch {
     sessionPromise = null;
-    console.error('Error al obtener la sesión de Supabase:', error);
   }
   
   return config;

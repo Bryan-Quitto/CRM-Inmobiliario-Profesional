@@ -54,15 +54,10 @@ public static class ReordenarSeccionesFeature
 
                 await context.UpsertAgentPropertyActivityAsync(currentUserId, propiedad.Id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
-                Console.WriteLine($"DEBUG [ReordenarSecciones]: SQL Directo ejecutado. Secciones afectadas: {totalActualizados}");
                 return Results.NoContent();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR [ReordenarSecciones]: Error en SQL Directo -> {ex.Message}");
-                if (ex.InnerException != null) 
-                    Console.WriteLine($"INNER ERROR: {ex.InnerException.Message}");
-                
                 return Results.Problem("Error en el experimento de reordenamiento: " + ex.Message);
             }
         })

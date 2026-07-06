@@ -62,8 +62,7 @@ export const useCalendario = () => {
       setViewingTareaId(null);
       setEditingTareaId(null);
       mutate();
-    } catch (err) {
-      console.error('Error al cancelar tarea:', err);
+    } catch {
       toast.error('No se pudo cancelar la tarea');
     } finally {
       setIsConfirmingCancel(false);
@@ -81,8 +80,7 @@ export const useCalendario = () => {
       setViewingTareaId(null);
       setEditingTareaId(null);
       mutate();
-    } catch (err) {
-      console.error('Error al completar tarea:', err);
+    } catch {
       toast.error('No se pudo completar la tarea');
     }
   };
@@ -143,8 +141,7 @@ export const useCalendario = () => {
       duracionMinutos: duracionNueva
     })
       .then(() => mutate())
-      .catch((error) => {
-        console.error('Error al reprogramar evento:', error);
+      .catch(() => {
         toast.error('Error al sincronizar el cambio. Revirtiendo...');
         arg.revert();
         mutate();

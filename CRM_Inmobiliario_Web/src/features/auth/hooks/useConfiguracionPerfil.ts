@@ -106,8 +106,7 @@ export const useConfiguracionPerfil = () => {
         agenciaId: formData.agenciaId || null
       });
       await mutate();
-    } catch (err) {
-      console.error('Error al actualizar perfil:', err);
+    } catch {
       toast.error('No se pudo sincronizar el perfil', {
         description: 'Tus cambios se mantendrán localmente pero hubo un error de conexión.'
       });

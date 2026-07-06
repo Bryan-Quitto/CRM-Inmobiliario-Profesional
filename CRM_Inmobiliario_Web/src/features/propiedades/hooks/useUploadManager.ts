@@ -99,7 +99,7 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
           });
         }
       } catch (err: unknown) {
-        console.error(`Error subiendo ${file.name}:`, err);
+
         errorMsg = 'Error en la subida';
         if (isAxiosError(err)) {
           errorMsg = err.response?.data?.detail || err.message;

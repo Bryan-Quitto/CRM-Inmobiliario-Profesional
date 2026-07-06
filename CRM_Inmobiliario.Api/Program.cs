@@ -131,10 +131,7 @@ var app = builder.Build();
 app.UseExceptionHandler();
 if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
 
-app.Use(async (context, next) => {
-    await next();
-    if (context.Response.StatusCode == 401) Console.WriteLine($"WARN [401]: {context.Request.Method} {context.Request.Path}");
-});
+
 
 app.UseCors();
 app.UseAuthentication();

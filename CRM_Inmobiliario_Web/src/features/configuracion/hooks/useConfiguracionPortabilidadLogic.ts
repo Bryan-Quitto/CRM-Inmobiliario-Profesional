@@ -36,8 +36,7 @@ export const useConfiguracionPortabilidadLogic = () => {
       window.URL.revokeObjectURL(url);
 
       toast.success('Archivo descargado correctamente');
-    } catch (error) {
-      console.error('Error al exportar datos:', error);
+    } catch {
       toast.error('Ocurrió un error al intentar exportar los datos', {
         description: 'Por favor, intenta nuevamente más tarde.',
       });

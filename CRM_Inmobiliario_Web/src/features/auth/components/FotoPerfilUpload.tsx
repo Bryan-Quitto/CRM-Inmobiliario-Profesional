@@ -30,8 +30,7 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
     };
     try {
       return await imageCompression(file, options);
-    } catch (error) {
-      console.error('Error comprimiendo imagen:', error);
+    } catch {
       return file;
     }
   };

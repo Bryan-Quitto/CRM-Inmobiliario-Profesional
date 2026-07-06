@@ -90,7 +90,7 @@ public sealed class PushNotificationService : IPushNotificationService
 
         if (string.IsNullOrEmpty(vapidSubject) || string.IsNullOrEmpty(vapidPublicKey) || string.IsNullOrEmpty(vapidPrivateKey))
         {
-            _logger.LogWarning("VAPID keys not configured.");
+
             return;
         }
 

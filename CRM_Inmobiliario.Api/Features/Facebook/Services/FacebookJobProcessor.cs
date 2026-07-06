@@ -36,9 +36,9 @@ public sealed class FacebookJobProcessor : IFacebookJobProcessor
         {
             throw; // Hangfire retirará por nosotros
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Error en background job de Facebook para PSID {SenderId}", senderId);
+
             throw;
         }
         finally

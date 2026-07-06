@@ -52,9 +52,7 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           populateCache: false // Queremos que use el resultado del fetch real
         }
       );
-    } catch (e) {
-      console.error('Error en updateTarea optimista:', e);
-    }
+    } catch { /* ignore */ }
   };
 
   const addTarea = async (nuevaTarea: Tarea, savePromise: Promise<unknown>) => {
@@ -73,9 +71,7 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           populateCache: false
         }
       );
-    } catch (e) {
-      console.error('Error en addTarea optimista:', e);
-    }
+    } catch { /* ignore */ }
   };
 
   const urgentesCount = useMemo(() => {

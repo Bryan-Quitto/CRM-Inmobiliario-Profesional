@@ -56,7 +56,7 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Error enviando mensaje de WhatsApp a {Phone}: {Error}", to, error);
+
                 response.EnsureSuccessStatusCode();
             }
 
@@ -102,7 +102,7 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
                 }
                 else
                 {
-                    _logger.LogWarning("WhatsAppMessageSender: No se pudo registrar el mensaje porque no se encontró el Contacto correspondiente al teléfono {Phone}.", to);
+
                 }
             }
             catch (Exception dbEx)
@@ -110,9 +110,9 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
                 _logger.LogError(dbEx, "WhatsAppMessageSender: Error guardando el registro del mensaje en BD.");
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Excepción enviando mensaje de WhatsApp a {Phone}", to);
+
             throw;
         }
     }
@@ -146,7 +146,7 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Error enviando imagen de WhatsApp a {Phone}: {Error}", to, error);
+
                 response.EnsureSuccessStatusCode();
             }
 
@@ -195,9 +195,9 @@ public sealed class WhatsAppMessageSender : IWhatsAppMessageSender
                 _logger.LogError(dbEx, "WhatsAppMessageSender: Error guardando el registro de la imagen en BD.");
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Excepción enviando imagen de WhatsApp a {Phone}", to);
+
             throw;
         }
     }

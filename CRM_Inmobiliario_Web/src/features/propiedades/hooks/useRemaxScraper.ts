@@ -51,8 +51,8 @@ export const useRemaxScraper = (
 
       setMissedFields(newMissed);
       toast.success('¡Datos importados con éxito!', { description: 'Revisa las casillas resaltadas en amarillo por autocompletar.' });
-    } catch (err) {
-      console.error('Error al importar:', err);
+    } catch {
+
       toast.error('Error al importar', { description: 'Verifica la URL o intenta manualmente.' });
     } finally {
       setIsScraping(false);

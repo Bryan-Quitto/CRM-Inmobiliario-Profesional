@@ -27,7 +27,7 @@ public class BulkVectorizationJob
 
     public async Task ProcessBulkAsync(bool force)
     {
-        _logger.LogInformation("Starting bulk vectorization job. Force: {Force}", force);
+
 
         var query = _context.Properties.AsQueryable();
 
@@ -44,13 +44,13 @@ public class BulkVectorizationJob
 
         var propertyIds = await query.Select(p => p.Id).ToListAsync();
 
-        _logger.LogInformation("Found {Count} properties to vectorize.", propertyIds.Count);
+
 
         foreach (var id in propertyIds)
         {
             _backgroundJobs.Enqueue<PropertyEmbeddingJob>(j => j.ProcessPropertyAsync(id));
         }
 
-        _logger.LogInformation("Completed enqueuing {Count} property embedding jobs.", propertyIds.Count);
+
     }
 }

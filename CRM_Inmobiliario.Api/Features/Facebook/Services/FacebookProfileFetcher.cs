@@ -31,7 +31,7 @@ internal sealed class FacebookProfileFetcher
             if (!response.IsSuccessStatusCode)
             {
                 // Meta puede retornar 400 para cuentas de solo teléfono (error 2018218) u otros permisos faltantes
-                _logger.LogWarning("Graph API retornó {Status} al obtener perfil de PSID {Psid}.", response.StatusCode, psid);
+
                 return new FacebookUserProfile(null, null, null);
             }
 
@@ -45,10 +45,10 @@ internal sealed class FacebookProfileFetcher
 
             return new FacebookUserProfile(firstName, lastName, fullName);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // No propagar — un fallo en el enriquecimiento no debe bloquear la conversación
-            _logger.LogWarning(ex, "Error al obtener perfil de Facebook para PSID {Psid}.", psid);
+
             return new FacebookUserProfile(null, null, null);
         }
     }

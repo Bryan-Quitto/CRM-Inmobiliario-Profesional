@@ -1,4 +1,4 @@
-﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using CRM_Inmobiliario.Api.Domain.Entities;
@@ -116,7 +116,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                 ? (!string.IsNullOrWhiteSpace(contacto.Telefono) ? contacto.Telefono : (contacto.FacebookSenderId ?? "Desconocido"))
                 : contacto.Nombre;
 
-            _logger.LogInformation($"[PUSH] Intentando notificar a AgentId {contacto.AgenteId} sobre el contacto {contacto.Id}");
+
             await _pushNotificationService.SendNotificationToAgentAsync(
                 contacto.AgenteId,
                 "🚨 Asistencia Humana Solicitada",
@@ -144,7 +144,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
         }
         else
         {
-            _logger.LogWarning($"[PUSH] No se pudo notificar porque contacto.AgenteId está vacío para contacto {contacto.Id}");
+
         }
 
         // Escalación silenciosa: el LLM NO debe generar respuesta al cliente.

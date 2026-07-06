@@ -30,8 +30,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
     };
     try {
       return await imageCompression(file, options);
-    } catch (error) {
-      console.error('Error comprimiendo logo:', error);
+    } catch {
       return file;
     }
   };

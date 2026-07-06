@@ -160,8 +160,8 @@ export const useClosingModal = ({
       setTimeout(() => {
         onClose();
       }, 800);
-    } catch (error) {
-      console.error('Error al procesar el cierre:', error);
+    } catch {
+
       toast.error('Hubo un error al procesar el cierre.');
       setIsSubmitting(false);
     }

@@ -20,7 +20,7 @@ export const getDropdownContactos = async (searchQuery?: string, contexto: strin
     url.searchParams.append('contexto', contexto);
   }
   
-  console.log(`[getDropdownContactos] fetching URL: /contactos/dropdown${url.search}, Contexto: ${contexto}`);
+
   
   const { data } = await api.get<DropdownContactoResponse[]>(`/contactos/dropdown${url.search}`);
   return data;

@@ -39,9 +39,9 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Error procesando webhook en background job para {Phone}", phone);
+
             throw;
         }
         finally
@@ -77,7 +77,7 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
             });
 
             var mediaUrl = bucket.GetPublicUrl(fileName);
-            _logger.LogInformation("Audio subido a Supabase para {Phone}: {MediaUrl}", phone, mediaUrl);
+
 
             await aiService.ProcessIncomingAudioAsync(phone, audioBytes, mediaUrl, phoneNumberId, cancellationToken);
         }
@@ -85,9 +85,9 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Error procesando audio en background job para {Phone} y Media {MediaId}", phone, mediaId);
+
             throw;
         }
         finally

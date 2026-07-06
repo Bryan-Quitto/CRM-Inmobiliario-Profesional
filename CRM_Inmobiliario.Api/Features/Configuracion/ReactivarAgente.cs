@@ -39,9 +39,9 @@ public static class ReactivarAgenteFeature
                     await adminAuth.UpdateUserById(id.ToString(), new AdminUserAttributes { BanDuration = "none" });
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error desbaneando en Supabase: {ex.Message}");
+
             }
 
             return Results.Ok(new { message = "Agente reactivado exitosamente. Su acceso a la plataforma ha sido restaurado." });

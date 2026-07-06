@@ -64,7 +64,7 @@ export const MediaCard = React.memo<MediaCardProps>(({
     return () => {
       if (isPendingSave.current && !isSavingRef.current) {
         // Disparar sin esperar (el componente se está desmontando)
-        actualizarDescripcionMultimedia(item.id, descripcionRef.current || null).catch(console.error);
+        actualizarDescripcionMultimedia(item.id, descripcionRef.current || null);
       }
     };
   }, [item.id]);
@@ -116,8 +116,8 @@ export const MediaCard = React.memo<MediaCardProps>(({
         
         if (onSaved) onSaved();
         setTimeout(() => setSaveSuccess(false), 2000);
-      } catch (error) {
-        console.error('Error auto-guardando descripción:', error);
+      } catch {
+
         toast.error('Error al guardar descripción');
         // Revertimos el cache en caso de error disparando una revalidación
         mutate(swrKey);

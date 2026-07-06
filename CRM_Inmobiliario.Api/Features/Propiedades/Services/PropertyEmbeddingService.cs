@@ -146,8 +146,7 @@ public sealed class PropertyEmbeddingService : IPropertyEmbeddingService
             }
             else
             {
-                var errorText = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"[Gemini Embedding Error] StatusCode: {response.StatusCode}, Content: {errorText}");
+                _logger.LogError("Gemini Embedding Error. StatusCode: {StatusCode}", response.StatusCode);
             }
             return null;
         }

@@ -93,7 +93,7 @@ public class TaskNotificationJob
             return;
         }
 
-        _logger.LogInformation($"Se encontraron {tasksToNotifyFiltered.Count} tareas para notificar.");
+        _logger.LogInformation("Se encontraron {Count} tareas para notificar.", tasksToNotifyFiltered.Count);
 
         foreach (var task in tasksToNotifyFiltered)
         {

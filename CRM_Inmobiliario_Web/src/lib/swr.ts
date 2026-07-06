@@ -22,8 +22,7 @@ export const localStorageProvider = () => {
         const recentEntries = entries.slice(-30);
         const appCache = JSON.stringify(recentEntries);
         localStorage.setItem(CACHE_KEY, appCache);
-      } catch (error) {
-        console.warn('SWR Cache Lleno o QuotaExceededError. Limpiando caché local para liberar cuota.', error);
+      } catch {
         localStorage.removeItem(CACHE_KEY);
       }
     }, 500); // 500ms debounce

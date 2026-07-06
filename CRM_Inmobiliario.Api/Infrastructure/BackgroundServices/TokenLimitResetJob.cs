@@ -29,9 +29,5 @@ public class TokenLimitResetJob
                 .SetProperty(c => c.BotActivoFB, true)
                 .SetProperty(c => c.EstadoIA_FB, (string?)null));
 
-        if (resultWA > 0 || resultFB > 0)
-        {
-            _logger.LogInformation("Hangfire: Límite diario reseteado para WA ({CountWA}) y FB ({CountFB}) contactos. Bots reactivados.", resultWA, resultFB);
-        }
     }
 }

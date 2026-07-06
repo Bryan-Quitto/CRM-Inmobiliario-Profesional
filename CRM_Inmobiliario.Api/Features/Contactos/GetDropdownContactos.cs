@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +22,6 @@ public static class GetDropdownContactosFeature
         return app.MapGet("/contactos/dropdown", async (string? searchQuery, [Microsoft.AspNetCore.Mvc.FromQuery] string contexto, ClaimsPrincipal user, CrmDbContext context, CancellationToken cancellationToken) =>
         {
             var currentUserId = user.GetRequiredUserId();
-            Console.WriteLine($"[DEBUG] GetDropdownContactos - currentUserId: {currentUserId}, contexto: {contexto}");
 
             var query = context.Contactos
                 .AsNoTracking();

@@ -61,7 +61,7 @@ public class DocumentChunkEmbeddingJob
         if (generatedAny)
         {
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully updated embedding for document chunk {ChunkId}.", chunkId);
+
         }
         else
         {

@@ -81,7 +81,7 @@ public sealed class WhatsAppMemoryProcessor : IWhatsAppMemoryProcessor
             }
             newHistory.AddRange(tail);
             
-            _logger.LogInformation("Historial comprimido semánticamente. Nuevo tamaño: {Count}", newHistory.Count);
+
             return newHistory;
         }
         catch (Exception ex)

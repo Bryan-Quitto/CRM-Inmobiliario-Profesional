@@ -58,7 +58,7 @@ public static class ObtenerPerfil
 
             if (perfil is null)
             {
-                Console.WriteLine($"DEBUG [ObtenerPerfil]: Agente no encontrado en DB. Devolviendo perfil base.");
+
                 return Results.Ok(new Response(
                     agenteId,
                     "",
@@ -77,7 +77,7 @@ public static class ObtenerPerfil
                 ));
             }
 
-            Console.WriteLine($"DEBUG [ObtenerPerfil]: Agente encontrado: {perfil.Nombre} {perfil.Apellido}");
+
             return Results.Ok(perfil);
         })
         .WithTags("Configuracion")

@@ -37,7 +37,7 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
             }
         }
 
-        _logger.LogInformation("Iniciando consulta profunda de propiedad: Nombre={NombrePropiedad}", pNameStr ?? "Ninguno");
+
 
         if (string.IsNullOrWhiteSpace(pNameStr))
         {
@@ -94,7 +94,7 @@ public sealed class ConsultarDetallesPropiedadHandler : BaseCoreAiToolHandler
                 propiedadId = propiedad.Id 
             };
             await LogAiActionAsync("RegistroInteres", JsonSerializer.Serialize(customDetalle), context);
-            _logger.LogInformation("INTERÉS REGISTRADO AUTOMÁTICAMENTE: Contacto {ContactoId} - Propiedad {Propiedad} - Nivel {Nivel}", context.ContactoId, propiedad.Titulo, nivelStr);
+
 
             if (context.ContactoId.HasValue)
             {

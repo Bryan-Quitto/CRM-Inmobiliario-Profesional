@@ -40,8 +40,8 @@ export const usePushNotifications = () => {
                           userAgent: navigator.userAgent
                         }).then(() => {
                           setIsSubscribed(true);
-                        }).catch(console.error);
-                      }).catch(console.error);
+                        }).catch(() => {});
+                      }).catch(() => {});
                     }
                   });
                 }
@@ -100,8 +100,7 @@ export const usePushNotifications = () => {
       await api.post('/agente/dispositivos/suscribir', payload);
       setIsSubscribed(true);
       toast.success('Notificaciones activadas exitosamente.');
-    } catch (error) {
-      console.error('Error subscribing to push notifications:', error);
+    } catch {
       toast.error('Error al activar las notificaciones.');
     } finally {
       setIsSubscribing(false);
@@ -143,8 +142,7 @@ export const usePushNotifications = () => {
       await api.post('/agente/dispositivos/suscribir', payload);
       setIsSubscribed(true);
       toast.success('Dispositivo sincronizado correctamente.');
-    } catch (error) {
-      console.error('Error resyncing push notifications:', error);
+    } catch {
       toast.error('Error al sincronizar el dispositivo.');
     } finally {
       setIsSubscribing(false);
@@ -166,8 +164,7 @@ export const usePushNotifications = () => {
       
       setIsSubscribed(false);
       toast.success('Notificaciones desactivadas en este dispositivo.');
-    } catch (error) {
-      console.error('Error unsubscribing from push notifications:', error);
+    } catch {
       toast.error('Error al desactivar las notificaciones.');
     } finally {
       setIsSubscribing(false);

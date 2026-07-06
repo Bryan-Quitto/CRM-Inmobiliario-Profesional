@@ -58,7 +58,7 @@ export const useMergeContactosLogic = ({
       toast.success('Contactos fusionados exitosamente');
       onSuccess(localPrincipal.id);
     } catch (error) {
-      console.error(error);
+
       const err = error as { response?: { data?: { message?: string } } };
       toast.error(err.response?.data?.message || 'Error al fusionar contactos');
     } finally {

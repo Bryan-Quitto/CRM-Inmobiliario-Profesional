@@ -69,7 +69,7 @@ public class AgentAiResponseGenerator
                 new AiMessage { Role = "user", Content = message }
             };
 
-            _logger.LogInformation("\n=== [Agent AI] Interacción de Usuario ===\nAgentId: {AgentId}\nMensaje: {Message}\n=======================================", agentId, message);
+
 
             var textBuilder = new System.Text.StringBuilder();
 
@@ -88,7 +88,7 @@ public class AgentAiResponseGenerator
                 }
             }
 
-            _logger.LogInformation("\n=== [Agent AI] Respuesta de IA ===\nAgentId: {AgentId}\nTokens Totales: {TotalTokens} (Entrada: {InputTokens}, Salida: {OutputTokens})\nRespuesta: {Response}\n================================", agentId, streamTotalTokens ?? 0, streamInputTokens ?? 0, streamOutputTokens ?? 0, textBuilder.ToString());
+
             return textBuilder.ToString();
         }
         catch (Polly.Timeout.TimeoutRejectedException)

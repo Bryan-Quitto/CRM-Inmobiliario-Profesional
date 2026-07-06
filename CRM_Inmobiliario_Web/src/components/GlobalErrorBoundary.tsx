@@ -22,12 +22,8 @@ export class GlobalErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.group('🚨 [GLOBAL_ERROR]');
-    console.error('Error:', error.message);
-    console.error('Stack:', error.stack);
-    console.error('Component Stack:', errorInfo.componentStack);
-    console.groupEnd();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
   }
 
   private handleReset = () => {

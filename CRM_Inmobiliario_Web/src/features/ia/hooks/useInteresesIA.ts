@@ -22,8 +22,7 @@ export const useInteresesIA = (mutate: () => Promise<ClientGroup[] | undefined>)
       toast.success('Interés actualizado correctamente');
       await mutate();
       globalMutate('/dashboard/kpis');
-    } catch (err) {
-      console.error('Error al actualizar interés:', err);
+    } catch {
       toast.error('No se pudo actualizar el nivel de interés');
     } finally {
       setUpdatingInteresId(null);
@@ -40,8 +39,7 @@ export const useInteresesIA = (mutate: () => Promise<ClientGroup[] | undefined>)
       setInteresABorrarId(null);
       await mutate();
       globalMutate('/dashboard/kpis');
-    } catch (err) {
-      console.error('Error al eliminar interés:', err);
+    } catch {
       toast.error('No se pudo eliminar el interés');
     } finally {
       setIsDeletingInteres(false);

@@ -26,7 +26,7 @@ public class BulkDocumentVectorizationJob
 
     public async Task ProcessBulkAsync(bool force)
     {
-        _logger.LogInformation("Starting bulk document vectorization job. Force: {Force}", force);
+
 
         var query = _context.DocumentChunks.AsQueryable();
 
@@ -52,13 +52,13 @@ public class BulkDocumentVectorizationJob
 
         var chunkIds = await query.Select(c => c.Id).ToListAsync();
 
-        _logger.LogInformation("Found {Count} document chunks to vectorize.", chunkIds.Count);
+
 
         foreach (var id in chunkIds)
         {
             _backgroundJobs.Enqueue<DocumentChunkEmbeddingJob>(j => j.ProcessChunkAsync(id, force));
         }
 
-        _logger.LogInformation("Completed enqueuing {Count} document chunk embedding jobs.", chunkIds.Count);
+
     }
 }

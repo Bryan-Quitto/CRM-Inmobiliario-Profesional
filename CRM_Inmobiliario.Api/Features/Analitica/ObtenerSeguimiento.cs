@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -37,12 +37,6 @@ public static class ObtenerSeguimientoEndpoint
                 .Select(l => new ContactoSeguimientoItem(l.Id, l.Nombre, l.Apellido ?? "", l.EstadoEmbudo))
                 .ToListAsync();
 
-            logger.LogInformation("--- Analizando Seguimiento Crítico (Filtrado) ---");
-            foreach (var contacto in contactosConInteres)
-            {
-                logger.LogInformation("Contacto en seguimiento: {Nombre} {Apellido} | Etapa: {Etapa}", contacto.Nombre, contacto.Apellido, contacto.EstadoEmbudo);
-            }
-            logger.LogInformation("Total Seguimiento Crítico: {Total}", contactosConInteres.Count);
 
             return Results.Ok(new SeguimientoResponse(contactosConInteres.Count, contactosConInteres));
         })

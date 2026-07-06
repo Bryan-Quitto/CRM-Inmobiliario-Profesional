@@ -27,7 +27,7 @@ public sealed class GenerarCotizacionRapidaHandler : ICoreAiToolHandler
             return "Error: Acceso denegado. Esta herramienta es de uso exclusivo para el agente interno (Copilot).";
         }
 
-        _logger.LogInformation("Iniciando generación de cotización rápida. Argumentos RAW: {Args}", args.RootElement.GetRawText());
+
 
         decimal montoPropiedad = 0;
         decimal enganche = 0;

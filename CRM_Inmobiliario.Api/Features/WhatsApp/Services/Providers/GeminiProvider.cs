@@ -182,9 +182,7 @@ public class GeminiProvider : ILLMProvider
             config.MaxOutputTokens = maxTokens;
         }
 
-        Console.WriteLine("\n[GEMINI_DEBUG_PAYLOAD] --- START STREAM REQUEST ---");
-        try { Console.WriteLine(JsonSerializer.Serialize(contents, new JsonSerializerOptions { WriteIndented = true })); } catch { }
-        Console.WriteLine("[GEMINI_DEBUG_PAYLOAD] --- END STREAM REQUEST ---\n");
+
 
         var responseStream = client.Models.GenerateContentStreamAsync(_modelName, contents, config, cancellationToken: cancellationToken);
         
@@ -244,7 +242,7 @@ public class GeminiProvider : ILLMProvider
                     {
                         if (part.FunctionCall != null)
                         {
-                            Console.WriteLine($"[GEMINI_DEBUG] Parsed FunctionCall from Part: {part.FunctionCall.Name}");
+
                             update.ToolCallUpdate = new AiToolCall
                             {
                                 Id = part.FunctionCall.Name ?? "",
@@ -269,7 +267,7 @@ public class GeminiProvider : ILLMProvider
             
             if (response.UsageMetadata != null)
             {
-                Console.WriteLine($"[GEMINI_DEBUG] Usage: Output={response.UsageMetadata.CandidatesTokenCount}, Input={response.UsageMetadata.PromptTokenCount}");
+
                 update.TotalTokens = response.UsageMetadata.TotalTokenCount ?? 0;
                 update.InputTokens = (response.UsageMetadata.PromptTokenCount ?? 0) - (response.UsageMetadata.CachedContentTokenCount ?? 0);
                 update.CachedTokens = response.UsageMetadata.CachedContentTokenCount ?? 0;
@@ -312,9 +310,7 @@ public class GeminiProvider : ILLMProvider
         config.ResponseMimeType = "application/json";
         config.ResponseSchema = geminiSchema;
 
-        Console.WriteLine("\n[GEMINI_DEBUG_PAYLOAD] --- START STRUCTURED REQUEST ---");
-        try { Console.WriteLine(JsonSerializer.Serialize(contents, new JsonSerializerOptions { WriteIndented = true })); } catch { }
-        Console.WriteLine("[GEMINI_DEBUG_PAYLOAD] --- END STRUCTURED REQUEST ---\n");
+
 
         var response = await client.Models.GenerateContentAsync(_modelName, contents, config);
         var content = response.Text;

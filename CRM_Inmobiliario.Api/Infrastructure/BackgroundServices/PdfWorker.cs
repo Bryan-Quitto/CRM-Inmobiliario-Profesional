@@ -30,33 +30,28 @@ public class PdfWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("🚀 [WORKER] PdfWorker INICIADO y esperando mensajes en la cola...");
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 var propiedadId = await _queue.DequeuePdfGenerationAsync(stoppingToken);
-                _logger.LogInformation("📥 [WORKER] Mensaje recibido en la cola para Propiedad ID: {PropiedadId}", propiedadId);
 
         try
         {
             await ProcessPdfAsync(propiedadId, stoppingToken);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "❌ [WORKER] Error inesperado procesando PDF para {PropiedadId}", propiedadId);
         }
         finally
         {
             _queue.SetStatus(propiedadId, false);
-            _logger.LogInformation("ℹ️ [WORKER] Estado de generación liberado para {PropiedadId}", propiedadId);
         }
             }
             catch (OperationCanceledException) { break; }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "❌ [WORKER] Error fatal en el bucle del worker.");
             }
         }
     }
@@ -71,8 +66,6 @@ public class PdfWorker : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
         var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
 
-        _logger.LogInformation("🔍 [WORKER] Buscando propiedad {PropiedadId} en la BD...", propiedadId);
-
         var propiedad = await context.Properties
             .AsNoTracking()
             .AsSplitQuery()
@@ -84,13 +77,11 @@ public class PdfWorker : BackgroundService
 
         if (propiedad == null)
         {
-            _logger.LogWarning("⚠️ [WORKER] Propiedad {PropiedadId} NO encontrada en la BD. Abortando.", propiedadId);
             return;
         }
 
         try
         {
-            _logger.LogInformation("⬇️ [WORKER] Descargando imágenes de Supabase para {PropiedadId}...", propiedadId);
             
             var imagenPrincipal = !string.IsNullOrEmpty(propiedad.Media.FirstOrDefault(m => m.EsPrincipal)?.UrlPublica)
                 ? await DownloadImageAsync(propiedad.Media.First(m => m.EsPrincipal).UrlPublica, ct)
@@ -99,17 +90,7 @@ public class PdfWorker : BackgroundService
             byte[]? agenteLogo = null;
             if (!string.IsNullOrEmpty(propiedad.Agente?.LogoUrl))
             {
-                _logger.LogInformation("🎨 [WORKER] Intentando descargar logo del agente: {Url}", propiedad.Agente.LogoUrl);
                 agenteLogo = await DownloadImageAsync(propiedad.Agente.LogoUrl, ct);
-                
-                if (agenteLogo == null)
-                    _logger.LogWarning("⚠️ [WORKER] No se pudo descargar el logo desde la URL proporcionada.");
-                else
-                    _logger.LogInformation("✅ [WORKER] Logo descargado correctamente ({Size} bytes).", agenteLogo.Length);
-            }
-            else
-            {
-                _logger.LogInformation("ℹ️ [WORKER] El agente no tiene logo configurado.");
             }
 
             var seccionesData = new List<FichaSeccionData>();
@@ -123,8 +104,6 @@ public class PdfWorker : BackgroundService
                 }
                 seccionesData.Add(new FichaSeccionData(s.Nombre, s.Descripcion, imagenesSeccion));
             }
-
-            _logger.LogInformation("📄 [WORKER] Imágenes descargadas. Ensamblando plantilla PDF con QuestPDF...");
             
             var data = new FichaPdfData(
                 propiedad.Titulo, propiedad.Descripcion, propiedad.TipoPropiedad,
@@ -141,8 +120,6 @@ public class PdfWorker : BackgroundService
             var document = new PropiedadFichaDocument(data);
             var pdfBytes = document.GeneratePdf();
 
-            _logger.LogInformation("☁️ [WORKER] PDF ensamblado ({Size} bytes). Subiendo a Supabase Storage...", pdfBytes.Length);
-
             var fileName = $"ficha_{propiedadId}.pdf";
             var bucket = supabase.Storage.From("propiedades");
             
@@ -154,12 +131,9 @@ public class PdfWorker : BackgroundService
                 ContentType = "application/pdf",
                 CacheControl = "0"
             });
-            
-            _logger.LogInformation("✅ [WORKER] ÉXITO: PDF generado y subido correctamente como {FileName}", fileName);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "❌ [WORKER] Error crítico durante el proceso del PDF para {PropiedadId}", propiedadId);
             throw;
         }
     }

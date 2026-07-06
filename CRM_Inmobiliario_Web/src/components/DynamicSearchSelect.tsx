@@ -87,9 +87,7 @@ export const DynamicSearchSelect = ({
         try {
           const data = await onSearch(query);
           setResults(data);
-        } catch (error) {
-          console.error('Error searching:', error);
-        } finally {
+        } catch { /* ignore */ } finally {
           setIsLoading(false);
         }
       } else {

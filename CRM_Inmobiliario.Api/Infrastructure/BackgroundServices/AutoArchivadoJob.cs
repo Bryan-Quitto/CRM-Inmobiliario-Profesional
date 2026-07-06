@@ -20,7 +20,6 @@ public class AutoArchivadoJob
 
     public async Task ExecuteAsync()
     {
-        _logger.LogInformation("Iniciando tarea de auto-archivado de contactos y propiedades.");
 
         // Traemos todos los agentes que tengan el auto-archivado activado para contactos o propiedades.
         var agents = await _dbContext.Agents
@@ -30,7 +29,6 @@ public class AutoArchivadoJob
 
         if (!agents.Any())
         {
-            _logger.LogInformation("No hay agentes con auto-archivado configurado. Finalizando.");
             return;
         }
 
@@ -61,8 +59,6 @@ public class AutoArchivadoJob
                         );";
 
                     int archivedContactsCount = await _dbContext.Database.ExecuteSqlRawAsync(sqlContacts);
-
-                    _logger.LogInformation("Agente {AgentId}: Se han auto-archivado {Count} contactos inactivos antes de {Cutoff}.", agent.Id, archivedContactsCount, cutoffContactos);
                 }
 
                 if (agent.AutoArchivarPropiedades)
@@ -86,8 +82,6 @@ public class AutoArchivadoJob
                         );";
 
                     int archivedPropertiesCount = await _dbContext.Database.ExecuteSqlRawAsync(sqlProperties);
-
-                    _logger.LogInformation("Agente {AgentId}: Se han auto-archivado {Count} propiedades inactivas antes de {Cutoff}.", agent.Id, archivedPropertiesCount, cutoffPropiedades);
                 }
             }
             catch (Exception ex)
@@ -95,7 +89,5 @@ public class AutoArchivadoJob
                 _logger.LogError(ex, "Error al procesar auto-archivado para el agente {AgentId}.", agent.Id);
             }
         }
-
-        _logger.LogInformation("Tarea de auto-archivado finalizada.");
     }
 }

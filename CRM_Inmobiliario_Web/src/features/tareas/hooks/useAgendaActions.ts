@@ -34,8 +34,8 @@ export const useAgendaActions = ({
       setTimeout(() => {
         refreshTareas();
       }, 1500);
-    }).catch((err) => {
-      console.error('Error al completar tarea en background:', err);
+    }).catch(() => {
+
       toast.error('No se pudo sincronizar la tarea');
       refreshTareas(); 
     });
@@ -61,8 +61,8 @@ export const useAgendaActions = ({
       setTimeout(() => {
         refreshTareas();
       }, 1500);
-    }).catch((err) => {
-      console.error('Error al cancelar tarea en background:', err);
+    }).catch(() => {
+
       toast.error('No se pudo sincronizar la cancelación');
       refreshTareas();
     });

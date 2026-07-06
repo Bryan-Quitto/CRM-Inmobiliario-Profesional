@@ -1,4 +1,4 @@
-﻿using CRM_Inmobiliario.Api.Features.CoreAi.Services;
+using CRM_Inmobiliario.Api.Features.CoreAi.Services;
 using CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools;
 using System.Text.Json;
 using CRM_Inmobiliario.Api.Domain.Entities;
@@ -135,7 +135,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                 ? "" 
                 : $" en {ubicacion}";
             
-            _logger.LogInformation($"[PUSH] Intentando notificar a AgentId {existing.AgenteId} sobre el contacto {existing.Id}");
+
             await _pushNotificationService.SendNotificationToAgentAsync(
                 existing.AgenteId,
                 "🏡 Nueva Captación de Propiedad",

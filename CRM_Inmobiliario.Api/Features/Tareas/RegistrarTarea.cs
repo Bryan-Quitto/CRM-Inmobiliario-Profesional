@@ -28,9 +28,6 @@ public static class RegistrarTareaFeature
         {
             var agenteId = user.GetRequiredUserId();
 
-            // LOG DE AUDITORIA API
-            Console.WriteLine($"[API] Registrando Tarea: '{command.Titulo}' | Recibido (UTC/Offset): {command.FechaInicio:yyyy-MM-dd HH:mm:ss K} | Local Servidor: {command.FechaInicio.LocalDateTime:yyyy-MM-dd HH:mm:ss}");
-
             // Validar existencia de contacto si se provee y que pertenezca al agente
             if (command.ContactoId.HasValue)
             {

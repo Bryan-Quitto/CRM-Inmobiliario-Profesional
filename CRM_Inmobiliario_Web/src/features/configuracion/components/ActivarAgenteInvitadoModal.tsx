@@ -38,9 +38,7 @@ export const ActivarAgenteInvitadoModal: React.FC<ActivarAgenteInvitadoModalProp
     try {
       const data = await listarAgencias();
       setAgencias(data);
-    } catch (err) {
-      console.error('Error al cargar agencias:', err);
-    } finally {
+    } catch { /* ignore */ } finally {
       setLoadingAgencias(false);
     }
   };

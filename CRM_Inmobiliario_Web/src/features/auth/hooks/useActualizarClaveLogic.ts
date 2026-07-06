@@ -43,8 +43,7 @@ export const useActualizarClaveLogic = () => {
         toast.success('¡Contraseña actualizada con éxito!');
         navigate('/');
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError('Ocurrió un error inesperado');
     } finally {
       setIsLoading(false);

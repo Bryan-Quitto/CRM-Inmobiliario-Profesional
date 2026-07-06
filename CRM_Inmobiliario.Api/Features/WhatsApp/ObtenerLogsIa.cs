@@ -41,7 +41,7 @@ public static class ObtenerLogsIa
         app.MapGet("/ia/logs", [Microsoft.AspNetCore.Authorization.Authorize] async ([Microsoft.AspNetCore.Mvc.FromQuery] string canal, CrmDbContext context, ILogger<CrmDbContext> logger) =>
         {
             canal ??= "WhatsApp";
-            logger.LogInformation("--- OBTENIENDO AUDITORÍA IA AGRUPADA PARA {Canal} ---", canal);
+
             
             try 
             {
@@ -161,11 +161,7 @@ public static class ObtenerLogsIa
                             
                         if (string.IsNullOrWhiteSpace(nombreAMostrar)) nombreAMostrar = "Contacto sin nombre";
 
-                        if (nombreAMostrar == "Contacto no identificado")
-                        {
-                            logger.LogWarning("DEBUG Contacto No Identificado: Canal={Canal}, cid={Cid}, phone={Phone}, contactInDict={ContactInDict}, firstActivityId={FirstActivityId}",
-                                canal, cid, phone, cid.HasValue ? contactsById.ContainsKey(cid.Value) : false, firstActivity.LogId);
-                        }
+
 
                         return new ContactGroupResponse(
                             phone ?? contact?.Telefono ?? contact?.FacebookSenderId ?? "",

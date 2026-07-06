@@ -142,8 +142,7 @@ export const useCopilotDrawerLogic = () => {
       await resetPersonalTokens();
       setIsResetModalOpen(false);
       toast.success('Contador de tokens reiniciado exitosamente');
-    } catch (e) {
-      console.error('Error reset tokens:', e);
+    } catch {
       toast.error('Ocurrió un error al reiniciar el contador de tokens');
     } finally {
       setIsResetting(false);
@@ -156,8 +155,7 @@ export const useCopilotDrawerLogic = () => {
     setInputValue('');
     try {
       await sendMessage(message);
-    } catch (e) {
-      console.error('Error sending message:', e);
+    } catch {
       toast.error('Ocurrió un error al enviar el mensaje.');
       setInputValue(message);
     }

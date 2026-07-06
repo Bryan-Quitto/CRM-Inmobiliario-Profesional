@@ -71,7 +71,7 @@ public sealed class WhatsAppAiService
                     var isArchived = await dbContextCheck.AgentArchivedContacts.AnyAsync(a => a.AgentId == agente.Id && a.ContactoId == contacto.Id, cancellationToken);
                     if (isArchived)
                     {
-                        _logger.LogInformation("Bot inactivo para WhatsApp {Phone} porque el contacto está archivado. Mensaje ignorado y NO registrado en BD.", phone);
+
                         return;
                     }
                 }
@@ -79,7 +79,7 @@ public sealed class WhatsAppAiService
 
             if (agente != null && !agente.IsWhatsAppAiEnabled)
             {
-                _logger.LogInformation("WhatsApp AI is globally disabled for agent {AgentId}. Silently ignoring message from {Phone}.", agente.Id, phone);
+
                 if (contacto != null)
                 {
                     await _conversationManager.LogMessageAsync(contacto.Id, phone, "user", messageText, cancellationToken);
@@ -87,7 +87,7 @@ public sealed class WhatsAppAiService
                 return;
             }
 
-            _logger.LogInformation("Procesando mensaje de {Phone}: {Message}", phone, messageText);
+
 
             var context = await _conversationManager.PrepareContextAsync(contacto, phone, messageText, phoneNumberId, cancellationToken);
             
@@ -100,12 +100,12 @@ public sealed class WhatsAppAiService
             {
                 if (!string.IsNullOrEmpty(context.AutoResponse))
                 {
-                    _logger.LogInformation("Contacto {Phone} en etapa restrictiva. Enviando auto-respuesta.", phone);
+
                     await _messageSender.SendWhatsAppMessageAsync(phone, context.AutoResponse, phoneNumberId, isAiResponse: true, contactoId: context.Contacto?.Id, cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    _logger.LogInformation("Silence Mode activo para {Phone}. No se enviará respuesta.", phone);
+
                 }
                 return;
             }
@@ -157,12 +157,12 @@ public sealed class WhatsAppAiService
         }
         catch (Polly.Timeout.TimeoutRejectedException)
         {
-            _logger.LogError("Timeout excedido para {Phone} (Posible límite de cuota RPM alcanzado). El mensaje será reintentado automáticamente en background.", phone);
+
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Error crítico en WhatsAppAiService para {Phone}", phone);
+
             throw;
         }
     }

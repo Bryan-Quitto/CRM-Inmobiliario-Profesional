@@ -41,7 +41,7 @@ export const useContactoCommercialLogic = () => {
       globalMutate('/propiedades');
       globalMutate('/contactos');
     } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      console.error('Error al actualizar etapa:', err);
+
       if (options?.onError) options.onError();
       const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || 'No se pudo sincronizar el cambio de estado.';
       toast.error(errorMessage);
@@ -71,7 +71,7 @@ export const useContactoCommercialLogic = () => {
       globalMutate('/propiedades');
       globalMutate('/contactos');
     } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      console.error('Error al revertir estado:', err);
+
       if (options?.onError) options.onError();
       const errorMessage = err.response?.data?.Message || err.response?.data?.message || err.message || 'No se pudo revertir el estado.';
       toast.error(errorMessage);

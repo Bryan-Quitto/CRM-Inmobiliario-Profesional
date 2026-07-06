@@ -46,11 +46,11 @@ export const useContactoBotToggle = (contacto: ToggleContacto, channel: 'WhatsAp
       // Invalidar queries para sincronizar en background
       mutate('/contactos');
       mutate(`/contactos/${contacto.id}`);
-    } catch (error) {
+    } catch {
       // Rollback on error
       setIsBotActivo(!checked);
       toast.error('Error al cambiar el estado del bot');
-      console.error(error);
+
     } finally {
       setIsLoading(false);
     }
@@ -66,10 +66,10 @@ export const useContactoBotToggle = (contacto: ToggleContacto, channel: 'WhatsAp
       toast.success('Bot reactivado y límite reiniciado');
       mutate('/contactos');
       mutate(`/contactos/${contacto.id}`);
-    } catch (error) {
+    } catch {
       setIsBotActivo(false);
       toast.error('Error al reactivar el bot');
-      console.error(error);
+
     } finally {
       setIsLoading(false);
     }

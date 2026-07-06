@@ -76,17 +76,17 @@ public class SendWebPushNotificationJob
                     ex.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
                     ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    _logger.LogWarning($"Subscription is invalid or gone for endpoint {outbox.Endpoint}. Status code: {ex.StatusCode}");
+                    _logger.LogWarning("Subscription is invalid or gone for endpoint {Endpoint}. Status code: {StatusCode}", outbox.Endpoint, ex.StatusCode);
                     _dbContext.PushNotificationsOutbox.Remove(outbox);
                     deadEndpoints.Add(outbox.Endpoint);
-                    _logger.LogInformation($"Suscripción inactiva marcada para eliminación: {outbox.Endpoint}");
+                    _logger.LogInformation("Suscripción inactiva marcada para eliminación: {Endpoint}", outbox.Endpoint);
                 }
                 else
                 {
                     outbox.RetryCount++;
                     if (outbox.RetryCount >= 3)
                     {
-                        _logger.LogError(ex, "Drop permanente tras 3 reintentos fallidos. Endpoint: {Endpoint}, Payload: {Payload}", outbox.Endpoint, outbox.Payload);
+                        _logger.LogError(ex, "Drop permanente tras 3 reintentos fallidos. Endpoint: {Endpoint}", outbox.Endpoint);
                         _dbContext.PushNotificationsOutbox.Remove(outbox);
                         deadEndpoints.Add(outbox.Endpoint);
                     }
@@ -97,7 +97,7 @@ public class SendWebPushNotificationJob
                 outbox.RetryCount++;
                 if (outbox.RetryCount >= 3)
                 {
-                    _logger.LogError(ex, "Drop permanente tras 3 reintentos fallidos. Endpoint: {Endpoint}, Payload: {Payload}", outbox.Endpoint, outbox.Payload);
+                    _logger.LogError(ex, "Drop permanente tras 3 reintentos fallidos. Endpoint: {Endpoint}", outbox.Endpoint);
                     _dbContext.PushNotificationsOutbox.Remove(outbox);
                     deadEndpoints.Add(outbox.Endpoint);
                 }

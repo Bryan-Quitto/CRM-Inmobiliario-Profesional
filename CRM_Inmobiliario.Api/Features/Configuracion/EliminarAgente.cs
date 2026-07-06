@@ -76,9 +76,9 @@ public static class EliminarAgenteFeature
                     await adminAuth.DeleteUser(id.ToString());
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error eliminando usuario en Supabase: {ex.Message}");
+
                 // Si la eliminación dura falla, hacemos fallback a un Ban de 100 años como en Desactivar
                 try
                 {

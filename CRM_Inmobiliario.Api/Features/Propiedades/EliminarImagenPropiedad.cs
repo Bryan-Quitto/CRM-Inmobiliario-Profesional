@@ -40,11 +40,7 @@ public static class EliminarImagenPropiedadFeature
                 {
                     var response = await supabase.Storage.From("propiedades").Remove(new List<string> { media.StoragePath });
                     var count = response?.Count ?? 0;
-                    Console.WriteLine($"DEBUG [Storage]: Intento de borrado de {media.StoragePath}. Confirmados por Supabase: {count}");
                     
-                    if (count == 0) {
-                        Console.WriteLine("ADVERTENCIA [Storage]: Supabase no eliminó el archivo. Verifica permisos RLS o que la Key sea 'service_role'.");
-                    }
                 }
 
                 // 2. Eliminar registro de la DB

@@ -24,7 +24,6 @@ export const useConfirmarInvitacion = () => {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
         if (authError || !user) {
-          console.warn('No se pudo recuperar el usuario de la sesión actual');
           return;
         }
 
@@ -38,8 +37,7 @@ export const useConfirmarInvitacion = () => {
             setFormData(prev => ({ ...prev, agenciaNombre: response.data.nombre }));
           }
         }
-      } catch (err) {
-        console.error('Error al inicializar datos de invitación:', err);
+      } catch {
         setFormData(prev => ({ 
           ...prev, 
           agenciaNombre: prev.agenciaId ? 'Agencia Asignada' : 'Independiente' 
@@ -106,7 +104,6 @@ export const useConfirmarInvitacion = () => {
       }, 1500);
 
     } catch (err: unknown) {
-      console.error(err);
       const errorWithMsg = err as { response?: { data?: { message?: string } }; message?: string };
       const msg = errorWithMsg.response?.data?.message || errorWithMsg.message || 'Error al activar tu perfil';
       setError(msg);

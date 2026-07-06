@@ -65,7 +65,7 @@ export const HelpDrawer = () => {
         .then(text => {
           if (active) setContent(text);
         })
-        .catch(err => {
+        .catch((err) => {
           if (active) setContent(`Error al cargar el manual: ${err}`);
         })
         .finally(() => {

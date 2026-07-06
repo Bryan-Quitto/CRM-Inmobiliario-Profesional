@@ -71,10 +71,10 @@ public static class DesactivarAgenteFeature
                     await adminAuth.UpdateUserById(id.ToString(), new AdminUserAttributes { BanDuration = "876000h" });
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Si falla el baneo por alguna razón, igual retornamos OK porque la BD ya se actualizó
-                Console.WriteLine($"Error baneando en Supabase: {ex.Message}");
+
             }
 
             return Results.Ok(new { message = "Agente desactivado y cartera reasignada exitosamente." });

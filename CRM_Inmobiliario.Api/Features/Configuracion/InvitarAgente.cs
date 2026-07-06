@@ -23,7 +23,6 @@ public static class InvitarAgente
             Supabase.Client supabase,
             CancellationToken ct) =>
         {
-            Console.WriteLine($"[InvitarAgente]: Procesando invitación para {request.Email} (AgenciaId: {request.AgenciaId})");
 
             try
             {
@@ -31,7 +30,7 @@ public static class InvitarAgente
 
                 if (string.IsNullOrEmpty(serviceRoleKey))
                 {
-                    Console.WriteLine("[InvitarAgente] ERROR: La llave SUPABASE_ROLE_KEY no se encontró.");
+
                     return Results.Problem("Error de configuración del servidor.");
                 }
 
@@ -46,7 +45,6 @@ public static class InvitarAgente
                     }
                 };
                 
-                Console.WriteLine($"[InvitarAgente]: Enviando invitación a {request.Email} con metadata...");
                 
                 bool invitacionEnviada = await adminAuth.InviteUserByEmail(request.Email, options);
                 
@@ -64,7 +62,7 @@ public static class InvitarAgente
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InvitarAgente] ERROR CRÍTICO: {ex.Message}");
+
                 return Results.Problem($"Error al procesar la invitación: {ex.Message}");
             }
         })

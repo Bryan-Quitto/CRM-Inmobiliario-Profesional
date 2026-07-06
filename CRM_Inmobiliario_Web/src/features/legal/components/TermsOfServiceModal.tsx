@@ -17,8 +17,7 @@ export const TermsOfServiceModal = () => {
       await api.patch('/configuracion/perfil/terminos', { version: currentVersion });
       await mutate(); // Revalidates and updates profile, triggering unmount from the wrapper
       toast.success('Términos aceptados correctamente.');
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('Ocurrió un error al aceptar los términos.');
     } finally {
       setLoading(false);

@@ -134,9 +134,7 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
         
         localStorage.setItem(`tarea_cache_${tareaId}`, JSON.stringify(data));
         
-      } catch (err) {
-        console.error('Error al cargar tarea:', err);
-      } finally {
+      } catch { /* ignore */ } finally {
         setIsLoading(false);
         setIsSyncing(false);
       }
@@ -176,8 +174,8 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
 
     const savePromise = actualizarTarea(tareaId, payload);
     
-    updateTarea(tareaId, updatedFields, savePromise).catch(err => {
-      console.error('Error en sync de updateTarea:', err);
+    updateTarea(tareaId, updatedFields, savePromise).catch(() => {
+
       toast.error('No se pudo sincronizar el cambio');
     });
 

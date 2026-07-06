@@ -46,7 +46,7 @@ public sealed class FacebookAiService
             var agente = await dbContextCheck.Agents.Include(a => a.Agencia).FirstOrDefaultAsync(a => a.FacebookPageId == pageId, ct);
             if (agente is null)
             {
-                _logger.LogWarning("No hay agente configurado para la página de Facebook {PageId}.", pageId);
+
                 return;
             }
 
@@ -58,14 +58,14 @@ public sealed class FacebookAiService
                 var isArchived = await dbContextCheck.AgentArchivedContacts.AnyAsync(a => a.AgentId == agente.Id && a.ContactoId == contacto.Id, ct);
                 if (isArchived)
                 {
-                    _logger.LogInformation("Bot inactivo para PSID {SenderId} porque el contacto está archivado. Mensaje ignorado y NO registrado en BD.", senderId);
+
                     return;
                 }
             }
 
             if (!agente.IsFacebookAiEnabled)
             {
-                _logger.LogInformation("Facebook AI desactivado para el agente {AgentId}. Ignorando PSID {SenderId}.", agente.Id, senderId);
+
                 if (contacto != null)
                 {
                     await builder.LogMessageAsync(agente.Id, contacto.Id, senderId, "user", text, ct);
@@ -90,12 +90,11 @@ public sealed class FacebookAiService
             // Si el bot está desactivado para este contacto, no responder
             if (ctx.ShouldSilence)
             {
-                _logger.LogInformation("Bot inactivo para PSID {SenderId}. Mensaje ignorado.", senderId);
+
                 return;
             }
 
-            _logger.LogInformation("\n=== [Facebook AI] Mensaje de Usuario ===\nAgentId: {AgentId}\nPSID: {SenderId}\nMensaje: {Text}\n========================================", 
-                ctx.Agente.Id, senderId, text);
+
 
             await builder.LogMessageAsync(ctx.Agente.Id, ctx.Contacto?.Id, senderId, "user", text, ct);
 
@@ -139,7 +138,7 @@ public sealed class FacebookAiService
 
             if (string.IsNullOrWhiteSpace(response))
             {
-                _logger.LogWarning("Respuesta vacía del LLM para PSID {SenderId}.", senderId);
+
                 return;
             }
 
@@ -163,8 +162,7 @@ public sealed class FacebookAiService
             var pageToken = ctx.Agente.FacebookPageAccessToken ?? string.Empty;
             await _messageSender.SendTextMessageAsync(senderId, response, pageToken, isAiResponse: true, contactoId: ctx.Contacto?.Id, agenteId: ctx.Agente.Id, cancellationToken: ct);
 
-            _logger.LogInformation("\n=== [Facebook AI] Respuesta de IA ===\nAgentId: {AgentId}\nTokens Totales: {TotalTokens} (Entrada: {InputTokens}, Salida: {OutputTokens})\nRespuesta: {Response}\n================================", 
-                ctx.Agente.Id, streamTotalTokens, streamInputTokens, streamOutputTokens, response);
+
 
             if (streamTotalTokens > 0)
             {
@@ -178,9 +176,9 @@ public sealed class FacebookAiService
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Error en FacebookAiService para PSID {SenderId}", senderId);
+
             throw;
         }
     }

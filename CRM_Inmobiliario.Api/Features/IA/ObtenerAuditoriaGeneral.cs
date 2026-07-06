@@ -44,7 +44,7 @@ public static class ObtenerAuditoriaGeneral
                 queryStartDate = queryEndDate.AddDays(-diasConsultados);
             }
 
-            logger.LogInformation("--- OBTENIENDO AUDITORÍA GENERAL IA (Desde {Start} hasta {End}) ---", queryStartDate, queryEndDate);
+
 
             var agenteIdStr = user.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!Guid.TryParse(agenteIdStr, out var agenteId))

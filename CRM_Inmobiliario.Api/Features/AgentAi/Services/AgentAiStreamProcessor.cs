@@ -98,7 +98,7 @@ public class AgentAiStreamProcessor
             }
             messages.Add(new AiMessage { Role = "user", Content = message });
 
-            _logger.LogInformation("\n=== [Agent AI Stream] Interacción de Usuario ===\nAgentId: {AgentId}\nConversationId: {ConversationId}\nMensaje: {Message}\n================================================", agentId, conversationId, message);
+
 
             var context = new ToolExecutionContext
             {
@@ -199,7 +199,7 @@ public class AgentAiStreamProcessor
                 }
             }
 
-            _logger.LogInformation("\n=== [Agent AI Stream] Respuesta de IA Final ===\nAgentId: {AgentId}\nConversationId: {ConversationId}\nTokens Totales: {TotalTokens} (Entrada: {InputTokens}, Salida: {OutputTokens})\nRespuesta: {Response}\n===============================================", agentId, conversationId, totalAccumulatedTotalTokens, totalAccumulatedInputTokens, totalAccumulatedOutputTokens, finalFullText.ToString());
+
         }
         finally
         {

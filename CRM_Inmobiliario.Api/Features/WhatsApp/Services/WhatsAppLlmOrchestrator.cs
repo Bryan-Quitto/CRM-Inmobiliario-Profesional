@@ -70,7 +70,7 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
             iterationCount++;
             if (iterationCount > 5)
             {
-                _logger.LogWarning("Límite de iteraciones excedido para {Phone}. Activando Circuit Breaker.", context.Phone);
+
                 finalResponse = "Ha ocurrido un fallo inesperado, le pido una disculpa por las molestias. Un agente humano le ayudará en unos momentos.";
                 
                 var execContextCb = new CRM_Inmobiliario.Api.Features.CoreAi.Services.ToolExecutionContext
@@ -102,7 +102,7 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
                 chatMessagesForAi.AddRange(context.History);
             }
 
-            _logger.LogInformation("--- ENVIANDO A LLM ({Count} mensajes en BD, {AiCount} enviados) ---", context.History.Count, chatMessagesForAi.Count);
+
             
             var aiHistory = WhatsAppHistoryMapper.MapToAiHistory(chatMessagesForAi, context.AudioBytes, context.MediaUrl);
 
@@ -119,7 +119,7 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
             int estimatedTokens = (System.Text.Json.JsonSerializer.Serialize(aiHistory).Length + System.Text.Json.JsonSerializer.Serialize(tools).Length) / 4;
             if (estimatedTokens > 50000)
             {
-                _logger.LogWarning("Hard limit de seguridad excedido: El contexto estimado es de {Estimado} tokens.", estimatedTokens);
+
                 throw new InvalidOperationException("Se ha excedido el límite de seguridad de 50,000 tokens por mensaje. Operación cancelada.");
             }
 
@@ -151,10 +151,7 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
                         }
                     }
                 }
-                if (update.AudioTranscription != null)
-                {
-                    _logger.LogInformation("--- TRANSCRIPCIÓN IA ---: {Transcription}", update.AudioTranscription);
-                }
+
                 if (update.TotalTokens.HasValue)
                 {
                     streamTotalTokens = update.TotalTokens;
@@ -166,8 +163,7 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
 
             if (streamTotalTokens.HasValue && context.Contacto != null)
             {
-                _logger.LogInformation("--- CONSUMO DE TOKENS PARCIAL --- Total: {Total} | Input: {Input} | Cached: {Cached} | Output: {Output}", 
-                    streamTotalTokens.Value, streamInputTokens ?? 0, streamCachedTokens ?? 0, streamOutputTokens ?? 0);
+
 
                 totalAccumulatedTotalTokens += streamTotalTokens.Value;
                 totalAccumulatedInputTokens += streamInputTokens ?? 0;
@@ -207,7 +203,7 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
                             toolResult = "Error Crítico: El JSON de los argumentos es inválido. Por favor revisa y corrige el formato.";
                         }
 
-                        _logger.LogInformation("--- TOOL CALL: {Tool} ---", call.Name);
+
                         var execContext = new CRM_Inmobiliario.Api.Features.CoreAi.Services.ToolExecutionContext
                         {
                             UserId = context.Contacto?.Id ?? Guid.Empty,
@@ -246,7 +242,7 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
                             toolFailureCount++;
                             if (toolFailureCount >= 3)
                             {
-                                _logger.LogWarning("Circuit Breaker activado para {Phone}. Demasiados errores críticos de la IA.", context.Phone);
+
                                 finalResponse = "Ha ocurrido un fallo inesperado, le pido una disculpa por las molestias. Un agente humano le ayudará en unos momentos.";
                                 
                                 var fallbackToolCall = new Models.AiToolCall { Id = "call_" + Guid.NewGuid().ToString("N"), Name = "SolicitarAsistenciaHumana", Arguments = "{\"motivo\":\"La IA experimentó múltiples errores críticos y necesita que retomes la conversación.\"}" };
@@ -286,14 +282,13 @@ public class WhatsAppLlmOrchestrator : IWhatsAppLlmOrchestrator
                     context.History.Add(new ChatMessage(ChatRole.Assistant, finalResponse));
                 }
                 
-                _logger.LogInformation("--- RESPUESTA FINAL IA: {Response} ---", finalResponse);
+
             }
         }
 
         if (totalAccumulatedTotalTokens > 0 && context.Contacto != null)
         {
-            _logger.LogInformation("--- CONSUMO DE TOKENS ACUMULADO --- Total: {Total} | Input: {Input} | Cached: {Cached} | Output: {Output}", 
-                totalAccumulatedTotalTokens, totalAccumulatedInputTokens, totalAccumulatedCachedTokens, totalAccumulatedOutputTokens);
+
 
             int total, input, cached, output;
             try

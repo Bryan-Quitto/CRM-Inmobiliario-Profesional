@@ -34,7 +34,7 @@ public class GeminiApiClient : IGeminiApiClient
         if (!response.IsSuccessStatusCode)
         {
             var err = await response.Content.ReadAsStringAsync(cancellationToken);
-            System.Console.WriteLine($"[GEMINI_PATCH_ERROR] {response.StatusCode}: {err}");
+
         }
         return response.IsSuccessStatusCode;
     }

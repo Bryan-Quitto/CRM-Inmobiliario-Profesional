@@ -26,7 +26,7 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
     {
         if (string.IsNullOrEmpty(pageAccessToken))
         {
-            _logger.LogWarning("FacebookMessageSender: pageAccessToken vacío. No se puede enviar mensaje a PSID {Psid}.", recipientPsid);
+
             return;
         }
 
@@ -46,7 +46,7 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("Error enviando mensaje de Facebook a PSID {Psid}: {Error}", recipientPsid, error);
+
                 response.EnsureSuccessStatusCode();
             }
 
@@ -87,9 +87,9 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Excepción enviando mensaje de Facebook a PSID {Psid}", recipientPsid);
+
             throw;
         }
     }
@@ -98,7 +98,7 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
     {
         if (string.IsNullOrEmpty(pageAccessToken))
         {
-            _logger.LogWarning("FacebookMessageSender: pageAccessToken vacío. No se puede enviar imagen a PSID {Psid}.", recipientPsid);
+
             return;
         }
 
@@ -124,7 +124,7 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("Error enviando imagen de Facebook a PSID {Psid}: {Error}", recipientPsid, error);
+
                 response.EnsureSuccessStatusCode();
             }
 
@@ -165,9 +165,9 @@ public sealed class FacebookMessageSender : IFacebookMessageSender
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Excepción enviando imagen de Facebook a PSID {Psid}", recipientPsid);
+
             throw;
         }
     }

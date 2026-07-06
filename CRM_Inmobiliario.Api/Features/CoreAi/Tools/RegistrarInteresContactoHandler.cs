@@ -25,7 +25,7 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
 
     public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Iniciando RegistrarInteresContacto con Args: {Args}", args.RootElement.GetRawText());
+
         
         await using var _context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         
@@ -47,7 +47,7 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
         if (propertyByTitle != null)
         {
             propiedadId = propertyByTitle.Id;
-            _logger.LogInformation("Resolución semántica exitosa: Se mapeó '{Nombre}' al Guid {Guid}", pNameStr, propiedadId);
+
         }
         else
         {

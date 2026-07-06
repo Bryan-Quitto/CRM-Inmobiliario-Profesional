@@ -37,7 +37,6 @@ export const useSpeechRecognition = ({ onResult }: UseSpeechRecognitionProps) =>
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recognitionRef.current.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
         setIsListening(false);
         if (event.error === 'not-allowed') {
           toast.error('Permiso de micrófono denegado.');
@@ -61,9 +60,7 @@ export const useSpeechRecognition = ({ onResult }: UseSpeechRecognitionProps) =>
       try {
         recognitionRef.current.start();
         setIsListening(true);
-      } catch (e) {
-        console.error('Error starting recognition:', e);
-      }
+      } catch { /* ignore */ }
     }
   };
 

@@ -44,7 +44,7 @@ public class EscalamientoTimerJob
 
         if (contacto?.PendingEscalamientoJobId is null)
         {
-            _logger.LogInformation("EscalamientoTimerJob: contacto {Id} ya no tiene escalación pendiente. Abortando.", contactoId);
+
             return;
         }
 
@@ -52,7 +52,7 @@ public class EscalamientoTimerJob
         var tarea = await context.Tasks.FindAsync(tareaId);
         if (tarea is null || tarea.Estado != "Pendiente")
         {
-            _logger.LogInformation("EscalamientoTimerJob: tarea {TareaId} no está pendiente. Abortando.", tareaId);
+
             await LimpiarEscalacionAsync(context, contactoId);
             return;
         }
