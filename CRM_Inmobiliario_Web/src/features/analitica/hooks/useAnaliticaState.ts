@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 export interface RangoFechas {
   inicio: Date;
@@ -12,8 +13,23 @@ export const MESES = [
 ];
 
 export const useAnaliticaState = () => {
-  const [mesSeleccionado, setMesSeleccionado] = useState(new Date().getMonth());
+  const { mes } = useParams<{ mes?: string }>();
+  
+  const mesSeleccionado = useMemo(() => {
+    if (mes) {
+      const idx = MESES.findIndex(m => m.toLowerCase() === mes.toLowerCase());
+      if (idx !== -1) return idx;
+    }
+    return new Date().getMonth();
+  }, [mes]);
+
   const [semanaIndice, setSemanaIndice] = useState<number | 'total'>('total');
+
+  // Reset semanaIndice when month changes via URL
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSemanaIndice('total');
+  }, [mesSeleccionado]);
   const [anioSeleccionado] = useState(new Date().getFullYear());
   const [showMesDropdown, setShowMesDropdown] = useState(false);
 
@@ -77,7 +93,6 @@ export const useAnaliticaState = () => {
 
   return {
     mesSeleccionado,
-    setMesSeleccionado,
     semanaIndice,
     setSemanaIndice,
     anioSeleccionado,

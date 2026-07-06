@@ -6,6 +6,11 @@ export const ESTADOS = [
   { label: 'Inactiva', value: 'Inactiva', color: 'bg-rose-500 border-rose-400 text-white hover:bg-rose-600' },
 ];
 
+export const OPERACIONES = [
+  { label: 'Venta', value: 'Venta' },
+  { label: 'Alquiler', value: 'Alquiler' },
+];
+
 export const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-EC', {
     style: 'currency',

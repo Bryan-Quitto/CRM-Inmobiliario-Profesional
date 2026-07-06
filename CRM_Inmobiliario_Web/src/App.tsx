@@ -190,6 +190,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="general" element={<Suspense fallback={<PageLoader />}><AuditoriaGeneralView /></Suspense>} />
               </Route>
               <Route path="/kpis" element={<AnaliticaView />} />
+              <Route path="/kpis/:mes" element={<AnaliticaView />} />
               <Route path="/configuracion" element={<Suspense fallback={<PageLoader />}><ConfiguracionLayout /></Suspense>}>
                 <Route index element={<Navigate to="perfil" replace />} />
                 <Route path="perfil" element={<ConfiguracionPerfil />} />

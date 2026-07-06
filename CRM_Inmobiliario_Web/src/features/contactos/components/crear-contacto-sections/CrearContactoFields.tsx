@@ -22,7 +22,7 @@ export const CrearContactoFields = ({
   validateTelefono,
   roleError
 }: CrearContactoFieldsProps) => {
-  const esContacto = useWatch({ control, name: 'esContacto' });
+  const esCliente = useWatch({ control, name: 'esCliente' });
   const esPropietario = useWatch({ control, name: 'esPropietario' });
   const origen = useWatch({ control, name: 'origen' });
   const isWhatsApp = origen?.toLowerCase().includes('whatsapp');
@@ -37,23 +37,23 @@ export const CrearContactoFields = ({
         <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 p-1 rounded-3xl transition-all w-full ${roleError ? 'bg-rose-50 ring-2 ring-rose-200' : ''}`}>
           <button
             type="button"
-            onClick={() => setValue('esContacto', !esContacto)}
+            onClick={() => setValue('esCliente', !esCliente)}
             disabled={isSuccess}
             className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer w-full ${
-              esContacto 
+              esCliente 
                 ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10' 
                 : 'border-slate-100 bg-slate-50 hover:border-slate-200'
             }`}
           >
             <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
-              esContacto ? 'bg-blue-500' : 'bg-slate-200'
+              esCliente ? 'bg-blue-500' : 'bg-slate-200'
             }`}>
-              <Search className={`h-4 w-4 shrink-0 ${esContacto ? 'text-white' : 'text-slate-500'}`} />
+              <Search className={`h-4 w-4 shrink-0 ${esCliente ? 'text-white' : 'text-slate-500'}`} />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className={`text-xs font-black uppercase truncate ${esContacto ? 'text-blue-900' : 'text-slate-500'}`}>Cliente</p>
-              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esContacto ? 'text-blue-600' : 'text-slate-400'}`}>
-                {esContacto ? 'Habilitado' : 'Inactivo'}
+              <p className={`text-xs font-black uppercase truncate ${esCliente ? 'text-blue-900' : 'text-slate-500'}`}>Cliente</p>
+              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esCliente ? 'text-blue-600' : 'text-slate-400'}`}>
+                {esCliente ? 'Habilitado' : 'Inactivo'}
               </p>
             </div>
           </button>
@@ -81,7 +81,7 @@ export const CrearContactoFields = ({
             </div>
           </button>
         </div>
-        <input type="hidden" {...register('esContacto')} />
+        <input type="hidden" {...register('esCliente')} />
         <input type="hidden" {...register('esPropietario')} />
       </div>
 

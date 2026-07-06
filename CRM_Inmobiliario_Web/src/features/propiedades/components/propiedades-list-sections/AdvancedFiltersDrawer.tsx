@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Search } from 'lucide-react';
 import type { AdvancedFiltersState } from '../../hooks/usePropiedadesList/usePropiedadesFiltering';
 import { DynamicFilterInput } from './DynamicFilterInput';
@@ -38,7 +39,7 @@ export const AdvancedFiltersDrawer = ({ propiedades, isOpen, onClose, filters, s
     setActiveKeys([...DEFAULT_ACTIVE_FILTER_KEYS]);
   };
 
-  return (
+  return createPortal(
     <>
       <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[200] transition-opacity cursor-pointer" onClick={onClose} />
       <div className="fixed inset-y-0 right-0 w-full sm:w-[420px] bg-white shadow-2xl z-[210] flex flex-col animate-in slide-in-from-right duration-300">
@@ -107,6 +108,7 @@ export const AdvancedFiltersDrawer = ({ propiedades, isOpen, onClose, filters, s
         </div>
 
       </div>
-    </>
+    </>,
+    document.body
   );
 };

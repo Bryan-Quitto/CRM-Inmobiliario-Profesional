@@ -1,5 +1,7 @@
-﻿export type FilterFieldType = 'text' | 'select' | 'range' | 'boolean' | 'date';
+export type FilterFieldType = 'text' | 'select' | 'range' | 'boolean' | 'date';
 export type ContactoFilterKey = string; // Claves de la interfaz Contacto
+
+import { ESTADOS, ESTADOS_PROPIETARIO, ORIGENES } from '../constants/contactos';
 
 export interface FilterDefinition {
   key: ContactoFilterKey;
@@ -8,6 +10,7 @@ export interface FilterDefinition {
   options?: string[]; // Solo para tipo 'select'
   minLabel?: string; // Para tipo 'range' o 'date'
   maxLabel?: string; // Para tipo 'range' o 'date'
+  booleanLabels?: { true: string, false: string };
 }
 
 export const AVAILABLE_CONTACT_FILTERS: FilterDefinition[] = [
@@ -21,27 +24,42 @@ export const AVAILABLE_CONTACT_FILTERS: FilterDefinition[] = [
   // Select
   { 
     key: 'origen', 
-    label: 'Origen / Fuente', 
+    label: 'Origen', 
     type: 'select', 
-    options: ['Todos', 'Facebook Ads', 'Google Search', 'Referido', 'Portal Inmobiliario', 'WhatsApp Directo'] 
+    options: ['Todos', ...ORIGENES.map(o => o.value)] 
   },
   { 
-    key: 'estadoEmbudo', 
+    key: 'estado', 
     label: 'Estado de Cliente', 
     type: 'select', 
-    options: ['Todos', 'Nuevo', 'Contactado', 'En Negociación', 'Cerrado', 'Perdido', 'Escalado'] 
+    options: ['Todos', ...ESTADOS.map(o => o.value), 'Escalado'] 
   },
   { 
     key: 'estadoPropietario', 
-    label: 'Estado de Propietario', 
+    label: 'Estado Propietario', 
     type: 'select', 
-    options: ['Todos', 'Activo', 'Cerrado', 'Inactivo'] 
+    options: ['Todos', ...ESTADOS_PROPIETARIO.map(o => o.value)] 
   },
 
   // Boolean
-  { key: 'esContacto', label: 'Es Cliente', type: 'boolean' },
-  { key: 'esPropietario', label: 'Es Propietario', type: 'boolean' },
-  { key: 'esCompartido', label: 'Es Compartido', type: 'boolean' },
+  { 
+    key: 'esCliente', 
+    label: 'Es Cliente', 
+    type: 'boolean',
+    booleanLabels: { true: 'Sí', false: 'No' } 
+  },
+  { 
+    key: 'esPropietario', 
+    label: 'Es Propietario', 
+    type: 'boolean',
+    booleanLabels: { true: 'Sí', false: 'No' } 
+  },
+  { 
+    key: 'visibilidad', 
+    label: 'Visibilidad', 
+    type: 'select',
+    options: ['Todos', 'Propios', 'Compartidos']
+  },
 
   // Date
   { key: 'fechaCreacion', label: 'Fecha de Creación', type: 'date', minLabel: 'Desde', maxLabel: 'Hasta' },
@@ -49,7 +67,10 @@ export const AVAILABLE_CONTACT_FILTERS: FilterDefinition[] = [
 ];
 
 export const DEFAULT_ACTIVE_CONTACT_FILTER_KEYS = [
+  'visibilidad',
   'origen',
-  'esContacto',
+  'estado',
+  'estadoPropietario',
+  'esCliente',
   'esPropietario'
 ];

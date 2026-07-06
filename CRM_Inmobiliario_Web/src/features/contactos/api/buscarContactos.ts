@@ -4,7 +4,7 @@ export interface ContactoBusqueda {
   id: string;
   nombreCompleto: string;
   telefono: string;
-  esContacto: boolean;
+  esCliente: boolean;
   estadoEmbudo?: string;
 }
 

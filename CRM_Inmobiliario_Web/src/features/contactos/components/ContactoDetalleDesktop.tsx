@@ -136,7 +136,7 @@ export const ContactoDetalleDesktop = ({ logic }: { logic: ReturnType<typeof use
             />
           )}
 
-          {contacto.esContacto && (
+          {contacto.esCliente && (
             <ContactoInterestsManager 
               contacto={contacto}
               propiedadesOptions={propiedadesOptions}
@@ -157,7 +157,7 @@ export const ContactoDetalleDesktop = ({ logic }: { logic: ReturnType<typeof use
             />
           )}
 
-          {contacto.esContacto && (
+          {contacto.esCliente && (
             <ContactoTransactions contacto={contacto} />
           )}
         </div>

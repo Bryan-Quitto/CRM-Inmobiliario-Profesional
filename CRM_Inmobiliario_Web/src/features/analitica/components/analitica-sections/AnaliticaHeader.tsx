@@ -1,10 +1,10 @@
-import { useRef, useEffect } from 'react';
-import { BarChart3, Info, ChevronDown, Check, Calendar } from 'lucide-react';
+import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { BarChart3, Info, ChevronDown, Calendar, CheckCircle2 } from 'lucide-react';
 import { MESES, type RangoFechas } from '../../hooks/useAnaliticaState';
 
 interface AnaliticaHeaderProps {
   mesSeleccionado: number;
-  setMesSeleccionado: (val: number) => void;
   semanaIndice: number | 'total';
   setSemanaIndice: (val: number | 'total') => void;
   showMesDropdown: boolean;
@@ -15,7 +15,6 @@ interface AnaliticaHeaderProps {
 
 export const AnaliticaHeader = ({
   mesSeleccionado,
-  setMesSeleccionado,
   semanaIndice,
   setSemanaIndice,
   showMesDropdown,
@@ -23,17 +22,8 @@ export const AnaliticaHeader = ({
   semanasDelMes,
   formattedRange
 }: AnaliticaHeaderProps) => {
+  const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowMesDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [setShowMesDropdown]);
 
   return (
     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -60,18 +50,28 @@ export const AnaliticaHeader = ({
           </button>
           
           {showMesDropdown && (
-            <div className="absolute left-0 mt-3 w-48 bg-white border-2 border-slate-50 rounded-[24px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left overflow-hidden backdrop-blur-xl bg-white/95">
-              {MESES.slice(0, new Date().getMonth() + 1).map((mes, idx) => (
+            <>
+              <div className="fixed inset-0 z-[90] cursor-pointer" onClick={(e) => { e.stopPropagation(); setShowMesDropdown(false); }} />
+              <div className="absolute left-0 mt-3 w-48 bg-white border-2 border-slate-50 rounded-[24px] shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left overflow-hidden backdrop-blur-xl bg-white/95">
+                {MESES.slice(0, new Date().getMonth() + 1).map((mes, idx) => (
                 <button 
                   key={idx} 
-                  onClick={() => { setMesSeleccionado(idx); setSemanaIndice('total'); setShowMesDropdown(false); }} 
+                  type="button"
+                  onClick={(e) => { 
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/kpis/${mes.toLowerCase()}`);
+                    setSemanaIndice('total'); 
+                    setShowMesDropdown(false); 
+                  }} 
                   className={`cursor-pointer w-full px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors hover:bg-slate-50 ${mesSeleccionado === idx ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'}`}
                 >
                   {mes}
-                  {mesSeleccionado === idx && <Check className="h-3 w-3" />}
+                  {mesSeleccionado === idx && <CheckCircle2 className="h-4 w-4 text-blue-600" />}
                 </button>
               ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
 

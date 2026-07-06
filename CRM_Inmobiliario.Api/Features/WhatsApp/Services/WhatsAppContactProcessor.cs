@@ -49,7 +49,7 @@ public sealed class WhatsAppContactProcessor : IWhatsAppContactProcessor
                 Agente = agente,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EstadoEmbudo = "Nuevo",
-                EsProspecto = true
+                EsCliente = true
             };
             _context.Contactos.Add(contacto);
             await _context.SaveChangesAsync(cancellationToken);

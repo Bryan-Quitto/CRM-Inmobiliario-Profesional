@@ -32,7 +32,7 @@ export const ContactoCard = ({
   const [openDropdown, setOpenDropdown] = useState<'cliente' | 'propietario' | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const isMultipolar = contacto.esContacto && contacto.esPropietario;
+  const isMultipolar = contacto.esCliente && contacto.esPropietario;
   const waToggle = useContactoBotToggle(contacto, 'WhatsApp');
   const fbToggle = useContactoBotToggle(contacto, 'Facebook');
   const { settings } = useConfiguracionIA();
@@ -142,7 +142,7 @@ export const ContactoCard = ({
         
         <div className="flex flex-col gap-2 mt-3">
           {/* Badge Dropdown Cliente */}
-          {contacto.esContacto && !contacto.esCompartido && (
+          {contacto.esCliente && !contacto.esCompartido && (
             <div className="relative min-w-0" ref={openDropdown === 'cliente' ? dropdownRef : null}>
               <div className="flex items-center gap-2 flex-wrap min-w-0">
                 <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${

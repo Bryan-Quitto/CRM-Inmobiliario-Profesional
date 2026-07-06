@@ -57,7 +57,7 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                 EstadoEmbudo = "Nuevo",
                 EstadoIA_WA = isFacebook ? null : "Escalado",
                 EstadoIA_FB = isFacebook ? "Escalado" : null,
-                EsProspecto = true,
+                EsCliente = true,
                 Notas = $"Escalamiento: {motivo}",
                 BotActivoWA = !isFacebook ? false : true,
                 BotActivoFB = isFacebook ? false : true,

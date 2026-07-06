@@ -8,9 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.CoreAi.Tools;
 
-public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
+public sealed class RegistrarInteresClienteHandler : BaseCoreAiToolHandler
 {
-    public RegistrarInteresContactoHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<RegistrarInteresContactoHandler> logger) 
+    public RegistrarInteresClienteHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<RegistrarInteresClienteHandler> logger) 
         : base(dbContextFactory, logger) { }
 
     private enum NivelInteresPermitido
@@ -21,7 +21,7 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
         Descartada
     }
 
-    public override string ToolName => "RegistrarInteresContacto";
+    public override string ToolName => "RegistrarInteresCliente";
 
     public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
@@ -51,7 +51,7 @@ public sealed class RegistrarInteresContactoHandler : BaseCoreAiToolHandler
         }
         else
         {
-            _logger.LogWarning("RegistrarInteresContacto falló: No se encontró la propiedad con el nombre: {Valor}", pNameStr);
+            _logger.LogWarning("RegistrarInteresCliente falló: No se encontró la propiedad con el nombre: {Valor}", pNameStr);
             return $"Error: No se encontró ninguna propiedad que coincida con el nombre '{pNameStr}'.";
         }
 

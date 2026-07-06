@@ -9,14 +9,14 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace CRM_Inmobiliario.Api.Features.AgentAi.Tools.ConsultarInteraccionesContacto;
+namespace CRM_Inmobiliario.Api.Features.AgentAi.Tools.ConsultarInteraccionesCliente;
 
-public sealed class ConsultarInteraccionesContactoHandler : BaseCoreAiToolHandler
+public sealed class ConsultarInteraccionesClienteHandler : BaseCoreAiToolHandler
 {
-    public ConsultarInteraccionesContactoHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<ConsultarInteraccionesContactoHandler> logger) 
+    public ConsultarInteraccionesClienteHandler(Microsoft.EntityFrameworkCore.IDbContextFactory<CrmDbContext> dbContextFactory, ILogger<ConsultarInteraccionesClienteHandler> logger) 
         : base(dbContextFactory, logger) { }
 
-    public override string ToolName => "ConsultarInteraccionesContacto";
+    public override string ToolName => "ConsultarInteraccionesCliente";
 
     public override async Task<string> ExecuteAsync(JsonDocument args, ToolExecutionContext context, System.Threading.CancellationToken cancellationToken = default)
     {
@@ -78,7 +78,7 @@ public sealed class ConsultarInteraccionesContactoHandler : BaseCoreAiToolHandle
             return "El contacto no tiene interacciones registradas.";
         }
 
-        await LogAiActionAsync("ConsultarInteraccionesContacto", "{}", context);
+        await LogAiActionAsync("ConsultarInteraccionesCliente", "{}", context);
 
         var finalResult = new
         {

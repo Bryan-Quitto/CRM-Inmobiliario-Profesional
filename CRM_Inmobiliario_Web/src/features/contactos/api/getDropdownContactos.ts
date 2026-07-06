@@ -7,7 +7,7 @@ export interface DropdownContactoResponse {
   apellido: string | null;
   telefono: string;
   estadoEmbudo: string;
-  esContacto: boolean;
+  esCliente: boolean;
   esCompartido: boolean;
 }
 

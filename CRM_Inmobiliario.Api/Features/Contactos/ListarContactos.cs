@@ -22,7 +22,7 @@ public static class ListarContactosFeature
         string Origen,
         string EstadoEmbudo,
         string EstadoPropietario,
-        bool EsContacto,
+        bool EsCliente,
         bool EsPropietario,
         DateTimeOffset FechaCreacion,
         bool EsCompartido,
@@ -98,7 +98,7 @@ public static class ListarContactosFeature
             if (!string.IsNullOrEmpty(request.Segmento) && request.Segmento != "Todos")
             {
                 if (request.Segmento.Equals("clientes", StringComparison.OrdinalIgnoreCase))
-                    baseQuery = baseQuery.Where(c => c.EsProspecto);
+                    baseQuery = baseQuery.Where(c => c.EsCliente);
                 else if (request.Segmento.Equals("propietarios", StringComparison.OrdinalIgnoreCase))
                     baseQuery = baseQuery.Where(c => c.EsPropietario);
             }
@@ -190,7 +190,7 @@ public static class ListarContactosFeature
                     l.Origen,
                     l.EstadoEmbudo,
                     l.EstadoPropietario,
-                    l.EsProspecto,
+                    l.EsCliente,
                     l.EsPropietario,
                     l.FechaCreacion,
                     l.AgenteId != agenteId,

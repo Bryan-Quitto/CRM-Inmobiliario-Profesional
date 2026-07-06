@@ -56,7 +56,7 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
                                 Nombre = c.Nombre,
                                 Telefono = c.Telefono,
                                 EstadoEmbudo = c.EstadoEmbudo,
-                                EsProspecto = c.EsProspecto,
+                                EsCliente = c.EsCliente,
                                 EsPropietario = c.EsPropietario,
                                 UltimasTareas = _context.Tasks
                                     .Where(t => t.ContactoId == c.Id)
@@ -108,7 +108,7 @@ public sealed class ResumirHistorialContactoHandler : BaseCoreAiToolHandler
             result.Nombre,
             result.Telefono,
             result.EstadoEmbudo,
-            result.EsProspecto,
+            result.EsCliente,
             result.EsPropietario,
             result.UltimasTareas,
             result.UltimasNotas,

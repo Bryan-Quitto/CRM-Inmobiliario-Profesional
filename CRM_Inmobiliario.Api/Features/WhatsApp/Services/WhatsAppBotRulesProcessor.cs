@@ -64,7 +64,7 @@ public sealed class WhatsAppBotRulesProcessor : IWhatsAppBotRulesProcessor
             }
 
             // Regla: Si es solo propietario (no prospecto), requiere asistencia humana inmediata
-            if (contacto.EsPropietario && !contacto.EsProspecto && contacto.BotActivoWA)
+            if (contacto.EsPropietario && !contacto.EsCliente && contacto.BotActivoWA)
             {
                 contacto.BotActivoWA = false;
                 contacto.EstadoIA_WA = "Escalado";

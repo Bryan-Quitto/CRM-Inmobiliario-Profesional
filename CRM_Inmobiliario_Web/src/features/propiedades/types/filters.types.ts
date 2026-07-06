@@ -1,6 +1,9 @@
 export type FilterFieldType = 'text' | 'select' | 'range' | 'boolean';
 export type PropiedadFilterKey = string; // Claves de la interfaz Propiedad o derivadas
 
+import { ESTADOS, OPERACIONES } from '../constants/propiedades';
+import { TIPOS_PROPIEDAD } from '../constants/propertyForm';
+
 export interface FilterDefinition {
   key: PropiedadFilterKey;
   label: string;
@@ -8,6 +11,7 @@ export interface FilterDefinition {
   options?: string[]; // Solo para tipo 'select'
   minLabel?: string; // Para tipo 'range'
   maxLabel?: string; // Para tipo 'range'
+  booleanLabels?: { true: string, false: string };
 }
 
 export const AVAILABLE_PROPERTY_FILTERS: FilterDefinition[] = [
@@ -25,19 +29,19 @@ export const AVAILABLE_PROPERTY_FILTERS: FilterDefinition[] = [
     key: 'operacion', 
     label: 'Operación', 
     type: 'select', 
-    options: ['Todas', 'Venta', 'Alquiler', 'Alquiler Temporal'] 
+    options: ['Todas', ...OPERACIONES.map(o => o.value)] 
   },
   { 
     key: 'tipoPropiedad', 
     label: 'Tipo de Propiedad', 
     type: 'select', 
-    options: ['Todas', 'Casa', 'Departamento', 'Terreno', 'Local Comercial', 'Oficina', 'Bodega', 'Suite', 'Edificio', 'Finca / Quinta'] 
+    options: ['Todas', ...TIPOS_PROPIEDAD.map(o => o.value)] 
   },
   { 
     key: 'estadoComercial', 
     label: 'Estado Comercial', 
     type: 'select', 
-    options: ['Todos', 'Disponible', 'Reservado', 'Vendida', 'Alquilada', 'Inactivo'] 
+    options: ['Todos', ...ESTADOS.map(o => o.value)] 
   },
 
   // Range
@@ -53,13 +57,25 @@ export const AVAILABLE_PROPERTY_FILTERS: FilterDefinition[] = [
   { key: 'porcentajeComision', label: 'Comisión (%)', type: 'range', minLabel: 'Mínimo', maxLabel: 'Máximo' },
 
   // Boolean
-  { key: 'esCaptacionPropia', label: 'Es Captación Propia', type: 'boolean' },
-  { key: 'esCaptadorActivo', label: 'Soy Captador Activo', type: 'boolean' },
+  { 
+    key: 'esCaptacionPropia', 
+    label: 'Captación Propia', 
+    type: 'boolean',
+    booleanLabels: { true: 'Sí', false: 'No' }
+  },
+  { 
+    key: 'esCaptadorActivo', 
+    label: 'Captador es Gestor', 
+    type: 'boolean',
+    booleanLabels: { true: 'Sí', false: 'No' }
+  },
 ];
 
 // Filtros básicos que se renderizan por defecto si el usuario limpia todo
 export const DEFAULT_ACTIVE_FILTER_KEYS = [
   'operacion',
+  'tipoPropiedad',
+  'estadoComercial',
   'precio',
   'areaTotal',
   'habitaciones',

@@ -65,7 +65,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                     AgenteId = agentIdToUse.Value,
                     FechaCreacion = DateTimeOffset.UtcNow,
                     EstadoEmbudo = "Nuevo",
-                    EsProspecto = false,
+                    EsCliente = false,
                     EsPropietario = true,
                     BotActivoWA = !isFacebook ? false : true,
                     BotActivoFB = isFacebook ? false : true,
@@ -83,7 +83,7 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
         {
             var isFacebook = context.Channel == "Facebook";
             existing.EsPropietario = true;
-            existing.EsProspecto = false;
+            existing.EsCliente = false;
             
             if (isFacebook)
             {

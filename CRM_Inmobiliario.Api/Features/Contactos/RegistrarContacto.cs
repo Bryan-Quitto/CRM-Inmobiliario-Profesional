@@ -10,7 +10,7 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class RegistrarContactoFeature
 {
-    public record Command(string Nombre, string Apellido, string? Email, string? Telefono, string Origen, bool EsContacto, bool EsPropietario);
+    public record Command(string Nombre, string Apellido, string? Email, string? Telefono, string Origen, bool EsCliente, bool EsPropietario);
 
     public static void MapRegistrarContactoEndpoint(this IEndpointRouteBuilder app)
     {
@@ -46,7 +46,7 @@ public static class RegistrarContactoFeature
                 Email = command.Email,
                 Telefono = telefonoNormalizado,
                 Origen = command.Origen,
-                EsProspecto = command.EsContacto,
+                EsCliente = command.EsCliente,
                 EsPropietario = command.EsPropietario,
                 EstadoEmbudo = "Nuevo",
                 EstadoPropietario = "Activo",

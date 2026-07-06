@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import type { FilterDefinition } from '../../types/filters.types';
 import type { AdvancedFiltersState } from '../../hooks/usePropiedadesList/usePropiedadesFiltering';
 import type { Propiedad } from '../../types';
@@ -89,21 +89,41 @@ export const DynamicFilterInput = ({ propiedades, filterDef, filters, onChange, 
             )}
           </div>
         );
-      case 'select':
+      case 'select': {
+        const selectedValue = (filters[key] as string) || (options && options.length > 0 ? options[0] : '');
         return (
-          <select
-            value={(filters[key] as string) || (options && options.length > 0 ? options[0] : '')}
-            onChange={e => onChange(key, e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all appearance-none cursor-pointer"
-          >
-            {options?.map(opt => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
+          <div className="relative" ref={containerRef}>
+            <button
+              type="button"
+              onClick={() => setShowSuggestions(!showSuggestions)}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all cursor-pointer flex justify-between items-center text-slate-700"
+            >
+              <span>{selectedValue}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${showSuggestions ? 'rotate-180' : ''}`} />
+            </button>
+            {showSuggestions && options && options.length > 0 && (
+              <div className="absolute w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-lg z-50 py-1 max-h-48 overflow-y-auto animate-in fade-in zoom-in duration-200">
+                {options.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      onChange(key, opt);
+                      setShowSuggestions(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left hover:bg-slate-50 transition-colors text-sm font-medium cursor-pointer ${selectedValue === opt ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-slate-700'}`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         );
+      }
       case 'range':
         return (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <input 
               type="number" 
               placeholder={minLabel || 'Mínimo'}
@@ -111,7 +131,7 @@ export const DynamicFilterInput = ({ propiedades, filterDef, filters, onChange, 
               onChange={e => onChange(`${key}Min`, e.target.value)}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
             />
-            <span className="text-slate-400 font-bold">-</span>
+            <span className="hidden sm:block text-slate-400 font-bold">-</span>
             <input 
               type="number" 
               placeholder={maxLabel || 'Máximo'}
@@ -121,18 +141,45 @@ export const DynamicFilterInput = ({ propiedades, filterDef, filters, onChange, 
             />
           </div>
         );
-      case 'boolean':
+      case 'boolean': {
+        const isChecked = filters[key] === true || String(filters[key]) === 'true';
+        const labelTrue = filterDef.booleanLabels?.true || 'Sí';
+        const labelFalse = filterDef.booleanLabels?.false || 'No';
+        const selectedValue = isChecked ? labelTrue : labelFalse;
+        
         return (
-          <label className="flex items-center gap-3 cursor-pointer mt-1">
-            <input 
-              type="checkbox"
-              checked={filters[key] === true || filters[key] === 'true'}
-              onChange={e => onChange(key, e.target.checked)}
-              className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-            />
-            <span className="text-sm font-semibold text-slate-700">Activo / Sí</span>
-          </label>
+          <div className="relative" ref={containerRef}>
+            <button
+              type="button"
+              onClick={() => setShowSuggestions(!showSuggestions)}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all cursor-pointer flex justify-between items-center text-slate-700"
+            >
+              <span>{selectedValue}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${showSuggestions ? 'rotate-180' : ''}`} />
+            </button>
+            {showSuggestions && (
+              <div className="absolute w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-lg z-50 py-1 max-h-48 overflow-y-auto animate-in fade-in zoom-in duration-200">
+                {[
+                  { value: true, label: labelTrue },
+                  { value: false, label: labelFalse }
+                ].map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => {
+                      onChange(key, opt.value);
+                      setShowSuggestions(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left hover:bg-slate-50 transition-colors text-sm font-medium cursor-pointer ${isChecked === opt.value ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-slate-700'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         );
+      }
       default:
         return null;
     }
@@ -146,7 +193,7 @@ export const DynamicFilterInput = ({ propiedades, filterDef, filters, onChange, 
           <button 
             title="Eliminar filtro"
             onClick={onRemove}
-            className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer p-1"
+            className="text-slate-300 hover:text-red-500 transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 cursor-pointer p-1"
           >
             <X className="h-4 w-4" />
           </button>

@@ -99,12 +99,12 @@ builder.Services.AddScoped<FacebookAiService>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, BuscarPropiedadesHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, ConsultarBaseConocimientoHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, ConsultarDetallesPropiedadHandler>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, RegistrarInteresContactoHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, RegistrarInteresClienteHandler>();
 
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, DerivarCaptacionPropietarioHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, SolicitarAsistenciaHumanaHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.ResumirHistorialContacto.ResumirHistorialContactoHandler>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.ConsultarInteraccionesContacto.ConsultarInteraccionesContactoHandler>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.ConsultarInteraccionesCliente.ConsultarInteraccionesClienteHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.CrearTareaCRM.CrearTareaCRMHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.AgentAi.Tools.GenerarCotizacionRapidaHandler>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.ICoreAiToolHandler, CRM_Inmobiliario.Api.Features.CoreAi.Tools.EnviarFotosPropiedadHandler>();

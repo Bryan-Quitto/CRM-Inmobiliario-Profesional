@@ -5,7 +5,6 @@ import { useAnaliticaData } from './useAnaliticaData';
 export const useAnaliticaViewLogic = () => {
   const {
     mesSeleccionado,
-    setMesSeleccionado,
     semanaIndice,
     setSemanaIndice,
     showMesDropdown,
@@ -39,7 +38,6 @@ export const useAnaliticaViewLogic = () => {
       activeModal
     },
     actions: {
-      setMesSeleccionado,
       setSemanaIndice,
       setShowMesDropdown,
       setExpandedCard,

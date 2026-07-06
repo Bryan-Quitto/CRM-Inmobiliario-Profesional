@@ -81,10 +81,7 @@ export const PropiedadesListDesktop = ({ logic }: Props) => {
         setSortBy={setSortBy}
         sortDirection={sortDirection}
         setSortDirection={setSortDirection}
-        openDropdownId={openDropdownId}
-        setOpenDropdownId={setOpenDropdownId}
         setIsModalOpen={setIsModalOpen}
-        dropdownRef={dropdownRef}
       />
 
       <PropiedadesStatsHeader 

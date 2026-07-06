@@ -54,7 +54,7 @@ export const ContactoHeader = ({
             
             <div className="flex items-center gap-2 md:gap-3 overflow-x-auto hide-scrollbar w-full md:w-auto pb-1 md:pb-0">
               {/* Badge & Dropdown de Cliente */}
-              {contacto.esContacto && (
+              {contacto.esCliente && (
                 <div className="flex items-center gap-2">
                   <div className="px-3 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
                     <Search className="h-3 w-3" />

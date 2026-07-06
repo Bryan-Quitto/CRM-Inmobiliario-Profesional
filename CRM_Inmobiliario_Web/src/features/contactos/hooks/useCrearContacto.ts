@@ -30,14 +30,14 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
       try {
         return {
           ...JSON.parse(saved),
-          esContacto: JSON.parse(saved).esContacto ?? true,
+          esCliente: JSON.parse(saved).esCliente ?? true,
           esPropietario: JSON.parse(saved).esPropietario ?? isOwnersView
         };
       } catch { /* ignore */ }
     }
     return {
       telefono: '+593 ',
-      esContacto: true,
+      esCliente: true,
       esPropietario: isOwnersView || false
     };
   };
@@ -67,10 +67,10 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
   }, []);
 
   useEffect(() => {
-    if (currentValues.esContacto || currentValues.esPropietario) {
+    if (currentValues.esCliente || currentValues.esPropietario) {
       setRoleError(false);
     }
-  }, [currentValues.esContacto, currentValues.esPropietario]);
+  }, [currentValues.esCliente, currentValues.esPropietario]);
 
   // Smart Merge: Sincronizar cambios del servidor (initialData) sin borrar lo que el usuario escribe
   useEffect(() => {
@@ -83,7 +83,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
         email: dirtyFields.email ? currentValues.email : (initialData.email || ''),
         telefono: dirtyFields.telefono ? currentValues.telefono : initialData.telefono,
         origen: dirtyFields.origen ? currentValues.origen : initialData.origen,
-        esContacto: dirtyFields.esContacto ? currentValues.esContacto : (initialData.esContacto ?? true),
+        esCliente: dirtyFields.esCliente ? currentValues.esCliente : (initialData.esCliente ?? true),
         esPropietario: dirtyFields.esPropietario ? currentValues.esPropietario : (initialData.esPropietario || false)
       };
       reset(mergedValues);
@@ -116,14 +116,14 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
       email: '',
       telefono: '',
       origen: '',
-      esContacto: true,
+      esCliente: true,
       esPropietario: isOwnersView || false
     });
     setIsConfirmingClear(false);
   };
 
   const onSubmit = (data: CrearContactoDTO) => {
-    if (!data.esContacto && !data.esPropietario) {
+    if (!data.esCliente && !data.esPropietario) {
       setRoleError(true);
       return;
     }
@@ -135,7 +135,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
     const dataToSend = {
       ...data,
       telefono: telefonoFinal,
-      esContacto: !!data.esContacto,
+      esCliente: !!data.esCliente,
       esPropietario: !!data.esPropietario
     };
 

@@ -65,7 +65,17 @@ export const useContactosFiltering = () => {
   const isArchived = searchParams.get('isArchived') === 'true';
   const sortBy = (searchParams.get('sortBy') as SortOptionContacto) || 'fechaCreacion';
   const sortDirection = (searchParams.get('sortDirection') as SortDirectionContacto) || 'desc';
+  const knownKeys = ['search', 'page', 'isArchived', 'sortBy', 'sortDirection'];
+  
   const advancedFilters: ContactosAdvancedFiltersState = {};
+  searchParams.forEach((val, key) => {
+    if (!knownKeys.includes(key)) {
+      if (val === 'true') advancedFilters[key] = true;
+      else if (val === 'false') advancedFilters[key] = false;
+      else if (!isNaN(Number(val)) && val.trim() !== '') advancedFilters[key] = Number(val);
+      else advancedFilters[key] = val;
+    }
+  });
 
   const setParamAndResetPage = (key: string, value: string, defaultValue: string) => {
     setSearchParams(prev => {
@@ -109,7 +119,38 @@ export const useContactosFiltering = () => {
     }, { replace: true });
   };
 
-  const setAdvancedFilters = () => {};
+  const setAdvancedFilters = (val: ContactosAdvancedFiltersState | ((prev: ContactosAdvancedFiltersState) => ContactosAdvancedFiltersState)) => {
+    setSearchParams(prevParams => {
+      const currentAdvanced: ContactosAdvancedFiltersState = {};
+      prevParams.forEach((paramVal, key) => {
+        if (!knownKeys.includes(key)) {
+          if (paramVal === 'true') currentAdvanced[key] = true;
+          else if (paramVal === 'false') currentAdvanced[key] = false;
+          else if (!isNaN(Number(paramVal)) && paramVal.trim() !== '') currentAdvanced[key] = Number(paramVal);
+          else currentAdvanced[key] = paramVal;
+        }
+      });
+
+      const newFilters = typeof val === 'function' ? val(currentAdvanced) : val;
+      const next = new URLSearchParams(prevParams);
+      
+      prevParams.forEach((_, key) => {
+         if (!knownKeys.includes(key)) {
+           next.delete(key);
+         }
+      });
+      
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '' && value !== 'Todas' && value !== 'Todos') {
+          next.set(key, value.toString());
+        } else {
+          next.delete(key);
+        }
+      });
+      next.delete('page');
+      return next;
+    }, { replace: true });
+  };
 
   return {
     searchQuery: searchInput,

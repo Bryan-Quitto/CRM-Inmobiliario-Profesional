@@ -36,7 +36,7 @@ public static class ExportarDatosEndpoint
                         c.Origen,
                         c.EstadoEmbudo,
                         c.EstadoPropietario,
-                        Tipo = c.EsPropietario && c.EsProspecto ? "Ambos" : (c.EsPropietario ? "Propietario" : "Cliente"),
+                        Tipo = c.EsPropietario && c.EsCliente ? "Ambos" : (c.EsPropietario ? "Propietario" : "Cliente"),
                         FechaCreacion = c.FechaCreacion.ToString("yyyy-MM-dd HH:mm")
                     })
                     .AsNoTracking()

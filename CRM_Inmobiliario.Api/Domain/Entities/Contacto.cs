@@ -30,7 +30,7 @@ public sealed class Contacto
     public string EstadoEmbudo { get; set; } = "Nuevo";
 
     [Required]
-    public bool EsProspecto { get; set; } = true;
+    public bool EsCliente { get; set; } = true;
 
     [Required]
     [MaxLength(50)]

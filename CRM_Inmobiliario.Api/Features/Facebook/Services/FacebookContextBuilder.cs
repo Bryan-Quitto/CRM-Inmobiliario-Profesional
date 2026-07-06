@@ -64,7 +64,7 @@ public sealed class FacebookContextBuilder
                 AgenteId = agente.Id,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EstadoEmbudo = "Nuevo",
-                EsProspecto = true
+                EsCliente = true
             };
             db.Contactos.Add(contacto);
             await db.SaveChangesAsync(ct);

@@ -82,7 +82,6 @@ export const AnaliticaViewDesktop: React.FC<Props> = ({ logic }) => {
       <div className="space-y-8">
         <AnaliticaHeader 
           mesSeleccionado={state.mesSeleccionado}
-          setMesSeleccionado={actions.setMesSeleccionado}
           semanaIndice={state.semanaIndice}
           setSemanaIndice={actions.setSemanaIndice}
           showMesDropdown={state.showMesDropdown}

@@ -14,7 +14,7 @@ public static class GetDropdownContactosFeature
         string? Apellido,
         string Telefono,
         string EstadoEmbudo,
-        bool EsContacto,
+        bool EsCliente,
         bool EsCompartido);
 
     public static RouteHandlerBuilder MapGetDropdownContactosEndpoint(this IEndpointRouteBuilder app)
@@ -57,7 +57,7 @@ public static class GetDropdownContactosFeature
                     c.Apellido,
                     c.Telefono,
                     c.EstadoEmbudo,
-                    c.EsProspecto
+                    c.EsCliente
                 })
                 .OrderBy(x => x.Nombre + " " + (x.Apellido ?? ""))
                 .Take(50)
@@ -71,7 +71,7 @@ public static class GetDropdownContactosFeature
                 x.Apellido,
                 x.Telefono ?? "",
                 x.EstadoEmbudo ?? "Nuevo",
-                x.EsProspecto,
+                x.EsCliente,
                 x.AgenteId != currentUserId
             )).ToList();
 

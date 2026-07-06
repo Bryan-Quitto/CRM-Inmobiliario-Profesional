@@ -103,7 +103,7 @@ public static class AiToolDefinitions
 
             tools.Add(new AiToolDefinition
             {
-                Name = "RegistrarInteresContacto",
+                Name = "RegistrarInteresCliente",
                 Description = "Registra el interés del cliente. REGLAS: 'Alto' (Quiere visitar o comprar), 'Medio' (Preguntas técnicas...), 'Bajo' (básico), 'Descartada' (Rechazo). OBLIGATORIO: DEBES invocar esta herramienta INCLUSO SI TAMBIÉN llamas a ConsultarDetallesPropiedad en este mismo turno.",
                 ParametersSchema = """
                 {
@@ -124,7 +124,7 @@ public static class AiToolDefinitions
             tools.Add(new AiToolDefinition
             {
                 Name = "EnviarFotosSeccionPropiedad",
-                Description = "Envía fotos de una sección específica de una propiedad (ej. 'Cocina', 'Baños'). Primero consulta la descripción de las fotos (EnviarTodas=false). Si el cliente las pide, usa EnviarTodas=true para enviarlas. OBLIGATORIO: Llama a RegistrarInteresContacto simultáneamente. OBLIGATORIO 2: La herramienta te devolverá la 'Descripción Comercial de la sección' (si existe). Úsala para redactar un mensaje persuasivo sobre las características del espacio, justo al responder.",
+                Description = "Envía fotos de una sección específica de una propiedad (ej. 'Cocina', 'Baños'). Primero consulta la descripción de las fotos (EnviarTodas=false). Si el cliente las pide, usa EnviarTodas=true para enviarlas. OBLIGATORIO: Llama a RegistrarInteresCliente simultáneamente. OBLIGATORIO 2: La herramienta te devolverá la 'Descripción Comercial de la sección' (si existe). Úsala para redactar un mensaje persuasivo sobre las características del espacio, justo al responder.",
                 ParametersSchema = """
                 {
                     "type": "object",
@@ -159,7 +159,7 @@ public static class AiToolDefinitions
 
                 tools.Add(new AiToolDefinition
                 {
-                    Name = "ConsultarInteraccionesContacto",
+                    Name = "ConsultarInteraccionesCliente",
                     Description = "Lee el registro de interacciones (llamadas, reuniones, correos, notas) del contacto actual. Úsala cuando necesites saber qué ha pasado históricamente con este cliente.",
                     ParametersSchema = """
                     {

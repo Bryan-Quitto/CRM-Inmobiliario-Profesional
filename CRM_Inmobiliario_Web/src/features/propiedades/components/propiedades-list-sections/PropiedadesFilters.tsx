@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Filter as FilterIcon, ChevronDown, Check, Plus, ArrowUp, ArrowDown, ArrowUpDown, Building2, SlidersHorizontal } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { ESTADOS } from '../../constants/propiedades';
+import { ESTADOS, OPERACIONES } from '../../constants/propiedades';
 import { TIPOS_PROPIEDAD } from '../../constants/propertyForm';
 import type { SortOption, SortDirection, AdvancedFiltersState } from '../../hooks/usePropiedadesList/usePropiedadesFiltering';
 import { AdvancedFiltersDrawer } from './AdvancedFiltersDrawer';
@@ -32,10 +32,7 @@ interface PropiedadesFiltersProps {
   setSortBy: (sort: SortOption) => void;
   sortDirection: SortDirection;
   setSortDirection: (dir: SortDirection) => void;
-  openDropdownId: string | null;
-  setOpenDropdownId: (id: string | null) => void;
   setIsModalOpen: (open: boolean) => void;
-  dropdownRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const PropiedadesFilters = ({
@@ -54,13 +51,24 @@ export const PropiedadesFilters = ({
   setSortBy,
   sortDirection,
   setSortDirection,
-  openDropdownId,
-  setOpenDropdownId,
-  setIsModalOpen,
-  dropdownRef
+  setIsModalOpen
 }: PropiedadesFiltersProps) => {
 
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdownId(null);
+      }
+    };
+    if (openDropdownId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openDropdownId]);
 
   const handleTipoChange = (tipo: string) => {
     setFilterTipo(tipo);
@@ -148,7 +156,7 @@ export const PropiedadesFilters = ({
         </div>
         
         {/* Segunda Línea: Filtros y Ordenamiento */}
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-end gap-3" ref={dropdownRef}>
           {/* Búsqueda */}
           <div className="flex flex-col gap-1.5 flex-1 sm:min-w-[240px]">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Búsqueda rápida</label>
@@ -160,10 +168,9 @@ export const PropiedadesFilters = ({
             />
           </div>
 
-          {/* Dropdown Estado */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Estado</label>
-            <div className="relative" ref={openDropdownId === 'filter' ? dropdownRef : null}>
+            <div className="relative">
               <button 
                 onClick={() => setOpenDropdownId(openDropdownId === 'filter' ? null : 'filter')}
                 className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px]"
@@ -201,10 +208,9 @@ export const PropiedadesFilters = ({
             </div>
           </div>
 
-          {/* Dropdown Tipo de Propiedad */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Tipo de inmueble</label>
-            <div className="relative" ref={openDropdownId === 'tipo' ? dropdownRef : null}>
+            <div className="relative">
               <button 
                 onClick={() => setOpenDropdownId(openDropdownId === 'tipo' ? null : 'tipo')}
                 className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px]"
@@ -245,7 +251,7 @@ export const PropiedadesFilters = ({
           {/* Dropdown Operación */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Operación</label>
-            <div className="relative" ref={openDropdownId === 'operacion' ? dropdownRef : null}>
+            <div className="relative">
               <button 
                 onClick={() => setOpenDropdownId(openDropdownId === 'operacion' ? null : 'operacion')}
                 className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px]"
@@ -256,19 +262,31 @@ export const PropiedadesFilters = ({
 
               {openDropdownId === 'operacion' && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
-                  {['Todas', 'Venta', 'Alquiler'].map((op) => (
+                  <button
+                    onClick={() => { 
+                      setAdvancedFilters(prev => ({ ...prev, operacion: 'Todas' })); 
+                      setOpenDropdownId(null); 
+                    }}
+                    className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                      advancedFilters.operacion === 'Todas' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                    }`}
+                  >
+                    Cualquiera
+                    {advancedFilters.operacion === 'Todas' && <Check className="h-4 w-4" />}
+                  </button>
+                  {OPERACIONES.map((op) => (
                     <button
-                      key={op}
+                      key={op.value}
                       onClick={() => { 
-                        setAdvancedFilters(prev => ({ ...prev, operacion: op })); 
+                        setAdvancedFilters(prev => ({ ...prev, operacion: op.value })); 
                         setOpenDropdownId(null); 
                       }}
                       className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
-                        advancedFilters.operacion === op ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                        advancedFilters.operacion === op.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
                       }`}
                     >
-                      {op === 'Todas' ? 'Cualquiera' : op}
-                      {advancedFilters.operacion === op && <Check className="h-4 w-4" />}
+                      {op.label}
+                      {advancedFilters.operacion === op.value && <Check className="h-4 w-4" />}
                     </button>
                   ))}
                 </div>
@@ -279,7 +297,7 @@ export const PropiedadesFilters = ({
           {/* Dropdown de Ordenamiento */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Ordenar por</label>
-            <div className="relative" ref={openDropdownId === 'sort' ? dropdownRef : null}>
+            <div className="relative">
               <div className="flex bg-white border border-slate-200 rounded-xl shadow-sm hover:border-slate-300 transition-all h-[42px]">
                 <button 
                   onClick={() => setOpenDropdownId(openDropdownId === 'sort' ? null : 'sort')}

@@ -32,7 +32,7 @@ export interface Contacto {
   telefono: string;
   origen: string;
   estadoEmbudo: string;
-  esContacto: boolean;
+  esCliente: boolean;
   estadoPropietario: string;
   esPropietario: boolean;
 

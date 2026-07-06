@@ -7,7 +7,7 @@ namespace CRM_Inmobiliario.Api.Features.Contactos;
 
 public static class BuscarContactosFeature
 {
-    public record ContactoBusquedaResponse(Guid Id, string NombreCompleto, string? Telefono, bool EsContacto);
+    public record ContactoBusquedaResponse(Guid Id, string NombreCompleto, string? Telefono, bool EsCliente);
 
     public static void MapBuscarContactosEndpoint(this IEndpointRouteBuilder app)
     {
@@ -34,7 +34,7 @@ public static class BuscarContactosFeature
                     l.Id,
                     $"{l.Nombre} {l.Apellido}",
                     l.Telefono,
-                    l.EsProspecto))
+                    l.EsCliente))
                 .ToListAsync();
 
             return Results.Ok(contactos);

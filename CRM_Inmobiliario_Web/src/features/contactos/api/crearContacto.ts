@@ -7,7 +7,7 @@ export interface CrearContactoDTO {
   email?: string;
   telefono: string;
   origen: string;
-  esContacto?: boolean;
+  esCliente?: boolean;
   esPropietario?: boolean;
 }
 

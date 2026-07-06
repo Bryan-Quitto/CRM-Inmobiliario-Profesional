@@ -94,10 +94,10 @@ export const useClosingModal = ({
     contactos
       .filter(c => {
         const isOwner = mode === 'property' && initialData?.propietarioId === c.id;
-        // Solo mostrar si NO es el dueño, es un prospecto comercial (esContacto) 
+        // Solo mostrar si NO es el dueño, es un prospecto comercial (esCliente) 
         // y NO está en estados terminales que impiden nuevas transacciones
         const isTerminal = ['Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.estadoEmbudo);
-        return !isOwner && c.esContacto && !isTerminal;
+        return !isOwner && c.esCliente && !isTerminal;
       })
       .map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
     [contactos, mode, initialData?.propietarioId]
@@ -174,7 +174,7 @@ export const useClosingModal = ({
     const filteredResults = results.filter(c => {
       const isOwner = mode === 'property' && initialData?.propietarioId === c.id;
       const isTerminal = ['Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.estadoEmbudo || '');
-      return !isOwner && c.esContacto && !isTerminal;
+      return !isOwner && c.esCliente && !isTerminal;
     });
 
     return filteredResults.map(c => ({

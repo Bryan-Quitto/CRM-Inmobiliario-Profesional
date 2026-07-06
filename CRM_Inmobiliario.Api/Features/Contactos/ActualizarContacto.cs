@@ -15,7 +15,7 @@ public static class ActualizarContactoFeature
         string? Email,
         string? Telefono,
         string Origen,
-        bool EsContacto,
+        bool EsCliente,
         bool EsPropietario);
 
     public static void MapActualizarContactoEndpoint(this IEndpointRouteBuilder app)
@@ -61,7 +61,7 @@ public static class ActualizarContactoFeature
             contacto.Email = command.Email;
             contacto.Telefono = telefonoNormalizado;
             contacto.Origen = command.Origen;
-            contacto.EsProspecto = command.EsContacto;
+            contacto.EsCliente = command.EsCliente;
             contacto.EsPropietario = command.EsPropietario;
             await context.SaveChangesAsync(ct);
             await context.UpsertAgentContactActivityAsync(agenteId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);

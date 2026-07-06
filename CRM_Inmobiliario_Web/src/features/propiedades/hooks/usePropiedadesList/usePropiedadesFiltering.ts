@@ -43,7 +43,7 @@ export const usePropiedadesFiltering = () => {
   const sortBy = (searchParams.get('sortBy') as SortOption) || 'fechaIngreso';
   const sortDirection = (searchParams.get('sortDirection') as SortDirection) || 'desc';
 
-  const knownKeys = ['page', 'searchQuery', 'estadoComercial', 'tipoPropiedad', 'sortBy', 'sortDirection'];
+  const knownKeys = ['page', 'searchQuery', 'isArchived', 'sortBy', 'sortDirection'];
   
   const advancedFilters: AdvancedFiltersState = { ...defaultAdvancedFilters };
   searchParams.forEach((val, key) => {

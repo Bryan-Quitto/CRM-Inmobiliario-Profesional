@@ -113,7 +113,7 @@ public static class FusionarContactosFeature
                 await context.Database.ExecuteSqlRawAsync(sql, new object[] { primary.Id, secondary.Id }, ct);
 
                 // Consolidate Contacto entity
-                primary.EsProspecto = primary.EsProspecto || secondary.EsProspecto;
+                primary.EsCliente = primary.EsCliente || secondary.EsCliente;
                 primary.EsPropietario = primary.EsPropietario || secondary.EsPropietario;
 
                 if (string.IsNullOrWhiteSpace(primary.Telefono) && !string.IsNullOrWhiteSpace(secondary.Telefono))
