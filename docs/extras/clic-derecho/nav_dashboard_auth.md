@@ -1,3 +1,0 @@
-- Ruta del archivo: C:\Users\THINKPAD\Desktop\CRM Inmobiliario Profesional\CRM_Inmobiliario_Web\src\features\dashboard\components\SeguimientoCritico.tsx
-- Número de línea y código encontrado: Line 54, <div key={contacto.id} onClick={() => navigate(`/contactos/${contacto.id}`)} className="p-4 hover:bg-white transition-all flex items-center gap-3 group/item cursor-pointer">
-- Botón en términos de usuario: Fila de contacto en la lista de Seguimiento Crítico

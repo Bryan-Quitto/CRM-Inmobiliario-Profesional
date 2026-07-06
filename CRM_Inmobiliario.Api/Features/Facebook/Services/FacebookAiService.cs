@@ -277,15 +277,32 @@ public sealed class FacebookAiService
             "E INMEDIATAMENTE después, ejecuta la función/herramienta 'SolicitarAsistenciaHumana'. NO agregues ninguna otra frase tuya.\n\n" +
             "REGLA CRÍTICA POST-ESCALAMIENTO: Después de invocar 'SolicitarAsistenciaHumana', DEBES cesar completamente de responder. NO generes ningún mensaje al cliente. El sistema enviará una notificación automática. Cualquier mensaje tuyo causaría duplicados y confusión.\n\n" +
             "REGLA DE FOTOS Y GALERÍA (CRÍTICA): Si el cliente solicita ver fotos de la propiedad en general, fotos de la sala, habitaciones, etc., DEBES invocar la herramienta 'EnviarFotosSeccionPropiedad' pasando el nombre de la sección (ej. 'General', 'Sala', 'Dormitorios'). Si pide 'todas', llama con enviarTodas=true.\n\n" +
-            "PLANTILLAS DE RESPUESTA (OBLIGATORIAS PARA TODAS LAS PROPIEDADES):\n" +
-            "Escribe el nombre de la propiedad EN MAYÚSCULAS y sin formato markdown.\n" +
+            "PLANTILLAS DE RESPUESTA (ELIGE SEGÚN EL TIPO DE PROPIEDAD):\n" +
+            "REGLA GENERAL PARA TODAS LAS PLANTILLAS:\n" +
+            "1. TITULO EN MAYÚSCULAS (Escribe el texto plano, sin asteriscos ni markdown).\n" +
+            "2. ¡ESTÁ ESTRICTAMENTE PROHIBIDO INCLUIR LA DIRECCIÓN EXACTA O UBICACIÓN GPS EN EL MENSAJE! Solo debes mencionar Sector y Ciudad.\n\n" +
+            "-> SI ES CASA, DEPARTAMENTO, SUITE U HOTEL (Residencial):\n" +
             "💰 Precio: $Valor\n\n" +
-            "📍 Zona: Sector, Ciudad\n" +
-            "🗺️ Dirección Exacta: Calle, Avenida, etc. (REGLA: Si la base de datos no te da una calle o dirección exacta pública, OMITE esta línea completa. NUNCA inventes direcciones ni repitas el sector aquí).\n\n" +
+            "📍 Zona: Sector, Ciudad\n\n" +
             "✨ Distribución:\n" +
-            "🛏️ Habitaciones | 🚿 Baños (incluir medios baños si aplica) | 🚗 Parqueos | 📏 Área\n\n" +
+            "🛏️ Habitaciones | 🚿 Baños (incluye medios baños) | 🚗 Parqueos | 📏 Área\n\n" +
             "📅 Antigüedad: X años\n" +
-            "📝 Nota: _[Si el cliente preguntó por algo específico como mascotas, alícuota o insonorización, saca ese dato de la Descripción de la propiedad y ponlo aquí en cursiva. Si no preguntó nada, omite esta línea completa]_\n" +
+            "📝 Nota: _[Si el cliente preguntó por algo específico como mascotas o alícuota, saca ese dato de la Descripción y ponlo aquí en cursiva. Si no, omítelo]_\n" +
+            "🔗 [Ver más detalles aquí](UrlRemax)\n\n" +
+            "-> SI ES TERRENO:\n" +
+            "💰 Precio: $Valor\n\n" +
+            "📍 Zona: Sector, Ciudad\n\n" +
+            "✨ Características:\n" +
+            "📏 Área Total: X m²\n\n" +
+            "📝 Nota: _[Si el cliente preguntó algo específico, ponlo aquí. Si no, omítelo]_\n" +
+            "🔗 [Ver más detalles aquí](UrlRemax)\n\n" +
+            "-> SI ES LOCAL COMERCIAL, OFICINA, BODEGA O GALPÓN (Comercial):\n" +
+            "💰 Precio: $Valor\n\n" +
+            "📍 Zona: Sector, Ciudad\n\n" +
+            "✨ Distribución:\n" +
+            "🚿 Baños | 🚗 Parqueos (si aplica) | 📏 Área\n\n" +
+            "📅 Antigüedad: X años\n" +
+            "📝 Nota: _[Si el cliente preguntó algo específico, ponlo aquí. Si no, omítelo]_\n" +
             "🔗 [Ver más detalles aquí](UrlRemax)";
 
         if (!string.IsNullOrWhiteSpace(corporateContext))

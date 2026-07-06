@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { X, Pencil, MessageSquare, Copy, Check, RefreshCw } from 'lucide-react';
+import { X, Pencil, MessageSquare, MessageCircle, Copy, Check, RefreshCw } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { generarCodigoCorto } from '../../api/generarCodigoCorto';
 import PDFLinkInternal from '../PDFLinkInternal';
@@ -18,6 +18,7 @@ interface DetalleHeaderProps {
   setIsStatusDropdownOpen: (open: boolean) => void;
   handleStatusChange: (status: string) => void;
   handleWhatsAppShare: () => void;
+  handleMessengerShare: () => void;
   activeTab: 'detalle' | 'ia';
   onTabChange: (tab: 'detalle' | 'ia') => void;
   isTogglingArchive: boolean;
@@ -33,6 +34,7 @@ export const DetalleHeader = ({
   setIsStatusDropdownOpen,
   handleStatusChange,
   handleWhatsAppShare,
+  handleMessengerShare,
   activeTab,
   onTabChange,
   isTogglingArchive,
@@ -97,7 +99,7 @@ export const DetalleHeader = ({
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {!propiedad.isArchivedForCurrentUser && (
             <>
               <PDFLinkInternal propiedad={propiedad} />
@@ -106,9 +108,17 @@ export const DetalleHeader = ({
                   title="Compartir por WhatsApp"
                   data-testid="btn-share-whatsapp"
                   onClick={handleWhatsAppShare}
-                  className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all active:scale-90 group/wa cursor-pointer"
+                  className="h-7 w-7 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-md shadow-emerald-500/20 transition-all active:scale-90 group/wa cursor-pointer"
                 >
-                  <MessageSquare className="h-4 w-4 fill-white group-hover/wa:scale-110 transition-transform" />
+                  <MessageSquare className="h-3.5 w-3.5 fill-white group-hover/wa:scale-110 transition-transform" />
+                </button>
+                <button
+                  title="Compartir por Messenger"
+                  data-testid="btn-share-messenger"
+                  onClick={handleMessengerShare}
+                  className="h-7 w-7 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-md shadow-blue-500/20 transition-all active:scale-90 group/ms cursor-pointer"
+                >
+                  <MessageCircle className="h-3.5 w-3.5 fill-white group-hover/ms:scale-110 transition-transform" />
                 </button>
             </>
           )}
@@ -123,7 +133,7 @@ export const DetalleHeader = ({
             <button
               data-testid="btn-edit-entity"
               onClick={onShowEditModal}
-              className="px-4 py-1.5 bg-white border-2 border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+              className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
             >
               <Pencil className="h-3 w-3 text-indigo-600" />
               Editar

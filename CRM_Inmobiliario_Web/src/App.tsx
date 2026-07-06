@@ -71,7 +71,6 @@ function AppContent({ session }: { session: Session | null }) {
 
   useEffect(() => {
     if (urlTareaId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAgendaOpen(true);
     }
   }, [urlTareaId]);
@@ -87,8 +86,20 @@ function AppContent({ session }: { session: Session | null }) {
   useEffect(() => {
     const completeTask = async (id: string) => {
       try {
-        await api.patch(`/features/tareas/${id}/estado`, { estado: 'Completada' });
+        await api.patch(`/tareas/${id}/completar`);
         toast.success('Tarea marcada como completada ✅');
+        
+        // Revalidación proactiva (UPSP) e inmediata para optimismo visual
+        import('swr').then(({ mutate }) => {
+          mutate('/dashboard/kpis');
+          mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+          
+          // Optimistic update local
+          mutate('/tareas', (currentTareas: unknown) => {
+            if (!Array.isArray(currentTareas)) return currentTareas;
+            return currentTareas.map(t => t.id === id ? { ...t, estado: 'Completada' } : t);
+          }, { revalidate: true });
+        });
       } catch (error) {
         console.error('Error al completar tarea desde SW:', error);
       }
