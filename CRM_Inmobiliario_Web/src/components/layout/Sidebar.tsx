@@ -1,4 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
+import { useState } from 'react';
 import { 
   Users, 
   Home, 
@@ -13,6 +14,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
+import { UnsavedChangesModal } from '../ui/UnsavedChangesModal';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -36,13 +39,24 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     return location.pathname.startsWith(path);
   };
 
-  const handleLogout = async () => {
+  const { pendingCount } = usePendingOperationsStore();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const performLogout = async () => {
     try {
       await supabase.auth.signOut();
       localStorage.removeItem('crm-swr-cache');
       toast.success('Sesión cerrada correctamente');
     } catch {
       toast.error('Error al cerrar sesión');
+    }
+  };
+
+  const handleLogout = () => {
+    if (pendingCount > 0) {
+      setIsLogoutModalOpen(true);
+    } else {
+      performLogout();
     }
   };
 
@@ -127,6 +141,16 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
         {isOpen ? <ChevronLeft className="h-4 w-4" aria-hidden="true" /> : <ChevronRight className="h-4 w-4" aria-hidden="true" />}
       </button>
     </aside>
+
+    <UnsavedChangesModal 
+      isOpen={isLogoutModalOpen} 
+      onClose={() => setIsLogoutModalOpen(false)} 
+      onConfirm={() => {
+        setIsLogoutModalOpen(false);
+        performLogout();
+      }}
+      isLogout={true}
+    />
     </>
   );
 };

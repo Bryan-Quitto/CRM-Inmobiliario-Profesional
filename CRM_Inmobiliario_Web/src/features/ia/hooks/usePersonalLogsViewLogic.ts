@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { api } from '@/lib/axios';
 import { usePersonalLogs } from './usePersonalLogs';
 import { useCopilotChat } from '../../copilot/hooks/useCopilotChat';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 export const usePersonalLogsViewLogic = () => {
   const [searchParams] = useSearchParams();
@@ -85,6 +86,25 @@ export const usePersonalLogsViewLogic = () => {
     setConfirmDeleteId(null);
 
     let undo = false;
+    let isProtectionActive = true;
+    usePendingOperationsStore.getState().addPendingOperation();
+
+    const commitAction = async () => {
+      if (isProtectionActive) {
+        usePendingOperationsStore.getState().removePendingOperation();
+        isProtectionActive = false;
+      }
+      if (!undo) {
+        try {
+          await api.delete(`/conversations/${id}`);
+          mutate(); // sync with server
+        } catch {
+          toast.error('Error al eliminar la conversación en el servidor');
+          // Revert optimism
+          mutate((current) => current ? [itemToDelete, ...current].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) : [itemToDelete], false);
+        }
+      }
+    };
 
     toast.success('Conversación eliminada', {
       duration: 5000,
@@ -94,31 +114,14 @@ export const usePersonalLogsViewLogic = () => {
           undo = true;
           // Revert optimism
           mutate((current) => current ? [itemToDelete, ...current].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) : [itemToDelete], false);
-        }
-      },
-      onAutoClose: async () => {
-        if (!undo) {
-          try {
-            await api.delete(`/conversations/${id}`);
-            mutate(); // sync with server
-          } catch {
-            toast.error('Error al eliminar la conversación en el servidor');
-            // Revert optimism
-            mutate((current) => current ? [itemToDelete, ...current].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) : [itemToDelete], false);
+          if (isProtectionActive) {
+            usePendingOperationsStore.getState().removePendingOperation();
+            isProtectionActive = false;
           }
         }
       },
-      onDismiss: async () => {
-        if (!undo) {
-          try {
-            await api.delete(`/conversations/${id}`);
-            mutate(); // sync with server
-          } catch {
-            toast.error('Error al eliminar la conversación en el servidor');
-            mutate((current) => current ? [itemToDelete, ...current].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) : [itemToDelete], false);
-          }
-        }
-      }
+      onAutoClose: commitAction,
+      onDismiss: commitAction
     });
   };
 

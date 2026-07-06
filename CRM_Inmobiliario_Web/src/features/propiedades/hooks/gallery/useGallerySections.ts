@@ -5,6 +5,7 @@ import { crearSeccion } from '../../api/crearSeccion';
 import { eliminarSeccion } from '../../api/eliminarSeccion';
 import { actualizarSeccion } from '../../api/actualizarSeccion';
 import type { Propiedad, SeccionGaleria } from '../../types';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 interface UseGallerySectionsProps {
   id: string;
@@ -82,7 +83,14 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
     const previousSecciones = [...(propiedad.secciones || [])];
 
     let isCancelled = false;
+    let isProtectionActive = true;
+    usePendingOperationsStore.getState().addPendingOperation();
+
     const commitDelete = async () => {
+      if (isProtectionActive) {
+        usePendingOperationsStore.getState().removePendingOperation();
+        isProtectionActive = false;
+      }
       if (isCancelled) return;
       try {
         await eliminarSeccion(sectionId);
@@ -101,6 +109,10 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
           isCancelled = true;
           mutate();
           toast.success("Eliminación cancelada");
+          if (isProtectionActive) {
+            usePendingOperationsStore.getState().removePendingOperation();
+            isProtectionActive = false;
+          }
         }
       },
       duration: 5000,

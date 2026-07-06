@@ -4,6 +4,7 @@ import imageCompression from 'browser-image-compression';
 import { isAxiosError } from 'axios';
 import { uploadImagenPropiedad } from '../api/uploadImagenPropiedad';
 import type { UploadStatus, UploadProcess, UploadResult, UploadContextType } from '../context/UploadContext';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 /**
  * Hook orquestador para la gestión de subidas de archivos en segundo plano.
@@ -45,6 +46,9 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
   const processQueue = useCallback(async (processId: string, propiedadId: string, nombrePropiedad: string, sectionId?: string | null) => {
     if (processingRef.current[processId]) return;
     processingRef.current[processId] = true;
+    
+    // Blindaje Global: Iniciar protección durante todo el procesamiento de la cola (compresión + subida)
+    usePendingOperationsStore.getState().addPendingOperation();
 
     while (queuesRef.current[processId] && queuesRef.current[processId].length > 0) {
       const file = queuesRef.current[processId].shift()!;
@@ -136,6 +140,9 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
     }
 
     processingRef.current[processId] = false;
+    
+    // Blindaje Global: Quitar protección al terminar de procesar toda la cola
+    usePendingOperationsStore.getState().removePendingOperation();
 
     // Prevenimos notificaciones duplicadas en React StrictMode con un ID único
     const toastId = `upload-toast-${processId}-${crypto.randomUUID()}`;

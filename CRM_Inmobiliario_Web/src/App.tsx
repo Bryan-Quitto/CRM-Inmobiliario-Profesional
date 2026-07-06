@@ -20,6 +20,7 @@ import { Footer } from './components/layout/Footer';
 import { PageLoader, SidebarLoader } from './components/layout/Loaders';
 import { AdminRoute } from './components/layout/AdminRoute';
 import { TermsOfServiceWrapper } from './components/layout/TermsOfServiceWrapper';
+import { GlobalNavigationGuard } from './components/layout/GlobalNavigationGuard';
 
 // Lazy Loading de Features
 const DashboardPrincipal = lazy(() => import('./features/dashboard/components/DashboardPrincipal').then(m => ({ default: m.DashboardPrincipal })));
@@ -271,6 +272,7 @@ function MainApp() {
   return (
     <GlobalErrorBoundary>
       <NetworkStatusListener />
+      <GlobalNavigationGuard />
       <TareasProvider>
         <UploadProvider>
           <TermsOfServiceWrapper>

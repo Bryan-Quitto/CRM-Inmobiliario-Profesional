@@ -3,6 +3,7 @@ import { useSWRConfig } from 'swr';
 import { useGalleryCore } from './useGalleryCore';
 import { useUpload } from '../context/useUpload';
 import type { MultimediaPropiedad, Propiedad } from '../types';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 interface UseSectionalGalleryProps {
   propiedadId: string;
@@ -57,6 +58,7 @@ export const useSectionalGallery = ({
   const nombreRef = useRef(nombre);
   const isPendingSaveDesc = useRef(false);
   const isSavingRef = useRef(isSavingDesc);
+  const isPendingProtectionActive = useRef(false);
 
   // Sync refs for unmount save
   useEffect(() => {
@@ -75,6 +77,10 @@ export const useSectionalGallery = ({
       if (isPendingSaveDesc.current && !isSavingRef.current && sectionId && onRenameSection && !sectionId.startsWith('temp-')) {
         onRenameSection(sectionId, nombreRef.current, descripcionRef.current || null);
       }
+      if (isPendingProtectionActive.current) {
+        usePendingOperationsStore.getState().removePendingOperation();
+        isPendingProtectionActive.current = false;
+      }
     };
   }, [sectionId, onRenameSection]);
 
@@ -90,9 +96,18 @@ export const useSectionalGallery = ({
   useEffect(() => {
     if (descripcion === (sectionDescripcion || '')) {
       isPendingSaveDesc.current = false;
+      if (isPendingProtectionActive.current) {
+        usePendingOperationsStore.getState().removePendingOperation();
+        isPendingProtectionActive.current = false;
+      }
       return;
     }
     if (!sectionId || !onRenameSection || sectionId.startsWith('temp-')) return;
+
+    if (!isPendingProtectionActive.current) {
+      usePendingOperationsStore.getState().addPendingOperation();
+      isPendingProtectionActive.current = true;
+    }
 
     if (descTimeoutRef.current) clearTimeout(descTimeoutRef.current);
 
@@ -123,6 +138,10 @@ export const useSectionalGallery = ({
         mutate(swrKey);
       } finally {
         setIsSavingDesc(false);
+        if (isPendingProtectionActive.current) {
+          usePendingOperationsStore.getState().removePendingOperation();
+          isPendingProtectionActive.current = false;
+        }
       }
     }, 1500);
 

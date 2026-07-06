@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Buffer } from 'buffer'
 import { Toaster } from 'sonner'
 
@@ -39,9 +39,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+const router = createBrowserRouter([{ path: "*", Component: App }]);
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
       <SWRConfig 
         value={{ 
           ...swrDefaultConfig,
@@ -50,8 +51,7 @@ createRoot(document.getElementById('root')!).render(
         }}
       >
         <Toaster richColors position="top-right" closeButton expand={true} />
-        <App />
+        <RouterProvider router={router} />
       </SWRConfig>
-    </BrowserRouter>
   </StrictMode>,
 )

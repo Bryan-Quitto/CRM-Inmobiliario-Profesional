@@ -5,6 +5,7 @@ import { deleteImagenPropiedad } from '../../api/deleteImagenPropiedad';
 import { deleteImagenesSeleccionadas } from '../../api/deleteImagenesSeleccionadas';
 import { limpiarImagenesPropiedad } from '../../api/limpiarImagenesPropiedad';
 import type { Propiedad } from '../../types';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 interface UseGalleryMediaProps {
   id: string;
@@ -35,7 +36,14 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
     const idsArray = Array.isArray(ids) ? ids : [ids];
 
     let isCancelled = false;
+    let isProtectionActive = true;
+    usePendingOperationsStore.getState().addPendingOperation();
+
     const commitDelete = async () => {
+      if (isProtectionActive) {
+        usePendingOperationsStore.getState().removePendingOperation();
+        isProtectionActive = false;
+      }
       if (isCancelled) return;
       try {
         if (idsArray.length === 1) {
@@ -57,6 +65,10 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
           isCancelled = true;
           mutate();
           toast.success("Eliminación cancelada");
+          if (isProtectionActive) {
+            usePendingOperationsStore.getState().removePendingOperation();
+            isProtectionActive = false;
+          }
         }
       },
       duration: 5000,
@@ -85,7 +97,14 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
     };
 
     let isCancelled = false;
+    let isProtectionActive = true;
+    usePendingOperationsStore.getState().addPendingOperation();
+
     const commitClear = async () => {
+      if (isProtectionActive) {
+        usePendingOperationsStore.getState().removePendingOperation();
+        isProtectionActive = false;
+      }
       if (isCancelled) return;
       try {
         await limpiarImagenesPropiedad(id);
@@ -104,6 +123,10 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
           isCancelled = true;
           mutate();
           toast.success("Limpieza cancelada");
+          if (isProtectionActive) {
+            usePendingOperationsStore.getState().removePendingOperation();
+            isProtectionActive = false;
+          }
         }
       },
       duration: 6000,

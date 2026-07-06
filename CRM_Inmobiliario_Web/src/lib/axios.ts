@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 import { supabase } from './supabase';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://localhost:7046/api',
@@ -43,6 +44,11 @@ let sessionPromise: Promise<Awaited<ReturnType<typeof supabase.auth.getSession>>
 
 // Interceptor para inyectar el token JWT de Supabase
 api.interceptors.request.use(async (config) => {
+  // Blindaje Global: Registrar operación pendiente si es mutación (no GET)
+  if (config.method && config.method.toLowerCase() !== 'get') {
+    usePendingOperationsStore.getState().addPendingOperation();
+  }
+
   try {
     // Zero-Wait: Usar token en memoria instantáneamente
     if (memoryToken) {
@@ -68,8 +74,17 @@ api.interceptors.request.use(async (config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.config.method && response.config.method.toLowerCase() !== 'get') {
+      usePendingOperationsStore.getState().removePendingOperation();
+    }
+    return response;
+  },
   (error) => {
+    if (error.config?.method && error.config.method.toLowerCase() !== 'get') {
+      usePendingOperationsStore.getState().removePendingOperation();
+    }
+
     // Peticiones canceladas por AbortSignal (SWR cancela al cambiar de página rápido)
     // NO son errores reales — ignorar silenciosamente sin mostrar toast
     if (error.code === 'ERR_CANCELED' || error.name === 'CanceledError') {

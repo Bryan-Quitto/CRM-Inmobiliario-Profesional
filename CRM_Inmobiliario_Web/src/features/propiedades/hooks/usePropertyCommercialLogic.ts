@@ -5,6 +5,7 @@ import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { relistPropiedad } from '../api/relistPropiedad';
 import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import type { Propiedad } from '../types';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 interface CommercialLogicOptions {
   onSuccess?: () => void;
@@ -226,7 +227,15 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     const idCliente = propiedad.cerradoConId;
     const nombreCliente = propiedad.cerradoConNombre;
 
+    let isProtectionActive = true;
+    usePendingOperationsStore.getState().addPendingOperation();
+
     const commitAction = async () => {
+      if (isProtectionActive) {
+        usePendingOperationsStore.getState().removePendingOperation();
+        isProtectionActive = false;
+      }
+
       if (isCancelled) return;
       
       try {
@@ -280,6 +289,10 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
           isCancelled = true; 
           safeMutateOptimistic(oldEstado);
           toast.success("Acción cancelada"); 
+          if (isProtectionActive) {
+            usePendingOperationsStore.getState().removePendingOperation();
+            isProtectionActive = false;
+          }
         } 
       },
       duration: 5000,
