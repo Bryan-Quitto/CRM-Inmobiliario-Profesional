@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // Helper for generating mock responses
-const createMockResponse = (items: any[] = [], totalCount = 0) => ({
+const createMockResponse = (items: unknown[] = [], totalCount = 0) => ({
   items,
   totalCount,
   countVentas: 0,

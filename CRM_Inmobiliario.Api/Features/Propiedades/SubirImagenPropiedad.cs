@@ -21,7 +21,7 @@ public static class SubirImagenPropiedadFeature
             IFormFile file,
             ClaimsPrincipal user,
             CrmDbContext context,
-            Supabase.Client supabase) =>
+            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -65,23 +65,17 @@ public static class SubirImagenPropiedadFeature
 
             try
             {
-                // 4. Leer archivo y subir a Supabase Storage
+                // 4. Leer archivo y subir a R2
                 using var stream = file.OpenReadStream();
                 using var memoryStream = new MemoryStream();
                 await stream.CopyToAsync(memoryStream);
                 var bytes = memoryStream.ToArray();
 
-                // Bucket configurado en Supabase: "propiedades"
-                var bucket = supabase.Storage.From("propiedades");
-                
-                // Subir el archivo (esto devuelve el path si es exitoso)
-                var uploadPath = await bucket.Upload(bytes, nombreArchivo);
+                var key = $"propiedades/{id}/{nombreArchivo}";
+                var urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType);
 
-                if (string.IsNullOrEmpty(uploadPath))
-                    return Results.Problem("La subida a Supabase Storage no devolvió una ruta válida.");
-
-                // 5. Obtener la URL pública del archivo subido
-                var urlPublica = bucket.GetPublicUrl(nombreArchivo);
+                if (string.IsNullOrEmpty(urlPublica))
+                    return Results.Problem("La subida a R2 no devolvió una ruta válida.");
 
                 // 6. Registrar metadatos en la base de datos (PropertyMedia)
                 var media = new PropertyMedia

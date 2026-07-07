@@ -67,16 +67,10 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
             await stream.CopyToAsync(memoryStream, cancellationToken);
             var audioBytes = memoryStream.ToArray();
 
-            var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
-            var bucket = supabase.Storage.From("whatsapp_audio");
+            var r2Storage = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService>();
             var fileName = $"{Guid.NewGuid()}.ogg";
-            await bucket.Upload(audioBytes, fileName, new Supabase.Storage.FileOptions 
-            { 
-                ContentType = "audio/ogg",
-                Upsert = true
-            });
-
-            var mediaUrl = bucket.GetPublicUrl(fileName);
+            var key = $"whatsapp_audio/{fileName}";
+            var mediaUrl = await r2Storage.UploadAsync(audioBytes, key, "audio/ogg");
 
 
             await aiService.ProcessIncomingAudioAsync(phone, audioBytes, mediaUrl, phoneNumberId, cancellationToken);

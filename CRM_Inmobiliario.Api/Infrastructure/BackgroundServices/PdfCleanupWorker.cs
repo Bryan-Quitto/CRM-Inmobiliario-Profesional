@@ -33,10 +33,11 @@ public class PdfCleanupWorker : BackgroundService
                 }
                 
                 using var scope = _serviceProvider.CreateScope();
-                var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
+                var r2Storage = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService>();
                 
                 var fileName = $"ficha_{propiedadId}.pdf";
-                await supabase.Storage.From("propiedades").Remove(new List<string> { fileName });
+                var key = $"propiedades/{propiedadId}/{fileName}";
+                await r2Storage.DeleteAsync(key);
             }
             catch (OperationCanceledException) { break; }
             catch (Exception)

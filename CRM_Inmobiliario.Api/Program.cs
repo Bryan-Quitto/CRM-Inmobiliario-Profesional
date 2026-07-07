@@ -12,6 +12,8 @@ using Hangfire.PostgreSql;
 using CRM_Inmobiliario.Api.Features.AI.Infrastructure.Handlers;
 using CRM_Inmobiliario.Api.Features.AI.Services;
 using CRM_Inmobiliario.Api.Features.Agents.Services;
+using Amazon.S3;
+using CRM_Inmobiliario.Api.Infrastructure.Services;
 // Cargar variables de entorno desde .env en desarrollo local.
 // En Railway (producción), las variables son inyectadas por la plataforma
 // y no existe un archivo .env. El try-catch previene errores de arranque.
@@ -113,6 +115,20 @@ builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.IProper
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
 builder.Services.AddSingleton<IPdfCleanupQueue, PdfCleanupQueue>();
 builder.Services.AddSingleton<IKpiWarmingService, KpiWarmingService>();
+
+var r2AccessKey = builder.Configuration["R2_ACCESS_KEY_ID"];
+var r2SecretKey = builder.Configuration["R2_SECRET_ACCESS_KEY"];
+var r2AccountId = builder.Configuration["R2_ACCOUNT_ID"];
+if (!string.IsNullOrEmpty(r2AccessKey) && !string.IsNullOrEmpty(r2SecretKey) && !string.IsNullOrEmpty(r2AccountId))
+{
+    var s3Config = new AmazonS3Config
+    {
+        ServiceURL = $"https://{r2AccountId}.r2.cloudflarestorage.com",
+    };
+    var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(r2AccessKey, r2SecretKey);
+    builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(awsCredentials, s3Config));
+    builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
+}
 builder.Services.AddHostedService<PdfWorker>();
 builder.Services.AddHostedService<PdfCleanupWorker>();
 builder.Services.AddHostedService<KpiWarmingBackgroundService>();

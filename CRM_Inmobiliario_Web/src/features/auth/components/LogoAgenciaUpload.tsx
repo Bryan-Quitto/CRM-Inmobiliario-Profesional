@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/axios';
 import imageCompression from 'browser-image-compression';
 import { Image, Trash2, Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
@@ -48,25 +48,14 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
     setIsUploading(true);
     try {
       const compressedFile = await compressLogo(file);
-      const fileExt = 'webp';
-      const fileName = `${userId}/logo-${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append('file', compressedFile);
 
-      const { error: uploadError } = await supabase.storage
-        .from('perfiles') // Reutilizamos el bucket perfiles para simplicidad
-        .upload(fileName, compressedFile, { upsert: true });
+      const response = await api.post(`/agentes/${userId}/logo-agencia`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('perfiles')
-        .getPublicUrl(fileName);
-
-      if (currentLogoUrl) {
-        const oldPath = currentLogoUrl.split('/perfiles/')[1];
-        if (oldPath) {
-          await supabase.storage.from('perfiles').remove([oldPath]);
-        }
-      }
+      const publicUrl = response.data.url;
 
       onUploadSuccess(publicUrl);
       toast.success('Logo de la agencia actualizado');
@@ -84,11 +73,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
 
     setIsUploading(true);
     try {
-      const path = currentLogoUrl.split('/perfiles/')[1];
-      if (path) {
-        const { error } = await supabase.storage.from('perfiles').remove([path]);
-        if (error) throw error;
-      }
+      await api.delete(`/agentes/${userId}/logo-agencia`);
       onDeleteSuccess();
       toast.success('Logo eliminado correctamente');
     } catch (error) {

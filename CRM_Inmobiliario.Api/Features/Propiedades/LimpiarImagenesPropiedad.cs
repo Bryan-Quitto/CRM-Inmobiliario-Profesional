@@ -17,7 +17,7 @@ public static class LimpiarImagenesPropiedadFeature
             [FromRoute] Guid propiedadId,
             ClaimsPrincipal user,
             CrmDbContext context,
-            Supabase.Client supabase,
+            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage,
             CancellationToken ct,
             ILoggerFactory loggerFactory) =>
         {
@@ -45,10 +45,11 @@ public static class LimpiarImagenesPropiedadFeature
                     .Select(m => m.StoragePath!)
                     .ToListAsync(ct);
 
-                // 2. Eliminar físicos del Storage
+                // 2. Eliminar físicos de R2
                 if (storagePaths.Any())
                 {
-                    await supabase.Storage.From("propiedades").Remove(storagePaths);
+                    var keys = storagePaths.Select(path => $"propiedades/{propiedadId}/{path}").ToList();
+                    await r2Storage.DeleteManyAsync(keys);
                 }
 
                 // 3. Borrar las imágenes de la base de datos (excepto principal)

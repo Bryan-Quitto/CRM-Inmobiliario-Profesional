@@ -107,6 +107,8 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapAceptarTerminosServicioEndpoint();
         apiGroup.MapExportarDatosEndpoint();
         apiGroup.MapActualizarPerfilEndpoint();
+        apiGroup.MapSubirFotoPerfilEndpoint();
+        apiGroup.MapSubirLogoAgenciaEndpoint();
         apiGroup.MapUpdateNotificationSettingsEndpoint();
         apiGroup.MapInvitarAgenteEndpoint();
         apiGroup.MapAgenciasEndpoints();

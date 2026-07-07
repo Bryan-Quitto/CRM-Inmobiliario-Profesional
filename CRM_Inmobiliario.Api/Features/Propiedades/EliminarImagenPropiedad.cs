@@ -18,7 +18,7 @@ public static class EliminarImagenPropiedadFeature
             [FromRoute] Guid imagenId,
             ClaimsPrincipal user,
             CrmDbContext context,
-            Supabase.Client supabase) =>
+            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -35,12 +35,11 @@ public static class EliminarImagenPropiedadFeature
 
             try
             {
-                // 1. Eliminar archivo físico de Supabase Storage
+                // 1. Eliminar archivo físico de R2
                 if (!string.IsNullOrEmpty(media.StoragePath))
                 {
-                    var response = await supabase.Storage.From("propiedades").Remove(new List<string> { media.StoragePath });
-                    var count = response?.Count ?? 0;
-                    
+                    var key = $"propiedades/{propiedadId}/{media.StoragePath}";
+                    await r2Storage.DeleteAsync(key);
                 }
 
                 // 2. Eliminar registro de la DB

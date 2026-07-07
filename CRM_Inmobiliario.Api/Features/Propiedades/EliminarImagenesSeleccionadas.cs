@@ -18,7 +18,7 @@ public static class EliminarImagenesSeleccionadasFeature
             [FromBody] List<Guid> ids,
             ClaimsPrincipal user,
             CrmDbContext context,
-            Supabase.Client supabase,
+            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage,
             CancellationToken ct,
             ILoggerFactory loggerFactory) =>
         {
@@ -65,13 +65,13 @@ public static class EliminarImagenesSeleccionadasFeature
                 if (deletedRows == 0)
                     return Results.NotFound("No se encontraron las imágenes especificadas.");
 
-                // 3. Limpiar los archivos físicos de Supabase Storage
+                // 3. Limpiar los archivos físicos de R2
                 if (storagePaths.Count > 0)
                 {
-                    var bucket = supabase.Storage.From("propiedades");
                     try 
                     {
-                        await bucket.Remove(storagePaths);
+                        var keys = storagePaths.Select(path => $"propiedades/{propiedadId}/{path}").ToList();
+                        await r2Storage.DeleteManyAsync(keys);
                         logger.LogInformation("Archivos físicos eliminados correctamente");
                     }
                     catch (Exception storageEx)

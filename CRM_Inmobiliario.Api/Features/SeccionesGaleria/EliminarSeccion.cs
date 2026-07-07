@@ -15,7 +15,7 @@ public static class EliminarSeccionFeature
 {
     public static RouteHandlerBuilder MapEliminarSeccionEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, CrmDbContext context, Supabase.Client supabase, ClaimsPrincipal user, CancellationToken ct) =>
+        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, CrmDbContext context, CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage, ClaimsPrincipal user, CancellationToken ct) =>
         {
             var currentUserId = user.GetRequiredUserId();
 
@@ -42,10 +42,11 @@ public static class EliminarSeccionFeature
 
             try 
             {
-                // 2. Eliminar archivos físicos de Supabase Storage
+                // 2. Eliminar archivos físicos de R2
                 if (storagePaths.Any())
                 {
-                    await supabase.Storage.From("propiedades").Remove(storagePaths);
+                    var keys = storagePaths.Select(path => $"propiedades/{seccion.PropiedadId}/{path}").ToList();
+                    await r2Storage.DeleteManyAsync(keys);
                 }
 
                 // 3. Borrar la sección de la base de datos

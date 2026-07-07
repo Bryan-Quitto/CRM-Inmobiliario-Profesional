@@ -64,7 +64,7 @@ public class PdfWorker : BackgroundService
 
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
-        var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
+        var r2Storage = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService>();
 
         var propiedad = await context.Properties
             .AsNoTracking()
@@ -121,16 +121,11 @@ public class PdfWorker : BackgroundService
             var pdfBytes = document.GeneratePdf();
 
             var fileName = $"ficha_{propiedadId}.pdf";
-            var bucket = supabase.Storage.From("propiedades");
+            var key = $"propiedades/{propiedadId}/{fileName}";
             
-            // Subimos con cabeceras para matar la caché (Cache-Control: max-age=0)
-            // Esto asegura que el navegador y el CDN siempre pidan la versión nueva.
-            await bucket.Upload(pdfBytes, fileName, new Supabase.Storage.FileOptions 
-            { 
-                Upsert = true,
-                ContentType = "application/pdf",
-                CacheControl = "0"
-            });
+            // AWS SDK S3 permite definir Cache-Control pero R2 maneja la caché principalmente via sus Cache Rules o CDN,
+            // de igual forma, la implementación UploadAsync por defecto basta para el Storage subyacente.
+            await r2Storage.UploadAsync(pdfBytes, key, "application/pdf");
         }
         catch (Exception)
         {

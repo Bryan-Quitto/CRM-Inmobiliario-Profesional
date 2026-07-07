@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/axios';
 import imageCompression from 'browser-image-compression';
 import { Camera, Trash2, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
@@ -48,25 +48,14 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
     setIsUploading(true);
     try {
       const compressedFile = await compressImage(file);
-      const fileExt = 'webp';
-      const fileName = `${userId}/profile-${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append('file', compressedFile);
 
-      const { error: uploadError } = await supabase.storage
-        .from('perfiles')
-        .upload(fileName, compressedFile, { upsert: true });
+      const response = await api.post(`/agentes/${userId}/foto-perfil`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('perfiles')
-        .getPublicUrl(fileName);
-
-      if (currentFotoUrl) {
-        const oldPath = currentFotoUrl.split('/perfiles/')[1];
-        if (oldPath) {
-          await supabase.storage.from('perfiles').remove([oldPath]);
-        }
-      }
+      const publicUrl = response.data.url;
 
       onUploadSuccess(publicUrl);
       toast.success('Foto de perfil actualizada');
@@ -84,11 +73,7 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
 
     setIsUploading(true);
     try {
-      const path = currentFotoUrl.split('/perfiles/')[1];
-      if (path) {
-        const { error } = await supabase.storage.from('perfiles').remove([path]);
-        if (error) throw error;
-      }
+      await api.delete(`/agentes/${userId}/foto-perfil`);
       onDeleteSuccess();
       toast.success('Foto eliminada correctamente');
     } catch (error) {
