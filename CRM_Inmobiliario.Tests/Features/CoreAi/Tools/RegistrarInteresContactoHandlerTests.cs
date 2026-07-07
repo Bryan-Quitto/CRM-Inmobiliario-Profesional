@@ -13,15 +13,15 @@ using Xunit;
 
 namespace CRM_Inmobiliario.Tests.Features.CoreAi.Tools;
 
-public class RegistrarInteresContactoHandlerTests
+public class RegistrarInteresClienteHandlerTests
 {
-    private readonly Mock<ILogger<RegistrarInteresContactoHandler>> _mockLogger;
+    private readonly Mock<ILogger<RegistrarInteresClienteHandler>> _mockLogger;
     private readonly DbContextOptions<CrmDbContext> _dbContextOptions;
     private readonly Mock<IDbContextFactory<CrmDbContext>> _mockDbContextFactory;
 
-    public RegistrarInteresContactoHandlerTests()
+    public RegistrarInteresClienteHandlerTests()
     {
-        _mockLogger = new Mock<ILogger<RegistrarInteresContactoHandler>>();
+        _mockLogger = new Mock<ILogger<RegistrarInteresClienteHandler>>();
 
         _dbContextOptions = new DbContextOptionsBuilder<CrmDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -50,7 +50,7 @@ public class RegistrarInteresContactoHandlerTests
     public async Task ExecuteAsync_WithMissingProperty_ReturnsErrorMessage()
     {
         // Arrange
-        var handler = new RegistrarInteresContactoHandler(_mockDbContextFactory.Object, _mockLogger.Object);
+        var handler = new RegistrarInteresClienteHandler(_mockDbContextFactory.Object, _mockLogger.Object);
         var args = JsonDocument.Parse("{\"nombrePropiedad\":\"Casa fantasma\",\"nivelInteres\":\"Alto\"}");
         var context = new ToolExecutionContext { ContactoId = Guid.NewGuid() };
 
@@ -67,7 +67,7 @@ public class RegistrarInteresContactoHandlerTests
         // Arrange
         var propertyId = Guid.NewGuid();
         await SeedDatabaseAsync(new Property { Id = propertyId, Titulo = "Casa hermosa en Quito", Operacion = "Venta", TipoPropiedad = "Casa", Sector = "Norte", Ciudad = "Quito", Direccion = "Calle 1" });
-        var handler = new RegistrarInteresContactoHandler(_mockDbContextFactory.Object, _mockLogger.Object);
+        var handler = new RegistrarInteresClienteHandler(_mockDbContextFactory.Object, _mockLogger.Object);
         var args = JsonDocument.Parse("{\"nombrePropiedad\":\"Casa hermosa\",\"nivelInteres\":\"Alto\"}");
         var context = new ToolExecutionContext { ContactoId = null };
 
@@ -87,7 +87,7 @@ public class RegistrarInteresContactoHandlerTests
         await SeedDatabaseAsync(new Property { Id = propertyId, Titulo = "Departamento Centro", Operacion = "Venta", TipoPropiedad = "Departamento", Sector = "Centro", Ciudad = "Quito", Direccion = "Calle 2" });
         await SeedContactAsync(new Contacto { Id = contactoId, Telefono = "123456789", Nombre = "Juan Perez" });
         
-        var handler = new RegistrarInteresContactoHandler(_mockDbContextFactory.Object, _mockLogger.Object);
+        var handler = new RegistrarInteresClienteHandler(_mockDbContextFactory.Object, _mockLogger.Object);
         var args = JsonDocument.Parse("{\"nombrePropiedad\":\"Departamento Centro\",\"nivelInteres\":\"Alto\"}");
         var context = new ToolExecutionContext { ContactoId = contactoId };
 
@@ -125,7 +125,7 @@ public class RegistrarInteresContactoHandlerTests
             await seedCtx.SaveChangesAsync();
         }
 
-        var handler = new RegistrarInteresContactoHandler(_mockDbContextFactory.Object, _mockLogger.Object);
+        var handler = new RegistrarInteresClienteHandler(_mockDbContextFactory.Object, _mockLogger.Object);
         var args = JsonDocument.Parse("{\"nombrePropiedad\":\"Villa Lujo\",\"nivelInteres\":\"Descartada\"}");
         var context = new ToolExecutionContext { ContactoId = contactoId, Channel = "WhatsApp" };
 

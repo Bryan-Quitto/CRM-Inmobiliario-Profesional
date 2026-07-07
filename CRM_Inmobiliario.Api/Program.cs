@@ -254,3 +254,5 @@ public class AdminAuthorizationFilter : Hangfire.Dashboard.IDashboardAuthorizati
     }
 }
 
+public partial class Program { }
+

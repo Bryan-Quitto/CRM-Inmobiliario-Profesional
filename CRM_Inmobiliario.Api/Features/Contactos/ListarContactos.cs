@@ -88,8 +88,16 @@ public static class ListarContactosFeature
 
             if (!string.IsNullOrEmpty(request.Search))
             {
-                var searchPattern = $"%{CrmDbContext.NormalizeText(request.Search)}%";
-                baseQuery = baseQuery.Where(c => EF.Functions.ILike(c.NormalizedSearchText, searchPattern));
+                var searchString = CrmDbContext.NormalizeText(request.Search);
+                if (context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+                {
+                    baseQuery = baseQuery.Where(c => c.NormalizedSearchText != null && c.NormalizedSearchText.Contains(searchString));
+                }
+                else
+                {
+                    var searchPattern = $"%{searchString}%";
+                    baseQuery = baseQuery.Where(c => EF.Functions.ILike(c.NormalizedSearchText, searchPattern));
+                }
             }
 
             if (!string.IsNullOrEmpty(request.Estado))

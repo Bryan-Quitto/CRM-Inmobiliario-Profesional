@@ -30,7 +30,7 @@ async function globalSetup(config: FullConfig) {
 
       await emailInput.fill(email);
       await page.locator('#password').fill(password);
-      await page.locator('button[type="submit"]').click();
+      await page.locator('button[type="submit"]').first().click();
       await page.waitForLoadState('networkidle');
     }
 

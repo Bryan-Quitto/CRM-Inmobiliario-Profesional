@@ -62,7 +62,7 @@ public class DerivarCaptacionPropietarioHandlerTests
         var contact = await dbContext.Contactos.FindAsync(contactoId);
         Assert.NotNull(contact);
         Assert.True(contact.EsPropietario);
-        Assert.False(contact.EsProspecto);
+        Assert.False(contact.EsCliente);
         Assert.False(contact.BotActivoWA);
         Assert.Equal("Derivado a Captacion", contact.EstadoIA_WA);
     }
