@@ -148,10 +148,25 @@ export const usePropiedadesFiltering = () => {
     }, { replace: true });
   };
 
-  const setCurrentPage = (page: number | ((prev: number) => number)) => {
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setSearchParams(prevParams => {
+      const next = new URLSearchParams(prevParams);
+      const keysToDelete: string[] = [];
+      next.forEach((_, key) => {
+        if (!['isArchived', 'sortBy', 'sortDirection'].includes(key)) {
+          keysToDelete.push(key);
+        }
+      });
+      keysToDelete.forEach(k => next.delete(k));
+      return next;
+    }, { replace: true });
+  };
+
+  const setCurrentPage = (val: number | ((prev: number) => number)) => {
     setSearchParams(prevParams => {
       const currentVal = Number(prevParams.get('page')) || 1;
-      const newPage = typeof page === 'function' ? page(currentVal) : page;
+      const newPage = typeof val === 'function' ? val(currentVal) : val;
       const next = new URLSearchParams(prevParams);
       if (newPage <= 1) next.delete('page');
       else next.set('page', newPage.toString());
@@ -192,6 +207,7 @@ export const usePropiedadesFiltering = () => {
     setIsArchived,
     advancedFilters,
     setAdvancedFilters,
+    clearAllFilters,
     sortBy,
     setSortBy,
     sortDirection,

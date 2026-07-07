@@ -47,6 +47,8 @@ public static class ListarContactosFeature
         string? Visibilidad = null,
         string? Origen = null,
         string? EstadoPropietario = null,
+        string? EstadoIA_WA = null,
+        string? EstadoIA_FB = null,
         string? SortBy = null,
         string? SortDirection = null,
         bool IsArchived = false);
@@ -121,10 +123,38 @@ public static class ListarContactosFeature
                 baseQuery = baseQuery.Where(c => c.EstadoPropietario == request.EstadoPropietario);
             }
 
+            if (!string.IsNullOrEmpty(request.EstadoIA_WA) && request.EstadoIA_WA != "Todos")
+            {
+                if (request.EstadoIA_WA == "Operativo")
+                    baseQuery = baseQuery.Where(c => c.BotActivoWA && c.EstadoIA_WA == null);
+                else if (request.EstadoIA_WA == "Desactivado")
+                    baseQuery = baseQuery.Where(c => !c.BotActivoWA && (c.EstadoIA_WA == null || c.EstadoIA_WA == ""));
+                else if (request.EstadoIA_WA == "Escalado")
+                    baseQuery = baseQuery.Where(c => c.EstadoIA_WA == "Escalado");
+                else if (request.EstadoIA_WA == "Límite de uso")
+                    baseQuery = baseQuery.Where(c => c.EstadoIA_WA == "LimiteAlcanzado");
+                else if (request.EstadoIA_WA == "Desactivado (Captación)")
+                    baseQuery = baseQuery.Where(c => c.EstadoIA_WA == "Derivado a Captacion");
+            }
+
+            if (!string.IsNullOrEmpty(request.EstadoIA_FB) && request.EstadoIA_FB != "Todos")
+            {
+                if (request.EstadoIA_FB == "Operativo")
+                    baseQuery = baseQuery.Where(c => c.BotActivoFB && c.EstadoIA_FB == null);
+                else if (request.EstadoIA_FB == "Desactivado")
+                    baseQuery = baseQuery.Where(c => !c.BotActivoFB && (c.EstadoIA_FB == null || c.EstadoIA_FB == ""));
+                else if (request.EstadoIA_FB == "Escalado")
+                    baseQuery = baseQuery.Where(c => c.EstadoIA_FB == "Escalado");
+                else if (request.EstadoIA_FB == "Límite de uso")
+                    baseQuery = baseQuery.Where(c => c.EstadoIA_FB == "LimiteAlcanzado");
+                else if (request.EstadoIA_FB == "Desactivado (Captación)")
+                    baseQuery = baseQuery.Where(c => c.EstadoIA_FB == "Derivado a Captacion");
+            }
+
             var sortBy = request.SortBy?.ToLower() ?? "fechacreacion";
             var isDesc = request.SortDirection != "asc";
 
-            var countsCacheKey = $"Contactos_Counts_{agenteId}_{request.Search}_{request.Estado}_{request.Segmento}_{request.Visibilidad}_{request.Origen}_{request.EstadoPropietario}_{request.IsArchived}";
+            var countsCacheKey = $"Contactos_Counts_{agenteId}_{request.Search}_{request.Estado}_{request.Segmento}_{request.Visibilidad}_{request.Origen}_{request.EstadoPropietario}_{request.EstadoIA_WA}_{request.EstadoIA_FB}_{request.IsArchived}";
             
             var memCache = serviceProvider.GetRequiredService<IMemoryCache>();
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Filter as FilterIcon, ChevronDown, Check, Plus, ArrowUp, ArrowDown, ArrowUpDown, Building2, SlidersHorizontal } from 'lucide-react';
+import { Filter as FilterIcon, ChevronDown, Check, Plus, ArrowUp, ArrowDown, ArrowUpDown, Building2, SlidersHorizontal, X } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { ESTADOS, OPERACIONES } from '../../constants/propiedades';
 import { TIPOS_PROPIEDAD } from '../../constants/propertyForm';
@@ -33,6 +33,7 @@ interface PropiedadesFiltersProps {
   sortDirection: SortDirection;
   setSortDirection: (dir: SortDirection) => void;
   setIsModalOpen: (open: boolean) => void;
+  clearAllFilters: () => void;
 }
 
 export const PropiedadesFilters = ({
@@ -51,7 +52,8 @@ export const PropiedadesFilters = ({
   setSortBy,
   sortDirection,
   setSortDirection,
-  setIsModalOpen
+  setIsModalOpen,
+  clearAllFilters
 }: PropiedadesFiltersProps) => {
 
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -94,13 +96,15 @@ export const PropiedadesFilters = ({
 
   const dynamicSortOptions = getDynamicSortOptions();
 
-  // Calcular filtros avanzados activos (excluyendo 'operacion' porque ahora está en la barra principal)
+  // Calcular filtros avanzados activos
   const activeAdvancedFiltersCount = Object.keys(advancedFilters).reduce((count, key) => {
-    if (key === 'operacion') return count;
     const value = advancedFilters[key];
     if (value === '' || value === null || value === undefined) return count;
+    if (key === 'operacion' && value === 'Todas') return count;
     return count + 1;
   }, 0);
+
+  const hasActiveFilters = searchQuery !== '' || filterEstado !== 'Todos' || filterTipo !== 'Todos' || activeAdvancedFiltersCount > 0 || advancedFilters.operacion !== 'Todas';
 
   return (
     <>
@@ -337,14 +341,34 @@ export const PropiedadesFilters = ({
 
           {/* Botón Filtros Avanzados */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-transparent select-none ml-1">Filtros</label>
-            <button 
-              onClick={() => setIsDrawerOpen(true)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer h-[42px] border ${activeAdvancedFiltersCount > 0 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span>Filtros {activeAdvancedFiltersCount > 0 ? `(${activeAdvancedFiltersCount})` : ''}</span>
-            </button>
+            <label className="text-[10px] font-black uppercase tracking-wider text-transparent select-none ml-1">_</label>
+            <div className="flex items-center gap-1.5">
+              <div className="relative">
+                <button 
+                  title="Filtros avanzados"
+                  onClick={() => setIsDrawerOpen(true)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer h-[42px] border ${activeAdvancedFiltersCount > 0 ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span className="hidden sm:inline">Filtros {activeAdvancedFiltersCount > 0 ? `(${activeAdvancedFiltersCount})` : ''}</span>
+                </button>
+                {activeAdvancedFiltersCount > 0 && (
+                  <span className="sm:hidden absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center bg-blue-600 text-white text-[9px] font-black rounded-full shadow-sm pointer-events-none">
+                    {activeAdvancedFiltersCount}
+                  </span>
+                )}
+              </div>
+              
+              {hasActiveFilters && (
+                <button
+                  title="Limpiar todos los filtros"
+                  onClick={clearAllFilters}
+                  className="flex items-center justify-center w-[42px] h-[42px] rounded-xl text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 transition-all shadow-sm cursor-pointer shrink-0"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
           </div>
 
         </div>

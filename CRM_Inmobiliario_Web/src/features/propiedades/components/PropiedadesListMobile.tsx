@@ -82,6 +82,7 @@ export const PropiedadesListMobile = ({ logic }: Props) => {
         sortDirection={sortDirection}
         setSortDirection={setSortDirection}
         setIsModalOpen={setIsModalOpen}
+        clearAllFilters={logic.clearAllFilters}
       />
 
       <PropiedadesStatsHeader 

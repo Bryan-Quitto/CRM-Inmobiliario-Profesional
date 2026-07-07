@@ -30,6 +30,10 @@ export const ContactosListDesktop: React.FC<ContactosListDesktopProps> = ({ logi
         setFilterEstadoCliente={logic.setFilterEstadoCliente}
         filterEstadoPropietario={logic.filterEstadoPropietario}
         setFilterEstadoPropietario={logic.setFilterEstadoPropietario}
+        filterEstadoIA_WA={logic.filterEstadoIA_WA}
+        setFilterEstadoIA_WA={logic.setFilterEstadoIA_WA}
+        filterEstadoIA_FB={logic.filterEstadoIA_FB}
+        setFilterEstadoIA_FB={logic.setFilterEstadoIA_FB}
         sortBy={logic.sortBy}
         setSortBy={logic.setSortBy}
         sortDirection={logic.sortDirection}
@@ -41,6 +45,7 @@ export const ContactosListDesktop: React.FC<ContactosListDesktopProps> = ({ logi
         onOpenCreateModal={() => logic.handleOpenCreateModal('create', { isOwnersView: logic.isOwnersView })}
         onOpenAdvancedFilters={() => logic.setIsAdvancedFiltersOpen(true)}
         advancedFiltersCount={logic.activeAdvancedCount}
+        clearAllFilters={logic.clearAllFilters}
       />
 
       <AdvancedFiltersDrawer

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import useSWR, { preload } from 'swr';
 import { getContactos, type GetContactosParams, type GetContactosResponse } from '../api/getContactos';
@@ -31,6 +31,8 @@ export const useContactosList = () => {
   const visibilidad = searchParams.get('visibilidad') || undefined;
   const origen = searchParams.get('origen') || undefined;
   const estadoPropietario = searchParams.get('estadoPropietario') || undefined;
+  const estadoIA_WA = searchParams.get('estadoIA_WA') || undefined;
+  const estadoIA_FB = searchParams.get('estadoIA_FB') || undefined;
   const isArchived = searchParams.get('isArchived') === 'true';
   const sortBy = searchParams.get('sortBy') || undefined;
   const sortDirection = searchParams.get('sortDirection') || undefined;
@@ -44,10 +46,12 @@ export const useContactosList = () => {
     visibilidad: visibilidad === 'Todos' ? undefined : visibilidad,
     origen: origen === 'Todos' ? undefined : origen,
     estadoPropietario: estadoPropietario === 'Todos' ? undefined : estadoPropietario,
+    estadoIA_WA: estadoIA_WA === 'Todos' ? undefined : estadoIA_WA,
+    estadoIA_FB: estadoIA_FB === 'Todos' ? undefined : estadoIA_FB,
     isArchived: isArchived || undefined,
     sortBy,
     sortDirection
-  }), [page, search, estado, activeSegment, visibilidad, origen, estadoPropietario, isArchived, sortBy, sortDirection]);
+  }), [page, search, estado, activeSegment, visibilidad, origen, estadoPropietario, estadoIA_WA, estadoIA_FB, isArchived, sortBy, sortDirection]);
 
   const { data: responseData, isLoading, isValidating, mutate } = useSWR<GetContactosResponse>(
     ['/contactos', params],

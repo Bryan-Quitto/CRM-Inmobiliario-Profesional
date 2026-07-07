@@ -24,6 +24,7 @@ export const usePropiedadesListLogic = (checkContactoId?: string) => {
     setSortDirection,
     currentPage,
     setCurrentPage,
+    clearAllFilters,
     queryParams
   } = usePropiedadesFiltering();
 
@@ -95,6 +96,7 @@ export const usePropiedadesListLogic = (checkContactoId?: string) => {
     setSortDirection,
     currentPage,
     setCurrentPage,
+    clearAllFilters,
     totalPages,
 
     // UI State

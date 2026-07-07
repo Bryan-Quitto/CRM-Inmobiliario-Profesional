@@ -223,9 +223,10 @@ export const ContactoCard = ({
                     waToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
                     : contacto.estadoIA_WA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
                     : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+                    : contacto.estadoIA_WA === 'Derivado a Captacion' ? 'bg-indigo-50 text-indigo-600 border-indigo-100/50'
                     : 'bg-slate-50 text-slate-400 border-slate-100'
                   }`}>
-                    {waToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_WA === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
+                    {waToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_WA === 'Escalado' ? 'Escalado' : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'Límite de uso' : contacto.estadoIA_WA === 'Derivado a Captacion' ? 'Desactivado (Captación)' : 'Desactivado'}
                   </span>
                 )}
                 <div className="opacity-0 group-hover:opacity-100 transition-all inline-block ml-1">
@@ -335,9 +336,10 @@ export const ContactoCard = ({
                     fbToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
                     : contacto.estadoIA_FB === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
                     : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+                    : contacto.estadoIA_FB === 'Derivado a Captacion' ? 'bg-indigo-50 text-indigo-600 border-indigo-100/50'
                     : 'bg-slate-50 text-slate-400 border-slate-100'
                   }`}>
-                    {fbToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_FB === 'Escalado' ? 'Escalado a Humano' : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'Límite de Tokens' : 'Desactivado'}
+                    {fbToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_FB === 'Escalado' ? 'Escalado' : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'Límite de uso' : contacto.estadoIA_FB === 'Derivado a Captacion' ? 'Desactivado (Captación)' : 'Desactivado'}
                   </span>
                 )}
                 <div className="opacity-0 group-hover:opacity-100 transition-all inline-block ml-1">

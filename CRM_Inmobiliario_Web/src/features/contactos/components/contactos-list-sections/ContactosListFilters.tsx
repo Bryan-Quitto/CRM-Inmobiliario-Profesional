@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, List, LayoutGrid, ChevronDown, Check, SlidersHorizontal, Globe, Users, Briefcase, ArrowUp, ArrowDown, ArrowUpDown, Eye } from 'lucide-react';
+import { Plus, List, LayoutGrid, ChevronDown, Check, SlidersHorizontal, Globe, Users, Briefcase, ArrowUp, ArrowDown, ArrowUpDown, Eye, Bot, X } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { ESTADOS, ESTADOS_PROPIETARIO, ORIGENES } from '../../constants/contactos';
+import { ESTADOS, ESTADOS_PROPIETARIO, ORIGENES, ESTADOS_IA } from '../../constants/contactos';
 import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { SortOptionContacto, SortDirectionContacto } from '../../hooks/useContactosFiltering';
 
@@ -26,6 +26,10 @@ interface ContactosListFiltersProps {
   setFilterEstadoCliente: (val: string) => void;
   filterEstadoPropietario: string;
   setFilterEstadoPropietario: (val: string) => void;
+  filterEstadoIA_WA: string;
+  setFilterEstadoIA_WA: (val: string) => void;
+  filterEstadoIA_FB: string;
+  setFilterEstadoIA_FB: (val: string) => void;
   viewMode: 'list' | 'kanban';
   setViewMode: (mode: 'list' | 'kanban') => void;
   onOpenCreateModal: () => void;
@@ -37,6 +41,7 @@ interface ContactosListFiltersProps {
   setSortDirection: (dir: SortDirectionContacto) => void;
   isArchived: boolean;
   setIsArchived: (val: boolean) => void;
+  clearAllFilters: () => void;
 }
 
 export const ContactosListFilters = ({
@@ -52,6 +57,10 @@ export const ContactosListFilters = ({
   setFilterEstadoCliente,
   filterEstadoPropietario,
   setFilterEstadoPropietario,
+  filterEstadoIA_WA,
+  setFilterEstadoIA_WA,
+  filterEstadoIA_FB,
+  setFilterEstadoIA_FB,
   viewMode,
   setViewMode,
   onOpenCreateModal,
@@ -62,7 +71,8 @@ export const ContactosListFilters = ({
   sortDirection,
   setSortDirection,
   isArchived,
-  setIsArchived
+  setIsArchived,
+  clearAllFilters
 }: ContactosListFiltersProps) => {
 
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -79,6 +89,8 @@ export const ContactosListFilters = ({
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdownId]);
+
+  const hasActiveFilters = searchQuery !== '' || filterVisibilidad !== 'Todos' || filterOrigen !== 'Todos' || filterEstadoCliente !== 'Todos' || filterEstadoPropietario !== 'Todos' || filterEstadoIA_WA !== 'Todos' || filterEstadoIA_FB !== 'Todos' || advancedFiltersCount > 0;
 
   return (
     <div className="flex flex-col space-y-6 mb-10">
@@ -181,10 +193,13 @@ export const ContactosListFilters = ({
         )}
       </div>
 
-      <div className="flex flex-wrap items-end gap-3" ref={dropdownRef}>
+      <div className="flex flex-col gap-4" ref={dropdownRef}>
+        
+        {/* Fila 1: Búsqueda, Orden y Avanzados */}
+        <div className="flex flex-col sm:flex-row items-end gap-3 w-full">
         
         {/* Búsqueda rápida */}
-        <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+        <div className="flex flex-col gap-1.5 w-full sm:w-[300px] md:w-[350px] lg:w-[400px]">
           <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Búsqueda rápida</label>
           <SearchInput 
             value={searchQuery}
@@ -194,6 +209,86 @@ export const ContactosListFilters = ({
           />
         </div>
 
+        {/* Dropdown de Ordenamiento */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Ordenar por</label>
+          <div className="relative">
+            <div className="flex bg-white border border-slate-200 rounded-xl shadow-sm hover:border-slate-300 transition-all h-[42px]">
+              <button 
+                onClick={() => setOpenDropdownId(openDropdownId === 'sort' ? null : 'sort')}
+                className="flex items-center gap-2 pl-4 pr-2 py-2.5 text-sm font-bold text-slate-600 transition-all cursor-pointer border-r border-slate-100 w-[180px] sm:w-[200px]"
+              >
+                <ArrowUpDown className="h-4 w-4 text-slate-500 shrink-0" />
+                <span className="truncate flex-1 text-left">{SORT_OPTIONS.find(o => o.value === sortBy)?.label || 'Seleccionar...'}</span>
+                <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'sort' ? 'rotate-180' : ''}`} />
+              </button>
+              <button
+                title={sortDirection === 'asc' ? 'Orden Ascendente' : 'Orden Descendente'}
+                onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                className="px-3 py-2.5 text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center cursor-pointer"
+              >
+                {sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+              </button>
+            </div>
+
+            {openDropdownId === 'sort' && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
+                {SORT_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => { setSortBy(option.value); setOpenDropdownId(null); }}
+                    className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                      sortBy === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                    }`}
+                  >
+                    {option.label}
+                    {sortBy === option.value && <Check className="h-4 w-4" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Botón Filtros Avanzados */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-black uppercase tracking-wider text-transparent select-none ml-1">_</label>
+          <div className="flex items-center gap-1.5">
+            <div className="relative">
+              <button 
+                title="Filtros avanzados"
+                onClick={onOpenAdvancedFilters}
+                className={`relative flex items-center justify-center w-[42px] h-[42px] rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer border ${
+                  advancedFiltersCount > 0 
+                    ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100' 
+                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                }`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </button>
+              {advancedFiltersCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center bg-blue-600 text-white text-[9px] font-black rounded-full shadow-sm pointer-events-none">
+                  {advancedFiltersCount}
+                </span>
+              )}
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                title="Limpiar todos los filtros"
+                onClick={clearAllFilters}
+                className="flex items-center justify-center w-[42px] h-[42px] rounded-xl text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 transition-all shadow-sm cursor-pointer shrink-0"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        </div>
+        </div>
+
+        {/* Fila 2: Filtros Rápidos Temáticos */}
+        <div className="flex flex-wrap items-end gap-3 w-full border-t border-slate-100 pt-3">
+        
         {/* Dropdown Visibilidad */}
         <div className="flex flex-col gap-1.5">
           <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Visibilidad</label>
@@ -235,7 +330,7 @@ export const ContactosListFilters = ({
               className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
             >
               <Globe className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="truncate flex-1 text-left">{filterOrigen === 'Todos' ? 'Todos los orígenes' : filterOrigen}</span>
+              <span className="truncate flex-1 text-left">{filterOrigen}</span>
               <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'origen' ? 'rotate-180' : ''}`} />
             </button>
 
@@ -247,7 +342,7 @@ export const ContactosListFilters = ({
                     filterOrigen === 'Todos' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
                   }`}
                 >
-                  Todos los orígenes
+                  Todos
                   {filterOrigen === 'Todos' && <Check className="h-4 w-4" />}
                 </button>
                 {ORIGENES.map((option) => (
@@ -277,7 +372,7 @@ export const ContactosListFilters = ({
                 className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
               >
                 <Users className="h-4 w-4 text-slate-500 shrink-0" />
-                <span className="truncate flex-1 text-left">{filterEstadoCliente === 'Todos' ? 'Todos los estados' : filterEstadoCliente}</span>
+                <span className="truncate flex-1 text-left">{filterEstadoCliente}</span>
                 <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_cliente' ? 'rotate-180' : ''}`} />
               </button>
 
@@ -289,7 +384,7 @@ export const ContactosListFilters = ({
                       filterEstadoCliente === 'Todos' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
                     }`}
                   >
-                    Todos los estados
+                    Todos
                     {filterEstadoCliente === 'Todos' && <Check className="h-4 w-4" />}
                   </button>
                   {[...ESTADOS, { label: 'Escalado', value: 'Escalado' }].map((option) => (
@@ -320,7 +415,7 @@ export const ContactosListFilters = ({
                 className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
               >
                 <Briefcase className="h-4 w-4 text-slate-500 shrink-0" />
-                <span className="truncate flex-1 text-left">{filterEstadoPropietario === 'Todos' ? 'Todos los estados' : filterEstadoPropietario}</span>
+                <span className="truncate flex-1 text-left">{filterEstadoPropietario}</span>
                 <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_propietario' ? 'rotate-180' : ''}`} />
               </button>
 
@@ -332,7 +427,7 @@ export const ContactosListFilters = ({
                       filterEstadoPropietario === 'Todos' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
                     }`}
                   >
-                    Todos los estados
+                    Todos
                     {filterEstadoPropietario === 'Todos' && <Check className="h-4 w-4" />}
                   </button>
                   {ESTADOS_PROPIETARIO.map((option) => (
@@ -353,40 +448,40 @@ export const ContactosListFilters = ({
           </div>
         )}
 
-        {/* Dropdown de Ordenamiento */}
+        {/* Dropdown Estado IA WhatsApp */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">Ordenar por</label>
+          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">IA WhatsApp</label>
           <div className="relative">
-            <div className="flex bg-white border border-slate-200 rounded-xl shadow-sm hover:border-slate-300 transition-all h-[42px]">
-              <button 
-                onClick={() => setOpenDropdownId(openDropdownId === 'sort' ? null : 'sort')}
-                className="flex items-center gap-2 pl-4 pr-2 py-2.5 text-sm font-bold text-slate-600 transition-all cursor-pointer border-r border-slate-100 w-[140px]"
-              >
-                <ArrowUpDown className="h-4 w-4 text-slate-500 shrink-0" />
-                <span className="truncate flex-1 text-left">{SORT_OPTIONS.find(o => o.value === sortBy)?.label || 'Seleccionar...'}</span>
-                <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'sort' ? 'rotate-180' : ''}`} />
-              </button>
-              <button
-                title={sortDirection === 'asc' ? 'Orden Ascendente' : 'Orden Descendente'}
-                onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-                className="px-3 py-2.5 text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center cursor-pointer"
-              >
-                {sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
-              </button>
-            </div>
+            <button 
+              onClick={() => setOpenDropdownId(openDropdownId === 'estado_ia_wa' ? null : 'estado_ia_wa')}
+              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
+            >
+              <Bot className="h-4 w-4 text-slate-500 shrink-0" />
+              <span className="truncate flex-1 text-left">{filterEstadoIA_WA}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_ia_wa' ? 'rotate-180' : ''}`} />
+            </button>
 
-            {openDropdownId === 'sort' && (
+            {openDropdownId === 'estado_ia_wa' && (
               <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
-                {SORT_OPTIONS.map((option) => (
+                <button
+                  onClick={() => { setFilterEstadoIA_WA('Todos'); setOpenDropdownId(null); }}
+                  className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                    filterEstadoIA_WA === 'Todos' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                  }`}
+                >
+                  Todos
+                  {filterEstadoIA_WA === 'Todos' && <Check className="h-4 w-4" />}
+                </button>
+                {ESTADOS_IA.filter(o => o.value !== 'Inactivo (Global)').map((option) => (
                   <button
                     key={option.value}
-                    onClick={() => { setSortBy(option.value); setOpenDropdownId(null); }}
+                    onClick={() => { setFilterEstadoIA_WA(option.value); setOpenDropdownId(null); }}
                     className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
-                      sortBy === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                      filterEstadoIA_WA === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
                     }`}
                   >
                     {option.label}
-                    {sortBy === option.value && <Check className="h-4 w-4" />}
+                    {filterEstadoIA_WA === option.value && <Check className="h-4 w-4" />}
                   </button>
                 ))}
               </div>
@@ -394,27 +489,47 @@ export const ContactosListFilters = ({
           </div>
         </div>
 
-        {/* Botón Filtros Avanzados — solo icono */}
+        {/* Dropdown Estado IA Facebook */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-black uppercase tracking-wider text-transparent select-none ml-1">_</label>
+          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 ml-1">IA Facebook</label>
           <div className="relative">
             <button 
-              title="Filtros avanzados"
-              onClick={onOpenAdvancedFilters}
-              className={`relative flex items-center justify-center w-[42px] h-[42px] rounded-xl text-sm font-bold transition-all shadow-sm cursor-pointer border ${
-                advancedFiltersCount > 0 
-                  ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100' 
-                  : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-              }`}
+              onClick={() => setOpenDropdownId(openDropdownId === 'estado_ia_fb' ? null : 'estado_ia_fb')}
+              className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
             >
-              <SlidersHorizontal className="h-4 w-4" />
+              <Bot className="h-4 w-4 text-slate-500 shrink-0" />
+              <span className="truncate flex-1 text-left">{filterEstadoIA_FB}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_ia_fb' ? 'rotate-180' : ''}`} />
             </button>
-            {advancedFiltersCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center bg-blue-600 text-white text-[9px] font-black rounded-full shadow-sm pointer-events-none">
-                {advancedFiltersCount}
-              </span>
+
+            {openDropdownId === 'estado_ia_fb' && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in duration-200 origin-top-right backdrop-blur-xl bg-white/95">
+                <button
+                  onClick={() => { setFilterEstadoIA_FB('Todos'); setOpenDropdownId(null); }}
+                  className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                    filterEstadoIA_FB === 'Todos' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                  }`}
+                >
+                  Todos
+                  {filterEstadoIA_FB === 'Todos' && <Check className="h-4 w-4" />}
+                </button>
+                {ESTADOS_IA.filter(o => o.value !== 'Inactivo (Global)').map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => { setFilterEstadoIA_FB(option.value); setOpenDropdownId(null); }}
+                    className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
+                      filterEstadoIA_FB === option.value ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                    }`}
+                  >
+                    {option.label}
+                    {filterEstadoIA_FB === option.value && <Check className="h-4 w-4" />}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
+        </div>
+
         </div>
 
       </div>

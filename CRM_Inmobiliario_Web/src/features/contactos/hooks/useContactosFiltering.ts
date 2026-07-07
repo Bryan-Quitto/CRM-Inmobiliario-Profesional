@@ -62,6 +62,8 @@ export const useContactosFiltering = () => {
   const filterVisibilidad = searchParams.get('visibilidad') || 'Todos';
   const filterOrigen = searchParams.get('origen') || 'Todos';
   const filterEstadoPropietario = searchParams.get('estadoPropietario') || 'Todos';
+  const filterEstadoIA_WA = searchParams.get('estadoIA_WA') || 'Todos';
+  const filterEstadoIA_FB = searchParams.get('estadoIA_FB') || 'Todos';
   const isArchived = searchParams.get('isArchived') === 'true';
   const sortBy = (searchParams.get('sortBy') as SortOptionContacto) || 'fechaCreacion';
   const sortDirection = (searchParams.get('sortDirection') as SortDirectionContacto) || 'desc';
@@ -90,6 +92,8 @@ export const useContactosFiltering = () => {
   const setFilterVisibilidad = (val: string) => setParamAndResetPage('visibilidad', val, 'Todos');
   const setFilterOrigen = (val: string) => setParamAndResetPage('origen', val, 'Todos');
   const setFilterEstadoPropietario = (val: string) => setParamAndResetPage('estadoPropietario', val, 'Todos');
+  const setFilterEstadoIA_WA = (val: string) => setParamAndResetPage('estadoIA_WA', val, 'Todos');
+  const setFilterEstadoIA_FB = (val: string) => setParamAndResetPage('estadoIA_FB', val, 'Todos');
   
   const setIsArchived = (val: boolean) => {
     setSearchParams(prev => {
@@ -152,6 +156,21 @@ export const useContactosFiltering = () => {
     }, { replace: true });
   };
 
+  const clearAllFilters = () => {
+    setSearchInput('');
+    setSearchParams(prevParams => {
+      const next = new URLSearchParams(prevParams);
+      const keysToDelete: string[] = [];
+      next.forEach((_, key) => {
+        if (!['isArchived', 'sortBy', 'sortDirection'].includes(key)) {
+          keysToDelete.push(key);
+        }
+      });
+      keysToDelete.forEach(k => next.delete(k));
+      return next;
+    }, { replace: true });
+  };
+
   return {
     searchQuery: searchInput,
     setSearchQuery: setSearchInput,
@@ -163,10 +182,15 @@ export const useContactosFiltering = () => {
     setFilterEstadoCliente,
     filterEstadoPropietario,
     setFilterEstadoPropietario,
+    filterEstadoIA_WA,
+    setFilterEstadoIA_WA,
+    filterEstadoIA_FB,
+    setFilterEstadoIA_FB,
     isArchived,
     setIsArchived,
     advancedFilters,
     setAdvancedFilters,
+    clearAllFilters,
     sortBy,
     setSortBy,
     sortDirection,

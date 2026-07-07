@@ -1,4 +1,4 @@
-﻿export const ESTADOS = [
+export const ESTADOS = [
   { label: 'Nuevo', value: 'Nuevo', color: 'bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100' },
   { label: 'Contactado', value: 'Contactado', color: 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100' },
   { label: 'En Negociación', value: 'En Negociación', color: 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100' },
@@ -10,6 +10,14 @@ export const ESTADOS_PROPIETARIO = [
   { label: 'Activo', value: 'Activo', color: 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100' },
   { label: 'Cerrado', value: 'Cerrado', color: 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100' },
   { label: 'Inactivo', value: 'Inactivo', color: 'bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100' },
+];
+
+export const ESTADOS_IA = [
+  { label: 'Operativo', value: 'Operativo', color: 'bg-emerald-50 text-emerald-600 border-emerald-100/50' },
+  { label: 'Desactivado', value: 'Desactivado', color: 'bg-slate-50 text-slate-400 border-slate-100' },
+  { label: 'Escalado', value: 'Escalado', color: 'bg-amber-50 text-amber-600 border-amber-100/50' },
+  { label: 'Límite de uso', value: 'Límite de uso', color: 'bg-purple-50 text-purple-600 border-purple-100/50' },
+  { label: 'Desactivado (Captación)', value: 'Desactivado (Captación)', color: 'bg-indigo-50 text-indigo-600 border-indigo-100/50' },
 ];
 
 export const TIPO_NOTA_OPCIONES = [

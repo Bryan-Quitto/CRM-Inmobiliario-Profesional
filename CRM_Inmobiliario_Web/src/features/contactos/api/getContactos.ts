@@ -10,6 +10,8 @@ export interface GetContactosParams {
   visibilidad?: string;
   origen?: string;
   estadoPropietario?: string;
+  estadoIA_WA?: string;
+  estadoIA_FB?: string;
   sortBy?: string;
   sortDirection?: string;
   isArchived?: boolean;

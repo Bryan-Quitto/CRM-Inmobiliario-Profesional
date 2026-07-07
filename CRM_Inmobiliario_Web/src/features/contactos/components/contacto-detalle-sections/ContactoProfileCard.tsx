@@ -293,9 +293,11 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
           ) : isBotActivo ? (
             <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Operativo</span>
           ) : estadoIA === 'Escalado' ? (
-            <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado a Humano</span>
+            <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Escalado</span>
           ) : estadoIA === 'LimiteAlcanzado' ? (
-            <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de Tokens</span>
+            <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Límite de uso</span>
+          ) : estadoIA === 'Derivado a Captacion' ? (
+            <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado (Captación)</span>
           ) : (
             <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
           )}

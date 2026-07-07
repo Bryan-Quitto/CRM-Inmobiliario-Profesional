@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Filter, ChevronDown, LayoutGrid, List } from 'lucide-react';
+import { Plus, Filter, ChevronDown, LayoutGrid, List, X } from 'lucide-react';
 import { SearchInput } from '../../../../components/ui/SearchInput';
-import { ORIGENES } from '../../constants/contactos';
+import { ORIGENES, ESTADOS_IA } from '../../constants/contactos';
 import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { ContactosListLogic } from '../../hooks/useContactosListLogic';
 
@@ -10,6 +10,8 @@ interface MobileFiltersProps {
 }
 
 export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic }) => {
+  const hasActiveFilters = logic.searchQuery !== '' || logic.filterVisibilidad !== 'Todos' || logic.filterOrigen !== 'Todos' || logic.filterEstadoIA_WA !== 'Todos' || logic.filterEstadoIA_FB !== 'Todos' || logic.activeAdvancedCount > 0;
+
   return (
     <div className="w-full flex flex-col space-y-4 mb-6 min-w-0">
       <div className="w-full flex justify-between items-start gap-4 min-w-0">
@@ -107,16 +109,53 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
           </select>
           <ChevronDown className="h-4 w-4 absolute right-3 bottom-3 text-slate-400 pointer-events-none" />
         </div>
+
+        <div className="flex flex-col gap-1 w-full relative">
+          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">IA WhatsApp</label>
+          <select 
+            value={logic.filterEstadoIA_WA}
+            onChange={(e) => logic.setFilterEstadoIA_WA(e.target.value)}
+            className="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none appearance-none shadow-sm"
+          >
+            <option value="Todos">Todos</option>
+            {ESTADOS_IA.filter(o => o.value !== 'Inactivo (Global)').map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          </select>
+          <ChevronDown className="h-4 w-4 absolute right-3 bottom-3 text-slate-400 pointer-events-none" />
+        </div>
+
+        <div className="flex flex-col gap-1 w-full relative">
+          <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">IA Facebook</label>
+          <select 
+            value={logic.filterEstadoIA_FB}
+            onChange={(e) => logic.setFilterEstadoIA_FB(e.target.value)}
+            className="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none appearance-none shadow-sm"
+          >
+            <option value="Todos">Todos</option>
+            {ESTADOS_IA.filter(o => o.value !== 'Inactivo (Global)').map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          </select>
+          <ChevronDown className="h-4 w-4 absolute right-3 bottom-3 text-slate-400 pointer-events-none" />
+        </div>
       </div>
 
       <div className="w-full flex flex-col gap-3 min-w-0">
-        <button 
-          onClick={() => logic.setIsAdvancedFiltersOpen(true)}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl font-bold shadow-sm cursor-pointer"
-        >
-          <Filter className="h-4 w-4 shrink-0" />
-          Filtros {logic.activeAdvancedCount > 0 && `(${logic.activeAdvancedCount})`}
-        </button>
+        <div className="flex gap-2 w-full">
+          <button 
+            onClick={() => logic.setIsAdvancedFiltersOpen(true)}
+            className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl font-bold shadow-sm cursor-pointer"
+          >
+            <Filter className="h-4 w-4 shrink-0" />
+            Filtros {logic.activeAdvancedCount > 0 && `(${logic.activeAdvancedCount})`}
+          </button>
+          
+          {hasActiveFilters && (
+            <button
+              onClick={() => logic.clearAllFilters()}
+              className="flex items-center justify-center w-[44px] shrink-0 py-2.5 bg-red-50 border border-red-200 text-red-500 rounded-xl hover:bg-red-100 transition-all shadow-sm cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
 
         {logic.activeSegment !== 'todos' && !logic.isArchived && (
           <button 

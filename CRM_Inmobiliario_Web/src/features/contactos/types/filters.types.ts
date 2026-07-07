@@ -1,7 +1,7 @@
 export type FilterFieldType = 'text' | 'select' | 'range' | 'boolean' | 'date';
 export type ContactoFilterKey = string; // Claves de la interfaz Contacto
 
-import { ESTADOS, ESTADOS_PROPIETARIO, ORIGENES } from '../constants/contactos';
+import { ESTADOS, ESTADOS_PROPIETARIO, ORIGENES, ESTADOS_IA } from '../constants/contactos';
 
 export interface FilterDefinition {
   key: ContactoFilterKey;
@@ -59,6 +59,18 @@ export const AVAILABLE_CONTACT_FILTERS: FilterDefinition[] = [
     label: 'Visibilidad', 
     type: 'select',
     options: ['Todos', 'Propios', 'Compartidos']
+  },
+  {
+    key: 'estadoIA_WA',
+    label: 'IA WhatsApp',
+    type: 'select',
+    options: ['Todos', ...ESTADOS_IA.map(o => o.value)]
+  },
+  {
+    key: 'estadoIA_FB',
+    label: 'IA Facebook',
+    type: 'select',
+    options: ['Todos', ...ESTADOS_IA.map(o => o.value)]
   },
 
   // Date
