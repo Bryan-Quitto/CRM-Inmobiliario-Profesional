@@ -99,6 +99,7 @@ secrets.json
 Instrucciones.txt
 .aider*
 .antigravityignore
+backup-dr-context.md
 
 # --- [ Whitelist (Overrides) ] ---
 !CRM_Inmobiliario.slnx

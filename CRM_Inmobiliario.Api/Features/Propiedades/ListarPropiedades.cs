@@ -44,7 +44,7 @@ public static class ListarPropiedadesFeature
                 .FirstOrDefaultAsync();
 
             var query = ListarPropiedadesQueryBuilder.BuildPermissionsQuery(context, currentUserId, agenciaId, request.IsArchived);
-            query = ListarPropiedadesQueryBuilder.ApplyFilters(query, request);
+            query = ListarPropiedadesQueryBuilder.ApplyFilters(context, query, request);
 
             var memCache = serviceProvider.GetRequiredService<IMemoryCache>();
             var counts = await ListarPropiedadesCountsHelper.GetCountsAsync(memCache, query, currentUserId, agenciaId, request, cancellationToken);

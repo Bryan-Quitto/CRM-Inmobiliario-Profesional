@@ -40,12 +40,20 @@ public static class ListarPropiedadesQueryBuilder
         return query;
     }
 
-    public static IQueryable<Property> ApplyFilters(IQueryable<Property> query, GetPropiedadesRequest request)
+    public static IQueryable<Property> ApplyFilters(CrmDbContext context, IQueryable<Property> query, GetPropiedadesRequest request)
     {
         if (!string.IsNullOrWhiteSpace(request.SearchQuery))
         {
-            var searchPattern = $"%{CrmDbContext.NormalizeText(request.SearchQuery)}%";
-            query = query.Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern));
+            var searchString = CrmDbContext.NormalizeText(request.SearchQuery);
+            if (context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                query = query.Where(p => p.NormalizedSearchText != null && p.NormalizedSearchText.Contains(searchString));
+            }
+            else
+            {
+                var searchPattern = $"%{searchString}%";
+                query = query.Where(p => EF.Functions.ILike(p.NormalizedSearchText, searchPattern));
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.EstadoComercial) && request.EstadoComercial != "Todos")
