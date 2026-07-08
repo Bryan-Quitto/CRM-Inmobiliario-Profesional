@@ -24,6 +24,8 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   const location = useLocation();
+  // Almacenamos el path optimista y la ruta desde la que se inició
+  const [optimisticState, setOptimisticState] = useState<{ path: string, from: string } | null>(null);
 
   const menuItems = [
     { id: 'dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Inicio' },
@@ -35,8 +37,13 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname.startsWith(path);
+    // Si la locación actual sigue siendo desde la que hicimos clic, usamos el optimista.
+    // Si la locación cambió (la navegación terminó), el optimista se ignora naturalmente.
+    const isPending = optimisticState && optimisticState.from === location.pathname;
+    const currentPath = isPending ? optimisticState.path : location.pathname;
+    
+    if (path === '/') return currentPath === '/';
+    return currentPath.startsWith(path);
   };
 
   const { pendingCount } = usePendingOperationsStore();
@@ -91,6 +98,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           <Link
             key={item.id}
             to={item.path}
+            onClick={() => setOptimisticState({ path: item.path, from: location.pathname })}
             aria-label={`Ir a ${item.label}`}
             className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative block ${
               isActive(item.path)
@@ -113,6 +121,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       <div className="p-3 border-t border-slate-800/50 space-y-2">
         <Link 
           to="/configuracion/perfil"
+          onClick={() => setOptimisticState({ path: '/configuracion', from: location.pathname })}
           aria-label="Abrir Configuración"
           className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative block ${
             isActive('/configuracion')
