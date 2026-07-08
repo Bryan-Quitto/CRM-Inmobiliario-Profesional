@@ -10,7 +10,6 @@ interface PDFLinkInternalProps {
 
 const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   const [status, setStatus] = useState<'checking' | 'exists' | 'missing' | 'generating'>('checking');
-  const [isDeleting, setIsDeleting] = useState(false);
   
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const pdfUrl = `${supabaseUrl}/storage/v1/object/public/propiedades/ficha_${propiedad.id}.pdf`;
@@ -43,7 +42,6 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
             toast.success('¡PDF generado con éxito!');
           }
           setStatus('exists');
-          setIsDeleting(false); // Si existe, reseteamos el estado de borrado
         } else {
           setStatus('missing');
         }
@@ -75,11 +73,6 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   };
 
   const handleDownload = async () => {
-    if (isDeleting) {
-      toast.error('El archivo está siendo procesado para eliminación. Genera uno nuevo.');
-      return;
-    }
-
     try {
       const freshUrl = `${pdfUrl}?t=${Date.now()}`;
       const response = await fetch(freshUrl);
@@ -98,15 +91,9 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      // --- Lógica de borrado programado (30 segundos) ---
-      setIsDeleting(true);
-      await api.post(`/propiedades/${propiedad.id}/confirmar-descarga`);
-      toast.success('Descarga exitosa. El archivo se eliminará del servidor en 30 segundos por seguridad.', {
+      toast.success('Descarga exitosa.', {
         duration: 5000
       });
-      
-      // Cambiamos estado localmente para evitar descargas dobles de un archivo que va a morir
-      setTimeout(() => setStatus('missing'), 31000);
 
     } catch {
       toast.error('El PDF ya no está disponible. Por favor, genéralo de nuevo.');
@@ -144,19 +131,17 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   return (
     <div className="flex items-center gap-1.5 animate-in fade-in zoom-in duration-500">
       <button 
-        title={isDeleting ? "Archivo en proceso de eliminación" : "Descargar Ficha Técnica PDF"}
+        title="Descargar Ficha Técnica PDF"
         onClick={handleDownload}
-        disabled={isDeleting}
-        className={`cursor-pointer ${`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-1.5 active:scale-95 ${isDeleting ? 'bg-slate-100 text-slate-400 shadow-none' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'}`}`}
+        className="cursor-pointer px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
       >
-        {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
-        {isDeleting ? "Borrando..." : "Descargar PDF"}
+        <FileDown className="h-3.5 w-3.5" />
+        Descargar PDF
       </button>
       
       <button
         title="Regenerar PDF (Forzar actualización)"
         onClick={handleGenerate}
-        disabled={isDeleting}
         className="p-1.5 bg-white border border-slate-200 text-slate-400 rounded-full hover:text-indigo-600 hover:border-indigo-200 transition-all disabled:opacity-30 cursor-pointer"
       >
         <RefreshCw className="h-3.5 w-3.5" />

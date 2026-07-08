@@ -113,7 +113,6 @@ builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.Tools.I
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.IPropertyGalleryAiDispatcher, CRM_Inmobiliario.Api.Features.CoreAi.Services.PropertyGalleryAiDispatcher>();
 
 builder.Services.AddSingleton<IPdfGeneratorQueue, PdfGeneratorQueue>();
-builder.Services.AddSingleton<IPdfCleanupQueue, PdfCleanupQueue>();
 builder.Services.AddSingleton<IKpiWarmingService, KpiWarmingService>();
 
 var r2AccessKey = builder.Configuration["R2_ACCESS_KEY_ID"];
@@ -130,7 +129,6 @@ if (!string.IsNullOrEmpty(r2AccessKey) && !string.IsNullOrEmpty(r2SecretKey) && 
     builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
 }
 builder.Services.AddHostedService<PdfWorker>();
-builder.Services.AddHostedService<PdfCleanupWorker>();
 builder.Services.AddHostedService<KpiWarmingBackgroundService>();
 builder.Services.AddScoped<TokenLimitResetJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.TaskNotificationJob>();
