@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { translateAuthError } from '../../../lib/auth-errors';
 
 export const useActualizarClaveLogic = () => {
   const [password, setPassword] = useState('');
@@ -37,8 +38,9 @@ export const useActualizarClaveLogic = () => {
       });
 
       if (authError) {
-        setError('Error al actualizar la contraseña.');
-        toast.error('Error al actualizar la contraseña.');
+        const msg = translateAuthError(authError.message);
+        setError(msg);
+        toast.error(msg);
       } else {
         toast.success('¡Contraseña actualizada con éxito!');
         navigate('/');

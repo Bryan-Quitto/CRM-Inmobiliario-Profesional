@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
+import { translateAuthError } from '../../../lib/auth-errors';
 
 export type ConfirmarInvitacionLogic = ReturnType<typeof useConfirmarInvitacionLogic>;
 
@@ -94,7 +95,8 @@ export const useConfirmarInvitacionLogic = () => {
         apellido: formData.apellido,
         telefono: formData.telefono,
         agenciaId: formData.agenciaId || null,
-        guestAgentId: guestAgentId
+        guestAgentId: guestAgentId,
+        terminosAceptadosVersion: import.meta.env.VITE_CURRENT_TOS_VERSION || ''
       });
 
       toast.success('¡Perfil configurado!', {
@@ -109,9 +111,10 @@ export const useConfirmarInvitacionLogic = () => {
 
     } catch (err: unknown) {
       const errorWithMsg = err as { response?: { data?: { message?: string } }; message?: string };
-      const msg = errorWithMsg.response?.data?.message || errorWithMsg.message || 'Error al activar tu perfil';
+      const rawMsg = errorWithMsg.response?.data?.message || errorWithMsg.message;
+      const msg = translateAuthError(rawMsg);
       setError(msg);
-      toast.error('Error de activación');
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

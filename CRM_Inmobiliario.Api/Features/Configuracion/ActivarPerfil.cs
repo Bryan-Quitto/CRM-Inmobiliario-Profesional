@@ -16,7 +16,8 @@ public static class ActivarPerfil
         string Apellido,
         string Telefono,
         Guid? AgenciaId,
-        Guid? GuestAgentId = null);
+        Guid? GuestAgentId = null,
+        string? TerminosAceptadosVersion = null);
 
     public static IEndpointRouteBuilder MapActivarPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
@@ -46,7 +47,8 @@ public static class ActivarPerfil
                         AgenciaId = request.AgenciaId,
                         Rol = "Agente",
                         Activo = true,
-                        FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5))
+                        FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)),
+                        TerminosAceptadosVersion = request.TerminosAceptadosVersion
                     };
                     context.Agents.Add(agente);
                 }
@@ -58,6 +60,10 @@ public static class ActivarPerfil
                     agente.Telefono = request.Telefono.NormalizePhoneE164() ?? request.Telefono;
                     agente.AgenciaId = request.AgenciaId;
                     agente.Activo = true;
+                    if (!string.IsNullOrEmpty(request.TerminosAceptadosVersion))
+                    {
+                        agente.TerminosAceptadosVersion = request.TerminosAceptadosVersion;
+                    }
                 }
 
                 await using var transaction = await context.Database.BeginTransactionAsync();

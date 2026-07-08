@@ -3,6 +3,7 @@ import { usePerfil } from '../api/perfil';
 import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
 import { usePasswordLockout } from './usePasswordLockout';
+import { translateAuthError } from '../../../lib/auth-errors';
 
 export interface FormDataPerfil {
   nombre: string;
@@ -162,7 +163,7 @@ export const useConfiguracionPerfilLogic = () => {
       
     } catch (err) {
       const pError = err as Error;
-      toast.error('Error', { description: pError.message || 'Ocurrió un error al actualizar la contraseña' });
+      toast.error('Error', { description: translateAuthError(pError.message) });
     } finally {
       setIsUpdatingPwd(false);
     }

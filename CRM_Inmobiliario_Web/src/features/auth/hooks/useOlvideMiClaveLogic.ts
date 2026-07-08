@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
+import { translateAuthError } from '../../../lib/auth-errors';
 
 export const useOlvideMiClaveLogic = () => {
   const [email, setEmail] = useState('');
@@ -25,8 +26,9 @@ export const useOlvideMiClaveLogic = () => {
           setError(limitMsg);
           toast.warning(limitMsg, { duration: 8000 });
         } else {
-          setError('Error al enviar el enlace de recuperación.');
-          toast.error('Error al enviar el enlace de recuperación.');
+          const msg = translateAuthError(authError.message);
+          setError(msg);
+          toast.error(msg);
         }
       } else {
         setIsSuccess(true);

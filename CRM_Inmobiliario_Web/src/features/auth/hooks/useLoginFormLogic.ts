@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
 import { usePasswordLockout } from './usePasswordLockout';
+import { translateAuthError } from '../../../lib/auth-errors';
 
 export const useLoginFormLogic = () => {
   const [email, setEmail] = useState('');
@@ -29,15 +30,15 @@ export const useLoginFormLogic = () => {
       });
 
       if (authError) {
-        let message = 'Error al iniciar sesión';
         if (authError.message === 'Invalid login credentials') {
-          message = 'Email o contraseña incorrectos';
           lockout.registerFailedAttempt();
-        } else if (authError.message.toLowerCase().includes('banned')) {
-          message = 'Esta cuenta ha sido desactivada por el administrador.';
-        } else {
-          message = authError.message;
         }
+        
+        let message = translateAuthError(authError.message);
+        if (authError.message.toLowerCase().includes('banned')) {
+          message = 'Esta cuenta ha sido desactivada por el administrador.';
+        }
+        
         setError(message);
         toast.error(message);
       } else {
