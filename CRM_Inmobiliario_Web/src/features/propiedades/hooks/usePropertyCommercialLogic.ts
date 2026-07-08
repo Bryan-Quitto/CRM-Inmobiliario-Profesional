@@ -89,9 +89,20 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
       return;
     }
 
-    if (nuevoEstado === 'Inactiva' && !confirmed && !esCerradoOReservado(propiedad.estadoComercial)) {
+    if ((nuevoEstado === 'Inactiva' || nuevoEstado === 'Archivado') && !confirmed && !esCerradoOReservado(propiedad.estadoComercial)) {
+      if (nuevoEstado === 'Archivado') {
+        const hasSeen = localStorage.getItem('hasSeenArchivedWarning') === 'true';
+        if (hasSeen) {
+          await executeDirectUpdate(propiedad, nuevoEstado);
+          return;
+        }
+      }
       callbacks?.onOpenConfirmationModal(nuevoEstado);
       return;
+    }
+
+    if (confirmed && nuevoEstado === 'Archivado') {
+      localStorage.setItem('hasSeenArchivedWarning', 'true');
     }
 
     const isReversion = (nuevoEstado === 'Disponible' || nuevoEstado === 'Inactiva') && esCerradoOReservado(propiedad.estadoComercial);

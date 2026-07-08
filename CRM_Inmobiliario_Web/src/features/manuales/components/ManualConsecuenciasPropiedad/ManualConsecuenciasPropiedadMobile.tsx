@@ -19,6 +19,10 @@ export const ManualConsecuenciasPropiedadMobile: React.FC = () => {
           </p>
           
           <div className="space-y-2 mb-4">
+            <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+              <h4 className="font-bold text-orange-900 text-xs mb-1">Limpieza a los 31 días</h4>
+              <p className="text-xs text-slate-600">Si pasa más de 31 días consecutivos archivada, se borrarán permanentemente sus fotos y PDF para ahorrar espacio.</p>
+            </div>
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
               <h4 className="font-bold text-rose-800 text-xs mb-1">Datos y Compartir</h4>
               <p className="text-xs text-slate-600">No puedes editar su perfil, exportarla a PDF ni compartirla por WhatsApp.</p>

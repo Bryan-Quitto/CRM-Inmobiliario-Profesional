@@ -26,7 +26,15 @@ export const PropiedadStatusConfirmModal = ({
             ¿Confirmar estado {statusConfirmation.nuevoEstado}?
           </h3>
           <p className="text-slate-500 font-medium contactoing-relaxed mb-8">
-            Al marcar esta propiedad como <span className="font-bold text-slate-900">{statusConfirmation.nuevoEstado}</span>, todas las imágenes de la galería serán eliminadas permanentemente para optimizar el almacenamiento, <span className="text-rose-600 font-bold">excepto la foto de portada</span>.
+            {statusConfirmation.nuevoEstado === 'Archivado' ? (
+              <>
+                Al archivar esta propiedad, si permanece en este estado por <span className="font-bold text-slate-900">más de 31 días consecutivos</span>, <span className="text-rose-600 font-bold">todas sus imágenes y ficha técnica (PDF) serán eliminadas automáticamente</span> para optimizar espacio en el servidor (podrás regenerar el PDF después).
+              </>
+            ) : (
+              <>
+                Al marcar esta propiedad como <span className="font-bold text-slate-900">{statusConfirmation.nuevoEstado}</span>, todas las imágenes de la galería serán eliminadas permanentemente para optimizar el almacenamiento, <span className="text-rose-600 font-bold">excepto la foto de portada</span>.
+              </>
+            )}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3">

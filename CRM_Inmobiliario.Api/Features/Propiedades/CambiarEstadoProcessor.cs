@@ -61,6 +61,7 @@ public static class CambiarEstadoProcessor
         property.PrecioReserva = esReserva ? precioCierre : null;
         property.CerradoConId = esCierreOReserva ? cerradoConId : null;
         property.AgenteCerradorId = esCierreOReserva ? agenteCerradorId : null;
+        property.FechaArchivado = nuevoEstado == "Archivado" ? ecuadorNow : null;
 
         // 4.1. Asegurar Interés
         await CambiarEstadoContactManager.AsegurarInteresAsync(

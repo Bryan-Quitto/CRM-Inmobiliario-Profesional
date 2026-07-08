@@ -24,6 +24,14 @@ export const useAutoArchivadoSettingsLogic = () => {
   }, [data]);
 
   const handleChange = (field: keyof ArchivingConfig, value: number | boolean) => {
+    if (field === 'autoArchivarPropiedades' && value === true) {
+      const hasSeen = localStorage.getItem('hasSeenAutoArchivarWarning') === 'true';
+      if (!hasSeen) {
+        const agreed = window.confirm("Aviso de Limpieza Automática:\n\nAl habilitar el auto-archivado, si una propiedad permanece en estado 'Archivado' por más de 31 días consecutivos, todas sus fotografías y ficha técnica (PDF) serán eliminadas de forma permanente del servidor para ahorrar espacio.\n\n¿Estás seguro de que deseas habilitar esta opción?");
+        if (!agreed) return;
+        localStorage.setItem('hasSeenAutoArchivarWarning', 'true');
+      }
+    }
     setSettings(prev => ({ ...prev, [field]: value }));
   };
 

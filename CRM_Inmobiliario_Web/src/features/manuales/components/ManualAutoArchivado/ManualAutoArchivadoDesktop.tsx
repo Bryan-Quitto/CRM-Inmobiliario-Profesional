@@ -84,7 +84,7 @@ export const ManualAutoArchivadoDesktop: React.FC = () => {
 
               <div className="bg-rose-50 p-5 rounded-xl border border-rose-100">
                 <h3 className="font-bold text-rose-900 mb-2">Se bloquea en Propiedades:</h3>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-rose-800/80">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-rose-800/80 mb-4">
                   <li>• Edición General</li>
                   <li>• Botones Exportar/Compartir</li>
                   <li>• Gestión de Multimedia y Galería</li>
@@ -92,6 +92,10 @@ export const ManualAutoArchivadoDesktop: React.FC = () => {
                   <li>• Nuevas notas de transacciones</li>
                   <li>• Cambio de estado</li>
                 </ul>
+                <div className="bg-white/60 p-3 rounded-lg border border-rose-200/50">
+                  <h4 className="font-bold text-orange-900 text-xs mb-1 uppercase tracking-wide">⚠️ Limpieza Automática</h4>
+                  <p className="text-xs text-rose-800/90">Si la propiedad permanece archivada por <strong>más de 31 días</strong>, sus fotografías y PDF se eliminarán automáticamente para liberar almacenamiento.</p>
+                </div>
               </div>
             </div>
 

@@ -19,6 +19,17 @@ export const ManualConsecuenciasPropiedadDesktop: React.FC = () => {
               Cuando una propiedad pasa a estado "Archivado", entra en un modo de <strong>"solo lectura"</strong> para preservar su información histórica intacta.
             </p>
             
+            <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-200/50 mb-4">
+              <h3 className="font-bold text-orange-900 mb-2 flex items-center gap-2"><Archive className="w-5 h-5 text-orange-600" /> Limpieza Automática (31 Días)</h3>
+              <p className="text-sm text-slate-700 mb-3">
+                Para optimizar el almacenamiento del servidor, si una propiedad permanece en estado <strong>"Archivado" por más de 31 días consecutivos</strong>, el sistema realizará una limpieza automática de recursos pesados.
+              </p>
+              <ul className="space-y-2 text-sm text-slate-700">
+                <li><strong className="text-orange-800">Galería Fotográfica:</strong> Se eliminarán todas las fotografías permanentemente.</li>
+                <li><strong className="text-orange-800">Ficha Técnica (PDF):</strong> Se eliminará el PDF pre-generado (podrás volver a generarlo luego).</li>
+              </ul>
+            </div>
+
             <div className="bg-rose-50/50 p-5 rounded-xl border border-rose-100/50 mb-4">
               <h3 className="font-bold text-rose-900 mb-3 text-sm">Acciones deshabilitadas:</h3>
               <ul className="space-y-3 text-sm text-slate-700">

@@ -71,6 +71,8 @@ public sealed class Property
     [MaxLength(50)]
     public string EstadoComercial { get; set; } = "Disponible";
 
+    public DateTimeOffset? FechaArchivado { get; set; }
+
     [Required]
     public bool EsCaptacionPropia { get; set; } = true;
 
