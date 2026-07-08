@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CRM_Inmobiliario.Api.Exceptions;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Infrastructure.Services;
@@ -49,7 +50,15 @@ public static class SubirFotoPerfilFeature
                 }
             }
 
-            var urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType);
+            string urlPublica;
+            try
+            {
+                urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType, agenteId);
+            }
+            catch (StorageQuotaExceededException ex)
+            {
+                return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+            }
             
             agente.FotoUrl = urlPublica;
             await context.SaveChangesAsync();

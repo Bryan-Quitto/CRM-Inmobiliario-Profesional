@@ -114,6 +114,28 @@ api.interceptors.response.use(
       });
     }
 
+    // Traducción global y extracción de mensajes limpios del backend (ProblemDetails RFC 7807)
+    if (error.response) {
+      const data = error.response.data;
+      if (data && typeof data === 'object') {
+        // detail es típicamente donde ponemos nuestros mensajes de dominio en Results.Problem
+        const mensajeBackend = data.detail || data.title;
+        if (mensajeBackend) {
+          error.message = mensajeBackend;
+        } else if (error.response.status >= 500) {
+          error.message = 'Ocurrió un error interno en el servidor. Nuestro equipo ha sido notificado.';
+        } else if (error.response.status >= 400) {
+          error.message = 'La solicitud no pudo procesarse correctamente.';
+        }
+      } else if (error.response.status >= 500) {
+        error.message = 'Ocurrió un error interno en el servidor. Nuestro equipo ha sido notificado.';
+      } else {
+        error.message = 'Ocurrió un error inesperado al contactar con el servidor.';
+      }
+    } else if (error.message === 'Network Error') {
+      error.message = 'Error de red. Verifica tu conexión a internet.';
+    }
+
     return Promise.reject(error);
   }
 );

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, BellRing } from 'lucide-react';
+import { Loader2, BellRing, AlertCircle } from 'lucide-react';
 import type { DashboardPrincipalLogicType } from '../hooks/useDashboardPrincipalLogic';
+import { usePerfil } from '@/features/auth/api/perfil';
 import { KpiCards } from './KpiCards';
 import { SeguimientoCritico } from './SeguimientoCritico';
 import { EmbudoVentas } from './EmbudoVentas';
@@ -13,6 +14,9 @@ interface Props {
 
 export const DashboardPrincipalDesktop: React.FC<Props> = ({ logic }) => {
   const { data, syncing, isSupported, isSubscribed, greeting } = logic;
+  const { perfil } = usePerfil();
+
+  const isStorageFull = perfil && perfil.monthlyStorageBytesLimit > 0 && perfil.currentMonthStorageBytesUsed >= perfil.monthlyStorageBytesLimit;
 
   if (!data) {
     return (
@@ -51,6 +55,23 @@ export const DashboardPrincipalDesktop: React.FC<Props> = ({ logic }) => {
           >
             Configurar
           </Link>
+        </div>
+      )}
+
+      {isStorageFull && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in zoom-in-95 duration-500">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-red-100 text-red-700 rounded-xl">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">Has alcanzado tu límite mensual de almacenamiento ({Math.round(perfil.monthlyStorageBytesLimit / (1024 * 1024))} MB)</h3>
+              <p className="text-sm text-slate-600 mt-0.5">
+                Tu cuota se renovará en <strong>{perfil.daysUntilStorageReset} días</strong>. 
+                Por favor, contáctate con <a href="mailto:soporte@luminacrminmobiliario.com" className="text-red-700 font-bold hover:underline">soporte@luminacrminmobiliario.com</a> si deseas asistencia.
+              </p>
+            </div> 
+          </div>
         </div>
       )}
 

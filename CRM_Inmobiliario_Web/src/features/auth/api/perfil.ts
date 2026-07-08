@@ -16,6 +16,9 @@ export interface PerfilAgente {
   terminosAceptadosVersion?: string;
   rol: string;
   fechaCreacion: string;
+  monthlyStorageBytesLimit: number;
+  currentMonthStorageBytesUsed: number;
+  daysUntilStorageReset: number;
 }
 
 export const usePerfil = () => {

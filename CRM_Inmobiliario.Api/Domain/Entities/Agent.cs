@@ -61,6 +61,9 @@ public sealed class Agent
 
     public bool IsPersonalAiEnabled { get; set; } = false;
 
+    public int MonthlyStorageUploadsLimit { get; set; } = 5000;
+    public long MonthlyStorageBytesLimit { get; set; } = 209715200; // 200 MB
+
     public bool IsWhatsAppAiEnabled { get; set; } = false;
 
     public bool AutoCreateWhatsAppContacts { get; set; } = true;

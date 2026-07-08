@@ -24,7 +24,10 @@ public static class ObtenerPerfil
         string? PromptPersonalIA,
         string Rol,
         string? TerminosAceptadosVersion,
-        DateTimeOffset FechaCreacion);
+        DateTimeOffset FechaCreacion,
+        long MonthlyStorageBytesLimit,
+        long CurrentMonthStorageBytesUsed,
+        int DaysUntilStorageReset);
 
     public static IEndpointRouteBuilder MapObtenerPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
@@ -36,49 +39,50 @@ public static class ObtenerPerfil
                         ?? user.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress") 
                         ?? "";
 
-            var perfil = await context.Agents
+            var year = DateTime.UtcNow.Year;
+            var month = DateTime.UtcNow.Month;
+            var daysInMonth = DateTime.DaysInMonth(year, month);
+            var daysUntilReset = daysInMonth - DateTime.UtcNow.Day + 1;
+
+            var perfilData = await context.Agents
                 .AsNoTracking()
                 .Where(a => a.Id == agenteId)
-                .Select(a => new Response(
-                    a.Id,
-                    a.Nombre,
-                    a.Apellido,
-                    a.Email,
-                    a.Telefono,
-                    a.Agencia != null ? a.Agencia.Nombre : null,
-                    a.AgenciaId,
-                    a.FotoUrl,
-                    a.LogoUrl,
-                    a.DireccionFisica,
-                    a.PromptPersonalIA,
-                    a.Rol,
-                    a.TerminosAceptadosVersion,
-                    a.FechaCreacion))
+                .Select(a => new {
+                    Agent = a,
+                    Usage = context.AgentStorageUsages.FirstOrDefault(u => u.AgentId == a.Id && u.Year == year && u.Month == month)
+                })
                 .FirstOrDefaultAsync();
 
-            if (perfil is null)
+            if (perfilData is null)
             {
-
                 return Results.Ok(new Response(
-                    agenteId,
-                    "",
-                    "",
-                    email,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "Agente",
-                    null,
-                    DateTimeOffset.UtcNow
+                    agenteId, "", "", email, null, null, null, null, null, null, null, "Agente", null, DateTimeOffset.UtcNow,
+                    209715200, 0, daysUntilReset
                 ));
             }
 
+            var perfil = new Response(
+                perfilData.Agent.Id,
+                perfilData.Agent.Nombre,
+                perfilData.Agent.Apellido,
+                perfilData.Agent.Email,
+                perfilData.Agent.Telefono,
+                perfilData.Agent.Agencia != null ? perfilData.Agent.Agencia.Nombre : null,
+                perfilData.Agent.AgenciaId,
+                perfilData.Agent.FotoUrl,
+                perfilData.Agent.LogoUrl,
+                perfilData.Agent.DireccionFisica,
+                perfilData.Agent.PromptPersonalIA,
+                perfilData.Agent.Rol,
+                perfilData.Agent.TerminosAceptadosVersion,
+                perfilData.Agent.FechaCreacion,
+                perfilData.Agent.MonthlyStorageBytesLimit,
+                perfilData.Usage != null ? perfilData.Usage.TotalBytesUploaded : 0,
+                daysUntilReset);
 
             return Results.Ok(perfil);
+
+
         })
         .WithTags("Configuracion")
         .WithName("ObtenerPerfil");

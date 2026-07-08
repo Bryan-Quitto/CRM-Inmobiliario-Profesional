@@ -52,6 +52,7 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<AgentContactActivity> AgentContactActivities => Set<AgentContactActivity>();
     public DbSet<AgentPropertyActivity> AgentPropertyActivities => Set<AgentPropertyActivity>();
     public DbSet<CRM_Inmobiliario.Api.Features.Shared.OmniSearch.OmniSearchResult> OmniSearchResults => Set<CRM_Inmobiliario.Api.Features.Shared.OmniSearch.OmniSearchResult>();
+    public DbSet<AgentStorageUsage> AgentStorageUsages => Set<AgentStorageUsage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +73,18 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             .WithOne(m => m.AgentConversation)
             .HasForeignKey(m => m.AgentConversationId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<AgentStorageUsage>()
+            .HasIndex(u => new { u.AgentId, u.Year, u.Month })
+            .IsUnique();
+
+        modelBuilder.Entity<Agent>()
+            .Property(a => a.MonthlyStorageBytesLimit)
+            .HasDefaultValue(209715200L); // 200 MB
+
+        modelBuilder.Entity<Agent>()
+            .Property(a => a.MonthlyStorageUploadsLimit)
+            .HasDefaultValue(0);
 
         modelBuilder.Entity<Contacto>()
             .HasIndex(c => c.NormalizedSearchText)

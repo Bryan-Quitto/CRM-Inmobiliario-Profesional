@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Exceptions;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -72,7 +73,15 @@ public static class SubirImagenPropiedadFeature
                 var bytes = memoryStream.ToArray();
 
                 var key = $"propiedades/{id}/{nombreArchivo}";
-                var urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType);
+                string urlPublica;
+                try
+                {
+                    urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType, agenteId);
+                }
+                catch (StorageQuotaExceededException ex)
+                {
+                    return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+                }
 
                 if (string.IsNullOrEmpty(urlPublica))
                     return Results.Problem("La subida a R2 no devolvió una ruta válida.");

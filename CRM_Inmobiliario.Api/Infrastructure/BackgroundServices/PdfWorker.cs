@@ -125,7 +125,7 @@ public class PdfWorker : BackgroundService
             
             // AWS SDK S3 permite definir Cache-Control pero R2 maneja la caché principalmente via sus Cache Rules o CDN,
             // de igual forma, la implementación UploadAsync por defecto basta para el Storage subyacente.
-            await r2Storage.UploadAsync(pdfBytes, key, "application/pdf");
+            await r2Storage.UploadAsync(pdfBytes, key, "application/pdf", propiedad.AgenteId);
         }
         catch (Exception)
         {
