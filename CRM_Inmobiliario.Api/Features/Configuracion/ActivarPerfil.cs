@@ -28,72 +28,76 @@ public static class ActivarPerfil
                         ?? user.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress") 
                         ?? "";
 
-            // Buscamos si ya existe (por si acaso hubo un reintento)
-            var agente = await context.Agents.FirstOrDefaultAsync(a => a.Id == agenteId);
-
-            if (agente == null)
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                agente = new Agent
+                // Buscamos si ya existe (por si acaso hubo un reintento)
+                var agente = await context.Agents.FirstOrDefaultAsync(a => a.Id == agenteId);
+
+                if (agente == null)
                 {
-                    Id = agenteId,
-                    Nombre = request.Nombre,
-                    Apellido = request.Apellido,
-                    Email = email,
-                    Telefono = request.Telefono.NormalizePhoneE164() ?? request.Telefono,
-                    AgenciaId = request.AgenciaId,
-                    Rol = "Agente",
-                    Activo = true,
-                    FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5))
-                };
-                context.Agents.Add(agente);
-            }
-            else
-            {
-                // Si ya existe, actualizamos los datos
-                agente.Nombre = request.Nombre;
-                agente.Apellido = request.Apellido;
-                agente.Telefono = request.Telefono.NormalizePhoneE164() ?? request.Telefono;
-                agente.AgenciaId = request.AgenciaId;
-                agente.Activo = true;
-            }
-
-            await using var transaction = await context.Database.BeginTransactionAsync();
-
-            if (request.GuestAgentId.HasValue)
-            {
-                var oldId = request.GuestAgentId.Value;
-                
-                // SECURITY VALIDATION: Prevent IDOR / Account takeover
-                var guestAgent = await context.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Id == oldId && a.Email == email);
-                if (guestAgent == null)
-                {
-                    await transaction.RollbackAsync();
-                    return Results.BadRequest(new { message = "ID de agente invitado inválido o no corresponde a tu correo." });
+                    agente = new Agent
+                    {
+                        Id = agenteId,
+                        Nombre = request.Nombre,
+                        Apellido = request.Apellido,
+                        Email = email,
+                        Telefono = request.Telefono.NormalizePhoneE164() ?? request.Telefono,
+                        AgenciaId = request.AgenciaId,
+                        Rol = "Agente",
+                        Activo = true,
+                        FechaCreacion = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5))
+                    };
+                    context.Agents.Add(agente);
                 }
-                
-                await context.Properties
-                    .Where(p => p.AgenteId == oldId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.AgenteId, agenteId));
+                else
+                {
+                    // Si ya existe, actualizamos los datos
+                    agente.Nombre = request.Nombre;
+                    agente.Apellido = request.Apellido;
+                    agente.Telefono = request.Telefono.NormalizePhoneE164() ?? request.Telefono;
+                    agente.AgenciaId = request.AgenciaId;
+                    agente.Activo = true;
+                }
 
-                await context.Properties
-                    .Where(p => p.CreatedByAgenteId == oldId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.CreatedByAgenteId, agenteId));
+                await using var transaction = await context.Database.BeginTransactionAsync();
 
-                await context.Contactos
-                    .Where(c => c.AgenteId == oldId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.AgenteId, agenteId));
+                if (request.GuestAgentId.HasValue)
+                {
+                    var oldId = request.GuestAgentId.Value;
+                    
+                    // SECURITY VALIDATION: Prevent IDOR / Account takeover
+                    var guestAgent = await context.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Id == oldId && a.Email == email);
+                    if (guestAgent == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return Results.BadRequest(new { message = "ID de agente invitado inválido o no corresponde a tu correo." });
+                    }
+                    
+                    await context.Properties
+                        .Where(p => p.AgenteId == oldId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.AgenteId, agenteId));
 
-                // Opcional: Eliminar el agente invitado viejo o dejarlo inactivo/renombrado
-                await context.Agents
-                    .Where(a => a.Id == oldId)
-                    .ExecuteDeleteAsync();
-            }
+                    await context.Properties
+                        .Where(p => p.CreatedByAgenteId == oldId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.CreatedByAgenteId, agenteId));
 
-            await context.SaveChangesAsync();
+                    await context.Contactos
+                        .Where(c => c.AgenteId == oldId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(c => c.AgenteId, agenteId));
 
-            await transaction.CommitAsync();
+                    // Opcional: Eliminar el agente invitado viejo o dejarlo inactivo/renombrado
+                    await context.Agents
+                        .Where(a => a.Id == oldId)
+                        .ExecuteDeleteAsync();
+                }
 
-            return Results.Ok(new { message = "Perfil activado y registrado exitosamente." });
+                await context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return Results.Ok(new { message = "Perfil activado y registrado exitosamente." });
+            });
         })
         .WithTags("Configuracion")
         .WithName("ActivarPerfil")
