@@ -15,6 +15,7 @@ interface SeguridadSectionProps {
   };
   allValid: boolean;
   handleUpdatePassword: (e: React.FormEvent) => void;
+  lockout: { isLocked: boolean; lockoutTimeRemaining: number; formattedLockoutTime: string };
 }
 
 const SeguridadSection: React.FC<SeguridadSectionProps> = ({
@@ -23,7 +24,8 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
   isUpdatingPwd,
   validations,
   allValid,
-  handleUpdatePassword
+  handleUpdatePassword,
+  lockout
 }) => {
   const [showCurrentPassword, setShowCurrentPassword] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
@@ -52,7 +54,8 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
                   type={showCurrentPassword ? "text" : "password"}
                   value={pwdData.currentPassword}
                   onChange={(e) => setPwdData({ ...pwdData, currentPassword: e.target.value })}
-                  className="w-full pl-10 md:pl-14 pr-10 md:pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700"
+                  disabled={lockout?.isLocked}
+                  className="w-full pl-10 md:pl-14 pr-10 md:pr-14 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-200 outline-none transition-all font-bold text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="••••••••"
                   required
                 />
@@ -65,6 +68,11 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
                   {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+              {lockout?.isLocked && (
+                <p className="text-rose-500 text-xs font-bold mt-2 ml-1 animate-in fade-in">
+                  Por motivos de seguridad, debe esperar {lockout.formattedLockoutTime} para volver a intentar.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -129,9 +137,9 @@ const SeguridadSection: React.FC<SeguridadSectionProps> = ({
           <div className="pt-6 border-t border-slate-50 flex flex-col items-center">
             <button
               type="submit"
-              disabled={isUpdatingPwd || !allValid || !pwdData.currentPassword}
+              disabled={isUpdatingPwd || !allValid || !pwdData.currentPassword || lockout?.isLocked}
               className={`cursor-pointer flex items-center justify-center w-full gap-3 px-6 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl ${
-                allValid && pwdData.currentPassword 
+                (allValid && pwdData.currentPassword && !lockout?.isLocked)
                   ? 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200' 
                   : 'bg-slate-300 pointer-events-none'
               }`}

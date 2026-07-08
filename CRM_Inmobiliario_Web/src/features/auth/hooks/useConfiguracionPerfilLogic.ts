@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePerfil } from '../api/perfil';
 import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
+import { usePasswordLockout } from './usePasswordLockout';
 
 export interface FormDataPerfil {
   nombre: string;
@@ -46,6 +47,7 @@ export const useConfiguracionPerfilLogic = () => {
     confirmPassword: ''
   });
   const [isUpdatingPwd, setIsUpdatingPwd] = useState(false);
+  const lockout = usePasswordLockout('perfil_seguridad');
 
   const validations = {
     length: pwdData.password.length >= 8,
@@ -123,6 +125,11 @@ export const useConfiguracionPerfilLogic = () => {
     e.preventDefault();
     if (!allValid || !pwdData.currentPassword) return;
 
+    if (lockout.isLocked) {
+      toast.error(`Por seguridad, debe esperar ${lockout.formattedLockoutTime} para volver a intentar.`);
+      return;
+    }
+
     setIsUpdatingPwd(true);
 
     try {
@@ -133,8 +140,10 @@ export const useConfiguracionPerfilLogic = () => {
         });
 
         if (signInError) {
+          lockout.registerFailedAttempt();
           throw new Error('La contraseña actual es incorrecta.');
         }
+        lockout.registerSuccessfulAttempt();
       } else {
          throw new Error('No se pudo encontrar el correo electrónico asociado.');
       }
@@ -172,7 +181,8 @@ export const useConfiguracionPerfilLogic = () => {
     validations,
     allValid,
     handleUpdatePassword,
-    actualizarPerfil
+    actualizarPerfil,
+    lockout
   };
 };
 

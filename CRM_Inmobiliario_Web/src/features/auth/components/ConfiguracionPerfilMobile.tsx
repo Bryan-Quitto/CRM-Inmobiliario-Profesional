@@ -22,7 +22,8 @@ const ConfiguracionPerfilMobile: React.FC<Props> = ({ logic }) => {
     validations,
     allValid,
     handleUpdatePassword,
-    actualizarPerfil
+    actualizarPerfil,
+    lockout
   } = logic;
 
   if (!perfil) return null;
@@ -65,6 +66,7 @@ const ConfiguracionPerfilMobile: React.FC<Props> = ({ logic }) => {
             validations={validations}
             allValid={allValid}
             handleUpdatePassword={handleUpdatePassword}
+            lockout={lockout}
           />
         </div>
 

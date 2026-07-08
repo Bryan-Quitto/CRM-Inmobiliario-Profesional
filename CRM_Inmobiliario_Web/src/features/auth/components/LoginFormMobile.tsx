@@ -7,7 +7,7 @@ interface LoginFormMobileProps {
 }
 
 export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
-  const { email, setEmail, password, setPassword, isLoading, error, handleLogin } = logic;
+  const { email, setEmail, password, setPassword, isLoading, error, handleLogin, lockout } = logic;
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
@@ -62,12 +62,18 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-slate-700/80 text-miui-white rounded-xl py-3.5 pl-10 pr-3 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all placeholder-miui-slate-600"
+                  disabled={lockout?.isLocked}
+                  className="w-full border border-slate-700/80 text-miui-white rounded-xl py-3.5 pl-10 pr-3 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all placeholder-miui-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundImage: 'linear-gradient(to right, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6))' }}
                   placeholder="nombre@empresa.com"
                   required
                 />
               </div>
+              {lockout?.isLocked && (
+                <p className="text-rose-400 text-[10px] font-bold mt-1 ml-1 animate-in fade-in">
+                  Por motivos de seguridad, debe esperar {lockout.formattedLockoutTime} para volver a intentar.
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -81,7 +87,8 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-slate-700/80 text-miui-white rounded-xl py-3.5 pl-10 pr-10 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all placeholder-miui-slate-600"
+                  disabled={lockout?.isLocked}
+                  className="w-full border border-slate-700/80 text-miui-white rounded-xl py-3.5 pl-10 pr-10 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all placeholder-miui-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundImage: 'linear-gradient(to right, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6))' }}
                   placeholder="••••••••••••"
                   required
@@ -104,7 +111,7 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || lockout?.isLocked}
               className="cursor-pointer w-full text-miui-white rounded-xl py-3.5 font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
               style={{ backgroundImage: 'linear-gradient(to right, #2563eb, #2563eb)' }}
             >

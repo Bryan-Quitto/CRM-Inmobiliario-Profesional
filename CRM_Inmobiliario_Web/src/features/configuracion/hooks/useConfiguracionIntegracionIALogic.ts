@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase';
 import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
 import { useConfiguracionIA, type IASettings } from './useConfiguracionIA';
+import { usePasswordLockout } from '../../auth/hooks/usePasswordLockout';
 
 export type TabType = 'General' | 'Personal' | 'WhatsApp' | 'Facebook';
 
@@ -13,6 +14,7 @@ export const useConfiguracionIntegracionIALogic = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const lockout = usePasswordLockout('ia_config');
 
   // Settings state
   const [activeTab, setActiveTab] = useState<TabType>('General');
@@ -109,6 +111,11 @@ export const useConfiguracionIntegracionIALogic = () => {
     e.preventDefault();
     if (!password.trim()) return;
 
+    if (lockout.isLocked) {
+      toast.error(`Por seguridad, debe esperar ${lockout.formattedLockoutTime} para volver a intentar.`);
+      return;
+    }
+
     if (!perfil?.email) {
       toast.error('No se pudo obtener el email del perfil.');
       return;
@@ -121,8 +128,12 @@ export const useConfiguracionIntegracionIALogic = () => {
         password: password,
       });
 
-      if (error) throw error;
+      if (error) {
+        lockout.registerFailedAttempt();
+        throw error;
+      }
 
+      lockout.registerSuccessfulAttempt();
       setIsAuthenticated(true);
       toast.success('Autenticación exitosa.');
     } catch (err) {
@@ -223,7 +234,8 @@ export const useConfiguracionIntegracionIALogic = () => {
     aiKeyError, setAiKeyError,
     waIdError, setWaIdError,
     isValidating, setIsValidating,
-    handleAuthenticate, handleSave, loadSettings, mutateSettings
+    handleAuthenticate, handleSave, loadSettings, mutateSettings,
+    lockout
   };
 };
 

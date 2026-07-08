@@ -22,7 +22,8 @@ const ConfiguracionPerfilDesktop: React.FC<Props> = ({ logic }) => {
     validations,
     allValid,
     handleUpdatePassword,
-    actualizarPerfil
+    actualizarPerfil,
+    lockout
   } = logic;
 
   if (!perfil) return null;
@@ -61,6 +62,7 @@ const ConfiguracionPerfilDesktop: React.FC<Props> = ({ logic }) => {
             validations={validations}
             allValid={allValid}
             handleUpdatePassword={handleUpdatePassword}
+            lockout={lockout}
           />
 
           <PdfBrandingPreview 

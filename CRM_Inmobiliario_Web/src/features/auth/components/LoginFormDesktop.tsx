@@ -7,7 +7,7 @@ interface LoginFormDesktopProps {
 }
 
 export const LoginFormDesktop: React.FC<LoginFormDesktopProps> = ({ logic }) => {
-  const { email, setEmail, password, setPassword, isLoading, error, handleLogin } = logic;
+  const { email, setEmail, password, setPassword, isLoading, error, handleLogin, lockout } = logic;
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
@@ -51,12 +51,18 @@ export const LoginFormDesktop: React.FC<LoginFormDesktopProps> = ({ logic }) => 
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-slate-700 text-white rounded-xl py-4 pl-12 pr-4 text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-600"
+                  disabled={lockout?.isLocked}
+                  className="w-full border border-slate-700 text-white rounded-xl py-4 pl-12 pr-4 text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundImage: 'linear-gradient(to right, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.5))' }}
                   placeholder="nombre@empresa.com"
                   required
                 />
               </div>
+              {lockout?.isLocked && (
+                <p className="text-rose-400 text-xs font-bold mt-1.5 ml-1 animate-in fade-in">
+                  Por motivos de seguridad, debe esperar {lockout.formattedLockoutTime} para volver a intentar.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -70,7 +76,8 @@ export const LoginFormDesktop: React.FC<LoginFormDesktopProps> = ({ logic }) => 
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-slate-700 text-white rounded-xl py-4 pl-12 pr-12 text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-600"
+                  disabled={lockout?.isLocked}
+                  className="w-full border border-slate-700 text-white rounded-xl py-4 pl-12 pr-12 text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundImage: 'linear-gradient(to right, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.5))' }}
                   placeholder="••••••••••••"
                   required
@@ -93,7 +100,7 @@ export const LoginFormDesktop: React.FC<LoginFormDesktopProps> = ({ logic }) => 
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || lockout?.isLocked}
               className="cursor-pointer w-full text-white rounded-xl py-4 font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4"
               style={{ backgroundImage: 'linear-gradient(to right, #2563eb, #2563eb)' }}
             >

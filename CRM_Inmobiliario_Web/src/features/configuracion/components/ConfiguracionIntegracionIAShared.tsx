@@ -57,7 +57,7 @@ export const LimitWarning: React.FC<{ limit: number }> = ({ limit }) => {
 };
 
 export const ConfiguracionIntegracionIAAuth: React.FC<{ logic: ConfiguracionIntegracionIALogic }> = ({ logic }) => {
-  const { password, setPassword, isLoading, handleAuthenticate } = logic;
+  const { password, setPassword, isLoading, handleAuthenticate, lockout } = logic;
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
@@ -83,7 +83,8 @@ export const ConfiguracionIntegracionIAAuth: React.FC<{ logic: ConfiguracionInte
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Tu contraseña..."
-                className="w-full pl-12 pr-12 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium"
+                disabled={lockout?.isLocked}
+                className="w-full pl-12 pr-12 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 required
               />
               <button
@@ -95,11 +96,16 @@ export const ConfiguracionIntegracionIAAuth: React.FC<{ logic: ConfiguracionInte
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            {lockout?.isLocked && (
+              <p className="text-rose-500 text-xs font-bold mt-1.5 ml-1 animate-in fade-in">
+                Por motivos de seguridad, debe esperar {lockout.formattedLockoutTime} para volver a intentar.
+              </p>
+            )}
           </div>
 
             <button
               type="submit"
-              disabled={isLoading || !password.trim()}
+              disabled={isLoading || !password.trim() || lockout?.isLocked}
               className="w-full cursor-pointer flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? <Loader2 size={18} className="animate-spin shrink-0" /> : <Lock size={18} className="shrink-0" />}
