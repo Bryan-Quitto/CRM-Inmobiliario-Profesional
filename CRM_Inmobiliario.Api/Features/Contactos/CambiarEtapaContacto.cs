@@ -23,8 +23,8 @@ public static class CambiarEstadoContactoFeature
 
             // 1. Validar que la nueva etapa sea válida para el tipo
             var estadosValidos = esTipoPropietario
-                ? new[] { "Activo", "Inactivo" } // 'Cerrado' es exclusivamente automático
-                : new[] { "Nuevo", "Contactado", "Visita", "Perdido" }; // Restricción estricta de SSoT
+                ? new[] { "Activo", "Inactivo" } 
+                : new[] { "Nuevo", "Contactado", "Visita", "Perdido" }; 
 
             if (!estadosValidos.Contains(command.NuevoEstado))
             {
@@ -47,8 +47,19 @@ public static class CambiarEstadoContactoFeature
                     return Results.BadRequest(new { message = "No puedes modificar un registro archivado" });
                 }
 
-                // 2. Bloqueos Estrictos de Negocio (SSoT en Propiedades)
-                if (!esTipoPropietario)
+                // 2. Bloqueos Estrictos de Negocio
+                if (esTipoPropietario)
+                {
+                    if (contacto.EstadoPropietario == "Cerrado" && command.NuevoEstado != "Cerrado")
+                    {
+                        return Results.BadRequest(new { Message = "El propietario está en estado 'Cerrado'. Este estado es gestionado automáticamente por sus propiedades y no se puede alterar manualmente." });
+                    }
+                    else if (contacto.EstadoPropietario == "Inactivo" && command.NuevoEstado != "Activo" && command.NuevoEstado != "Inactivo")
+                    {
+                        return Results.BadRequest(new { Message = $"Transición no permitida desde 'Inactivo' hacia '{command.NuevoEstado}'." });
+                    }
+                }
+                else
                 {
                     if (contacto.EstadoEmbudo == "En Negociación")
                     {
@@ -60,10 +71,9 @@ public static class CambiarEstadoContactoFeature
                     }
                 }
 
-                // 3. Lógica de Case 10: Retención de Estado por Relaciones Canceladas
+                // 3. Lógica de Retención
                 if (!esTipoPropietario && command.NuevoEstado == "Perdido")
                 {
-                    // Validar si tiene propiedades cerradas activamente
                     var tieneCierresActivos = await context.Properties
                         .AnyAsync(p => p.CerradoConId == id && (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"), ct);
                     
@@ -72,7 +82,6 @@ public static class CambiarEstadoContactoFeature
                         return Results.BadRequest(new { Message = "No puedes marcar como perdido a un cliente con propiedades cerradas activas. Anula la transacción de la propiedad primero." });
                     }
 
-                    // Validar si tiene reservas activas
                     var tieneReservasActivas = await context.Properties
                         .AnyAsync(p => p.CerradoConId == id && p.EstadoComercial == "Reservada", ct);
 
@@ -82,9 +91,9 @@ public static class CambiarEstadoContactoFeature
                     }
                 }
 
+                // --- SSoT: BULK UPDATES & DELETES (EF Core Optimizado) ---
                 if (esTipoPropietario && command.NuevoEstado == "Inactivo")
                 {
-                    // Validar si tiene transacciones activas
                     var tieneTransaccionesActivas = await context.Properties
                         .AnyAsync(p => p.PropietarioId == id && (p.EstadoComercial == "Reservada" || p.EstadoComercial == "Alquilada" || p.EstadoComercial == "Vendida"), ct);
 
@@ -93,18 +102,28 @@ public static class CambiarEstadoContactoFeature
                         return Results.BadRequest(new { Message = "El propietario tiene transacciones activas. Por favor, gestione estas transacciones desde el catálogo de propiedades para poder pasarlo a inactivo." });
                     }
 
-                    // Pasar propiedades Disponibles a Inactiva — bulk update directo en DB (patrón FusionarContactos)
-                    await context.Database.ExecuteSqlRawAsync(
-                        """
-                        UPDATE "Properties"
-                        SET "EstadoComercial" = 'Inactiva'
-                        WHERE "PropietarioId" = {0} AND "EstadoComercial" = 'Disponible'
-                        """,
-                        id);
+                    // Query base para apuntar solo a las propiedades disponibles de este dueño
+                    var propiedadesAfectadas = context.Properties
+                        .Where(p => p.PropietarioId == id && p.EstadoComercial == "Disponible");
 
+                    // 1. Borrar masivamente toda la Media (Fotos, PDFs generados, documentos) asociados
+                    await propiedadesAfectadas.SelectMany(p => p.Media).ExecuteDeleteAsync(ct);
+                    
+                    // 2. Borrar masivamente las carpetas lógicas de las galerías (si aplica)
+                    await propiedadesAfectadas.SelectMany(p => p.GallerySections).ExecuteDeleteAsync(ct);
+
+                    // 3. Cambiar masivamente el estado de la propiedad a Inactiva
+                    await propiedadesAfectadas.ExecuteUpdateAsync(s => s.SetProperty(p => p.EstadoComercial, "Inactiva"), ct);
+                }
+                else if (esTipoPropietario && contacto.EstadoPropietario == "Inactivo" && command.NuevoEstado == "Activo")
+                {
+                    // Cambiar masivamente el estado de regreso a Disponible
+                    await context.Properties
+                        .Where(p => p.PropietarioId == id && p.EstadoComercial == "Inactiva")
+                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.EstadoComercial, "Disponible"), ct);
                 }
 
-                // Actualizar etapa según el tipo
+                // Actualizar etapa del contacto
                 if (esTipoPropietario)
                 {
                     contacto.EstadoPropietario = command.NuevoEstado;
@@ -128,7 +147,7 @@ public static class CambiarEstadoContactoFeature
                     }
                 }
 
-                // Crear tarea automática si es una Visita
+                // Crear tarea automática
                 if (command.NuevoEstado == "Cita")
                 {
                     var task = new TaskItem
@@ -144,10 +163,11 @@ public static class CambiarEstadoContactoFeature
                     };
                     context.Tasks.Add(task);
                 }
+                
                 await context.SaveChangesAsync(ct);
                 await context.UpsertAgentContactActivityAsync(agenteId, id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
-                // Limpiar caché y precalentar KPIs
+                // Limpiar caché
                 await cacheStore.EvictByTagAsync("dashboard-data", ct);
                 await cacheStore.EvictByTagAsync("analytics-data", ct);
                 warmingService.NotifyChange(agenteId);
@@ -165,4 +185,3 @@ public static class CambiarEstadoContactoFeature
         .WithName("CambiarEstadoContacto");
     }
 }
-

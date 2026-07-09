@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -86,7 +86,7 @@ public static class RevertirEstadoContactoFeature
                                 ContactoId = id,
                                 PropiedadId = prop.Id,
                                 TipoInteraccion = "Sistema",
-                                Notas = request.Notas ?? (esTratoCaido ? $"Trato Caído por cambio de etapa a Perdido. Propiedad '{prop.Titulo}' liberada." : $"Fin de Contrato por cambio de etapa. Propiedad '{prop.Titulo}' relistada."),
+                                Notas = request.Notas ?? (esTratoCaido ? $"Propiedad '{prop.Titulo}' marcada como Trato Caído por cambio de etapa a Perdido." : $"Propiedad '{prop.Titulo}' marcada como Disponible (Fin de Contrato)."),
                                 FechaInteraccion = DateTimeOffset.UtcNow
                             };
                             context.Interactions.Add(transaction);
@@ -100,7 +100,7 @@ public static class RevertirEstadoContactoFeature
                                 TransactionType = esTratoCaido ? "Cancellation" : "Relisting",
                                 TransactionStatus = "Completed",
                                 TransactionDate = DateTimeOffset.UtcNow,
-                                Notes = request.Notas ?? (esTratoCaido ? "Trato caído. Operación anulada desde contacto." : "Fin de ciclo comercial. Propiedad relistada desde contacto."),
+                                Notes = request.Notas ?? (esTratoCaido ? $"Propiedad '{prop.Titulo}' marcada como Trato Caído. Operación anulada desde contacto." : $"Propiedad '{prop.Titulo}' marcada como Disponible. Fin de ciclo comercial desde contacto."),
                                 CreatedById = agenteId
                             });
                         }

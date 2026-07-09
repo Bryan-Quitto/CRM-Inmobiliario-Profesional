@@ -103,6 +103,7 @@ public sealed class PushNotificationService : IPushNotificationService
             {
                 title,
                 body,
+                icon = "/logo.png",
                 data = new { url }
             }
         });

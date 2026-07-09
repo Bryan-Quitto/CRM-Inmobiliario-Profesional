@@ -88,6 +88,11 @@ export const ContactosListMobile: React.FC<ContactosListMobileProps> = ({ logic 
         newCycleConfirmation={logic.newCycleConfirmation}
         setNewCycleConfirmation={logic.setNewCycleConfirmation}
         executeStageChange={logic.executeStageChange}
+        isMigrarModalOpen={logic.isMigrarModalOpen}
+        setIsMigrarModalOpen={logic.setIsMigrarModalOpen}
+        migrarRoles={logic.migrarRoles}
+        setMigrarRoles={logic.setMigrarRoles}
+        executeMigrar={logic.handleMigrarContactosTelefono}
       />
     </div>
   );

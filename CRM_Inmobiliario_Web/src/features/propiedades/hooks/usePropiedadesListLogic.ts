@@ -58,7 +58,8 @@ export const usePropiedadesListLogic = (checkContactoId?: string) => {
     setOpenDropdownId: ui.setOpenDropdownId,
     setClosingPropiedad: ui.setClosingPropiedad,
     setShowReversionModal: ui.setShowReversionModal,
-    setStatusConfirmation: ui.setStatusConfirmation
+    setStatusConfirmation: ui.setStatusConfirmation,
+    setOwnerReactivation: ui.setOwnerReactivation
   });
 
   // Wrapper for handleClosingConfirm to match original signature

@@ -155,6 +155,11 @@ export const ContactosListDesktop: React.FC<ContactosListDesktopProps> = ({ logi
         newCycleConfirmation={logic.newCycleConfirmation}
         setNewCycleConfirmation={logic.setNewCycleConfirmation}
         executeStageChange={logic.executeStageChange}
+        isMigrarModalOpen={logic.isMigrarModalOpen}
+        setIsMigrarModalOpen={logic.setIsMigrarModalOpen}
+        migrarRoles={logic.migrarRoles}
+        setMigrarRoles={logic.setMigrarRoles}
+        executeMigrar={logic.handleMigrarContactosTelefono}
       />
     </div>
   );

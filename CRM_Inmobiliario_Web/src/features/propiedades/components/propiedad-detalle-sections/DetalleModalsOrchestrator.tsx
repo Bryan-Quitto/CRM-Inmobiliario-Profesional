@@ -2,16 +2,19 @@ import { RotateCcw, AlertCircle } from 'lucide-react';
 import { CrearPropiedadForm } from '../CrearPropiedadForm';
 import { ClosingModal } from '../ClosingModal';
 import { PropiedadStatusConfirmModal } from '../modals/PropiedadStatusConfirmModal';
+import ConfirmModal from '../../../../components/ConfirmModal';
 import type { Propiedad } from '../../types';
 
 interface DetalleModalsOrchestratorProps {
   propiedad: Propiedad;
   statusConfirmation: string | null;
+  ownerReactivationConfirmation: string | null;
   showEditModal: boolean;
   isClosingModalOpen: boolean;
   closingState?: string;
   showReversionModal: { type: 'transaction' | 'status', id?: string, targetStatus?: string } | null;
   setStatusConfirmation: (status: string | null) => void;
+  setOwnerReactivationConfirmation: (status: string | null) => void;
   setShowEditModal: (show: boolean) => void;
   setIsClosingModalOpen: (open: boolean) => void;
   setClosingState: (state?: string) => void;
@@ -26,11 +29,13 @@ interface DetalleModalsOrchestratorProps {
 export const DetalleModalsOrchestrator = ({
   propiedad,
   statusConfirmation,
+  ownerReactivationConfirmation,
   showEditModal,
   isClosingModalOpen,
   closingState,
   showReversionModal,
   setStatusConfirmation,
+  setOwnerReactivationConfirmation,
   setShowEditModal,
   setIsClosingModalOpen,
   setClosingState,
@@ -49,6 +54,22 @@ export const DetalleModalsOrchestrator = ({
         onClose={() => setStatusConfirmation(null)}
         onConfirm={(_id, status, confirmed) => handleStatusChange(status, confirmed)}
         statusConfirmation={statusConfirmation ? { id: propiedad.id, nuevoEstado: statusConfirmation } : null}
+      />
+
+      <ConfirmModal
+        isOpen={!!ownerReactivationConfirmation}
+        onClose={() => setOwnerReactivationConfirmation(null)}
+        onConfirm={() => {
+          if (ownerReactivationConfirmation) {
+            handleStatusChange(ownerReactivationConfirmation, true);
+            setOwnerReactivationConfirmation(null);
+          }
+        }}
+        title="¿Reactivar Propietario?"
+        description="El propietario actual está Inactivo. Al cambiar esta propiedad a Disponible, el propietario pasará a estado Activo."
+        confirmText="Sí, continuar"
+        cancelText="Cancelar"
+        type="info"
       />
 
       {/* Modal de Edición */}

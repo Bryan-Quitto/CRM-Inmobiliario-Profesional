@@ -27,7 +27,7 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
         <div className="flex items-center gap-2 shrink-0">
           {'contacts' in navigator && (
             <button
-              onClick={logic.handleMigrarContactosTelefono}
+              onClick={logic.handleOpenMigrarModal}
               className="flex items-center justify-center p-3 bg-indigo-600 text-white font-black rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95 cursor-pointer"
               title="Importar desde Agenda"
             >

@@ -64,7 +64,8 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     callbacks?: { 
       onOpenClosingModal: (estado: string) => void,
       onOpenReversionModal: (estado: string) => void,
-      onOpenConfirmationModal: (estado: string) => void
+      onOpenConfirmationModal: (estado: string) => void,
+      onOpenOwnerReactivationModal?: (estado: string) => void
     }
   ) => {
     if (propiedad.estadoComercial === nuevoEstado) return;
@@ -77,6 +78,13 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
         description: `La propiedad está ${propiedad.estadoComercial}. Debes pasarla a 'Disponible' antes de registrar una nueva reserva u operación.`
       });
       return;
+    }
+
+    if (propiedad.estadoComercial === 'Inactiva' && nuevoEstado === 'Disponible' && propiedad.propietarioEstado === 'Inactivo' && !confirmed) {
+      if (callbacks?.onOpenOwnerReactivationModal) {
+        callbacks.onOpenOwnerReactivationModal(nuevoEstado);
+        return;
+      }
     }
 
     if ((nuevoEstado === 'Vendida' || nuevoEstado === 'Alquilada' || nuevoEstado === 'Reservada') && !confirmed) {

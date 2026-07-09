@@ -8,6 +8,8 @@ export const useContactosListLogic = () => {
   const navigate = useNavigate();
   const listContext = useContactosList();
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
+  const [isMigrarModalOpen, setIsMigrarModalOpen] = useState(false);
+  const [migrarRoles, setMigrarRoles] = useState({ esCliente: true, esPropietario: false });
 
   const activeAdvancedCount = useMemo(() => {
     return Object.values(listContext.advancedFilters).filter(v => v !== undefined && v !== '').length;
@@ -32,7 +34,14 @@ export const useContactosListLogic = () => {
 
   const { showScrollTop, showScrollBottom, scrollToTop, scrollToBottom } = useScrollButtons();
 
-  const handleMigrarContactosTelefono = async () => {
+  const handleOpenMigrarModal = () => {
+    const isContactPickerSupported = 'contacts' in navigator;
+    if (!isContactPickerSupported) return;
+    setIsMigrarModalOpen(true);
+  };
+
+  const handleMigrarContactosTelefono = async (esCliente: boolean, esPropietario: boolean) => {
+    setIsMigrarModalOpen(false);
     try {
       const isContactPickerSupported = 'contacts' in navigator;
       if (!isContactPickerSupported) return;
@@ -66,8 +75,8 @@ export const useContactosListLogic = () => {
           email: null,
           telefono: phone,
           origen: 'Whatsapp Directo',
-          esCliente: false,
-          esPropietario: false
+          esCliente,
+          esPropietario
         };
       });
 
@@ -95,6 +104,11 @@ export const useContactosListLogic = () => {
     scrollToTop,
     scrollToBottom,
     handleMigrarContactosTelefono,
+    isMigrarModalOpen,
+    setIsMigrarModalOpen,
+    migrarRoles,
+    setMigrarRoles,
+    handleOpenMigrarModal,
     ...listContext,
   };
 };

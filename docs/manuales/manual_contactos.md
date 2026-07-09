@@ -21,9 +21,9 @@ Las etapas varían dependiendo de si el cliente busca comprar/alquilar o si es e
   2. El proceso para pasar un cliente a "Cerrado" es poner una propiedad como "Vendida" o "Alquilada" y asignar a este cliente.
 
 ### Para Dueños de Propiedades (Propietarios)
-- **Activo:** Es un dueño que actualmente tiene propiedades. Se puede asignar este estado manualmente, o el sistema lo hará automáticamente si al menos una de sus propiedades vuelve a estar activa.
-- **Inactivo:** Es un propietario con el que has dejado de trabajar. Si se selecciona el estado "Inactivo" manualmente, todas las propiedades enlazadas a ese dueño pasarán a estado "Inactiva". También se asignará automáticamente si TODAS sus propiedades pasan a estado "Inactiva".
-- **Cerrado:** *(Automático)* Es el propietario con el que se logró un cierre exitoso. Este estado es **estrictamente automático** y solo ocurre cuando **TODAS** sus propiedades pasan a estado "Vendida" o "Alquilada". No se puede seleccionar manualmente.
+- **Activo:** Es un dueño que actualmente tiene propiedades en oferta. El sistema lo asignará automáticamente si alguna de sus propiedades pasa a estar "Disponible" o si se le crea una nueva propiedad.
+- **Inactivo:** Es un propietario con el que has dejado de trabajar. Puedes pasarlo a Inactivo manualmente (lo cual ocultará todas sus propiedades disponibles del catálogo), o el sistema lo hará automáticamente si TODAS sus propiedades pasan a estado "Inactiva". *Nota: Una vez inactivo, no puedes arrastrarlo ni reactivarlo manualmente desde aquí.*
+- **Cerrado:** *(Automático)* Es el propietario con el que se logró un cierre exitoso. Este estado es **estrictamente automático** y ocurre únicamente cuando **TODAS** sus propiedades están en estado "Vendida" o "Alquilada". *Nota: No se puede asignar ni quitar manualmente, el tablero bloquea esta acción para proteger los datos.*
 
 ## 3. Reglas de Protección de Datos
 
@@ -34,6 +34,7 @@ El sistema bloquea ciertos cambios manuales para evitar errores:
 - **Negocios Caídos:** Si ya le habías vendido la casa al cliente, no puedes simplemente ponerlo como "Perdido". Tendrías que ir a la casa y marcar que el negocio se cayó.
 - **Protección de Tratos:** El sistema no te dejará marcar a un cliente como "Perdido" si actualmente tiene una casa separada o comprada contigo. Tienes que cancelar esos tratos primero.
 - **Inactivación de Dueños:** No puedes decir que ya no trabajas con un dueño (Inactivo) si aún tienes casas suyas que están separadas o alquiladas por otros clientes. Si lo marcas como "Inactivo", todas sus casas disponibles se ocultarán del catálogo.
+- **Reactivación de Dueños (Fuente Única de Verdad):** Un propietario en estado "Cerrado" o "Inactivo" no puede ser reactivado manualmente desde su perfil ni arrastrado en el tablero Kanban. Como su estado es un esclavo de sus propiedades, la única manera de reactivarlo es ir al catálogo, buscar una de sus propiedades y ponerla en "Disponible", o crearle una nueva propiedad. El sistema detectará esto y lo reactivará instantáneamente.
 
 ## 4. Automatizaciones del Sistema
 

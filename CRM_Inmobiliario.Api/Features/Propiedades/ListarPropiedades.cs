@@ -81,6 +81,7 @@ public static class ListarPropiedadesFeature
                     (x.Property.EsCaptadorActivo && x.Property.AgenteId != null) ? x.Property.AgenteId.Value : x.Property.CreatedByAgenteId ?? Guid.Empty,
                     (x.Property.EsCaptadorActivo && x.Property.Agente != null) ? x.Property.Agente.Nombre + " " + x.Property.Agente.Apellido : (x.Property.CreatedByAgente != null ? x.Property.CreatedByAgente.Nombre + " " + x.Property.CreatedByAgente.Apellido : "Agente desconocido"),
                     x.Property.AgenteId == currentUserId ? x.Property.PropietarioId : null,
+                    x.Property.AgenteId == currentUserId ? (x.Property.Propietario != null ? x.Property.Propietario.EstadoPropietario : null) : null,
                     x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) ? x.Property.CerradoConId : null,
                     x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) 
                         ? (x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null) 

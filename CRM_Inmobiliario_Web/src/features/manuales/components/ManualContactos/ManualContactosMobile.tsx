@@ -43,11 +43,11 @@ export const ManualContactosMobile: React.FC = () => {
           <div>
             <h3 className="font-bold text-slate-800 mb-3 text-sm">Propietarios (Dueños)</h3>
             <ul className="space-y-3">
-              <li className="flex items-center gap-2"><ManualBadge color="emerald">Activo</ManualBadge> <span className="text-xs text-slate-600">Con propiedades</span></li>
-              <li className="flex items-center gap-2"><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-xs text-slate-600">Oculta sus casas</span></li>
+              <li className="flex items-center gap-2"><ManualBadge color="emerald">Activo</ManualBadge> <span className="text-xs text-slate-600">Automático por propiedades</span></li>
+              <li className="flex items-center gap-2"><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-xs text-slate-600">No reactivable a mano</span></li>
               <li className="bg-indigo-50 p-3 rounded-lg text-xs text-slate-700 border border-indigo-100 mt-2">
                 <span className="font-bold block mb-1">Cerrado:</span>
-                Solo automático cuando TODAS se venden o alquilan.
+                Solo automático. El tablero bloquea cambios manuales (SSoT).
               </li>
             </ul>
           </div>
@@ -64,6 +64,9 @@ export const ManualContactosMobile: React.FC = () => {
           </ManualAlert>
           <ManualAlert title="Tratos" variant="info">
             Cancela tratos (reservas/alquileres) antes de marcar Inactivo o Perdido.
+          </ManualAlert>
+          <ManualAlert title="Reactivar (SSoT)" variant="info">
+            Para reactivar a un dueño Cerrado/Inactivo, haz "Disponible" una de sus propiedades. No se puede a mano.
           </ManualAlert>
         </div>
       </ManualSection>

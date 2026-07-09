@@ -18,7 +18,8 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
     toggleColumn,
     handleDragEnd,
     formatTimeAgo,
-    getEtapaColor
+    getEtapaColor,
+    isOwnerMode
   } = logic;
 
   return (
@@ -46,7 +47,7 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                         </Tooltip>
                       )}
                       {(etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado') && (
-                        <Tooltip content="Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial." position="top">
+                        <Tooltip content={isOwnerMode ? "Columna automática. Un propietario pasa a Cerrado cuando todas sus propiedades han sido Vendidas o Alquiladas. Se reactivará automáticamente si vuelve a tener propiedades Disponibles." : "Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial."} position="top">
                           <RefreshCcw className="w-3.5 h-3.5 text-emerald-600/80 cursor-help shrink-0" />
                         </Tooltip>
                       )}
@@ -105,7 +106,7 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                           key={contacto.id} 
                           draggableId={contacto.id} 
                           index={index}
-                          isDragDisabled={contacto.estadoEmbudo === 'En Negociación'}
+                          isDragDisabled={(!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && (contacto.estadoPropietario === 'Cerrado' || contacto.estadoPropietario === 'Inactivo'))}
                         >
                           {(provided, snapshot) => (
                               <Link

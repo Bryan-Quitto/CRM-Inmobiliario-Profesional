@@ -53,7 +53,7 @@ export const ContactoHeader = ({
           <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-3 items-start">
             <TruncatedText as="h1" className="text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight truncate w-full md:w-auto">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</TruncatedText>
             
-            <div className="flex items-center gap-2 md:gap-3 overflow-x-auto hide-scrollbar w-full md:w-auto pb-1 md:pb-0">
+            <div className="flex items-center gap-2 md:gap-3 flex-wrap w-full md:w-auto pb-1 md:pb-0">
               {/* Badge & Dropdown de Cliente */}
               {contacto.esCliente && (
                 <div className="flex items-center gap-2">

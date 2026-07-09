@@ -21,6 +21,7 @@ self.addEventListener('push', (event) => {
   const title = notification.title || 'Nueva Notificación';
   const options = {
     body: notification.body || '',
+    icon: notification.icon || '/logo.png',
     data: notification.data || {}
   };
 

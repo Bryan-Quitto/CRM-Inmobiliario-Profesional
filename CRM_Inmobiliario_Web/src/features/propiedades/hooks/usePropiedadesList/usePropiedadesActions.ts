@@ -11,6 +11,7 @@ interface UsePropiedadesActionsProps {
   setClosingPropiedad: (val: { propiedad: Propiedad; nuevoEstado: string } | null) => void;
   setShowReversionModal: (val: { type: 'status', id: string, targetStatus: string, currentStatus?: string } | null) => void;
   setStatusConfirmation: (val: { id: string; nuevoEstado: string } | null) => void;
+  setOwnerReactivation: (val: { id: string; nuevoEstado: string } | null) => void;
 }
 
 export const usePropiedadesActions = ({
@@ -19,7 +20,8 @@ export const usePropiedadesActions = ({
   setOpenDropdownId,
   setClosingPropiedad,
   setShowReversionModal,
-  setStatusConfirmation
+  setStatusConfirmation,
+  setOwnerReactivation
 }: UsePropiedadesActionsProps) => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -44,6 +46,7 @@ export const usePropiedadesActions = ({
       setClosingPropiedad(null);
       setShowReversionModal(null);
       setStatusConfirmation(null);
+      setOwnerReactivation(null);
     },
     onError: () => {
       setUpdatingId(null);
@@ -68,6 +71,10 @@ export const usePropiedadesActions = ({
       },
       onOpenConfirmationModal: (estado) => {
         setStatusConfirmation({ id, nuevoEstado: estado });
+        setUpdatingId(null);
+      },
+      onOpenOwnerReactivationModal: (estado) => {
+        setOwnerReactivation({ id, nuevoEstado: estado });
         setUpdatingId(null);
       }
     });

@@ -26,6 +26,8 @@ const PropiedadesOrchestrator = () => {
         setIsModalOpen={logic.setIsModalOpen}
         statusConfirmation={logic.statusConfirmation}
         setStatusConfirmation={logic.setStatusConfirmation}
+        ownerReactivation={logic.ownerReactivation}
+        setOwnerReactivation={logic.setOwnerReactivation}
         handleStatusChange={logic.handleStatusChange}
         closingPropiedad={logic.closingPropiedad}
         setClosingPropiedad={logic.setClosingPropiedad}

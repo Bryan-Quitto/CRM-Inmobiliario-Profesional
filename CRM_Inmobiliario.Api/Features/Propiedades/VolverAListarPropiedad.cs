@@ -113,7 +113,7 @@ public static class VolverAListarPropiedadFeature
                     TransactionType = "Cancellation",
                     TransactionStatus = "Completed",
                     TransactionDate = ecuadorNow,
-                    Notes = request?.Notas ?? "Trato caído. Operación anulada.",
+                    Notes = request?.Notas ?? $"Propiedad '{propiedad.Titulo}' marcada como Trato Caído. Operación anulada.",
                     CreatedById = agenteId
                 });
 
@@ -126,7 +126,7 @@ public static class VolverAListarPropiedadFeature
                         ContactoId = propiedad.CerradoConId.Value,
                         PropiedadId = id,
                         TipoInteraccion = "Cancelación",
-                        Notas = request?.Notas ?? $"Trato caído desde la propiedad. Operación anulada para '{propiedad.Titulo}'.",
+                        Notas = request?.Notas ?? $"Propiedad '{propiedad.Titulo}' marcada como Trato Caído. Operación anulada.",
                         FechaInteraccion = ecuadorNow
                     });
                 }

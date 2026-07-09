@@ -40,6 +40,7 @@ public static class ObtenerPropiedadPorIdFeature
         string AgenteNombre,
         Guid? PropietarioId,
         string? PropietarioNombre,
+        string? PropietarioEstado,
         Guid? CerradoConId,
         string? CerradoConNombre,
         Guid? AgenteCerradorId,
@@ -141,6 +142,9 @@ public static class ObtenerPropiedadPorIdFeature
                     x.Property.AgenteId == currentUserId 
                         ? (x.Property.Propietario != null ? x.Property.Propietario.Nombre + " " + x.Property.Propietario.Apellido : null)
                         : "Oculto (Exclusiva del Captador)",
+                    x.Property.AgenteId == currentUserId 
+                        ? (x.Property.Propietario != null ? x.Property.Propietario.EstadoPropietario : null)
+                        : null,
                     x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) ? x.Property.CerradoConId : null,
                     x.Property.AgenteId == currentUserId || (x.Property.CerradoCon != null && x.Property.CerradoCon.AgenteId == currentUserId) 
                         ? (x.Property.CerradoCon != null ? x.Property.CerradoCon.Nombre + " " + x.Property.CerradoCon.Apellido : null) 

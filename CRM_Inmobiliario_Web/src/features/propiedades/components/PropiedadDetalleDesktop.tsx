@@ -128,11 +128,13 @@ export const PropiedadDetalleDesktop = ({ id, onClose, logic }: Props) => {
       <DetalleModalsOrchestrator
         propiedad={propiedad}
         statusConfirmation={statusConfirmation}
+        ownerReactivationConfirmation={logic.ownerReactivationConfirmation}
         showEditModal={showEditModal}
         isClosingModalOpen={isClosingModalOpen}
         closingState={closingState}
         showReversionModal={showReversionModal}
         setStatusConfirmation={setStatusConfirmation}
+        setOwnerReactivationConfirmation={logic.setOwnerReactivationConfirmation}
         setShowEditModal={setShowEditModal}
         setIsClosingModalOpen={setIsClosingModalOpen}
         setClosingState={setClosingState}

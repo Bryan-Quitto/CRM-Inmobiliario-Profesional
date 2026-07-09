@@ -4,6 +4,7 @@ import { CrearPropiedadForm } from '../CrearPropiedadForm';
 import { ClosingModal } from '../ClosingModal';
 import { PropiedadStatusConfirmModal } from '../modals/PropiedadStatusConfirmModal';
 import { PropiedadReversionModal } from '../modals/PropiedadReversionModal';
+import ConfirmModal from '../../../../components/ConfirmModal';
 import type { Propiedad } from '../../types';
 
 interface PropiedadesModalsOrchestratorProps {
@@ -18,6 +19,8 @@ interface PropiedadesModalsOrchestratorProps {
   setIsModalOpen: (open: boolean) => void;
   statusConfirmation: { id: string; nuevoEstado: string } | null;
   setStatusConfirmation: (conf: { id: string; nuevoEstado: string } | null) => void;
+  ownerReactivation: { id: string; nuevoEstado: string } | null;
+  setOwnerReactivation: (conf: { id: string; nuevoEstado: string } | null) => void;
   handleStatusChange: (id: string, nuevoEstado: string, confirmed?: boolean) => void;
   closingPropiedad: { propiedad: Propiedad; nuevoEstado: string } | null;
   setClosingPropiedad: (closing: { propiedad: Propiedad; nuevoEstado: string } | null) => void;
@@ -39,6 +42,8 @@ export const PropiedadesModalsOrchestrator = ({
   setIsModalOpen,
   statusConfirmation,
   setStatusConfirmation,
+  ownerReactivation,
+  setOwnerReactivation,
   handleStatusChange,
   closingPropiedad,
   setClosingPropiedad,
@@ -89,6 +94,22 @@ export const PropiedadesModalsOrchestrator = ({
         onClose={() => setStatusConfirmation(null)}
         onConfirm={handleStatusChange}
         statusConfirmation={statusConfirmation}
+      />
+
+      <ConfirmModal
+        isOpen={!!ownerReactivation}
+        onClose={() => setOwnerReactivation(null)}
+        onConfirm={() => {
+          if (ownerReactivation) {
+            handleStatusChange(ownerReactivation.id, ownerReactivation.nuevoEstado, true);
+            setOwnerReactivation(null);
+          }
+        }}
+        title="¿Reactivar Propietario?"
+        description="El propietario actual está Inactivo. Al cambiar esta propiedad a Disponible, el propietario pasará a estado Activo."
+        confirmText="Sí, continuar"
+        cancelText="Cancelar"
+        type="info"
       />
 
       <ClosingModal

@@ -38,6 +38,7 @@ public record Response(
     Guid GestorId,
     string GestorNombre,
     Guid? PropietarioId,
+    string? PropietarioEstado,
     Guid? CerradoConId,
     string? CerradoConNombre,
     string? ImagenPortadaUrl,

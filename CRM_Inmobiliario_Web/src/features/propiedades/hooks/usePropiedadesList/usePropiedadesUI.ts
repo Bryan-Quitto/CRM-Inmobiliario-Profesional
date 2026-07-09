@@ -7,6 +7,7 @@ export const usePropiedadesUI = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [statusConfirmation, setStatusConfirmation] = useState<{ id: string; nuevoEstado: string } | null>(null);
+  const [ownerReactivation, setOwnerReactivation] = useState<{ id: string; nuevoEstado: string } | null>(null);
   const [closingPropiedad, setClosingPropiedad] = useState<{ propiedad: Propiedad; nuevoEstado: string } | null>(null);
   const [showReversionModal, setShowReversionModal] = useState<{ type: 'status', id: string, targetStatus: string, currentStatus?: string } | null>(null);
   const [selectedPropiedadIdForEdit, setSelectedPropiedadIdForEdit] = useState<string | null>(null);
@@ -43,6 +44,8 @@ export const usePropiedadesUI = () => {
     setOpenDropdownId,
     statusConfirmation,
     setStatusConfirmation,
+    ownerReactivation,
+    setOwnerReactivation,
     closingPropiedad,
     setClosingPropiedad,
     showReversionModal,

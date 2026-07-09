@@ -61,6 +61,7 @@ export interface Propiedad {
   gestorNombre?: string;
   propietarioId?: string;
   propietarioNombre?: string;
+  propietarioEstado?: string;
   precioCierre?: number;
   precioReserva?: number;
   fechaCierre?: string;

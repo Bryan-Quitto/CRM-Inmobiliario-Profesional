@@ -49,11 +49,11 @@ export const ManualContactosDesktop: React.FC = () => {
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
               <h3 className="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Propietarios (Dueños)</h3>
               <ul className="space-y-4">
-                <li><ManualBadge color="emerald">Activo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Dueño con propiedades actuales.</span></li>
-                <li><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Manual al dejar de trabajar, o automático si todas sus propiedades se inactivan.</span></li>
+                <li><ManualBadge color="emerald">Activo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Automático si tiene propiedades en oferta.</span></li>
+                <li><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Automático (sin oferta) o manual. <strong>Una vez inactivo, no se puede reactivar desde aquí.</strong></span></li>
                 <li className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
                   <div className="mb-2"><ManualBadge color="indigo">Cerrado</ManualBadge></div>
-                  <span className="text-sm text-slate-600 block"><strong>Estado estrictamente automático.</strong> Solo ocurre cuando TODAS sus propiedades se venden o alquilan. No se selecciona manualmente.</span>
+                  <span className="text-sm text-slate-600 block"><strong>Estado estrictamente automático.</strong> Solo ocurre cuando TODAS sus propiedades se venden o alquilan. <strong>El tablero bloquea cambios manuales.</strong></span>
                 </li>
               </ul>
             </div>
@@ -73,6 +73,9 @@ export const ManualContactosDesktop: React.FC = () => {
             </ManualAlert>
             <ManualAlert title="Protección de Tratos" variant="info">
               El sistema no dejará marcar como "Perdido" o "Inactivo" si tienen casas separadas o alquiladas. Cancela los tratos primero.
+            </ManualAlert>
+            <ManualAlert title="Reactivación de Dueños (SSoT)" variant="info">
+              Un propietario Cerrado o Inactivo NO puede reactivarse a mano. Debes crearle o ponerle en "Disponible" una propiedad para que el sistema lo despierte.
             </ManualAlert>
           </div>
         </ManualSection>

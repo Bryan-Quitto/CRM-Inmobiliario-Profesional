@@ -118,6 +118,7 @@ public class TaskNotificationJob
                 {
                     title = "Recordatorio de Tarea",
                     body = message,
+                    icon = "/logo.png",
                     data = new { url = $"/?tarea={task.Id}", taskId = task.Id },
                     actions = new[]
                     {

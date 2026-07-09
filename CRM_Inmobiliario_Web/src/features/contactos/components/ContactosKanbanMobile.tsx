@@ -15,7 +15,8 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
     columns,
     handleDragEnd,
     formatTimeAgo,
-    getEtapaColor
+    getEtapaColor,
+    isOwnerMode
   } = logic;
 
   return (
@@ -34,7 +35,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                     </MobileInfoPopover>
                   )}
                   {(etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado') && (
-                    <MobileInfoPopover content="Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial.">
+                    <MobileInfoPopover content={isOwnerMode ? "Columna automática. Un propietario pasa a Cerrado cuando todas sus propiedades han sido Vendidas o Alquiladas. Se reactivará automáticamente si vuelve a tener propiedades Disponibles." : "Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial."}>
                       <RefreshCcw className="w-3.5 h-3.5 text-emerald-600/80 shrink-0" />
                     </MobileInfoPopover>
                   )}
@@ -65,7 +66,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                         key={contacto.id} 
                         draggableId={contacto.id} 
                         index={index}
-                        isDragDisabled={contacto.estadoEmbudo === 'En Negociación'}
+                        isDragDisabled={(!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && (contacto.estadoPropietario === 'Cerrado' || contacto.estadoPropietario === 'Inactivo'))}
                       >
                         {(provided, snapshot) => (
                             <Link

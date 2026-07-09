@@ -15,6 +15,7 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
   const [closingState, setClosingState] = useState<string | undefined>(undefined);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [ownerReactivationConfirmation, setOwnerReactivationConfirmation] = useState<string | null>(null);
   const [showReversionModal, setShowReversionModal] = useState<{ type: 'transaction' | 'status', id?: string, targetStatus?: string } | null>(null);
 
   const commercial = usePropertyCommercialLogic({
@@ -28,6 +29,7 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
     onSuccess: () => {
       setIsClosingModalOpen(false);
       setStatusConfirmation(null);
+      setOwnerReactivationConfirmation(null);
       setShowReversionModal(null);
     }
   });
@@ -51,6 +53,9 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
       },
       onOpenConfirmationModal: (estado) => {
         setStatusConfirmation(estado);
+      },
+      onOpenOwnerReactivationModal: (estado) => {
+        setOwnerReactivationConfirmation(estado);
       }
     });
   };
@@ -70,11 +75,13 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
   return {
     isUpdatingStatus: commercial.isProcessing,
     statusConfirmation,
+    ownerReactivationConfirmation,
     isClosingModalOpen,
     closingState,
     isStatusDropdownOpen,
     showReversionModal,
     setStatusConfirmation,
+    setOwnerReactivationConfirmation,
     setIsClosingModalOpen,
     setClosingState,
     setIsStatusDropdownOpen,
