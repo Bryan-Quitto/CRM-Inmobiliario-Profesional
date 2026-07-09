@@ -32,48 +32,23 @@ public static class AnalyticsDateHelper
     /// </summary>
     public static List<(DateTime Inicio, DateTime Fin)> CalculateWeeklyRanges(DateTimeOffset nowEcuador)
     {
-        var semanas = new List<(DateTime Inicio, DateTime Fin)>();
         var primerDia = new DateTime(nowEcuador.Year, nowEcuador.Month, 1);
         var ultimoDiaMes = primerDia.AddMonths(1).AddDays(-1);
 
-        var curr = primerDia;
-        while (curr <= ultimoDiaMes)
+        int firstDayOfWeek = (int)primerDia.DayOfWeek; // 0 = Sunday, 1 = Monday...
+        int daysToSubtract = firstDayOfWeek == 0 ? 6 : firstDayOfWeek - 1;
+
+        var currentMonday = primerDia.AddDays(-daysToSubtract);
+        
+        var semanas = new List<(DateTime Inicio, DateTime Fin)>();
+        
+        while (currentMonday <= ultimoDiaMes)
         {
-            var inicioSemana = curr;
-            int diasHastaDomingo = (int)DayOfWeek.Sunday - (int)inicioSemana.DayOfWeek;
-            if (diasHastaDomingo < 0) diasHastaDomingo += 7;
-
-            var finSemana = inicioSemana.AddDays(diasHastaDomingo);
-            if (finSemana > ultimoDiaMes) finSemana = ultimoDiaMes;
-
-            semanas.Add((inicioSemana, finSemana));
-            curr = finSemana.AddDays(1);
+            var finSemana = currentMonday.AddDays(6);
+            semanas.Add((currentMonday, finSemana));
+            currentMonday = currentMonday.AddDays(7);
         }
 
-        var semanasFinales = new List<(DateTime Inicio, DateTime Fin)>();
-        for (int i = 0; i < semanas.Count; i++)
-        {
-            var s = semanas[i];
-            var duracion = (s.Fin - s.Inicio).Days + 1;
-
-            // Si la primera semana es muy corta, fusionarla con la siguiente
-            if (i == 0 && duracion < 4 && semanas.Count > 1)
-            {
-                semanas[i + 1] = (s.Inicio, semanas[i + 1].Fin);
-                continue;
-            }
-            
-            // Si la última semana es muy corta, fusionarla con la anterior
-            if (i == semanas.Count - 1 && duracion < 4 && semanasFinales.Count > 0)
-            {
-                var anterior = semanasFinales[^1];
-                semanasFinales[^1] = (anterior.Inicio, s.Fin);
-                continue;
-            }
-
-            semanasFinales.Add(s);
-        }
-
-        return semanasFinales;
+        return semanas;
     }
 }

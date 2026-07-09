@@ -15,6 +15,7 @@ public static class CambiarEstadoProcessor
         Property property,
         string nuevoEstado,
         decimal? precioCierre,
+        decimal? montoReserva,
         Guid? cerradoConId,
         Guid? agenteCerradorId,
         Guid currentUserId,
@@ -26,6 +27,11 @@ public static class CambiarEstadoProcessor
         var esCierre = nuevoEstado is "Vendida" or "Alquilada";
         var esReserva = nuevoEstado == "Reservada";
         var esCierreOReserva = esCierre || esReserva;
+
+        if (esCierre && property.EstadoComercial != "Reservada")
+        {
+            throw new InvalidOperationException("La propiedad debe estar en estado Reservada antes de ser Vendida o Alquilada.");
+        }
 
         // 2. Spec 011 Fase 5 item 3: Relistado automático por transición entre estados de cierre
         bool requiereRelistadoAutomatico = property.CerradoConId.HasValue && esCierre;
@@ -57,8 +63,8 @@ public static class CambiarEstadoProcessor
         // 4. Actualizar Propiedad
         property.EstadoComercial = nuevoEstado;
         property.FechaCierre = esCierre ? ecuadorNow : null;
-        property.PrecioCierre = esCierre ? precioCierre : null;
-        property.PrecioReserva = esReserva ? precioCierre : null;
+        property.PrecioCierre = esCierre ? (precioCierre ?? property.PrecioCierre) : (esReserva ? precioCierre : null);
+        property.PrecioReserva = esReserva ? montoReserva : null;
         property.CerradoConId = esCierreOReserva ? cerradoConId : null;
         property.AgenteCerradorId = esCierreOReserva ? agenteCerradorId : null;
         property.FechaArchivado = nuevoEstado == "Archivado" ? ecuadorNow : null;

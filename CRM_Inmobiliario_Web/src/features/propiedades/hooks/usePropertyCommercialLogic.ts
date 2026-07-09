@@ -121,6 +121,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
   const handleClosingConfirm = async (
     propiedad: Propiedad,
     precioCierre: number | null,
+    montoReserva: number | null,
     cerradoConId: string, 
     agenteCerradorId: string | undefined,
     finalStatus: string
@@ -134,7 +135,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
       try {
         if (isMounted.current) setIsProcessing(true);
         
-        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre ?? undefined, cerradoConId, agenteCerradorId, propiedad.version);
+        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre ?? undefined, montoReserva ?? undefined, cerradoConId, agenteCerradorId, propiedad.version);
 
         if (statusToApply === 'Vendida') {
           await limpiarImagenesPropiedad(propiedad.id);
@@ -199,7 +200,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
 
     try {
       if (isMounted.current) setIsProcessing(true);
-      await actualizarEstadoPropiedad(propiedad.id, nuevoEstado, undefined, undefined, propiedad.version);
+      await actualizarEstadoPropiedad(propiedad.id, nuevoEstado, undefined, undefined, undefined, undefined, propiedad.version);
       
       if (nuevoEstado === 'Inactiva' || nuevoEstado === 'Vendida') {
         await limpiarImagenesPropiedad(propiedad.id);
@@ -253,7 +254,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
         if (isMounted.current) setIsProcessing(true);
         
         if (type === 'Reversion') {
-          await actualizarEstadoPropiedad(propiedad.id, targetStatus, undefined, undefined, propiedad.version);
+          await actualizarEstadoPropiedad(propiedad.id, targetStatus, undefined, undefined, undefined, undefined, propiedad.version);
         } else {
           await relistPropiedad(propiedad.id, type === 'Relist' ? "Relistado natural" : "Trato caído", type as 'Relist' | 'Cancel');
         }

@@ -62,8 +62,8 @@ export const usePropiedadesListLogic = (checkContactoId?: string) => {
   });
 
   // Wrapper for handleClosingConfirm to match original signature
-  const handleClosingConfirm = (precioCierre: number | null, cerradoConId: string, agenteCerradorId: string | undefined, tipoCierre: string) => 
-    handleClosingConfirmBase(precioCierre, cerradoConId, agenteCerradorId, tipoCierre, ui.closingPropiedad);
+  const handleClosingConfirm = (precioCierre: number | null, montoReserva: number | null, cerradoConId: string, agenteCerradorId: string | undefined, tipoCierre: string) => 
+    handleClosingConfirmBase(precioCierre, montoReserva, cerradoConId, agenteCerradorId, tipoCierre, ui.closingPropiedad);
 
   const scrollButtons = useScrollButtons();
 

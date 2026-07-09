@@ -1,9 +1,10 @@
 import React from 'react';
-import { X, Calendar, ArrowRight, Clock, CheckCircle2, Handshake, FileText, Target } from 'lucide-react';
+import { X, Calendar, ArrowRight, Clock, CheckCircle2, Handshake, FileText, Target, Phone } from 'lucide-react';
 import type { 
   ActividadAnalitica, 
   EficienciaAnalitica,
   KpiVisita,
+  KpiLlamada,
   KpiCierre,
   KpiOferta,
   KpiCaptacion,
@@ -48,7 +49,7 @@ const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, title, icon,
 };
 
 interface AnaliticaModalsProps {
-  activeModal: 'visitas' | 'cierres' | 'ofertas' | 'captaciones' | 'auditoria-velocidad' | null;
+  activeModal: 'visitas' | 'llamadas' | 'cierres' | 'ofertas' | 'captaciones' | 'auditoria-velocidad' | null;
   onClose: () => void;
   actividad?: ActividadAnalitica;
   eficiencia?: EficienciaAnalitica;
@@ -87,6 +88,34 @@ export const AnaliticaModals = ({
           {(!actividad?.detalles?.visitas || actividad.detalles.visitas.length === 0) && (
             <div className="text-center py-10">
               <p className="text-slate-400 font-bold italic">No se encontraron visitas completadas en este período.</p>
+            </div>
+          )}
+        </div>
+      </DetailModal>
+
+      <DetailModal 
+        isOpen={activeModal === 'llamadas'} 
+        onClose={onClose}
+        title="Detalles de Llamadas"
+        icon={<Phone />}
+      >
+        <div className="space-y-4">
+          {actividad?.detalles?.llamadas?.map((l: KpiLlamada) => (
+            <div key={l.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:bg-white hover:border-violet-200 transition-all group">
+              <div className="flex-1">
+                <h4 className="text-sm font-black text-slate-900 mb-1 group-hover:text-violet-600 transition-colors">{l.titulo}</h4>
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5"><Calendar size={12} /> {l.fecha}</span>
+                  {l.contacto && <span className="text-[10px] font-bold text-violet-500 uppercase tracking-widest">Contacto: {l.contacto}</span>}
+                  {l.propiedad && <span className="text-[10px] font-bold text-slate-500">Propiedad: {l.propiedad}</span>}
+                </div>
+              </div>
+              <div className="ml-4 h-2 w-2 rounded-full bg-violet-400" />
+            </div>
+          ))}
+          {(!actividad?.detalles?.llamadas || actividad.detalles.llamadas.length === 0) && (
+            <div className="text-center py-10">
+              <p className="text-slate-400 font-bold italic">No se encontraron llamadas realizadas en este período.</p>
             </div>
           )}
         </div>

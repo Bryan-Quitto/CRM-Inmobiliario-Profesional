@@ -1,4 +1,4 @@
-import { CheckCircle2, Handshake, FileText, Target, Loader2, Eye } from 'lucide-react';
+import { CheckCircle2, Handshake, FileText, Target, Loader2, Eye, Phone } from 'lucide-react';
 import { 
   XAxis, 
   YAxis, 
@@ -8,17 +8,59 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import type { ActividadAnalitica } from '../../types';
+import type { ActividadAnalitica, TrendPoint } from '../../types';
 
 interface AnaliticaActividadProps {
   actividad?: ActividadAnalitica;
   loadingActividad: boolean;
-  setActiveModal: (modal: 'visitas' | 'cierres' | 'ofertas' | 'captaciones' | null) => void;
+  setActiveModal: (modal: 'visitas' | 'llamadas' | 'cierres' | 'ofertas' | 'captaciones' | null) => void;
 }
+
+interface CustomTickProps {
+  x?: number;
+  y?: number;
+  payload?: { value: string };
+  trendData?: TrendPoint[];
+}
+
+const CustomXAxisTick = (props: CustomTickProps) => {
+  const { x, y, payload, trendData } = props;
+  
+  if (!payload || !payload.value) return null;
+
+  const point = trendData?.find((t) => t.fecha === payload.value);
+  const rawDateStr = point?.rawDate;
+  
+  let diaStr = '';
+  let diaCortoStr = '';
+  if (rawDateStr) {
+    const d = new Date(rawDateStr + 'T00:00:00'); 
+    const daysFull = ['Dom.', 'Lun.', 'Mar.', 'Mié.', 'Jue.', 'Vie.', 'Sáb.'];
+    const daysShort = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    diaStr = daysFull[d.getDay()];
+    diaCortoStr = daysShort[d.getDay()];
+  }
+
+  const isZoomedOut = (trendData?.length || 0) > 15;
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={12} textAnchor="middle" fill="#64748b" fontSize={10} fontWeight="bold">
+        {payload.value}
+      </text>
+      {rawDateStr && (
+        <text x={0} y={0} dy={26} textAnchor="middle" fill="#94a3b8" fontSize={10} fontWeight="normal">
+          {isZoomedOut ? diaCortoStr : diaStr}
+        </text>
+      )}
+    </g>
+  );
+};
 
 export const AnaliticaActividad = ({ actividad, loadingActividad, setActiveModal }: AnaliticaActividadProps) => {
   const kpisOperativos = [
     { id: 'visitas' as const, title: 'Visitas', value: actividad?.visitasCompletadas ?? 0, icon: <CheckCircle2 className="h-5 w-5" />, color: 'bg-emerald-50 text-emerald-600', desc: 'Completadas' },
+    { id: 'llamadas' as const, title: 'Llamadas', value: actividad?.llamadasCompletadas ?? 0, icon: <Phone className="h-5 w-5" />, color: 'bg-violet-50 text-violet-600', desc: 'Realizadas' },
     { id: 'cierres' as const, title: 'Cierres', value: actividad?.cierresRealizados ?? 0, icon: <Handshake className="h-5 w-5" />, color: 'bg-blue-50 text-blue-600', desc: 'Finalizados' },
     { id: 'ofertas' as const, title: 'Ofertas', value: actividad?.ofertasGeneradas ?? 0, icon: <FileText className="h-5 w-5" />, color: 'bg-indigo-50 text-indigo-600', desc: 'Generadas' },
     { id: 'captaciones' as const, title: 'Captaciones', value: actividad?.captacionesPropias ?? 0, icon: <Target className="h-5 w-5" />, color: 'bg-amber-50 text-amber-600', desc: 'Nuevas' },
@@ -26,7 +68,7 @@ export const AnaliticaActividad = ({ actividad, loadingActividad, setActiveModal
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {kpisOperativos.map((kpi, idx) => (
           <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group border-b-4 border-b-transparent hover:border-b-blue-500 relative overflow-hidden">
             {loadingActividad && (
@@ -74,14 +116,16 @@ export const AnaliticaActividad = ({ actividad, loadingActividad, setActiveModal
               <AreaChart data={actividad?.trend ?? []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorVisitas" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
+                  <linearGradient id="colorLlamadas" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.1}/><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/></linearGradient>
                   <linearGradient id="colorCierres" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient>
                   <linearGradient id="colorCaptaciones" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.1}/><stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/></linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="fecha" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />
+                <XAxis dataKey="fecha" axisLine={false} tickLine={false} height={45} tick={<CustomXAxisTick trendData={actividad?.trend ?? []} />} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />
                 <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                 <Area type="monotone" dataKey="visitas" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitas)" />
+                <Area type="monotone" dataKey="llamadas" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorLlamadas)" />
                 <Area type="monotone" dataKey="cierres" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCierres)" />
                 <Area type="monotone" dataKey="captaciones" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorCaptaciones)" />
               </AreaChart>

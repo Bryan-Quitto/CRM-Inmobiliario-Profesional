@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -38,15 +38,13 @@ public static class ObtenerProyeccionesEndpoint
                             (p.AgenteId == agenteId || p.CerradoCon.AgenteId == agenteId))
                 .Select(p => new ItemCalculoProyeccion(
                     p.Titulo,
-                    p.Precio,
+                    p.PrecioCierre ?? p.Precio,
                     p.PorcentajeComision,
-                    (p.AgenteId == p.CerradoCon!.AgenteId) 
-                        ? p.Precio * (p.PorcentajeComision / 100m) 
-                        : p.Precio * ((p.PorcentajeComision / 2m) / 100m)
+                    (p.PrecioCierre ?? p.Precio) * (p.PorcentajeComision / 100m)
                 ))
                 .ToListAsync();
 
-            decimal total = itemsProyeccion.Sum(i => i.ComisionCalculada);
+            decimal total = itemsProyeccion.Sum(i => i.Precio);
 
             return Results.Ok(new ProyeccionResponse(total, itemsProyeccion));
         })

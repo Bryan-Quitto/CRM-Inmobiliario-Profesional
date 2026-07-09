@@ -22,7 +22,7 @@ export const useAnaliticaViewLogic = () => {
   } = useAnaliticaData(rangoActual);
 
   const [expandedCard, setExpandedCard] = useState<'proyeccion' | 'velocidad' | 'tasa' | null>(null);
-  const [activeModal, setActiveModal] = useState<'visitas' | 'cierres' | 'ofertas' | 'captaciones' | 'auditoria-velocidad' | null>(null);
+  const [activeModal, setActiveModal] = useState<'visitas' | 'llamadas' | 'cierres' | 'ofertas' | 'captaciones' | 'auditoria-velocidad' | null>(null);
 
   const formattedRange = `${rangoActual.inicio.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} - ${rangoActual.fin.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`;
 

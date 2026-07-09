@@ -34,50 +34,36 @@ export const useAnaliticaState = () => {
   const [showMesDropdown, setShowMesDropdown] = useState(false);
 
   const semanasDelMes = useMemo(() => {
-    const rawSemanas: { inicio: Date; fin: Date }[] = [];
     const primerDia = new Date(anioSeleccionado, mesSeleccionado, 1);
     const ultimoDia = new Date(anioSeleccionado, mesSeleccionado + 1, 0, 23, 59, 59);
 
-    let current = new Date(primerDia);
-    while (current <= ultimoDia) {
-      const inicio = new Date(current);
-      const diaSemana = inicio.getDay();
-      const diasHastaDomingo = diaSemana === 0 ? 0 : 7 - diaSemana;
-      let fin = new Date(inicio);
-      fin.setDate(inicio.getDate() + diasHastaDomingo);
-      fin.setHours(23, 59, 59);
+    const firstDayOfWeek = primerDia.getDay(); // 0 is Sunday, 1 is Monday...
+    const daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+    
+    const currentMonday = new Date(primerDia);
+    currentMonday.setDate(currentMonday.getDate() - daysToSubtract);
+    currentMonday.setHours(0, 0, 0, 0);
 
-      if (fin > ultimoDia) fin = new Date(ultimoDia);
-      rawSemanas.push({ inicio, fin });
+    const semanas: RangoFechas[] = [];
+    
+    while (currentMonday <= ultimoDia) {
+      const inicio = new Date(currentMonday);
       
-      current = new Date(fin);
-      current.setDate(fin.getDate() + 1);
-      current.setHours(0, 0, 0, 0);
-    }
-
-    const clustered: RangoFechas[] = [];
-    for (let i = 0; i < rawSemanas.length; i++) {
-      const item = rawSemanas[i];
-      const diffMs = item.fin.getTime() - item.inicio.getTime();
-      const durationDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-      if (i === 0 && durationDays < 4 && rawSemanas.length > 1) {
-        rawSemanas[i + 1].inicio = item.inicio;
-        continue;
-      }
-      if (i === rawSemanas.length - 1 && durationDays < 4 && clustered.length > 0) {
-        clustered[clustered.length - 1].fin = item.fin;
-        continue;
-      }
-
-      clustered.push({
-        inicio: item.inicio,
-        fin: item.fin,
-        label: `S${clustered.length + 1}`
+      const fin = new Date(currentMonday);
+      fin.setDate(fin.getDate() + 6);
+      fin.setHours(23, 59, 59, 999);
+      
+      semanas.push({
+        inicio,
+        fin,
+        label: `S${semanas.length + 1}`
       });
+      
+      // Move to next Monday
+      currentMonday.setDate(currentMonday.getDate() + 7);
     }
-
-    return clustered;
+    
+    return semanas;
   }, [anioSeleccionado, mesSeleccionado]);
 
   const rangoActual = useMemo(() => {

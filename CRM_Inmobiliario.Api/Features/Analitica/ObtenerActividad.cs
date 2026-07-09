@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,15 +13,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.Analitica;
 
-public record TrendPoint(string Fecha, int Visitas, int Cierres, int Captaciones);
+public record TrendPoint(string Fecha, string RawDate, int Visitas, int Llamadas, int Cierres, int Captaciones);
 
 public record KpiVisita(Guid Id, string Titulo, string Fecha, string? Contacto, string? Propiedad);
+public record KpiLlamada(Guid Id, string Titulo, string Fecha, string? Contacto, string? Propiedad);
 public record KpiCierre(Guid Id, string Contacto, string Propiedad, string FechaCierre);
 public record KpiOferta(Guid Id, string Contacto, string Propiedad, string Fecha);
 public record KpiCaptacion(Guid Id, string Titulo, string Fecha, decimal Precio);
 
 public record ActividadDetalles(
     List<KpiVisita> Visitas,
+    List<KpiLlamada> Llamadas,
     List<KpiCierre> Cierres,
     List<KpiOferta> Ofertas,
     List<KpiCaptacion> Captaciones
@@ -29,6 +31,7 @@ public record ActividadDetalles(
 
 public record ActividadResponse(
     int VisitasCompletadas,
+    int LlamadasCompletadas,
     int CierresRealizados,
     int OfertasGeneradas,
     int CaptacionesPropias,
@@ -57,6 +60,7 @@ public static class ObtenerActividadEndpoint
                 {
                     // Conteos Rápidos
                     VisitasCount = a.Tasks.Count(t => (t.TipoTarea == "Visita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin),
+                    LlamadasCount = a.Tasks.Count(t => (t.TipoTarea == "Llamada") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin),
                     CierresCount = context.PropertyTransactions.Count(t => 
                         (t.TransactionType == "Sale" || t.TransactionType == "Rent") && 
                         t.TransactionStatus != "Cancelled" && 
@@ -70,6 +74,11 @@ public static class ObtenerActividadEndpoint
                         .Where(t => (t.TipoTarea == "Visita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
                         .OrderByDescending(t => t.FechaInicio)
                         .Select(t => new KpiVisita(t.Id, t.Titulo, t.FechaInicio.ToString("yyyy-MM-dd HH:mm"), t.Contacto != null ? (t.Contacto.Nombre + " " + t.Contacto.Apellido) : null, t.Propiedad != null ? t.Propiedad.Titulo : null))
+                        .ToList(),
+                    DetallesLlamadas = a.Tasks
+                        .Where(t => (t.TipoTarea == "Llamada") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
+                        .OrderByDescending(t => t.FechaInicio)
+                        .Select(t => new KpiLlamada(t.Id, t.Titulo, t.FechaInicio.ToString("yyyy-MM-dd HH:mm"), t.Contacto != null ? (t.Contacto.Nombre + " " + t.Contacto.Apellido) : null, t.Propiedad != null ? t.Propiedad.Titulo : null))
                         .ToList(),
                     DetallesCierres = context.PropertyTransactions
                         .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && 
@@ -99,6 +108,10 @@ public static class ObtenerActividadEndpoint
                         .Where(t => (t.TipoTarea == "Visita") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
                         .Select(t => t.FechaInicio)
                         .ToList(),
+                    RawLlamadas = a.Tasks
+                        .Where(t => (t.TipoTarea == "Llamada") && t.Estado == "Completada" && t.FechaInicio >= inicio && t.FechaInicio <= fin)
+                        .Select(t => t.FechaInicio)
+                        .ToList(),
                     RawCierres = context.PropertyTransactions
                         .Where(t => (t.TransactionType == "Sale" || t.TransactionType == "Rent") && 
                                     t.TransactionStatus != "Cancelled" && 
@@ -116,22 +129,29 @@ public static class ObtenerActividadEndpoint
             if (megaData == null) return Results.NotFound("Agente no encontrado");
 
             // PROCESAMIENTO EN MEMORIA: Generación de la línea de tiempo (Trend)
+            var localOffset = inicio.Offset;
             var trend = new List<TrendPoint>();
-            var vDict = megaData.RawVisitas.GroupBy(x => x.Date).ToDictionary(g => g.Key, g => g.Count());
-            var cDict = megaData.RawCierres.GroupBy(x => x.Date).ToDictionary(g => g.Key, g => g.Count());
-            var capDict = megaData.RawCaptaciones.GroupBy(x => x.Date).ToDictionary(g => g.Key, g => g.Count());
+            var vDict = megaData.RawVisitas.GroupBy(x => x.ToOffset(localOffset).Date).ToDictionary(g => g.Key, g => g.Count());
+            var lDict = megaData.RawLlamadas.GroupBy(x => x.ToOffset(localOffset).Date).ToDictionary(g => g.Key, g => g.Count());
+            var cDict = megaData.RawCierres.GroupBy(x => x.ToOffset(localOffset).Date).ToDictionary(g => g.Key, g => g.Count());
+            var capDict = megaData.RawCaptaciones.GroupBy(x => x.ToOffset(localOffset).Date).ToDictionary(g => g.Key, g => g.Count());
 
-            for (var dt = inicio.Date; dt <= fin.Date; dt = dt.AddDays(1))
+            var startDate = inicio.ToOffset(localOffset).Date;
+            var endDate = fin.ToOffset(localOffset).Date;
+            for (var dt = startDate; dt <= endDate; dt = dt.AddDays(1))
             {
                 trend.Add(new TrendPoint(
                     dt.ToString("dd MMM"), 
+                    dt.ToString("yyyy-MM-dd"),
                     vDict.GetValueOrDefault(dt, 0), 
+                    lDict.GetValueOrDefault(dt, 0),
                     cDict.GetValueOrDefault(dt, 0), 
                     capDict.GetValueOrDefault(dt, 0)));
             }
 
             var detalles = new ActividadDetalles(
                 megaData.DetallesVisitas,
+                megaData.DetallesLlamadas,
                 megaData.DetallesCierres,
                 megaData.DetallesOfertas,
                 megaData.DetallesCaptaciones
@@ -139,6 +159,7 @@ public static class ObtenerActividadEndpoint
 
             return Results.Ok(new ActividadResponse(
                 megaData.VisitasCount, 
+                megaData.LlamadasCount,
                 megaData.CierresCount, 
                 megaData.OfertasCount, 
                 megaData.CaptacionesCount, 

@@ -1,11 +1,21 @@
 export interface TrendPoint {
   fecha: string;
+  rawDate?: string;
   visitas: number;
+  llamadas: number;
   cierres: number;
   captaciones: number;
 }
 
 export interface KpiVisita {
+  id: string;
+  titulo: string;
+  fecha: string;
+  contacto?: string;
+  propiedad?: string;
+}
+
+export interface KpiLlamada {
   id: string;
   titulo: string;
   fecha: string;
@@ -36,12 +46,14 @@ export interface KpiCaptacion {
 
 export interface ActividadAnalitica {
   visitasCompletadas: number;
+  llamadasCompletadas: number;
   cierresRealizados: number;
   ofertasGeneradas: number;
   captacionesPropias: number;
   trend: TrendPoint[];
   detalles: {
     visitas: KpiVisita[];
+    llamadas: KpiLlamada[];
     cierres: KpiCierre[];
     ofertas: KpiOferta[];
     captaciones: KpiCaptacion[];

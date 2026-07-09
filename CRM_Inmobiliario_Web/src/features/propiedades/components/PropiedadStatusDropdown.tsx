@@ -103,7 +103,12 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
               }`}
               onMouseDown={(e) => e.stopPropagation()}
             >
-              {ESTADOS.map((estado) => (
+              {ESTADOS.filter(estado => {
+                if ((estado.value === 'Vendida' || estado.value === 'Alquilada') && p.estadoComercial !== 'Reservada') {
+                  return false;
+                }
+                return true;
+              }).map((estado) => (
                 <button
                   key={estado.value}
                   type="button"

@@ -32,9 +32,9 @@ export const usePropiedadComercial = ({ propiedad, mutate, mutateHistorial }: Us
     }
   });
 
-  const handleClosingConfirm = async (precioCierre: number | null, cerradoConId: string, agenteCerradorId: string | undefined, finalStatus: string) => {
+  const handleClosingConfirm = async (precioCierre: number | null, montoReserva: number | null, cerradoConId: string, agenteCerradorId: string | undefined, finalStatus: string) => {
     if (!propiedad) return;
-    await commercial.handleClosingConfirm(propiedad, precioCierre, cerradoConId, agenteCerradorId, finalStatus);
+    await commercial.handleClosingConfirm(propiedad, precioCierre, montoReserva, cerradoConId, agenteCerradorId, finalStatus);
   };
 
   const handleStatusChange = (nuevoEstado: string, confirmed = false) => {

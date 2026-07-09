@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { buscarContactos } from '../../contactos/api/buscarContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
@@ -13,7 +13,7 @@ import { swrDefaultConfig } from '@/lib/swr';
 interface UseClosingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (precioCierre: number | null, partnerId: string, agenteCerradorId: string | undefined, finalStatus: string) => Promise<void>;
+  onConfirm: (precioCierre: number | null, montoReserva: number | null, partnerId: string, agenteCerradorId: string | undefined, finalStatus: string) => Promise<void>;
   mode: 'property' | 'contacto';
   initialData?: {
     id: string;
@@ -37,6 +37,7 @@ export const useClosingModal = ({
   const { data: propiedades = [] } = useSWR<Propiedad[]>(isOpen ? '/propiedades' : null, getPropiedades, swrDefaultConfig);
   
   const [precioCierre, setPrecioCierre] = useState<string>(initialData?.precio.toString() || '');
+  const [montoReserva, setMontoReserva] = useState<string>('');
   const [partnerId, setPartnerId] = useState<string | undefined>(mode === 'property' ? undefined : initialData?.id);
   const [selectedPartnerData, setSelectedPartnerData] = useState<{titulo: string, operacion: string} | null>(
     mode === 'property' && initialData ? { titulo: initialData.titulo, operacion: initialData.operacion } : null
@@ -76,6 +77,7 @@ export const useClosingModal = ({
       }
       
       setPrecioCierre(initialData?.precio.toString() || '');
+      setMontoReserva('');
       setPartnerId(mode === 'property' ? undefined : initialData?.id);
       setIsSharedTransaction(false);
       setAgenteCerradorId(undefined);
@@ -136,10 +138,13 @@ export const useClosingModal = ({
       return;
     }
 
-    if (isReserva && precioCierre) {
-      const p = Number(precioCierre);
-      if (isNaN(p) || p <= 0) {
-        toast.error('El monto de reserva debe ser mayor a 0, o déjalo vacío para Reserva de palabra.');
+    if (isReserva) {
+      if (!precioCierre || isNaN(Number(precioCierre)) || Number(precioCierre) <= 0) {
+        toast.error('Por favor, ingresa un Precio de Cierre Acordado válido.');
+        return;
+      }
+      if (!montoReserva || isNaN(Number(montoReserva)) || Number(montoReserva) <= 0) {
+        toast.error('Por favor, ingresa un Monto de Reserva válido.');
         return;
       }
     }
@@ -155,7 +160,7 @@ export const useClosingModal = ({
 
     setIsSubmitting(true);
     try {
-      await onConfirm(precioCierre ? Number(precioCierre) : null, partnerId, isSharedTransaction ? agenteCerradorId : undefined, tipoCierre);
+      await onConfirm(precioCierre ? Number(precioCierre) : null, montoReserva ? Number(montoReserva) : null, partnerId, isSharedTransaction ? agenteCerradorId : undefined, tipoCierre);
       setIsSuccess(true);
       setTimeout(() => {
         onClose();
@@ -226,6 +231,7 @@ export const useClosingModal = ({
   return {
     state: {
       precioCierre,
+      montoReserva,
       partnerId,
       selectedPartnerData,
       tipoCierre,
@@ -240,6 +246,7 @@ export const useClosingModal = ({
     },
     actions: {
       setPrecioCierre,
+      setMontoReserva,
       setPartnerId,
       setTipoCierre,
       setShowTipoCierreDropdown,
