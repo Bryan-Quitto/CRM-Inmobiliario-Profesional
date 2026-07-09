@@ -7,6 +7,7 @@ import {
   type FacebookPageOption,
 } from '../api/facebook';
 import { HelpButton } from '../../../components/ui/HelpButton';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 /* ─── FB SDK global types ─────────────────────────────────────────────────── */
 declare global {
@@ -158,7 +159,7 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
           <FacebookIcon size={28} />
         </div>
         <div className="min-w-0">
-          <p className="font-black text-slate-800 text-lg leading-tight truncate">{facebookPageName}</p>
+          <TruncatedText as="p" className="font-black text-slate-800 text-lg leading-tight truncate">{facebookPageName}</TruncatedText>
           <p className="text-xs text-slate-400 font-mono mt-0.5">ID: {facebookPageId}</p>
         </div>
       </div>

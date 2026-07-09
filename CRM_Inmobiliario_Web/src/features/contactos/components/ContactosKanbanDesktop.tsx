@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Maximize2, Minimize2, Lock, RefreshCcw } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { ContactosKanbanLogicReturn } from '../hooks/useContactosKanbanLogic';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 export interface ContactosKanbanDesktopProps {
   logic: ContactosKanbanLogicReturn;
@@ -40,16 +41,16 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                   <>
                     <div className="flex items-center gap-2 min-w-0">
                       {etapa.value === 'En Negociación' && (
-                        <Tooltip content="Columna automática. Gestiona la transacción desde el catálogo de propiedades. No puedes mover contactos manualmente de esta columna." position="top" variant="premium">
+                        <Tooltip content="Columna automática. Gestiona la transacción desde el catálogo de propiedades. No puedes mover contactos manualmente de esta columna." position="top">
                           <Lock className="w-3.5 h-3.5 text-amber-600/80 cursor-help shrink-0" />
                         </Tooltip>
                       )}
                       {(etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado') && (
-                        <Tooltip content="Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial." position="top" variant="premium">
+                        <Tooltip content="Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial." position="top">
                           <RefreshCcw className="w-3.5 h-3.5 text-emerald-600/80 cursor-help shrink-0" />
                         </Tooltip>
                       )}
-                      <span className="font-black text-slate-800 uppercase tracking-tighter text-[11px] truncate">{etapa.label}</span>
+                      <TruncatedText as="span" className="font-black text-slate-800 uppercase tracking-tighter text-[11px] truncate">{etapa.label}</TruncatedText>
                       <span className="bg-white text-slate-500 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-slate-200 shrink-0 shadow-sm">
                         {count}
                       </span>
@@ -127,10 +128,10 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                                   {contacto.nombre[0]}{contacto.apellido?.[0] || ''}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <h4 className="font-black text-slate-900 group-hover:text-blue-600 transition-colors text-[11px] uppercase truncate">
+                                  <TruncatedText as="h4" className="font-black text-slate-900 group-hover:text-blue-600 transition-colors text-[11px] uppercase truncate">
                                     {[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}
-                                  </h4>
-                                  <p className="text-[9px] text-slate-400 font-bold truncate tracking-tight">{contacto.telefono}</p>
+                                  </TruncatedText>
+                                  <TruncatedText as="p" className="text-[9px] text-slate-400 font-bold truncate tracking-tight">{contacto.telefono}</TruncatedText>
                                 </div>
                               </div>
 

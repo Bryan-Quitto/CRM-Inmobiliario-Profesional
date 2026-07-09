@@ -4,6 +4,7 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { ESTADOS, ESTADOS_PROPIETARIO, ORIGENES, ESTADOS_IA } from '../../constants/contactos';
 import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { SortOptionContacto, SortDirectionContacto } from '../../hooks/useContactosFiltering';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 const SORT_OPTIONS: { value: SortOptionContacto; label: string }[] = [
   { value: 'fechaCreacion', label: 'Fecha Ingreso' },
@@ -219,7 +220,7 @@ export const ContactosListFilters = ({
                 className="flex items-center gap-2 pl-4 pr-2 py-2.5 text-sm font-bold text-slate-600 transition-all cursor-pointer border-r border-slate-100 w-[180px] sm:w-[200px]"
               >
                 <ArrowUpDown className="h-4 w-4 text-slate-500 shrink-0" />
-                <span className="truncate flex-1 text-left">{SORT_OPTIONS.find(o => o.value === sortBy)?.label || 'Seleccionar...'}</span>
+                <TruncatedText as="span" className="truncate flex-1 text-left">{SORT_OPTIONS.find(o => o.value === sortBy)?.label || 'Seleccionar...'}</TruncatedText>
                 <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'sort' ? 'rotate-180' : ''}`} />
               </button>
               <button
@@ -298,7 +299,7 @@ export const ContactosListFilters = ({
               className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[130px]"
             >
               <Eye className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="truncate flex-1 text-left">{filterVisibilidad}</span>
+              <TruncatedText as="span" className="truncate flex-1 text-left">{filterVisibilidad}</TruncatedText>
               <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'visibilidad' ? 'rotate-180' : ''}`} />
             </button>
 
@@ -330,7 +331,7 @@ export const ContactosListFilters = ({
               className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
             >
               <Globe className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="truncate flex-1 text-left">{filterOrigen}</span>
+              <TruncatedText as="span" className="truncate flex-1 text-left">{filterOrigen}</TruncatedText>
               <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'origen' ? 'rotate-180' : ''}`} />
             </button>
 
@@ -372,7 +373,7 @@ export const ContactosListFilters = ({
                 className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
               >
                 <Users className="h-4 w-4 text-slate-500 shrink-0" />
-                <span className="truncate flex-1 text-left">{filterEstadoCliente}</span>
+                <TruncatedText as="span" className="truncate flex-1 text-left">{filterEstadoCliente}</TruncatedText>
                 <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_cliente' ? 'rotate-180' : ''}`} />
               </button>
 
@@ -415,7 +416,7 @@ export const ContactosListFilters = ({
                 className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
               >
                 <Briefcase className="h-4 w-4 text-slate-500 shrink-0" />
-                <span className="truncate flex-1 text-left">{filterEstadoPropietario}</span>
+                <TruncatedText as="span" className="truncate flex-1 text-left">{filterEstadoPropietario}</TruncatedText>
                 <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_propietario' ? 'rotate-180' : ''}`} />
               </button>
 
@@ -457,7 +458,7 @@ export const ContactosListFilters = ({
               className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
             >
               <Bot className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="truncate flex-1 text-left">{filterEstadoIA_WA}</span>
+              <TruncatedText as="span" className="truncate flex-1 text-left">{filterEstadoIA_WA}</TruncatedText>
               <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_ia_wa' ? 'rotate-180' : ''}`} />
             </button>
 
@@ -498,7 +499,7 @@ export const ContactosListFilters = ({
               className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] w-[150px]"
             >
               <Bot className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="truncate flex-1 text-left">{filterEstadoIA_FB}</span>
+              <TruncatedText as="span" className="truncate flex-1 text-left">{filterEstadoIA_FB}</TruncatedText>
               <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'estado_ia_fb' ? 'rotate-180' : ''}`} />
             </button>
 

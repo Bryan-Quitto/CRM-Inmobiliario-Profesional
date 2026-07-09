@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Users, ChevronDown, ChevronRight, User } from 'lucide-react';
 import type { DashboardKpis, ContactoDashboardItem } from '../types';
 import { HelpButton } from '../../../components/ui/HelpButton';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface SeguimientoCriticoProps {
   data: DashboardKpis;
@@ -55,9 +56,9 @@ export const SeguimientoCritico: React.FC<SeguimientoCriticoProps> = ({ data }) 
                   >
                     <ContactoAvatar nombre={contacto.nombre} apellido={contacto.apellido} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-black text-slate-900 truncate uppercase tracking-tight">
+                      <TruncatedText as="p" className="text-[12px] font-black text-slate-900 truncate uppercase tracking-tight">
                         {[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}
-                      </p>
+                      </TruncatedText>
                       <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest">
                         {contacto.estadoEmbudo}
                       </p>

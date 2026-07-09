@@ -4,6 +4,7 @@ import { Save, Loader2, Archive } from 'lucide-react';
 import { TimeDurationDaysInput } from './TimeDurationDaysInput';
 import type { AutoArchivadoSettingsLogic } from '../hooks/useAutoArchivadoSettingsLogic';
 import { AutoArchivadoCandidatesList } from './AutoArchivadoCandidatesList';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   logic: AutoArchivadoSettingsLogic;
@@ -100,7 +101,7 @@ export const AutoArchivadoSettingsMobile: React.FC<Props> = ({ logic }) => {
                 ) : (
                   <Save className="w-5 h-5 shrink-0" />
                 )}
-                <span className="truncate">{isSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
+                <TruncatedText as="span" className="truncate">{isSaving ? 'Guardando...' : 'Guardar Cambios'}</TruncatedText>
               </button>
             </div>
           </form>

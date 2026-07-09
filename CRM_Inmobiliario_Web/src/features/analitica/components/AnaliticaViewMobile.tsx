@@ -9,6 +9,7 @@ import { AnaliticaActividad } from './analitica-sections/AnaliticaActividad';
 import { AnaliticaModals } from './analitica-sections/AnaliticaModals';
 import type { AnaliticaViewLogic } from '../hooks/useAnaliticaViewLogic';
 import { HelpButton } from '../../../components/ui/HelpButton';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   logic: AnaliticaViewLogic;
@@ -34,7 +35,7 @@ export const AnaliticaViewMobile: React.FC<Props> = ({ logic }) => {
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-4 duration-300 w-[90%] max-w-sm">
           <div className="bg-slate-900/90 backdrop-blur-xl text-white px-2 py-2 rounded-full shadow-2xl flex items-center justify-center gap-2 border border-white/10">
             <Loader2 className="h-3 w-3 animate-spin text-blue-400" />
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] truncate">Sincronizando...</span>
+            <TruncatedText as="span" className="text-[9px] font-black uppercase tracking-[0.2em] truncate">Sincronizando...</TruncatedText>
           </div>
         </div>
       )}

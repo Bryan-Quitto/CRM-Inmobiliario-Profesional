@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import ConfirmModal from '@/components/ConfirmModal';
 import { HelpButton } from '../../../components/ui/HelpButton';
 import { useCopilotDrawerLogic } from '../hooks/useCopilotDrawerLogic';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilotDrawerLogic> }> = ({ logic }) => {
   const {
@@ -47,7 +48,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
           <div className="bg-indigo-100 p-1.5 rounded-lg shrink-0">
             <Bot className="h-5 w-5 text-indigo-600" />
           </div>
-          <h2 className="text-base font-semibold truncate">Asistente de IA</h2>
+          <TruncatedText as="h2" className="text-base font-semibold truncate">Asistente de IA</TruncatedText>
           <Link 
             title="Ver Historial"
             to="/registros-sistema-ia/personal" 
@@ -82,7 +83,7 @@ export const CopilotDrawerMobile: React.FC<{ logic: ReturnType<typeof useCopilot
         <div className="bg-indigo-50 px-4 py-2 flex items-center justify-between border-b border-indigo-100/50 select-none w-full min-w-0">
           <div className="flex items-center gap-2 overflow-hidden text-indigo-700 min-w-0">
             <span className="text-xs font-semibold whitespace-nowrap shrink-0">📌 Contacto activo:</span>
-            <span className="text-xs font-medium truncate">{focusedContext.name}</span>
+            <TruncatedText as="span" className="text-xs font-medium truncate">{focusedContext.name}</TruncatedText>
           </div>
           <button 
             onClick={() => setFocusedContext(null)}

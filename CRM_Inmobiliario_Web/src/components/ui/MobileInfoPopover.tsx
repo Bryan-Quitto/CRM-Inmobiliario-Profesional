@@ -42,15 +42,15 @@ export function MobileInfoPopover({ children, content }: MobileInfoPopoverProps)
           }}
         >
           <div 
-            className="bg-white rounded-xl shadow-2xl w-full max-w-[320px] p-6 flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-200 cursor-pointer"
+            className="bg-slate-900 border border-slate-800 rounded-xl shadow-2xl w-full max-w-[320px] p-6 flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-200 cursor-pointer"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-sm text-slate-700 break-words leading-relaxed">
+            <div className="text-sm font-medium text-slate-100 break-words leading-relaxed text-center">
               {content}
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full py-2.5 px-4 bg-slate-900 text-white hover:bg-slate-800 rounded-lg font-medium transition-colors cursor-pointer"
+              className="w-full py-2.5 px-4 bg-white text-slate-900 hover:bg-slate-100 rounded-lg font-bold transition-colors cursor-pointer"
             >
               Entendido
             </button>

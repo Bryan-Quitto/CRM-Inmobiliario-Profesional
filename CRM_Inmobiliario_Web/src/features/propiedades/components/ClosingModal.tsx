@@ -2,6 +2,7 @@ import React from 'react';
 import { X, DollarSign, User, Check, Loader2, Info, Home, ChevronDown } from 'lucide-react';
 import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
 import { useClosingModal } from '../hooks/useClosingModal';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface ClosingModalProps {
   isOpen: boolean;
@@ -84,9 +85,9 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
               <h3 className="text-2xl font-black text-slate-900 tracking-tight contactoing-none mb-2">
                 {isReserva ? 'Iniciar Reserva / Negociación' : 'Cierre de Operación'}
               </h3>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest truncate max-w-[280px]">
+              <TruncatedText as="p" className="text-slate-400 text-xs font-bold uppercase tracking-widest truncate max-w-[280px]">
                 {mode === 'property' ? selectedPartnerData?.titulo : 'Desde Perfil de Contacto'}
-              </p>
+              </TruncatedText>
             </div>
           </div>
 

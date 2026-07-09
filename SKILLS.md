@@ -45,6 +45,7 @@ This file defines the strict technical standards and architectural rules for the
 - **Files:** No separate `.css` files for components. Only use global CSS for Tailwind directives and base variables.
 - **Interactive Elements (Cursors):** ALL interactive elements (buttons, custom dropdowns, clickable pills, etc.) MUST explicitly include the `cursor-pointer` utility class to prevent UX ambiguity.
 - **Routing & Navigation (Anti-Pattern Prevention):** STRICT prohibition of using programmatic navigation (`onClick={() => navigate(...)}` or `window.open`) for standard routing. ANY navigation action MUST be implemented using declarative `<Link to="...">` components from `react-router-dom` (or `<a>` with `target="_blank"` for external/new-tab links). This is an UNBREAKABLE accessibility and UX rule to ensure users can always use native browser features like "Right Click -> Open in New Tab" or "Ctrl+Click".
+- **Rule (Textos Truncados & Zero-Wait UX):** STRICT prohibition of using raw HTML elements (e.g. `<span className="truncate">`) or the native `title` attribute for long texts that might overflow. The AI MUST ALWAYS use the centralized `<TruncatedText>` component from `@/components/ui/TruncatedText` for any potentially truncated text. This ensures texts are properly measured and only show a dark `bg-slate-900` tooltip when they actually overflow, complying with our premium UX standard.
 
 ### UI Feedback & Toasts Semantics
 - **Rule (Consistencia Semántica):** STRICT adherence to the semantic meaning of toast colors. 

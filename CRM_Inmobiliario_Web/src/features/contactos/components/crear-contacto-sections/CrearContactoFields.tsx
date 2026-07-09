@@ -2,6 +2,7 @@ import { type UseFormRegister, type FieldErrors, type Control, useWatch, Control
 import { User, Mail, UserCheck, Search } from 'lucide-react';
 import { type CrearContactoDTO } from '../../api/crearContacto';
 import { PhoneInputWorldClass } from '../PhoneInputWorldClass';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface CrearContactoFieldsProps {
   register: UseFormRegister<CrearContactoDTO>;
@@ -51,10 +52,10 @@ export const CrearContactoFields = ({
               <Search className={`h-4 w-4 shrink-0 ${esCliente ? 'text-white' : 'text-slate-500'}`} />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className={`text-xs font-black uppercase truncate ${esCliente ? 'text-blue-900' : 'text-slate-500'}`}>Cliente</p>
-              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esCliente ? 'text-blue-600' : 'text-slate-400'}`}>
+              <TruncatedText as="p" className={`text-xs font-black uppercase truncate ${esCliente ? 'text-blue-900' : 'text-slate-500'}`}>Cliente</TruncatedText>
+              <TruncatedText as="p" className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esCliente ? 'text-blue-600' : 'text-slate-400'}`}>
                 {esCliente ? 'Habilitado' : 'Inactivo'}
-              </p>
+              </TruncatedText>
             </div>
           </button>
 
@@ -74,10 +75,10 @@ export const CrearContactoFields = ({
               <UserCheck className={`h-4 w-4 shrink-0 ${esPropietario ? 'text-white' : 'text-slate-500'}`} />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className={`text-xs font-black uppercase truncate ${esPropietario ? 'text-emerald-900' : 'text-slate-500'}`}>Propietario</p>
-              <p className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esPropietario ? 'text-emerald-600' : 'text-slate-400'}`}>
+              <TruncatedText as="p" className={`text-xs font-black uppercase truncate ${esPropietario ? 'text-emerald-900' : 'text-slate-500'}`}>Propietario</TruncatedText>
+              <TruncatedText as="p" className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esPropietario ? 'text-emerald-600' : 'text-slate-400'}`}>
                 {esPropietario ? 'Habilitado' : 'Inactivo'}
-              </p>
+              </TruncatedText>
             </div>
           </button>
         </div>

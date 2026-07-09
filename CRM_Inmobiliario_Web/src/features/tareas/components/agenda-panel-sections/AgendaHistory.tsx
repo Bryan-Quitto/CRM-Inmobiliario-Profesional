@@ -3,6 +3,7 @@ import { History, CheckCircle2, XCircle, ChevronRight, ChevronDown, ChevronUp } 
 import { SearchInput } from '@/components/ui/SearchInput';
 import type { Tarea } from '../../types';
 import { formatDateTime } from '../../utils';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface AgendaHistoryProps {
   showHistory: boolean;
@@ -84,9 +85,9 @@ export const AgendaHistory: React.FC<AgendaHistoryProps> = ({
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className={`text-[11px] font-bold text-slate-700 truncate ${tarea.estado === 'Completada' ? 'line-through' : ''}`}>
+                    <TruncatedText as="p" className={`text-[11px] font-bold text-slate-700 truncate ${tarea.estado === 'Completada' ? 'line-through' : ''}`}>
                       {tarea.titulo}
-                    </p>
+                    </TruncatedText>
                     <p className="text-[9px] font-medium text-slate-400 uppercase tracking-tighter">
                       {tarea.estado} • {formatDateTime(tarea.fechaInicio)}
                     </p>

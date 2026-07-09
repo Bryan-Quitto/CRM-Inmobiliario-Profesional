@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 export function CustomSelect<T extends string | number>({ 
   value, 
@@ -34,7 +35,7 @@ export function CustomSelect<T extends string | number>({
         onClick={() => setIsOpen(!isOpen)}
         className={buttonClassName || `w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl text-left text-sm font-medium transition-all outline-none flex items-center justify-between group cursor-pointer text-slate-700`}
       >
-        <span className="truncate pr-2">{selectedOpt?.label}</span>
+        <TruncatedText as="span" className="truncate pr-2">{selectedOpt?.label}</TruncatedText>
         <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -53,7 +54,7 @@ export function CustomSelect<T extends string | number>({
                   value === opt.value ? 'text-indigo-600 bg-indigo-50/50' : 'text-slate-600'
                 }`}
               >
-                <span className="truncate pr-2">{opt.label}</span>
+                <TruncatedText as="span" className="truncate pr-2">{opt.label}</TruncatedText>
                 {value === opt.value && <Check className="h-4 w-4 shrink-0" />}
               </button>
             ))}

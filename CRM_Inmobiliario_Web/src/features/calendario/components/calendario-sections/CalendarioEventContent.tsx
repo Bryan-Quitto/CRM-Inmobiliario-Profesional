@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 const TIPO_ICONS: Record<string, LucideIcon> = {
   'Llamada': Phone,
@@ -39,9 +40,9 @@ export const CalendarioEventContent: React.FC<{ eventInfo: EventContentArg }> = 
     <div className={`flex flex-col w-full h-full p-1.5 gap-0.5 overflow-hidden ${isCompleted ? 'line-through decoration-slate-400' : ''}`}>
       <div className="flex items-center gap-1.5 shrink-0">
         <StatusIcon size={12} style={{ color: activeColor }} className="shrink-0" />
-        <span className="truncate contactoing-none uppercase tracking-tight font-black text-slate-900 text-[10px]">
+        <TruncatedText as="span" className="truncate contactoing-none uppercase tracking-tight font-black text-slate-900 text-[10px]">
           {eventInfo.event.title}
-        </span>
+        </TruncatedText>
       </div>
 
       {(eventInfo.view.type !== 'dayGridMonth' || props.duracionMinutos > 45) && (
@@ -49,19 +50,19 @@ export const CalendarioEventContent: React.FC<{ eventInfo: EventContentArg }> = 
           {props.contactoNombre && (
             <div className="flex items-center gap-1 truncate text-[9px] text-slate-600">
               <Users size={10} className="shrink-0" />
-              <span className="truncate">{props.contactoNombre}</span>
+              <TruncatedText as="span" className="truncate">{props.contactoNombre}</TruncatedText>
             </div>
           )}
           {props.propiedadTitulo && (
             <div className="flex items-center gap-1 truncate text-[9px] text-slate-600">
               <MapPin size={10} className="shrink-0" />
-              <span className="truncate">{props.propiedadTitulo}</span>
+              <TruncatedText as="span" className="truncate">{props.propiedadTitulo}</TruncatedText>
             </div>
           )}
           {props.lugar && !props.propiedadTitulo && (
             <div className="flex items-center gap-1 truncate text-[9px] text-slate-600">
               <MapPin size={10} className="shrink-0" />
-              <span className="truncate">{props.lugar}</span>
+              <TruncatedText as="span" className="truncate">{props.lugar}</TruncatedText>
             </div>
           )}
         </div>

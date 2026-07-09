@@ -2,6 +2,7 @@ import { MessageSquare, Trash2, Check, X, AlertCircle, Pencil, ExternalLink, Arr
 import { SearchInput } from '@/components/ui/SearchInput';
 import { PersonalTokenUsagePanel } from './PersonalTokenUsagePanel';
 import type { PersonalLogsViewLogic } from '../hooks/usePersonalLogsViewLogic';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 const SORT_LABELS = {
   createdAt: 'Fecha de creación',
@@ -59,7 +60,7 @@ export const PersonalLogsViewDesktop = ({ logic }: Props) => {
                 className="flex items-center gap-2 pl-4 pr-2 py-2 text-sm font-bold text-slate-600 transition-all cursor-pointer border-r-2 border-slate-100 w-[190px]"
               >
                 <ArrowUpDown className="h-4 w-4 text-slate-500 shrink-0" />
-                <span className="truncate flex-1 text-left">{SORT_LABELS[sortBy as keyof typeof SORT_LABELS]}</span>
+                <TruncatedText as="span" className="truncate flex-1 text-left">{SORT_LABELS[sortBy as keyof typeof SORT_LABELS]}</TruncatedText>
                 <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`} />
               </button>
               <button
@@ -122,7 +123,7 @@ export const PersonalLogsViewDesktop = ({ logic }: Props) => {
                   />
                 ) : (
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-bold text-slate-900 truncate">{conv.title || 'Conversación sin título'}</span>
+                    <TruncatedText as="span" className="font-bold text-slate-900 truncate">{conv.title || 'Conversación sin título'}</TruncatedText>
                     <button
                       title="Editar título"
                       onClick={() => {

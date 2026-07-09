@@ -4,6 +4,7 @@ import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
 import { NIVELES_INTERES, formatCurrency } from '../../constants/contactos';
 import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { Contacto, Interes } from '../../types';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface ContactoInterestsManagerProps {
   contacto: Contacto;
@@ -141,7 +142,7 @@ export const ContactoInterestsManager = ({
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-black text-slate-900 uppercase truncate group-hover:text-blue-600 transition-colors tracking-tight">{interes.titulo}</h4>
+                    <TruncatedText as="h4" className="text-xs font-black text-slate-900 uppercase truncate group-hover:text-blue-600 transition-colors tracking-tight">{interes.titulo}</TruncatedText>
                     <p className="text-[10px] font-bold text-slate-400 mt-0.5">{formatCurrency(interes.precio || 0)}</p>
                     
                     <div className="flex flex-wrap md:flex-nowrap items-center gap-2 mt-2">

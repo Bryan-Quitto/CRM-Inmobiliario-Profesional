@@ -13,6 +13,7 @@ import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface ContactoCardProps {
   contacto: Contacto;
@@ -134,11 +135,11 @@ export const ContactoCard = ({
       </div>
 
       <div className="mb-6 min-w-0">
-        <h3 className={`text-lg font-black transition-colors uppercase tracking-tight truncate ${
+        <TruncatedText as="h3" className={`text-lg font-black transition-colors uppercase tracking-tight truncate ${
           contacto.esCompartido ? 'text-slate-600' : 'text-slate-900 group-hover:text-blue-600'
         }`}>
           {[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}
-        </h3>
+        </TruncatedText>
         
         <div className="flex flex-col gap-2 mt-3">
           {/* Badge Dropdown Cliente */}
@@ -427,12 +428,12 @@ export const ContactoCard = ({
         {!contacto.esCompartido && contacto.email && (
           <div className="flex items-center gap-3 text-sm text-slate-500 font-medium group-hover:text-slate-900 transition-colors min-w-0 w-full">
             <Mail className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-blue-500" />
-            <span className="truncate min-w-0 flex-1">{contacto.email}</span>
+            <TruncatedText as="span" className="truncate min-w-0 flex-1">{contacto.email}</TruncatedText>
           </div>
         )}
         <div className="flex items-center gap-3 text-sm text-slate-500 font-medium group-hover:text-slate-900 transition-colors min-w-0 w-full">
           <Phone className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-blue-500" />
-          <span className="truncate min-w-0 flex-1">{contacto.esCompartido ? '••••••••' : contacto.telefono}</span>
+          <TruncatedText as="span" className="truncate min-w-0 flex-1">{contacto.esCompartido ? '••••••••' : contacto.telefono}</TruncatedText>
         </div>
       </div>
 

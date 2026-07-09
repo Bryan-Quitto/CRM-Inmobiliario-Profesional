@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import type { Propiedad } from '../../types';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface PropiedadCardMobileProps {
   propiedad: Propiedad;
@@ -96,16 +97,16 @@ export const PropiedadCardMobile = ({
 
           {/* Type Badge Overlay */}
           <div className="absolute top-3 left-3 z-20 max-w-[calc(100%-24px)] flex">
-            <span className="text-[10px] font-black text-blue-600 bg-blue-50/90 backdrop-blur-sm px-2 py-1 rounded uppercase tracking-widest shadow-sm truncate">
+            <TruncatedText as="span" className="text-[10px] font-black text-blue-600 bg-blue-50/90 backdrop-blur-sm px-2 py-1 rounded uppercase tracking-widest shadow-sm truncate">
               {p.tipoPropiedad}
-            </span>
+            </TruncatedText>
           </div>
 
           {/* Operation Badge */}
           <div className="absolute bottom-3 left-3 z-20 max-w-[calc(100%-24px)] flex">
-            <span className="px-2 py-1 bg-white/90 backdrop-blur-sm border border-white/20 rounded text-[10px] font-black uppercase tracking-wider text-slate-900 shadow-sm truncate">
+            <TruncatedText as="span" className="px-2 py-1 bg-white/90 backdrop-blur-sm border border-white/20 rounded text-[10px] font-black uppercase tracking-wider text-slate-900 shadow-sm truncate">
               {p.operacion}
-            </span>
+            </TruncatedText>
           </div>
         </div>
 
@@ -139,7 +140,7 @@ export const PropiedadCardMobile = ({
               {p.esCaptacionPropia && p.permissions?.canEditMasterData && (
                 <div className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shrink-0 max-w-full">
                   <Handshake className="h-3 w-3 shrink-0" />
-                  <span className="truncate">Captación</span>
+                  <TruncatedText as="span" className="truncate">Captación</TruncatedText>
                 </div>
               )}
             </div>

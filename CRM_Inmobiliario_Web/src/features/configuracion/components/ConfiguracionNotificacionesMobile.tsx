@@ -3,6 +3,7 @@ import { HelpButton } from '../../../components/ui/HelpButton';
 import { Loader2, Bell, RefreshCw, BellOff, Info, Save } from 'lucide-react';
 import { TimeDurationInput, type TimeUnit } from './TimeDurationInput';
 import type { ConfiguracionNotificacionesLogicReturn } from '../hooks/useConfiguracionNotificacionesLogic';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   logic: ConfiguracionNotificacionesLogicReturn;
@@ -74,7 +75,7 @@ export const ConfiguracionNotificacionesMobile: React.FC<Props> = ({ logic }) =>
                   className="w-full min-w-0 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {isSubscribing ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Bell className="w-4 h-4 shrink-0" />}
-                  <span className="truncate">{isSubscribing ? 'Activando...' : 'Activar Notificaciones'}</span>
+                  <TruncatedText as="span" className="truncate">{isSubscribing ? 'Activando...' : 'Activar Notificaciones'}</TruncatedText>
                 </button>
               ) : (
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -85,7 +86,7 @@ export const ConfiguracionNotificacionesMobile: React.FC<Props> = ({ logic }) =>
                     className="w-full flex-1 min-w-0 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   >
                     <RefreshCw className={`w-4 h-4 shrink-0 ${isSubscribing ? 'animate-spin' : ''}`} />
-                    <span className="truncate">{isSubscribing ? 'Sincronizando...' : 'Sincronizar'}</span>
+                    <TruncatedText as="span" className="truncate">{isSubscribing ? 'Sincronizando...' : 'Sincronizar'}</TruncatedText>
                   </button>
                   <button
                     type="button"
@@ -94,7 +95,7 @@ export const ConfiguracionNotificacionesMobile: React.FC<Props> = ({ logic }) =>
                     className="w-full flex-1 min-w-0 px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm font-semibold rounded-xl border border-rose-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   >
                     <BellOff className="w-4 h-4 shrink-0" />
-                    <span className="truncate">Desactivar</span>
+                    <TruncatedText as="span" className="truncate">Desactivar</TruncatedText>
                   </button>
                 </div>
               )}
@@ -198,7 +199,7 @@ export const ConfiguracionNotificacionesMobile: React.FC<Props> = ({ logic }) =>
                 ) : (
                   <Save className="w-5 h-5 shrink-0" />
                 )}
-                <span className="truncate">{isSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
+                <TruncatedText as="span" className="truncate">{isSaving ? 'Guardando...' : 'Guardar Cambios'}</TruncatedText>
               </button>
             </div>
           </form>

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { TareaDetalleLogicReturn } from '../hooks/useTareaDetalleLogic';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   logic: TareaDetalleLogicReturn;
@@ -154,7 +155,7 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
                   Contacto Relacionado
                   <ExternalLink size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                 </p>
-                <p className="text-base font-black text-slate-900 contactoing-none mt-1 truncate">{tarea.contactoNombre}</p>
+                <TruncatedText as="p" className="text-base font-black text-slate-900 contactoing-none mt-1 truncate">{tarea.contactoNombre}</TruncatedText>
               </div>
             </Link>
           )}
@@ -176,7 +177,7 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
                   Inmueble de Interés
                   <ExternalLink size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                 </p>
-                <p className="text-base font-black text-slate-900 contactoing-none mt-1 truncate">{tarea.propiedadTitulo}</p>
+                <TruncatedText as="p" className="text-base font-black text-slate-900 contactoing-none mt-1 truncate">{tarea.propiedadTitulo}</TruncatedText>
               </div>
             </Link>
           )}
@@ -188,9 +189,9 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ubicación de la Tarea</p>
-                <p className="text-base font-bold text-slate-700 contactoing-tight mt-1 truncate max-w-[200px]">
+                <TruncatedText as="p" className="text-base font-bold text-slate-700 contactoing-tight mt-1 truncate max-w-[200px]">
                   {tarea.lugar || tarea.propiedadDireccion}
-                </p>
+                </TruncatedText>
               </div>
             </div>
           )}

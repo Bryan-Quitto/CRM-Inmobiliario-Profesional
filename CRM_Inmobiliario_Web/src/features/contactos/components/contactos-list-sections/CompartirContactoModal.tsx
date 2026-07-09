@@ -9,6 +9,7 @@ import type { Propiedad } from '@/features/propiedades/types';
 import { useCompartirContacto } from '../../hooks/useCompartirContacto';
 import { usePerfil } from '@/features/auth/api/perfil';
 import type { Contacto, AgenteCompartido } from '../../types';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface CompartirContactoModalProps {
   isOpen: boolean;
@@ -230,7 +231,7 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
                               <Home className="h-5 w-5" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-sm font-black text-slate-900 uppercase tracking-tight truncate">{(item as Propiedad).titulo}</p>
+                              <TruncatedText as="p" className="text-sm font-black text-slate-900 uppercase tracking-tight truncate">{(item as Propiedad).titulo}</TruncatedText>
                               <p className="text-[10px] text-slate-400 font-bold uppercase">{(item as Propiedad).sector}, {(item as Propiedad).ciudad}</p>
                               {(item as Propiedad).estadoComercial !== 'Disponible' && (
                                 <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-black text-amber-600 uppercase">

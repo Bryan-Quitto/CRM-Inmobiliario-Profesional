@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Controller, type Control, type UseFormSetValue, type FieldErrors } from 'react-hook-form';
 import { Tag, ChevronDown, Check } from 'lucide-react';
 import { type CrearContactoDTO } from '../../api/crearContacto';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface OrigenSelectProps {
   control: Control<CrearContactoDTO>;
@@ -54,9 +55,9 @@ export const OrigenSelect = ({
                 onClick={() => setIsSelectOpen(!isSelectOpen)}
                 className={`cursor-pointer w-full pl-10 pr-10 py-3 bg-slate-50 border text-left ${errors.origen ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none flex items-center justify-between group disabled:opacity-50`}
               >
-                <span className={`truncate flex-1 ${field.value ? 'text-slate-900' : 'text-slate-400'}`}>
+                <TruncatedText as="span" className={`truncate flex-1 ${field.value ? 'text-slate-900' : 'text-slate-400'}`}>
                   {field.value || 'Selecciona origen...'}
-                </span>
+                </TruncatedText>
                 <ChevronDown className={`h-4 w-4 shrink-0 text-slate-300 transition-transform duration-300 ${isSelectOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -74,7 +75,7 @@ export const OrigenSelect = ({
                         field.value === opt.value ? 'text-blue-600 bg-blue-50/50' : 'text-slate-600'
                       }`}
                     >
-                      <span className="truncate pr-2">{opt.label}</span>
+                      <TruncatedText as="span" className="truncate pr-2">{opt.label}</TruncatedText>
                       {field.value === opt.value && <Check className="h-4 w-4 shrink-0" />}
                     </button>
                   ))}

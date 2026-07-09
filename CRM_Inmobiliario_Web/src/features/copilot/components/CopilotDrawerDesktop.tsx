@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import ConfirmModal from '@/components/ConfirmModal';
 import { HelpButton } from '../../../components/ui/HelpButton';
 import { useCopilotDrawerLogic } from '../hooks/useCopilotDrawerLogic';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilotDrawerLogic> }> = ({ logic }) => {
   const {
@@ -143,7 +144,7 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
             <div className="bg-indigo-50 px-4 py-2 flex items-center justify-between border-b border-indigo-100/50 select-none">
               <div className="flex items-center gap-2 overflow-hidden text-indigo-700">
                 <span className="text-xs font-semibold whitespace-nowrap shrink-0">📌 Contacto activo:</span>
-                <span className="text-xs font-medium truncate">{focusedContext.name}</span>
+                <TruncatedText as="span" className="text-xs font-medium truncate">{focusedContext.name}</TruncatedText>
               </div>
               <button 
                 onClick={() => setFocusedContext(null)}

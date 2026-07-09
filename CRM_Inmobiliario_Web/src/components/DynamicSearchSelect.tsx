@@ -3,6 +3,7 @@ import { Loader2, X, Check } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
 import Fuse from 'fuse.js';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 export interface SearchItem {
   id: string;
@@ -118,7 +119,7 @@ export const DynamicSearchSelect = ({
         {selectedLabel ? (
           <div className="w-full pl-4 pr-12 py-3 bg-blue-50 border border-blue-200 rounded-2xl text-sm font-bold text-blue-700 flex items-center gap-2 animate-in zoom-in duration-200">
             <Icon className="h-4 w-4 text-blue-500" />
-            <span className="truncate">{selectedLabel}</span>
+            <TruncatedText as="span" className="truncate">{selectedLabel}</TruncatedText>
             <button
               type="button"
               onClick={handleClear}

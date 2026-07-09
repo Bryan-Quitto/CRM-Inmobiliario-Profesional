@@ -6,6 +6,7 @@ import { PropiedadesStatsHeader } from './propiedades-list-sections/PropiedadesS
 import { PropiedadesFilters } from './propiedades-list-sections/PropiedadesFilters';
 import { PropiedadesSkeletonList } from './propiedades-list-sections/PropiedadesSkeletonList';
 import { PropiedadCardMobile } from './propiedades-list-sections/PropiedadCardMobile';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 
 interface Props {
@@ -60,7 +61,7 @@ export const PropiedadesListMobile = ({ logic }: Props) => {
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-4 duration-300 max-w-[90%]">
           <div className="bg-slate-900/90 backdrop-blur-xl text-white px-2 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-white/10 w-full min-w-0">
             <Loader2 className="h-3 w-3 animate-spin text-blue-400 shrink-0" />
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] truncate">Sincronizando...</span>
+            <TruncatedText as="span" className="text-[9px] font-black uppercase tracking-[0.2em] truncate">Sincronizando...</TruncatedText>
           </div>
         </div>
       )}

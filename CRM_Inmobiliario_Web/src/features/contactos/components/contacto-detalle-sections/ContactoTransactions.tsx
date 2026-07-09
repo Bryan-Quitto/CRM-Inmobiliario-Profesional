@@ -2,6 +2,7 @@ import { Award, ExternalLink, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../constants/contactos';
 import type { Contacto, Interes } from '../../types';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface ContactoTransactionsProps {
   contacto: Contacto;
@@ -52,9 +53,9 @@ export const ContactoTransactions = ({ contacto }: ContactoTransactionsProps) =>
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <h4 className="text-xs font-black text-slate-900 uppercase truncate tracking-tight group-hover:text-emerald-600 transition-colors">
+                <TruncatedText as="h4" className="text-xs font-black text-slate-900 uppercase truncate tracking-tight group-hover:text-emerald-600 transition-colors">
                   {transaccion.titulo}
-                </h4>
+                </TruncatedText>
                 <p className="text-[10px] font-bold text-slate-400 mt-0.5">
                   {formatCurrency(transaccion.precio || 0)}
                 </p>

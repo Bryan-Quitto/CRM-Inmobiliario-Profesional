@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, Filter, ChevronDown, Check } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   dias: number | 'custom';
@@ -112,7 +113,7 @@ export const AuditoriaGeneralFiltros: React.FC<Props> = ({
             className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] min-w-[160px]"
           >
             <Calendar className="h-4 w-4 text-slate-500 shrink-0" />
-            <span className="truncate flex-1 text-left">{selectedDiasLabel}</span>
+            <TruncatedText as="span" className="truncate flex-1 text-left">{selectedDiasLabel}</TruncatedText>
             <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'periodo' ? 'rotate-180' : ''}`} />
           </button>
 
@@ -179,7 +180,7 @@ export const AuditoriaGeneralFiltros: React.FC<Props> = ({
             className="flex items-center gap-3 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-all shadow-sm cursor-pointer h-[42px] min-w-[200px]"
           >
             <Filter className="h-4 w-4 text-slate-500 shrink-0" />
-            <span className="truncate flex-1 text-left">{selectedCanalLabel}</span>
+            <TruncatedText as="span" className="truncate flex-1 text-left">{selectedCanalLabel}</TruncatedText>
             <ChevronDown className={`h-4 w-4 text-slate-300 shrink-0 transition-transform duration-300 ${openDropdownId === 'canal' ? 'rotate-180' : ''}`} />
           </button>
 

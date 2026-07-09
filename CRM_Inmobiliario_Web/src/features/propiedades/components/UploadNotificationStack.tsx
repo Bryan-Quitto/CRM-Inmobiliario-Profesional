@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import type { UploadProcess } from '../context/UploadContext';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface UploadNotificationStackProps {
   activeUploads: Record<string, UploadProcess>;
@@ -53,7 +54,7 @@ export const UploadNotificationStack: React.FC<UploadNotificationStackProps> = (
               </div>
               <div className="overflow-hidden">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest contactoing-none mb-1">Subiendo Imágenes</p>
-                <p className="text-sm font-black text-slate-900 truncate tracking-tight pr-4">{upload.nombrePropiedad}</p>
+                <TruncatedText as="p" className="text-sm font-black text-slate-900 truncate tracking-tight pr-4">{upload.nombrePropiedad}</TruncatedText>
               </div>
             </div>
             <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-md uppercase tracking-widest">

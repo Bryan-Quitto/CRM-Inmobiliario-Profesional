@@ -8,6 +8,7 @@ import { useContactoTokenUsage } from '../../hooks/useContactoTokenUsage';
 import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracionIA';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface ContactoProfileCardProps {
   contacto: Contacto;
@@ -62,7 +63,7 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
         <div className="h-16 w-16 md:h-24 md:w-24 bg-slate-900 text-white rounded-[20px] md:rounded-[32px] flex items-center justify-center text-xl md:text-3xl font-black shadow-2xl mb-3 md:mb-4 rotate-3">
           {contacto.nombre[0]}{contacto.apellido?.[0] || ''}
         </div>
-        <h2 className="text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight truncate">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</h2>
+        <TruncatedText as="h2" className="text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight truncate">{[contacto.nombre, contacto.apellido].filter(Boolean).join(' ')}</TruncatedText>
         <p className="text-sm font-bold text-slate-400 mt-1 italic">Contacto desde {new Date(contacto.fechaCreacion!).toLocaleDateString()}</p>
       </div>
 
@@ -73,7 +74,7 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Teléfono</p>
-            <p className="text-sm font-bold text-slate-900 truncate">{contacto.telefono}</p>
+            <TruncatedText as="p" className="text-sm font-bold text-slate-900 truncate">{contacto.telefono}</TruncatedText>
           </div>
         </div>
 
@@ -101,7 +102,7 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</p>
-              <p className="text-sm font-bold text-slate-900 truncate">{contacto.email}</p>
+              <TruncatedText as="p" className="text-sm font-bold text-slate-900 truncate">{contacto.email}</TruncatedText>
             </div>
           </div>
         )}
@@ -112,7 +113,7 @@ export const ContactoProfileCard = ({ contacto }: ContactoProfileCardProps) => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Origen</p>
-            <p className="text-sm font-bold text-slate-900 truncate">{contacto.origen}</p>
+            <TruncatedText as="p" className="text-sm font-bold text-slate-900 truncate">{contacto.origen}</TruncatedText>
           </div>
         </div>
 

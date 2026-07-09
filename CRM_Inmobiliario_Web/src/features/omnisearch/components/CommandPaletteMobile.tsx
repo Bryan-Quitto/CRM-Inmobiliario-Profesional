@@ -3,6 +3,7 @@ import { Search, X, Settings, Calendar, PlusSquare, User, Home, CheckCircle, Loa
 import { Link } from 'react-router-dom';
 import { useCommandPaletteLogic, type OmniSearchResult } from '../hooks/useCommandPaletteLogic';
 import { HelpButton } from '../../../components/ui/HelpButton';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 const IconMap: Record<string, React.ElementType> = {
   Settings,
@@ -99,8 +100,8 @@ export const CommandPaletteMobile: React.FC<Props> = ({ logic }) => {
                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">{option.title}</p>
-                          <p className="text-xs text-slate-500 truncate">{option.subtitle}</p>
+                          <TruncatedText as="p" className="text-sm font-semibold text-slate-900 truncate">{option.title}</TruncatedText>
+                          <TruncatedText as="p" className="text-xs text-slate-500 truncate">{option.subtitle}</TruncatedText>
                         </div>
                       </>
                     );
@@ -168,9 +169,9 @@ export const CommandPaletteMobile: React.FC<Props> = ({ logic }) => {
                                   )}
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-sm font-semibold text-slate-900 truncate">{item.title}</p>
+                                  <TruncatedText as="p" className="text-sm font-semibold text-slate-900 truncate">{item.title}</TruncatedText>
                                   {item.subtitle && (
-                                    <p className="text-xs text-slate-500 truncate">{item.subtitle}</p>
+                                    <TruncatedText as="p" className="text-xs text-slate-500 truncate">{item.subtitle}</TruncatedText>
                                   )}
                                 </div>
                               </Link>

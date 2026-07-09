@@ -5,6 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useCopilotStore } from '@/features/copilot/store/useCopilotStore';
 import { useSearchParams } from 'react-router-dom';
 import { CommandPalette } from '@/features/omnisearch/components/CommandPalette';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface HeaderProps {
   isAgendaOpen: boolean;
@@ -81,7 +82,7 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session, isSidebarOpen, 
         <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-black text-slate-900 truncate">
+            <TruncatedText as="p" className="text-sm font-black text-slate-900 truncate">
               {perfil ? (
                 (() => {
                   const nombreCompleto = [perfil.nombre, perfil.apellido].filter(Boolean).join(' ');
@@ -90,7 +91,7 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session, isSidebarOpen, 
               ) : (
                 session?.user?.email?.split('@')[0] || 'Agente'
               )}
-            </p>
+            </TruncatedText>
             <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Agente Activo</p>
           </div>
           <div className="h-10 w-10 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm uppercase overflow-hidden">

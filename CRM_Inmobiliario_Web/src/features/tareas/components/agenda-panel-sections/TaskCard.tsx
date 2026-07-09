@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { Tarea } from '../../types';
 import { formatDateTime, isExpired } from '../../utils';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 const TIPO_ICONOS = {
   'Llamada': Phone,
@@ -99,11 +100,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </span>
           </div>
           
-          <h4 className={`text-sm font-black text-slate-900 truncate contactoing-tight transition-all ${
+          <TruncatedText as="h4" className={`text-sm font-black text-slate-900 truncate contactoing-tight transition-all ${
             tarea.estado === 'Completada' ? 'line-through text-slate-400' : ''
           }`}>
             {tarea.titulo}
-          </h4>
+          </TruncatedText>
 
           {/* Relaciones */}
           {(tarea.contactoNombre || tarea.propiedadTitulo || tarea.lugar) && (
@@ -111,7 +112,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               {tarea.contactoNombre && (
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
                   <Users className="h-3 w-3 text-slate-300" />
-                  <span className="truncate">{tarea.contactoNombre}</span>
+                  <TruncatedText as="span" className="truncate">{tarea.contactoNombre}</TruncatedText>
                 </div>
               )}
               {tarea.propiedadTitulo && (
@@ -123,13 +124,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       <MapPin className="h-3 w-3 text-slate-300" />
                     )}
                   </div>
-                  <span className="text-[10px] font-bold text-slate-600 italic truncate max-w-[150px]">{tarea.propiedadTitulo}</span>
+                  <TruncatedText as="span" className="text-[10px] font-bold text-slate-600 italic truncate max-w-[150px]">{tarea.propiedadTitulo}</TruncatedText>
                 </div>
               )}
               {tarea.lugar && !tarea.propiedadTitulo && (
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-1">
                   <MapPin className="h-3 w-3 text-slate-300" />
-                  <span className="truncate">{tarea.lugar}</span>
+                  <TruncatedText as="span" className="truncate">{tarea.lugar}</TruncatedText>
                 </div>
               )}
             </div>

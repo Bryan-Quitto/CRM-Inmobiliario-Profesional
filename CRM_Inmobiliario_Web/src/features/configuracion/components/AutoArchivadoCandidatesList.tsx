@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Clock, CalendarDays, Users, Home } from 'lucide-react';
 import type { CandidateDto, SortByOptions } from '../api/useArchivingCandidates';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   type: 'contactos' | 'propiedades';
@@ -75,9 +76,9 @@ export const AutoArchivadoCandidatesList: React.FC<Props> = ({
                     : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <span className="truncate">
+                <TruncatedText as="span" className="truncate">
                   {sortBy === 'ProximosArchivar' ? 'Mayor inactividad' : 'Actividad reciente'}
-                </span>
+                </TruncatedText>
                 <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-indigo-500' : 'text-slate-400'}`} />
               </button>
 

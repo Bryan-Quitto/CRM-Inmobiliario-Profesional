@@ -1,4 +1,5 @@
 import { Check, Pencil, Loader2 } from 'lucide-react';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface CrearContactoFooterProps {
   isEditing: boolean;
@@ -35,17 +36,17 @@ export const CrearContactoFooter = ({
         {isSuccess ? (
           <div className="flex items-center gap-2 animate-in zoom-in duration-300 min-w-0">
             <Check className="h-5 w-5 stroke-[4px] shrink-0" />
-            <span className="truncate">¡{isEditing ? 'Actualizado' : 'Registrado'}!</span>
+            <TruncatedText as="span" className="truncate">¡{isEditing ? 'Actualizado' : 'Registrado'}!</TruncatedText>
           </div>
         ) : isSubmitting ? (
           <div className="flex items-center gap-2 min-w-0">
             <Loader2 className="h-5 w-5 animate-spin shrink-0" />
-            <span className="truncate">Guardando...</span>
+            <TruncatedText as="span" className="truncate">Guardando...</TruncatedText>
           </div>
         ) : (
           <div className="flex items-center gap-2 min-w-0">
             {isEditing ? <Pencil className="h-4 w-4 shrink-0" /> : null}
-            <span className="truncate">{isEditing ? 'Actualizar Contacto' : 'Guardar Contacto'}</span>
+            <TruncatedText as="span" className="truncate">{isEditing ? 'Actualizar Contacto' : 'Guardar Contacto'}</TruncatedText>
           </div>
         )}
       </button>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Activity, AlertTriangle, Clock, ShieldBan } from 'lucide-react';
 import type { ConfiguracionSeguridadLogic } from '../hooks/useConfiguracionSeguridadLogic';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   logic: ConfiguracionSeguridadLogic;
@@ -75,8 +76,8 @@ export const ConfiguracionSeguridadMobile: React.FC<Props> = ({ logic }) => {
                         {log.agenteNombre.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-slate-800 truncate w-full">{log.agenteNombre}</div>
-                        <div className="text-[10px] font-medium text-slate-500 font-mono truncate w-full">{log.agenteId.split('-')[0]}...</div>
+                        <TruncatedText as="div" className="text-sm font-bold text-slate-800 truncate w-full">{log.agenteNombre}</TruncatedText>
+                        <TruncatedText as="div" className="text-[10px] font-medium text-slate-500 font-mono truncate w-full">{log.agenteId.split('-')[0]}...</TruncatedText>
                       </div>
                     </div>
                     <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold shrink-0">

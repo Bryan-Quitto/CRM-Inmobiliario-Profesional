@@ -4,6 +4,7 @@ import { DetalleModalsOrchestrator } from './propiedad-detalle-sections/DetalleM
 import { DetalleFaqManager } from './propiedad-detalle-sections/DetalleFaqManager';
 import { formatCurrency, type PropiedadDetalleLogic } from '../hooks/usePropiedadDetalleLogic';
 import type { MultimediaPropiedad } from '../types';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   id: string;
@@ -40,7 +41,7 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
         <div className="absolute top-20 right-4 z-[100] animate-in slide-in-from-top-4">
           <div className="bg-slate-900/90 text-white px-2 py-2 rounded-full shadow-2xl flex items-center gap-2 max-w-[90vw]">
             <Loader2 className="h-4 w-4 animate-spin text-indigo-400 shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] truncate">Sync...</span>
+            <TruncatedText as="span" className="text-[10px] font-black uppercase tracking-[0.2em] truncate">Sync...</TruncatedText>
           </div>
         </div>
       )}
@@ -76,7 +77,7 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
                 </span>
                 <span className="text-[10px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-md uppercase flex items-center gap-1 max-w-full">
                   <Handshake className="h-3 w-3 shrink-0" /> 
-                  <span className="truncate flex-1 min-w-0">Captación: {propiedad.agenteNombre || 'Externa'}</span>
+                  <TruncatedText as="span" className="truncate flex-1 min-w-0">Captación: {propiedad.agenteNombre || 'Externa'}</TruncatedText>
                 </span>
               </div>
               
@@ -98,28 +99,28 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
             <div className="flex flex-col gap-3 w-full">
               {['Casa', 'Departamento', 'Suite', 'Local Comercial', 'Oficina', 'Hotel'].includes(propiedad.tipoPropiedad) && (
                 <div className="flex justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 w-full gap-2">
-                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><Bed className="h-4 w-4 shrink-0" /> <span className="text-sm font-bold truncate">Habitaciones</span></div>
+                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><Bed className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Habitaciones</TruncatedText></div>
                   <span className="text-sm font-black text-slate-900 shrink-0">{propiedad.habitaciones || 0}</span>
                 </div>
               )}
               {['Casa', 'Departamento', 'Suite', 'Local Comercial', 'Oficina', 'Hotel'].includes(propiedad.tipoPropiedad) && (
                 <div className="flex justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 w-full gap-2">
-                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><Bath className="h-4 w-4 shrink-0" /> <span className="text-sm font-bold truncate">Baños</span></div>
+                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><Bath className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Baños</TruncatedText></div>
                   <span className="text-sm font-black text-slate-900 shrink-0">{propiedad.banos || 0}</span>
                 </div>
               )}
               {propiedad.estacionamientos && propiedad.estacionamientos > 0 ? (
                 <div className="flex justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 w-full gap-2">
-                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><CarFront className="h-4 w-4 shrink-0" /> <span className="text-sm font-bold truncate">Parqueaderos</span></div>
+                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><CarFront className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Parqueaderos</TruncatedText></div>
                   <span className="text-sm font-black text-slate-900 shrink-0">{propiedad.estacionamientos}</span>
                 </div>
               ) : null}
               <div className="flex justify-between bg-indigo-50 p-2 rounded-lg border border-indigo-100 w-full gap-2">
-                <div className="flex items-center gap-2 text-indigo-600 min-w-0"><Maximize className="h-4 w-4 shrink-0" /> <span className="text-sm font-bold truncate">Área Construcción</span></div>
+                <div className="flex items-center gap-2 text-indigo-600 min-w-0"><Maximize className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Área Construcción</TruncatedText></div>
                 <span className="text-sm font-black text-indigo-900 shrink-0">{propiedad.areaConstruccion || 0} m²</span>
               </div>
               <div className="flex justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 w-full gap-2">
-                <div className="flex items-center gap-2 text-slate-600 min-w-0"><Ruler className="h-4 w-4 shrink-0" /> <span className="text-sm font-bold truncate">Área Total</span></div>
+                <div className="flex items-center gap-2 text-slate-600 min-w-0"><Ruler className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Área Total</TruncatedText></div>
                 <span className="text-sm font-black text-slate-900 shrink-0">{propiedad.areaTotal || 0} m²</span>
               </div>
             </div>

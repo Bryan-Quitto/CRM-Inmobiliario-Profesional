@@ -4,6 +4,7 @@ import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import type { Agency } from '../api/agencias';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 export const BaseConocimientoSection: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -261,7 +262,7 @@ export const BaseConocimientoSection: React.FC = () => {
                       <X size={14} />
                     </button>
                   </div>
-                  <h4 className="text-lg font-bold text-slate-800 text-center truncate max-w-full px-4">{file.name}</h4>
+                  <TruncatedText as="h4" className="text-lg font-bold text-slate-800 text-center truncate max-w-full px-4">{file.name}</TruncatedText>
                   <p className="text-sm text-slate-500 font-medium mt-1">
                     {(file.size / 1024).toFixed(1)} KB
                   </p>

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import type { Propiedad } from '../../types';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface PropiedadCardProps {
   propiedad: Propiedad;
@@ -139,13 +140,13 @@ export const PropiedadCard = ({
           </span>
         </div>
         
-        <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate mb-1">
+        <TruncatedText as="h3" className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate mb-1">
           {p.titulo}
-        </h3>
+        </TruncatedText>
         
         <div className="flex items-center gap-1.5 text-slate-500 mb-6">
           <MapPin className="h-3.5 w-3.5 text-slate-400" />
-          <span className="text-xs font-bold truncate italic">{p.sector}, {p.ciudad}</span>
+          <TruncatedText as="span" className="text-xs font-bold truncate italic">{p.sector}, {p.ciudad}</TruncatedText>
         </div>
 
         <div className="pt-5 border-t border-slate-50 flex items-center justify-between">

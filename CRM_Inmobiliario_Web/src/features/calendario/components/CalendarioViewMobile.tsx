@@ -3,6 +3,7 @@ import { Loader2, Plus, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-r
 import type { CalendarioViewLogic } from '../hooks/useCalendarioViewLogic';
 import { CalendarioModals } from './calendario-sections/CalendarioModals';
 import { HelpButton } from '../../../components/ui/HelpButton';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
   logic: CalendarioViewLogic;
@@ -111,7 +112,7 @@ export const CalendarioViewMobile: React.FC<Props> = ({ logic }) => {
                   {evento.lugar && (
                     <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
                       <MapPin size={14} className="shrink-0 text-slate-400" />
-                      <span className="truncate">{evento.lugar}</span>
+                      <TruncatedText as="span" className="truncate">{evento.lugar}</TruncatedText>
                     </div>
                   )}
                 </div>

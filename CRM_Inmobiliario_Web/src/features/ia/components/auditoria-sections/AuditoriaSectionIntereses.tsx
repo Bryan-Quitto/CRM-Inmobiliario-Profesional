@@ -2,6 +2,7 @@ import { TrendingUp, Loader2, MapPin, ChevronDown, Check, Eye, ExternalLink, Tra
 import { useInteresesIA } from '../../hooks/useInteresesIA';
 import { NIVELES_INTERES, currencyFormatter, dateFormatter } from '../../constants/auditoriaConstants';
 import type { InteresResumen, LogResponse, ClientGroup } from '../../types/auditoria';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface SectionInteresesProps {
   contactoId?: string;
@@ -72,11 +73,11 @@ export const AuditoriaSectionIntereses = ({ contactoId, intereses, logs, mutate 
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-md font-black text-slate-900 truncate tracking-tight">{interes.titulo}</h4>
+                    <TruncatedText as="h4" className="text-md font-black text-slate-900 truncate tracking-tight">{interes.titulo}</TruncatedText>
                     <div className="flex items-center gap-4 mt-1">
                       <p className="text-blue-600 font-black text-sm">{currencyFormatter.format(interes.precio)}</p>
                       <span className="h-1 w-1 bg-slate-200 rounded-full"></span>
-                      <p className="text-slate-400 font-bold text-[11px] truncate">{interes.sector || 'Sector no especificado'}</p>
+                      <TruncatedText as="p" className="text-slate-400 font-bold text-[11px] truncate">{interes.sector || 'Sector no especificado'}</TruncatedText>
                     </div>
                     
                     <div className="flex items-center gap-3 mt-3">
