@@ -51,6 +51,18 @@ export const usePropiedadesData = (queryParams: URLSearchParams, checkContactoId
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, totalPages, JSON.stringify(paramsObj), data]);
 
+  useEffect(() => {
+    const handleInvalidate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const features = customEvent.detail?.features;
+      if (!features || features.includes('propiedades')) {
+        mutate();
+      }
+    };
+    window.addEventListener('crm-invalidate', handleInvalidate);
+    return () => window.removeEventListener('crm-invalidate', handleInvalidate);
+  }, [mutate]);
+
   const stats = useMemo(() => ({
     total: totalCount,
     venta: countVentas,

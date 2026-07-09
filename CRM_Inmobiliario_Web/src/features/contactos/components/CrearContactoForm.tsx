@@ -31,7 +31,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
   } = useCrearContacto({ initialData, isOwnersView, onSuccess });
 
   return (
-    <div className="bg-white p-6 sm:p-8 rounded-none sm:rounded-3xl w-full max-w-lg shadow-none sm:shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-full sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 flex flex-col min-w-0">
+    <div className="mx-auto bg-white p-6 sm:p-8 rounded-none sm:rounded-3xl w-full max-w-lg shadow-none sm:shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-full sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 flex flex-col min-w-0">
       <CrearContactoHeader 
         isEditing={isEditing}
         isSuccess={isSuccess}

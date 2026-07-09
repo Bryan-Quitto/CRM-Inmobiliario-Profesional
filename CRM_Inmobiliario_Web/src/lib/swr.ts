@@ -52,3 +52,32 @@ export const swrDefaultConfig = {
   revalidateIfStale: true,  // Revalidar en segundo plano si hay datos viejos
   keepPreviousData: true    // Mantener datos anteriores visibles (Zero Wait)
 };
+
+/**
+ * Helper to globally invalidate CRM data across lists, dropdowns and analytics.
+ */
+export const invalidateCRMData = (mutate: any, features: string[] = ['contactos', 'tareas', 'calendario', 'propiedades', 'agenda']) => {
+  // Disparar evento personalizado para que los hooks principales escuchen y fuercen su propio mutate ligado.
+  // Esto soluciona de raíz los bugs de `mutate(filterFn)` de SWR con llaves tipo arreglo.
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('crm-invalidate', { detail: { features } }));
+  }
+
+  // Mantener el mutate global para endpoints simples tipo string
+  mutate(
+    (key: any) => {
+      try {
+        const keyStr = typeof key === 'string' ? key : JSON.stringify(key);
+        const isMatch = keyStr.includes('/dashboard') || 
+                        keyStr.includes('/analitica') || 
+                        keyStr.includes('/ia/logs') || 
+                        features.some(f => keyStr.includes(`/${f}`));
+        return isMatch;
+      } catch {
+        return false;
+      }
+    },
+    (currentData: any) => currentData,
+    { revalidate: true }
+  );
+};

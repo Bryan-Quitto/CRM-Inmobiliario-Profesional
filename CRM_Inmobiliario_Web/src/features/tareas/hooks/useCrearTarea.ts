@@ -8,7 +8,7 @@ import type { CrearTareaDTO, Tarea } from '../types';
 
 import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
-import { swrDefaultConfig } from '@/lib/swr';
+import { swrDefaultConfig, invalidateCRMData } from '@/lib/swr';
 import useSWR from 'swr';
 
 const DRAFT_STORAGE_KEY = 'crm_tarea_draft';
@@ -126,8 +126,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
       toast.error('No se pudo sincronizar la tarea');
     });
 
-    mutate('/dashboard/kpis');
-    mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+    invalidateCRMData(mutate);
 
     onSuccess();
   };

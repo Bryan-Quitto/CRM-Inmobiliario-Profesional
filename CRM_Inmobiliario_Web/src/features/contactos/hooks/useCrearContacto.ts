@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useSWRConfig } from 'swr';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { invalidateCRMData } from '@/lib/swr';
 import { crearContacto, type CrearContactoDTO } from '../api/crearContacto';
 import { actualizarContacto } from '../api/actualizarContacto';
 import type { Contacto } from '../types';
@@ -151,10 +152,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
     const toastId = toast.loading('Sincronizando contacto...');
 
     action.then(() => {
-      mutate('/dashboard/kpis');
-      mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-      mutate((key) => Array.isArray(key) && key[0] === '/contactos');
-      mutate((key) => typeof key === 'string' && key.startsWith('/ia/logs'));
+      invalidateCRMData(mutate);
 
       if (!isEditing) {
         localStorage.removeItem(DRAFT_STORAGE_KEY);

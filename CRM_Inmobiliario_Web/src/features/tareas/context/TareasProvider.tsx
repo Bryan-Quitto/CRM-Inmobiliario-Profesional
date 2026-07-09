@@ -85,13 +85,15 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [tareas]);
 
   useEffect(() => {
-    const handleInvalidate = (e: CustomEvent) => {
-      if (e.detail?.key === '/tareas') {
+    const handleInvalidate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const features = customEvent.detail?.features;
+      if (!features || features.includes('tareas')) {
         mutate();
       }
     };
-    window.addEventListener('swr-invalidate', handleInvalidate as EventListener);
-    return () => window.removeEventListener('swr-invalidate', handleInvalidate as EventListener);
+    window.addEventListener('crm-invalidate', handleInvalidate);
+    return () => window.removeEventListener('crm-invalidate', handleInvalidate);
   }, [mutate]);
 
   const value = {

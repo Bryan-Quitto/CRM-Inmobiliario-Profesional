@@ -61,6 +61,18 @@ export const useContactosList = () => {
     { ...swrDefaultConfig, keepPreviousData: true }
   );
 
+  useEffect(() => {
+    const handleInvalidate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const features = customEvent.detail?.features;
+      if (!features || features.includes('contactos')) {
+        mutate();
+      }
+    };
+    window.addEventListener('crm-invalidate', handleInvalidate);
+    return () => window.removeEventListener('crm-invalidate', handleInvalidate);
+  }, [mutate]);
+
   const { cambiarEstado } = useContactoCommercialLogic();
 
   // Server-side filtered items

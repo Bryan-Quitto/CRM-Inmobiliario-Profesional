@@ -38,16 +38,29 @@ public static class ObtenerLogsIa
 
     public static void MapObtenerLogsIa(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/ia/logs", [Microsoft.AspNetCore.Authorization.Authorize] async ([Microsoft.AspNetCore.Mvc.FromQuery] string canal, CrmDbContext context, ILogger<CrmDbContext> logger) =>
+        app.MapGet("/ia/logs", [Microsoft.AspNetCore.Authorization.Authorize] async (
+            [Microsoft.AspNetCore.Mvc.FromQuery] string canal, 
+            System.Security.Claims.ClaimsPrincipal user, 
+            CrmDbContext context, 
+            ILogger<CrmDbContext> logger) =>
         {
             canal ??= "WhatsApp";
+
+            var agenteIdStr = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(agenteIdStr, out var agenteId))
+                return Results.Unauthorized();
 
             
             try 
             {
                 var rawLogs = await context.AiActionLogs
                     .AsNoTracking()
-                    .Where(l => l.Canal == canal && (l.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == l.ContactoId)))
+                    .Where(l => l.Canal == canal && (l.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == l.ContactoId && a.AgentId == agenteId)))
+                    .Where(l => 
+                        (l.ContactoId != null && context.Contactos.Any(c => c.Id == l.ContactoId && c.AgenteId == agenteId)) ||
+                        (l.ContactoId == null && canal == "WhatsApp" && context.WhatsappMessages.Any(m => m.Telefono == l.TelefonoContacto && m.AgenteId == agenteId)) ||
+                        (l.ContactoId == null && canal == "Facebook" && context.FacebookMessages.Any(m => m.FacebookSenderId == l.TelefonoContacto && m.AgenteId == agenteId))
+                    )
                     .OrderByDescending(l => l.Fecha)
                     .Take(400)
                     .ToListAsync();
@@ -64,7 +77,10 @@ public static class ObtenerLogsIa
 
                 if (canal == "WhatsApp")
                 {
-                    var recentWa = await context.WhatsappMessages.AsNoTracking().Where(m => m.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == m.ContactoId)).OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
+                    var recentWa = await context.WhatsappMessages.AsNoTracking()
+                        .Where(m => m.AgenteId == agenteId)
+                        .Where(m => m.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == m.ContactoId && a.AgentId == agenteId))
+                        .OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
                     activities.AddRange(recentWa.Select(m => new { 
                         ContactoId = (Guid?)m.ContactoId, 
                         TelefonoContacto = m.Telefono, 
@@ -77,7 +93,10 @@ public static class ObtenerLogsIa
                 }
                 else if (canal == "Facebook")
                 {
-                    var recentFb = await context.FacebookMessages.AsNoTracking().Where(m => m.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == m.ContactoId)).OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
+                    var recentFb = await context.FacebookMessages.AsNoTracking()
+                        .Where(m => m.AgenteId == agenteId)
+                        .Where(m => m.ContactoId == null || !context.AgentArchivedContacts.Any(a => a.ContactoId == m.ContactoId && a.AgentId == agenteId))
+                        .OrderByDescending(m => m.Fecha).Take(400).ToListAsync();
                     activities.AddRange(recentFb.Select(m => new { 
                         ContactoId = (Guid?)m.ContactoId, 
                         TelefonoContacto = m.FacebookSenderId, 

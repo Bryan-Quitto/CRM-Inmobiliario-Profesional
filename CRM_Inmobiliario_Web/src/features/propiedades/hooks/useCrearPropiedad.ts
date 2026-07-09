@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import useSWR, { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
-import { swrDefaultConfig } from '@/lib/swr';
+import { swrDefaultConfig, invalidateCRMData } from '@/lib/swr';
 
 // API & Types
 import { crearPropiedad } from '../api/crearPropiedad';
@@ -153,9 +153,7 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
       : crearPropiedad(payload);
 
     action.then(() => {
-      mutate('/dashboard/kpis');
-      mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
-      mutate('/propiedades');
+      invalidateCRMData(mutate);
     }).catch(() => {
 
       toast.error(`Error al ${isEditing ? 'actualizar' : 'registrar'} propiedad`);

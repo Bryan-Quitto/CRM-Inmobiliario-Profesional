@@ -18,7 +18,7 @@ import type { ActualizarTareaDTO, Tarea } from '../types';
 
 import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
-import { swrDefaultConfig } from '@/lib/swr';
+import { swrDefaultConfig, invalidateCRMData } from '@/lib/swr';
 import useSWR from 'swr';
 
 interface UseEditarTareaProps {
@@ -179,8 +179,7 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
       toast.error('No se pudo sincronizar el cambio');
     });
 
-    mutate('/dashboard/kpis');
-    mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+    invalidateCRMData(mutate);
 
     onSuccess();
   };

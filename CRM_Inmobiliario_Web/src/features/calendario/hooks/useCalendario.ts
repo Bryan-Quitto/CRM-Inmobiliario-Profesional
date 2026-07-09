@@ -49,6 +49,18 @@ export const useCalendario = () => {
   const listaEventos = useMemo(() => eventos || [], [eventos]);
   const isLoading = eventos === undefined && syncing;
 
+  useEffect(() => {
+    const handleInvalidate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const features = customEvent.detail?.features;
+      if (!features || features.includes('calendario')) {
+        mutate();
+      }
+    };
+    window.addEventListener('crm-invalidate', handleInvalidate);
+    return () => window.removeEventListener('crm-invalidate', handleInvalidate);
+  }, [mutate]);
+
   const selectedTarea = useMemo(() =>
     listaEventos.find(e => e.id === (viewingTareaId || editingTareaId)) as unknown as Tarea,
     [listaEventos, viewingTareaId, editingTareaId]);

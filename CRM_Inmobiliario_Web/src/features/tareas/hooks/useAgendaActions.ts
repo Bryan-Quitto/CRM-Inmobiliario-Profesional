@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { completarTarea } from '../api/completarTarea';
 import { cancelarTarea } from '../api/cancelarTarea';
 import { useTareas } from '../context/useTareas';
+import { invalidateCRMData } from '@/lib/swr';
 
 interface AgendaActionsDeps {
   refreshTareas: () => void;
@@ -27,8 +28,7 @@ export const useAgendaActions = ({
     // Petición en background
     completarTarea(id).then(() => {
       // Revalidación proactiva de analíticas y dashboard (UPSP)
-      mutate('/dashboard/kpis');
-      mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      invalidateCRMData(mutate);
       
       // Esperar un momento antes de revalidar para evitar flicker
       setTimeout(() => {
@@ -55,8 +55,7 @@ export const useAgendaActions = ({
     // Background process
     cancelarTarea(id).then(() => {
       // Revalidación proactiva de analíticas y dashboard (UPSP)
-      mutate('/dashboard/kpis');
-      mutate(key => typeof key === 'string' && key.startsWith('/analitica/'));
+      invalidateCRMData(mutate);
 
       setTimeout(() => {
         refreshTareas();
