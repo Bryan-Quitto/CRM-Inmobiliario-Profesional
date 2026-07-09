@@ -17,14 +17,14 @@ export const PropiedadReversionModal = ({
 
   return (
     <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[600] flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="p-10 text-center">
+      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300 max-h-[95vh] md:max-h-[90vh] flex flex-col">
+        <div className="p-10 text-center overflow-y-auto custom-scrollbar flex-1">
           <div className="h-20 w-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <RotateCcw className="h-10 w-10 text-indigo-600" />
           </div>
           <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Ciclo de Vida</h3>
           <p className="text-slate-500 font-medium mb-10 contactoing-relaxed px-4">
-            La propiedad está marcada como cerrada. <br/>¿Cómo deseas proceder con el re-listado?
+            La propiedad está marcada como {showReversionModal.currentStatus === 'Reservada' ? 'reservada' : 'cerrada'}. <br/>¿Cómo deseas proceder con el re-listado?
           </p>
           
           <div className="grid grid-cols-1 gap-4">

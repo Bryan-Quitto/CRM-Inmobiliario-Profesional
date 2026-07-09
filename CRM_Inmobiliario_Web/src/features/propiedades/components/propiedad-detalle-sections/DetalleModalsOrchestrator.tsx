@@ -73,9 +73,12 @@ export const DetalleModalsOrchestrator = ({
         initialData={{
           id: propiedad.id,
           titulo: propiedad.titulo,
-          precio: propiedad.precio,
+          precio: propiedad.estadoComercial === 'Reservada' && propiedad.precioCierre ? propiedad.precioCierre : propiedad.precio,
           operacion: propiedad.operacion,
-          propietarioId: propiedad.propietarioId
+          propietarioId: propiedad.propietarioId,
+          cerradoConId: propiedad.cerradoConId,
+          cerradoConNombre: propiedad.cerradoConNombre,
+          estadoComercial: propiedad.estadoComercial
         }}
       />
 
@@ -88,23 +91,25 @@ export const DetalleModalsOrchestrator = ({
                 <RotateCcw className="h-10 w-10 text-indigo-600" />
               </div>
               <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Ciclo de Vida</h3>
-              <p className="text-slate-500 font-medium mb-10 contactoing-relaxed px-4">La propiedad está marcada como cerrada. <br />¿Cómo deseas proceder con el re-listado?</p>
+              <p className="text-slate-500 font-medium mb-10 contactoing-relaxed px-4">La propiedad está marcada como {propiedad.estadoComercial === 'Reservada' ? 'reservada' : 'cerrada'}. <br />¿Cómo deseas proceder con el re-listado?</p>
 
               <div className="grid grid-cols-1 gap-4">
-                <button
-                  onClick={() => handleRelist(showReversionModal.targetStatus)}
-                  className="group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-indigo-600 transition-all hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                      <RotateCcw size={24} />
+                {propiedad.estadoComercial !== 'Reservada' && (
+                  <button
+                    onClick={() => handleRelist(showReversionModal.targetStatus)}
+                    className="group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-indigo-600 transition-all hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <RotateCcw size={24} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Relistar (Fin de Contrato)</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Comenzar nuevo ciclo comercial</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Relistar (Fin de Contrato)</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Comenzar nuevo ciclo comercial</p>
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                )}
 
                 <button
                   onClick={() => handleCancelTransaction(showReversionModal.targetStatus)}
@@ -116,7 +121,7 @@ export const DetalleModalsOrchestrator = ({
                     </div>
                     <div>
                       <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Trato Caído</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">La propiedad volverá a estar disponible.</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Transacción anulada. La propiedad volverá a estar disponible.</p>
                     </div>
                   </div>
                 </button>

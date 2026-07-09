@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -73,6 +73,7 @@ public static class VolverAListarPropiedadFeature
                         if (tieneOtrasCerradas)
                         {
                             logger.LogInformation("[RELIST] Contacto {ContactoId} retiene estado de Cerrado por otras propiedades cerradas.", contactoToRevert.Id);
+                            contactoToRevert.EstadoEmbudo = "Cerrado"; // Restaurar a Cerrado explícitamente
                         }
                         else
                         {
@@ -89,8 +90,8 @@ public static class VolverAListarPropiedadFeature
                             }
                             else
                             {
-                                logger.LogInformation("[RELIST] Revirtiendo contacto {ContactoId} a Contactado", contactoToRevert.Id);
-                                contactoToRevert.EstadoEmbudo = "Contactado"; // Reversión automática
+                                logger.LogInformation("[RELIST] Revirtiendo contacto {ContactoId} a Perdido (Trato Caído)", contactoToRevert.Id);
+                                contactoToRevert.EstadoEmbudo = "Perdido"; // Trato Caído
                                 contactoToRevert.FechaCierre = null;
                             }
                         }
@@ -222,7 +223,7 @@ public static class VolverAListarPropiedadFeature
             catch (DbUpdateConcurrencyException)
             {
                 logger.LogError("[RELIST] Error de concurrencia al relistar propiedad {Id}", id);
-                return Results.Conflict(new { Message = "La propiedad fue modificada por otro usuario al mismo tiempo. Por favor, refresca la página e intenta de nuevo." });
+                return Results.Conflict(new { Message = "Los datos de la propiedad están desactualizados. Por favor, refresca la página para cargar la última versión." });
             }
             catch (Exception ex)
             {

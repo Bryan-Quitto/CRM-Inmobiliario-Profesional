@@ -61,7 +61,7 @@ export const ReasignacionAgenteModal: React.FC<ReasignacionAgenteModalProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-[32px] max-w-lg w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+      <div className="bg-white rounded-[32px] max-w-lg w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] md:max-h-[90vh]">
         <div className="p-4 sm:p-6 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-4 mb-4 w-full">
             <div className="w-14 h-14 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
@@ -77,7 +77,7 @@ export const ReasignacionAgenteModal: React.FC<ReasignacionAgenteModalProps> = (
           </p>
         </div>
 
-        <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-6 flex-1 overflow-y-auto custom-scrollbar">
           <div className="mb-6">
             <SearchInput
               value={query}

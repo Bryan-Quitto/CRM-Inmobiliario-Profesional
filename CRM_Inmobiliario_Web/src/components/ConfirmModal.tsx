@@ -49,7 +49,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const activeColor = colors[type];
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
       {/* Overlay con blur */}
       <div 
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300 cursor-pointer"
@@ -57,14 +57,16 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="relative bg-white w-full max-w-md rounded-[32px] shadow-2xl p-8 text-center animate-in zoom-in-95 duration-300">
+      <div className="relative bg-white w-full max-w-md max-h-[95vh] md:max-h-[90vh] flex flex-col rounded-[32px] shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
         <button 
           onClick={onClose}
           disabled={isDeleting}
-          className="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer"
+          className="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer z-10"
         >
           <X size={20} />
         </button>
+
+        <div className="p-8 overflow-y-auto flex-1 custom-scrollbar text-center">
 
         <div className={`h-20 w-20 ${activeColor.bg} rounded-3xl flex items-center justify-center mb-6 mx-auto`}>
           {icon ? (
@@ -106,6 +108,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           >
             {cancelText}
           </button>
+        </div>
         </div>
       </div>
     </div>

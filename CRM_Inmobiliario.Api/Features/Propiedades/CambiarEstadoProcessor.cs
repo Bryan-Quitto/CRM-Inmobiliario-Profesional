@@ -33,8 +33,8 @@ public static class CambiarEstadoProcessor
             throw new InvalidOperationException("La propiedad debe estar en estado Reservada antes de ser Vendida o Alquilada.");
         }
 
-        // 2. Spec 011 Fase 5 item 3: Relistado automático por transición entre estados de cierre
-        bool requiereRelistadoAutomatico = property.CerradoConId.HasValue && esCierre;
+        // 2. Relistado automático por transición desde un estado cerrado/reservado hacia Disponible
+        bool requiereRelistadoAutomatico = property.CerradoConId.HasValue && nuevoEstado == "Disponible";
 
         Contacto? contacto = null;
         if (esCierreOReserva && cerradoConId.HasValue)
@@ -64,7 +64,7 @@ public static class CambiarEstadoProcessor
         property.EstadoComercial = nuevoEstado;
         property.FechaCierre = esCierre ? ecuadorNow : null;
         property.PrecioCierre = esCierre ? (precioCierre ?? property.PrecioCierre) : (esReserva ? precioCierre : null);
-        property.PrecioReserva = esReserva ? montoReserva : null;
+        property.PrecioReserva = esCierre ? property.PrecioReserva : (esReserva ? montoReserva : null);
         property.CerradoConId = esCierreOReserva ? cerradoConId : null;
         property.AgenteCerradorId = esCierreOReserva ? agenteCerradorId : null;
         property.FechaArchivado = nuevoEstado == "Archivado" ? ecuadorNow : null;
@@ -75,7 +75,7 @@ public static class CambiarEstadoProcessor
 
         // 4.5. Registrar Reserva
         CambiarEstadoTransactionManager.RegistrarReserva(
-            property, contacto, esReserva, precioCierre, currentUserId, ecuadorNow, context, logger);
+            property, contacto, esReserva, montoReserva, currentUserId, ecuadorNow, context, logger);
 
         // 5. Registrar Cierre (Contacto + Transacción + Interacción)
         CambiarEstadoTransactionManager.RegistrarCierre(

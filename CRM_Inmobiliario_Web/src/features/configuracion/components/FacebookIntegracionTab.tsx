@@ -68,8 +68,9 @@ const PageSelectorModal: React.FC<PageSelectorProps> = ({
   onCancel,
 }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-    <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md mx-4 p-6 animate-in zoom-in-95 duration-200">
-      <h3 className="text-lg font-black text-slate-800 mb-1">Selecciona tu Página</h3>
+    <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md mx-4 animate-in zoom-in-95 duration-200 max-h-[95vh] md:max-h-[90vh] flex flex-col">
+      <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+        <h3 className="text-lg font-black text-slate-800 mb-1">Selecciona tu Página</h3>
       <p className="text-sm text-slate-500 mb-5">
         Tu cuenta tiene múltiples páginas. Elige la que quieres conectar al CRM.
       </p>
@@ -107,6 +108,7 @@ const PageSelectorModal: React.FC<PageSelectorProps> = ({
       >
         Cancelar
       </button>
+      </div>
     </div>
   </div>
 );

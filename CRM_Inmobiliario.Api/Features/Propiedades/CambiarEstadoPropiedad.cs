@@ -86,7 +86,7 @@ public static class CambiarEstadoPropiedadFeature
             catch (DbUpdateConcurrencyException ex)
             {
                 logger.LogWarning(ex, "⚠️ [ESTADO] Conflicto de concurrencia al actualizar la propiedad {Id}", id);
-                return Results.Conflict(new { Message = "La propiedad fue modificada por otro usuario al mismo tiempo. Por favor, refresca la página e intenta de nuevo." });
+                return Results.Conflict(new { Message = "Los datos de la propiedad están desactualizados. Por favor, refresca la página para cargar la última versión." });
             }
             catch (Exception ex)
             {

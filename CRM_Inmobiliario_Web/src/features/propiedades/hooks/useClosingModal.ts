@@ -21,6 +21,9 @@ interface UseClosingModalProps {
     precio: number;
     operacion: string;
     propietarioId?: string;
+    cerradoConId?: string;
+    cerradoConNombre?: string;
+    estadoComercial?: string;
   };
   intendedState?: string;
 }
@@ -38,7 +41,11 @@ export const useClosingModal = ({
   
   const [precioCierre, setPrecioCierre] = useState<string>(initialData?.precio.toString() || '');
   const [montoReserva, setMontoReserva] = useState<string>('');
-  const [partnerId, setPartnerId] = useState<string | undefined>(mode === 'property' ? undefined : initialData?.id);
+  const [partnerId, setPartnerId] = useState<string | undefined>(
+    mode === 'property' 
+      ? (initialData?.estadoComercial === 'Reservada' ? initialData.cerradoConId : undefined) 
+      : initialData?.id
+  );
   const [selectedPartnerData, setSelectedPartnerData] = useState<{titulo: string, operacion: string} | null>(
     mode === 'property' && initialData ? { titulo: initialData.titulo, operacion: initialData.operacion } : null
   );
@@ -78,7 +85,11 @@ export const useClosingModal = ({
       
       setPrecioCierre(initialData?.precio.toString() || '');
       setMontoReserva('');
-      setPartnerId(mode === 'property' ? undefined : initialData?.id);
+      setPartnerId(
+        mode === 'property' 
+          ? (initialData?.estadoComercial === 'Reservada' ? initialData.cerradoConId : undefined) 
+          : initialData?.id
+      );
       setIsSharedTransaction(false);
       setAgenteCerradorId(undefined);
       setIsSubmitting(false);
@@ -97,8 +108,8 @@ export const useClosingModal = ({
       .filter(c => {
         const isOwner = mode === 'property' && initialData?.propietarioId === c.id;
         // Solo mostrar si NO es el dueño, es un prospecto comercial (esCliente) 
-        // y NO está en estados terminales que impiden nuevas transacciones
-        const isTerminal = ['Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.estadoEmbudo);
+        // y NO está en estados terminales o de negociación que impiden nuevas transacciones
+        const isTerminal = ['En Negociación', 'Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.estadoEmbudo || '');
         return !isOwner && c.esCliente && !isTerminal;
       })
       .map(c => ({ id: c.id, title: [c.nombre, c.apellido].filter(Boolean).join(' '), subtitle: c.telefono })),
@@ -178,7 +189,7 @@ export const useClosingModal = ({
     // 2. Filtrar a quienes NO son prospectos (solo son propietarios)
     const filteredResults = results.filter(c => {
       const isOwner = mode === 'property' && initialData?.propietarioId === c.id;
-      const isTerminal = ['Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.estadoEmbudo || '');
+      const isTerminal = ['En Negociación', 'Cerrado', 'Cerrado Ganado', 'Perdido', 'Cerrado Perdido'].includes(c.estadoEmbudo || '');
       return !isOwner && c.esCliente && !isTerminal;
     });
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
@@ -35,10 +35,7 @@ public static class CambiarEstadoTransactionManager
         }
         else if (property.Transactions.Any(t => t.TransactionStatus == "Active"))
         {
-            if (!esCierre)
-            {
-                FinalizarTransaccionesActivas(property);
-            }
+            FinalizarTransaccionesActivas(property);
         }
     }
 
@@ -46,7 +43,7 @@ public static class CambiarEstadoTransactionManager
         Property property,
         Contacto? contacto,
         bool esReserva,
-        decimal? precioCierre,
+        decimal? montoReserva,
         Guid currentUserId,
         DateTimeOffset ecuadorNow,
         CrmDbContext context,
@@ -57,8 +54,8 @@ public static class CambiarEstadoTransactionManager
             contacto.EstadoEmbudo = "En Negociación";
             logger.LogInformation("🤝 [PROCESSOR] Propiedad {Titulo} Reservada. Contacto {Nombre} pasó a En Negociación.", property.Titulo, contacto.Nombre);
 
-            string reservaTexto = (precioCierre.HasValue && precioCierre.Value > 0)
-                ? $"por un monto de reserva de {precioCierre.Value:C}"
+            string reservaTexto = (montoReserva.HasValue && montoReserva.Value > 0)
+                ? $"por un monto de reserva de {montoReserva.Value:C}"
                 : "de palabra";
 
             context.Interactions.Add(new Interaction
@@ -77,7 +74,7 @@ public static class CambiarEstadoTransactionManager
                 ContactoId = contacto.Id,
                 TransactionType = "Reservation",
                 TransactionStatus = "Active",
-                Amount = precioCierre,
+                Amount = montoReserva,
                 TransactionDate = ecuadorNow,
                 CreatedById = currentUserId,
                 Notes = $"Propiedad reservada {reservaTexto}."
@@ -104,6 +101,9 @@ public static class CambiarEstadoTransactionManager
             var tipoTransaccion = nuevoEstado == "Alquilada" ? "Rent" : "Sale";
 
             logger.LogInformation("📄 [PROCESSOR] Creando registro de transacción PropertyTransaction tipo {Tipo}...", tipoTransaccion);
+            
+            var amountFinal = precioCierre ?? property.PrecioCierre ?? property.Precio;
+
             context.PropertyTransactions.Add(new PropertyTransaction
             {
                 Id = Guid.NewGuid(),
@@ -111,7 +111,7 @@ public static class CambiarEstadoTransactionManager
                 ContactoId = contacto.Id,
                 TransactionType = tipoTransaccion,
                 TransactionStatus = "Active",
-                Amount = precioCierre ?? property.Precio,
+                Amount = amountFinal,
                 TransactionDate = ecuadorNow,
                 CreatedById = currentUserId,
                 Notes = $"Cierre realizado desde el detalle de la propiedad. Marcada como {nuevoEstado}."
@@ -123,7 +123,7 @@ public static class CambiarEstadoTransactionManager
                 ContactoId = contacto.Id,
                 PropiedadId = property.Id,
                 TipoInteraccion = "Cierre",
-                Notas = $"Propiedad '{property.Titulo}' marcada como {nuevoEstado} por {precioCierre:C}."
+                Notas = $"Propiedad '{property.Titulo}' marcada como {nuevoEstado} por {amountFinal:C}."
             });
         }
     }

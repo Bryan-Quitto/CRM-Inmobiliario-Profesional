@@ -123,7 +123,7 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+      <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[95vh] md:max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
           <div>
@@ -157,7 +157,7 @@ export const CompartirContactoModal = ({ isOpen, onClose, contacto }: CompartirC
           </button>
         </div>
 
-        <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
           {activeTab === 'compartir' ? (
             <div className="space-y-6">
               {/* Search Toggle */}

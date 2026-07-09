@@ -26,8 +26,8 @@ export const TermsOfServiceModal = () => {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
-        <div className="p-6 md:p-8 flex flex-col items-center text-center">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh]">
+        <div className="p-6 md:p-8 flex flex-col items-center text-center overflow-y-auto custom-scrollbar flex-1">
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 shadow-sm border border-blue-100">
             <ShieldCheck className="w-8 h-8" />
           </div>

@@ -101,9 +101,12 @@ export const PropiedadesModalsOrchestrator = ({
         initialData={closingPropiedad ? {
           id: closingPropiedad.propiedad.id,
           titulo: closingPropiedad.propiedad.titulo,
-          precio: closingPropiedad.propiedad.precio,
+          precio: closingPropiedad.propiedad.estadoComercial === 'Reservada' && closingPropiedad.propiedad.precioCierre ? closingPropiedad.propiedad.precioCierre : closingPropiedad.propiedad.precio,
           operacion: closingPropiedad.propiedad.operacion,
-          propietarioId: closingPropiedad.propiedad.propietarioId
+          propietarioId: closingPropiedad.propiedad.propietarioId,
+          cerradoConId: closingPropiedad.propiedad.cerradoConId,
+          cerradoConNombre: closingPropiedad.propiedad.cerradoConNombre,
+          estadoComercial: closingPropiedad.propiedad.estadoComercial
         } : undefined}
       />
 

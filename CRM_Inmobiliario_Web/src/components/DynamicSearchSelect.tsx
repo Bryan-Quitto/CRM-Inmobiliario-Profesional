@@ -23,6 +23,7 @@ interface Props {
   onSearch?: (query: string) => Promise<SearchItem[]>; // Fallback a búsqueda remota
   onChange: (id: string | undefined, title: string | undefined, item?: SearchItem) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 export const DynamicSearchSelect = ({ 
@@ -34,7 +35,8 @@ export const DynamicSearchSelect = ({
   options,
   onSearch, 
   onChange,
-  error 
+  error,
+  disabled
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -117,16 +119,18 @@ export const DynamicSearchSelect = ({
       <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">{label}</label>
       <div className="relative">
         {selectedLabel ? (
-          <div className="w-full pl-4 pr-12 py-3 bg-blue-50 border border-blue-200 rounded-2xl text-sm font-bold text-blue-700 flex items-center gap-2 animate-in zoom-in duration-200">
-            <Icon className="h-4 w-4 text-blue-500" />
+          <div className={`w-full pl-4 pr-12 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all ${disabled ? 'bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed opacity-80' : 'bg-blue-50 border border-blue-200 text-blue-700 animate-in zoom-in duration-200'}`}>
+            <Icon className={`h-4 w-4 ${disabled ? 'text-slate-400' : 'text-blue-500'}`} />
             <TruncatedText as="span" className="truncate">{selectedLabel}</TruncatedText>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="absolute right-3 p-1.5 hover:bg-blue-100 rounded-lg transition-colors text-blue-400 hover:text-blue-600 cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            {!disabled && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="absolute right-3 p-1.5 hover:bg-blue-100 rounded-lg transition-colors text-blue-400 hover:text-blue-600 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         ) : (
           <div className="relative group">
@@ -135,13 +139,17 @@ export const DynamicSearchSelect = ({
               icon={Icon}
               placeholder={placeholder}
               value={query}
+              disabled={disabled}
               onChange={(e) => {
+                if(disabled) return;
                 setQuery(e.target.value);
                 setIsOpen(true);
               }}
-              onFocus={() => setIsOpen(true)}
-              className={`py-3 bg-slate-50 border ${error ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4`}
-              iconClassName="group-focus-within:text-blue-500 transition-colors"
+              onFocus={() => {
+                if(!disabled) setIsOpen(true);
+              }}
+              className={`py-3 bg-slate-50 border ${error ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4 ${disabled ? 'cursor-not-allowed opacity-70 bg-slate-100' : ''}`}
+              iconClassName={`transition-colors ${disabled ? 'text-slate-400' : 'group-focus-within:text-blue-500'}`}
             />
             {isLoading && (
               <div className="absolute right-10 top-1/2 -translate-y-1/2 pointer-events-none">

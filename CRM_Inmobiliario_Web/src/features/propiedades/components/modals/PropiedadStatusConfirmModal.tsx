@@ -17,8 +17,8 @@ export const PropiedadStatusConfirmModal = ({
 
   return (
     <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="p-8 text-center">
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300 max-h-[95vh] md:max-h-[90vh] flex flex-col">
+        <div className="p-8 text-center overflow-y-auto custom-scrollbar flex-1">
           <div className="h-20 w-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="h-10 w-10 text-rose-600" />
           </div>

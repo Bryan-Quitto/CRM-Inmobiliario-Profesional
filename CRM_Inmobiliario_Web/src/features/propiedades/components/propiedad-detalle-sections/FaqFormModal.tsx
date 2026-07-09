@@ -73,7 +73,7 @@ export const FaqFormModal = ({ isOpen, mode, faqInicial, onClose, onGuardar }: F
 
   return (
     <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[400] flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300 max-h-[95vh] md:max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-7 pb-4 border-b border-slate-100">
           <h3 className="text-lg font-black text-slate-900 tracking-tight">{TITLES[mode]}</h3>
@@ -86,7 +86,7 @@ export const FaqFormModal = ({ isOpen, mode, faqInicial, onClose, onGuardar }: F
         </div>
 
         {/* Body */}
-        <div className="px-7 py-5 space-y-5">
+        <div className="px-7 py-5 space-y-5 overflow-y-auto custom-scrollbar flex-1">
           {mode === 'rechazar' ? (
             <div className="space-y-1.5">
               <label className="text-xs font-black text-slate-600 uppercase tracking-widest">

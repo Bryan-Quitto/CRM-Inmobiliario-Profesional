@@ -43,7 +43,7 @@ export const LegalModal = ({ isOpen, onClose, type }: Props) => {
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100 bg-white z-10 gap-2">
@@ -80,7 +80,7 @@ export const LegalModal = ({ isOpen, onClose, type }: Props) => {
           </button>
         </div>
         
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-white relative">
+        <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 bg-white relative">
           <ContenidoLegal content={content} />
         </div>
         

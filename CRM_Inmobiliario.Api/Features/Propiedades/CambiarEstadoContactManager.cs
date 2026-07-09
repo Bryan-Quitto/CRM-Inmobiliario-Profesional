@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,9 +20,11 @@ public static class CambiarEstadoContactManager
     {
         if (!esCierreOReserva && property.CerradoConId.HasValue)
         {
+            logger.LogInformation("🔍 [REVERT] Iniciando reversión para propiedad {PropId}. Contacto anterior ID: {ContactoId}", property.Id, property.CerradoConId.Value);
             var contactoToRevert = await context.Contactos.FirstOrDefaultAsync(l => l.Id == property.CerradoConId.Value, ct);
             if (contactoToRevert != null)
             {
+                logger.LogInformation("🔍 [REVERT] Contacto encontrado: {Nombre}. Estado actual: {Estado}", contactoToRevert.Nombre, contactoToRevert.EstadoEmbudo);
                 // Verificar si tiene otras propiedades con cierres firmes (Vendida o Alquilada)
                 bool tieneOtrasCerradas = await context.Properties.AnyAsync(p => 
                     p.CerradoConId == contactoToRevert.Id && 
@@ -31,7 +33,8 @@ public static class CambiarEstadoContactManager
 
                 if (tieneOtrasCerradas)
                 {
-                    logger.LogInformation("🛡️ [PROCESSOR] Contacto {Nombre} retiene estado de Cierre porque tiene otras transacciones activas.", contactoToRevert.Nombre);
+                    logger.LogInformation("🛡️ [REVERT] Contacto {Nombre} retiene estado de Cierre porque tiene otras transacciones activas.", contactoToRevert.Nombre);
+                    contactoToRevert.EstadoEmbudo = "Cerrado"; // Restaurar a Cerrado explícitamente
                 }
                 else
                 {
@@ -41,27 +44,40 @@ public static class CambiarEstadoContactManager
                         p.Id != property.Id && 
                         p.EstadoComercial == "Reservada", ct);
 
+                    logger.LogInformation("🔍 [REVERT] ¿Tiene otras reservadas? {Respuesta}", tieneOtrasReservadas);
+
                     if (tieneOtrasReservadas)
                     {
-                        logger.LogInformation("🤝 [PROCESSOR] Contacto {Nombre} retiene estado de Negociación por otras reservas activas.", contactoToRevert.Nombre);
+                        logger.LogInformation("🤝 [REVERT] Contacto {Nombre} retiene estado de Negociación por otras reservas activas.", contactoToRevert.Nombre);
                         contactoToRevert.EstadoEmbudo = "En Negociación";
                         contactoToRevert.FechaCierre = null;
                     }
                     else
                     {
-                        // No tiene nada más, downgrade completo
+                        logger.LogInformation("⚠️ [REVERT] Contacto {Nombre} no tiene nada más. Degradando a Perdido. EstadoPropiedadAnterior: {EstadoProp}", contactoToRevert.Nombre, property.EstadoComercial);
+                        // No tiene nada más, pasa a Perdido (Trato Caído)
                         if (property.EstadoComercial == "Reservada")
                         {
-                            contactoToRevert.EstadoEmbudo = "Contactado";
+                            contactoToRevert.EstadoEmbudo = "Perdido";
                         }
                         else
                         {
-                            contactoToRevert.EstadoEmbudo = "Contactado";
+                            contactoToRevert.EstadoEmbudo = "Perdido";
                         }
                         contactoToRevert.FechaCierre = null;
+                        
+                        logger.LogInformation("✅ [REVERT] Estado embudo asignado: {NuevoEstado}", contactoToRevert.EstadoEmbudo);
                     }
                 }
             }
+            else
+            {
+                logger.LogWarning("❌ [REVERT] No se encontró el contacto en la BD con ID: {ContactoId}", property.CerradoConId.Value);
+            }
+        }
+        else
+        {
+            logger.LogInformation("⏭️ [REVERT_DEBUG] Saltando reversión. esCierreOReserva: {Bool1}, property.CerradoConId.HasValue: {Bool2}", esCierreOReserva, property.CerradoConId.HasValue);
         }
     }
 

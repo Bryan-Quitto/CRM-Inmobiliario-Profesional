@@ -193,7 +193,7 @@ public static class ActualizarPropiedadFeature
             }
             catch (DbUpdateConcurrencyException)
             {
-                return Results.Conflict(new { Message = "La propiedad fue modificada por otro usuario al mismo tiempo. Por favor, refresca la página e intenta de nuevo." });
+                return Results.Conflict(new { Message = "Los datos de la propiedad están desactualizados. Por favor, refresca la página para cargar la última versión." });
             }
 
             // Invalidar caches proactivamente

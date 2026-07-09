@@ -85,8 +85,8 @@ export const ConfiguracionIADesktop: React.FC<ConfiguracionIADesktopProps> = ({ 
       {/* Modal Confirmación Force Vectorización */}
       {logic.showForceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[95vh] md:max-h-[90vh] flex flex-col">
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
               <div className="flex justify-between items-start mb-6">
                 <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 mb-4">
                   <AlertTriangle size={24} />
@@ -123,8 +123,8 @@ export const ConfiguracionIADesktop: React.FC<ConfiguracionIADesktopProps> = ({ 
       {/* Modal Confirmación Force Vectorización Docs */}
       {logic.showForceDocsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[95vh] md:max-h-[90vh] flex flex-col">
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
               <div className="flex justify-between items-start mb-6">
                 <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 mb-4">
                   <AlertTriangle size={24} />

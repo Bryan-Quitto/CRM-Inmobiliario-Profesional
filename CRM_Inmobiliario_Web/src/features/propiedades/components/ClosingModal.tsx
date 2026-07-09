@@ -16,12 +16,15 @@ interface ClosingModalProps {
     precio: number;
     operacion: string;
     propietarioId?: string;
+    cerradoConId?: string;
+    cerradoConNombre?: string;
+    estadoComercial?: string;
   };
   intendedState?: string;
 }
 
 export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
-  const { isOpen, onClose, mode } = props;
+  const { isOpen, onClose, mode, initialData } = props;
   const { state, actions } = useClosingModal(props);
   const { 
     precioCierre, 
@@ -65,7 +68,7 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
         onClick={!isSubmitting && !isSuccess ? onClose : undefined}
       />
 
-      <div className="relative bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="relative bg-white w-full max-w-lg max-h-[95vh] md:max-h-[90vh] flex flex-col rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         <div className={`h-2 bg-gradient-to-r ${tipoCierre === 'Alquilada' ? 'from-blue-500 to-indigo-600' : 'from-emerald-500 to-teal-600'}`} />
         
         <button 
@@ -76,8 +79,8 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
           <X size={20} />
         </button>
 
-        <div className="p-8 sm:p-10">
-          <div className="flex items-center gap-4 mb-8">
+        <div className="p-8 sm:p-10 overflow-y-auto flex-1 custom-scrollbar">
+          <div className="flex items-center gap-4 mb-8 shrink-0">
             <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg ${tipoCierre === 'Alquilada' ? 'bg-blue-50 text-blue-600 shadow-blue-100' : 'bg-emerald-50 text-emerald-600 shadow-emerald-100'}`}>
               <Check className="h-7 w-7" />
             </div>
@@ -112,6 +115,8 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
                 onSearch={onSearchClients}
                 onChange={(id) => setPartnerId(id)}
                 value={partnerId}
+                initialLabel={initialData?.estadoComercial === 'Reservada' ? initialData.cerradoConNombre : undefined}
+                disabled={initialData?.estadoComercial === 'Reservada'}
               />
             )}
 
