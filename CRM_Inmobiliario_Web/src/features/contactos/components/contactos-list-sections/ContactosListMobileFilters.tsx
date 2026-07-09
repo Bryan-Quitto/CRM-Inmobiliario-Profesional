@@ -24,12 +24,25 @@ export const ContactosListMobileFilters: React.FC<MobileFiltersProps> = ({ logic
           </div>
           <p className="text-sm text-slate-600 font-medium italic break-words mt-1">Gestión de contactos.</p>
         </div>
-        <button 
-          onClick={() => logic.handleOpenCreateModal('create', { isOwnersView: logic.isOwnersView })}
-          className="flex items-center gap-2 p-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer shrink-0"
-        >
-          <Plus className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {'contacts' in navigator && (
+            <button
+              onClick={logic.handleMigrarContactosTelefono}
+              className="flex items-center justify-center p-3 bg-indigo-600 text-white font-black rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95 cursor-pointer"
+              title="Importar desde Agenda"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+              </svg>
+            </button>
+          )}
+          <button 
+            onClick={() => logic.handleOpenCreateModal('create', { isOwnersView: logic.isOwnersView })}
+            className="flex items-center justify-center p-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer"
+          >
+            <Plus className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

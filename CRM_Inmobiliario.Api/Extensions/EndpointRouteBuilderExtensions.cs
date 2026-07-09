@@ -33,6 +33,7 @@ public static class EndpointRouteBuilderExtensions
         // Contactos
         apiGroup.MapGetDropdownContactosEndpoint();
         apiGroup.MapRegistrarContactoEndpoint();
+        apiGroup.MapRegistrarContactosMasivoEndpoint();
         apiGroup.MapBuscarContactosEndpoint();
         apiGroup.MapListarContactosEndpoint().CacheOutput();
         apiGroup.MapObtenerContactoPorIdEndpoint();

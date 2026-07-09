@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContactosList } from './useContactosList';
 import { useScrollButtons } from '@/hooks/useScrollButtons';
+import { toast } from 'sonner';
 
 export const useContactosListLogic = () => {
   const navigate = useNavigate();
@@ -31,6 +32,56 @@ export const useContactosListLogic = () => {
 
   const { showScrollTop, showScrollBottom, scrollToTop, scrollToBottom } = useScrollButtons();
 
+  const handleMigrarContactosTelefono = async () => {
+    try {
+      const isContactPickerSupported = 'contacts' in navigator;
+      if (!isContactPickerSupported) return;
+
+      const props = ['name', 'tel'];
+      const opts = { multiple: true };
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const contactosSeleccionados = await (navigator as any).contacts.select(props, opts);
+      
+      if (!contactosSeleccionados || contactosSeleccionados.length === 0) return;
+
+      const toastId = toast.loading(`Importando ${contactosSeleccionados.length} contactos...`);
+
+      interface ContactPickerResult {
+        name?: string[];
+        tel?: string[];
+      }
+
+      const contactosAImportar = contactosSeleccionados.map((c: ContactPickerResult) => {
+        const fullName = c.name && c.name.length > 0 ? c.name[0] : '';
+        const phone = c.tel && c.tel.length > 0 ? c.tel[0] : null;
+        
+        const nameParts = fullName.trim().split(' ');
+        const nombre = nameParts[0] || 'Desconocido';
+        const apellido = nameParts.slice(1).join(' ');
+
+        return {
+          nombre,
+          apellido,
+          email: null,
+          telefono: phone,
+          origen: 'Whatsapp Directo',
+          esCliente: false,
+          esPropietario: false
+        };
+      });
+
+      const { registrarContactosMasivo } = await import('../api/crearContactosMasivo');
+      const response = await registrarContactosMasivo({ contactos: contactosAImportar });
+
+      toast.success(response.message, { id: toastId });
+      listContext.mutate();
+    } catch (error: unknown) {
+      console.error(error);
+      toast.error('Ocurrió un error al importar contactos desde tu teléfono.');
+    }
+  };
+
   return {
     navigate,
     basePath,
@@ -43,6 +94,7 @@ export const useContactosListLogic = () => {
     showScrollBottom,
     scrollToTop,
     scrollToBottom,
+    handleMigrarContactosTelefono,
     ...listContext,
   };
 };
