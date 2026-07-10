@@ -14,7 +14,7 @@ public static class CambiarEstadoContactoFeature
 
     public static void MapCambiarEstadoContactoEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPatch("/contactos/{id:guid}/estado", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, ILogger<CrmDbContext> logger, CancellationToken ct) =>
+        app.MapPatch("/contactos/{id:guid}/estado", async (Guid id, Command command, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, ILogger<CrmDbContext> logger, CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage, CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
             var esTipoPropietario = string.Equals(command.Tipo, "Propietario", StringComparison.OrdinalIgnoreCase);
@@ -105,6 +105,29 @@ public static class CambiarEstadoContactoFeature
                     // Query base para apuntar solo a las propiedades disponibles de este dueño
                     var propiedadesAfectadas = context.Properties
                         .Where(p => p.PropietarioId == id && p.EstadoComercial == "Disponible");
+                        
+                    // 0. Borrar recursos físicos (Imágenes y PDFs) de R2
+                    var propertiesToInactivate = await propiedadesAfectadas.Select(p => p.Id).ToListAsync(ct);
+                    var allMediaPaths = await context.PropertyMedia
+                        .Where(m => propertiesToInactivate.Contains(m.PropiedadId) && !string.IsNullOrEmpty(m.StoragePath))
+                        .Select(m => new { m.PropiedadId, m.StoragePath })
+                        .ToListAsync(ct);
+                        
+                    var keysToDelete = allMediaPaths.Select(m => $"propiedades/{m.PropiedadId}/{m.StoragePath}").ToList();
+                    keysToDelete.AddRange(propertiesToInactivate.Select(pId => $"propiedades/{pId}/ficha_{pId}.pdf"));
+
+                    if (keysToDelete.Any())
+                    {
+                        try
+                        {
+                            await r2Storage.DeleteManyAsync(keysToDelete);
+                            logger.LogInformation("🧹 [ESTADO] {Count} archivos eliminados de R2 para múltiples propiedades de contacto", keysToDelete.Count);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogWarning(ex, "⚠️ [ESTADO] Error al borrar archivos de R2 masivamente.");
+                        }
+                    }
 
                     // 1. Borrar masivamente toda la Media (Fotos, PDFs generados, documentos) asociados
                     await propiedadesAfectadas.SelectMany(p => p.Media).ExecuteDeleteAsync(ct);

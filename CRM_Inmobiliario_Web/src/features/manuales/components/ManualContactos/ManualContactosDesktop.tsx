@@ -50,7 +50,7 @@ export const ManualContactosDesktop: React.FC = () => {
               <h3 className="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Propietarios (Dueños)</h3>
               <ul className="space-y-4">
                 <li><ManualBadge color="emerald">Activo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Automático si tiene propiedades en oferta.</span></li>
-                <li><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Automático (sin oferta) o manual. <strong>Una vez inactivo, no se puede reactivar desde aquí.</strong></span></li>
+                <li><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-sm text-slate-600 ml-2">Puedes mover a tus clientes aquí manualmente si pausaron la comercialización. También pasarán aquí automáticamente si todas sus propiedades están inactivas. Puedes reactivarlos en cualquier momento, o el sistema lo hará si les asignas una propiedad disponible.</span></li>
                 <li className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
                   <div className="mb-2"><ManualBadge color="indigo">Cerrado</ManualBadge></div>
                   <span className="text-sm text-slate-600 block"><strong>Estado estrictamente automático.</strong> Solo ocurre cuando TODAS sus propiedades se venden o alquilan. <strong>El tablero bloquea cambios manuales.</strong></span>
@@ -75,7 +75,7 @@ export const ManualContactosDesktop: React.FC = () => {
               El sistema no dejará marcar como "Perdido" o "Inactivo" si tienen casas separadas o alquiladas. Cancela los tratos primero.
             </ManualAlert>
             <ManualAlert title="Reactivación de Dueños (SSoT)" variant="info">
-              Un propietario Cerrado o Inactivo NO puede reactivarse a mano. Debes crearle o ponerle en "Disponible" una propiedad para que el sistema lo despierte.
+              Un propietario Cerrado NO puede reactivarse a mano. Debes crearle o ponerle en "Disponible" una propiedad para que el sistema lo despierte. Sin embargo, los propietarios Inactivos SÍ pueden ser reactivados manualmente.
             </ManualAlert>
           </div>
         </ManualSection>
@@ -98,6 +98,7 @@ export const ManualContactosDesktop: React.FC = () => {
           <ul className="list-disc pl-5 text-sm space-y-2 text-slate-700 bg-slate-50 p-4 rounded-xl">
             <li><strong>Liberación de Propiedad:</strong> Si solo tenía una en reserva, el sistema acomodará todo automáticamente. Si tenía varias, deberás liberarlas una por una.</li>
             <li>Al hacer esto, la propiedad vuelve a estar <strong>Disponible</strong> para otros.</li>
+            <li><strong>Intereses Automáticos:</strong> Si la venta o alquiler se cae (Trato Caído), el interés del prospecto por esa propiedad pasará automáticamente a <strong>Descartada</strong>.</li>
           </ul>
         </ManualSection>
 

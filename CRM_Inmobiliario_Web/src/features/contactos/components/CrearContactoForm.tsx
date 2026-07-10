@@ -51,6 +51,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
           isSuccess={isSuccess}
           validateTelefono={validateTelefono}
           roleError={roleError}
+          initialData={initialData}
         />
 
         <OrigenSelect 

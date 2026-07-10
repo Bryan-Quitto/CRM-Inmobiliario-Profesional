@@ -17,7 +17,7 @@ public static class VolverAListarPropiedadFeature
 
     public static RouteHandlerBuilder MapVolverAListarPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapPost("/propiedades/{id:guid}/relist", async (Guid id, Request? request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, ILogger<CrmDbContext> logger, CancellationToken ct) =>
+        return app.MapPost("/propiedades/{id:guid}/relist", async (Guid id, Request? request, ClaimsPrincipal user, CrmDbContext context, IOutputCacheStore cacheStore, IKpiWarmingService warmingService, ILogger<CrmDbContext> logger, CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage, CancellationToken ct) =>
         {
             logger.LogInformation("[RELIST] Iniciando relistado para propiedad {Id}, Mode: {Mode}", id, request?.Mode ?? "Relist");
             
@@ -65,6 +65,26 @@ public static class VolverAListarPropiedadFeature
                     var contactoToRevert = await context.Contactos.FirstOrDefaultAsync(l => l.Id == propiedad.CerradoConId.Value, ct);
                     if (contactoToRevert != null)
                     {
+                        var interesPropiedad = await context.Set<ContactoInteresPropiedad>()
+                            .FirstOrDefaultAsync(i => i.ContactoId == contactoToRevert.Id && i.PropiedadId == id, ct);
+                        
+                        if (interesPropiedad != null)
+                        {
+                            logger.LogInformation("[RELIST] Marcando interés de la propiedad como Descartada para el contacto {ContactoId}", contactoToRevert.Id);
+                            interesPropiedad.NivelInteres = "Descartada";
+                        }
+                        else
+                        {
+                            logger.LogInformation("[RELIST] Agregando interés de la propiedad como Descartada para el contacto {ContactoId}", contactoToRevert.Id);
+                            context.Set<ContactoInteresPropiedad>().Add(new ContactoInteresPropiedad
+                            {
+                                ContactoId = contactoToRevert.Id,
+                                PropiedadId = id,
+                                NivelInteres = "Descartada",
+                                FechaRegistro = ecuadorNow
+                            });
+                        }
+
                         bool tieneOtrasCerradas = await context.Properties.AnyAsync(p => 
                             p.CerradoConId == contactoToRevert.Id && 
                             p.Id != id && 
@@ -205,6 +225,34 @@ public static class VolverAListarPropiedadFeature
 
             logger.LogInformation("[RELIST] Guardando cambios. Estado final: {Estado}", estadoFinalPropiedad);
 
+            if (estadoFinalPropiedad == "Inactiva")
+            {
+                logger.LogInformation("🧹 [RELIST] Propiedad {Id} marcada como Inactiva. Limpiando archivos...", id);
+                var storagePaths = await context.PropertyMedia
+                    .Where(m => m.PropiedadId == id && !string.IsNullOrEmpty(m.StoragePath))
+                    .Select(m => m.StoragePath!)
+                    .ToListAsync(ct);
+
+                var keysToDelete = storagePaths.Select(path => $"propiedades/{id}/{path}").ToList();
+                keysToDelete.Add($"propiedades/{id}/ficha_{id}.pdf");
+
+                try
+                {
+                    if (keysToDelete.Any())
+                    {
+                        await r2Storage.DeleteManyAsync(keysToDelete);
+                        logger.LogInformation("🧹 [RELIST] {Count} archivos eliminados de R2", keysToDelete.Count);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "⚠️ [RELIST] Error al borrar archivos físicos.");
+                }
+
+                await context.PropertyMedia.Where(m => m.PropiedadId == id).ExecuteDeleteAsync(ct);
+                await context.PropertyGallerySections.Where(s => s.PropiedadId == id).ExecuteDeleteAsync(ct);
+            }
+
             try
             {
                 await context.SaveChangesAsync(ct);
@@ -235,4 +283,3 @@ public static class VolverAListarPropiedadFeature
         .WithName("VolverAListarPropiedad");
     }
 }
-

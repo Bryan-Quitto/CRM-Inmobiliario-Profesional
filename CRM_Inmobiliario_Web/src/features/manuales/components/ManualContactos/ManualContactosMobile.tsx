@@ -44,7 +44,7 @@ export const ManualContactosMobile: React.FC = () => {
             <h3 className="font-bold text-slate-800 mb-3 text-sm">Propietarios (Dueños)</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2"><ManualBadge color="emerald">Activo</ManualBadge> <span className="text-xs text-slate-600">Automático por propiedades</span></li>
-              <li className="flex items-center gap-2"><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-xs text-slate-600">No reactivable a mano</span></li>
+              <li className="flex items-center gap-2"><ManualBadge color="slate">Inactivo</ManualBadge> <span className="text-xs text-slate-600">Manual o automático. Sí es reactivable.</span></li>
               <li className="bg-indigo-50 p-3 rounded-lg text-xs text-slate-700 border border-indigo-100 mt-2">
                 <span className="font-bold block mb-1">Cerrado:</span>
                 Solo automático. El tablero bloquea cambios manuales (SSoT).
@@ -66,7 +66,7 @@ export const ManualContactosMobile: React.FC = () => {
             Cancela tratos (reservas/alquileres) antes de marcar Inactivo o Perdido.
           </ManualAlert>
           <ManualAlert title="Reactivar (SSoT)" variant="info">
-            Para reactivar a un dueño Cerrado/Inactivo, haz "Disponible" una de sus propiedades. No se puede a mano.
+            Para reactivar a un dueño Cerrado, haz "Disponible" una de sus propiedades. (Los Inactivos sí pueden reactivarse a mano).
           </ManualAlert>
         </div>
       </ManualSection>
@@ -82,7 +82,7 @@ export const ManualContactosMobile: React.FC = () => {
 
       <ManualSection title="5. Negocios Caídos" icon={<XOctagon className="w-5 h-5" />}>
         <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100">
-          Si tenía una reserva, el sistema lo acomoda a "Perdido" o "Contactado" y la propiedad a "Disponible". Si tenía varias, deberás liberarlas manualmente.
+          Si tenía una reserva, el sistema lo acomoda a "Perdido" o "Contactado" y la propiedad a "Disponible". Además, en un Trato Caído, el interés por esa propiedad pasa a Descartada automáticamente.
         </p>
       </ManualSection>
 

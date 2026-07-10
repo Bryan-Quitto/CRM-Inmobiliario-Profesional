@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { History, TrendingUp, RotateCcw, X, Loader2, Check } from 'lucide-react';
 import type { PropertyTransactionResponse } from '../../api/getHistorialPropiedad';
 
@@ -77,7 +78,9 @@ export const DetalleHistoryTimeline = ({
                   {item.contactoId && (
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Titular:</span>
-                      <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{item.contactoNombre}</span>
+                      <Link to={`/contactos/${item.contactoId}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline cursor-pointer">
+                        {item.contactoNombre}
+                      </Link>
                     </div>
                   )}
                 </div>

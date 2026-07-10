@@ -98,6 +98,7 @@ public static class RegistrarPropiedadFeature
                     propietario.EsPropietario = true;
                     // Fix Prueba 4: Si se le asigna una nueva propiedad, debe pasar a Activo
                     propietario.EstadoPropietario = "Activo";
+                    propietario.NumeroPropiedadesCaptadas++;
                 }
             }
 

@@ -264,7 +264,7 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
         if (type === 'Reversion') {
           await actualizarEstadoPropiedad(propiedad.id, targetStatus, undefined, undefined, undefined, undefined, propiedad.version);
         } else {
-          await relistPropiedad(propiedad.id, type === 'Relist' ? "Relistado natural" : "Trato caído", type as 'Relist' | 'Cancel');
+          await relistPropiedad(propiedad.id, undefined, type as 'Relist' | 'Cancel');
         }
 
         await safeRevalidate();

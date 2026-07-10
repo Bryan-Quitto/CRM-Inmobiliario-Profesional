@@ -7,6 +7,7 @@ export type ActualizarContactoDTO = {
   telefono: string;
   origen: string;
   esPropietario: boolean;
+  esCliente: boolean;
 };
 
 export const actualizarContacto = async (id: string, contacto: ActualizarContactoDTO): Promise<void> => {

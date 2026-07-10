@@ -211,7 +211,7 @@ public static class ListarContactosFeature
             {
                 "nombre" => isDesc ? baseQuery.OrderByDescending(l => l.Nombre).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.Nombre).ThenBy(l => l.Id),
                 "intereses" => isDesc ? baseQuery.OrderByDescending(l => l.NumeroIntereses).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.NumeroIntereses).ThenBy(l => l.Id),
-                "propiedades" => isDesc ? baseQuery.OrderByDescending(l => l.NumeroPropiedadesCaptadas).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.NumeroPropiedadesCaptadas).ThenBy(l => l.Id),
+                "propiedades" => isDesc ? baseQuery.OrderByDescending(l => l.PropertiesOwned.Count).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.PropertiesOwned.Count).ThenBy(l => l.Id),
                 "interacciones" => isDesc ? baseQuery.OrderByDescending(l => l.NumeroInteracciones).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.NumeroInteracciones).ThenBy(l => l.Id),
                 _ => isDesc ? baseQuery.OrderByDescending(l => l.FechaCreacion).ThenByDescending(l => l.Id) : baseQuery.OrderBy(l => l.FechaCreacion).ThenBy(l => l.Id)
             };
@@ -235,9 +235,9 @@ public static class ListarContactosFeature
                     l.AgenteId != agenteId ? $"{l.Agente!.Nombre} {l.Agente.Apellido}" : null,
                     l.NumeroInteracciones,
                     l.NumeroIntereses,
-                    l.NumeroPropiedadesCaptadas,
-                    l.NumeroReservas,
-                    l.NumeroCierres,
+                    l.PropertiesOwned.Count,
+                    l.PropertiesClosed.Count(p => p.EstadoComercial == "Reservada"),
+                    l.PropertiesClosed.Count(p => p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada"),
                     l.BotActivoWA,
                     l.BotActivoFB,
                     l.EstadoIA_WA,

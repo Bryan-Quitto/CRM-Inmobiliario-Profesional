@@ -36,7 +36,12 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                   )}
                   {(etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado') && (
                     <MobileInfoPopover content={isOwnerMode ? "Columna automática. Un propietario pasa a Cerrado cuando todas sus propiedades han sido Vendidas o Alquiladas. Se reactivará automáticamente si vuelve a tener propiedades Disponibles." : "Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial."}>
-                      <RefreshCcw className="w-3.5 h-3.5 text-emerald-600/80 shrink-0" />
+                      <Lock className="w-3.5 h-3.5 text-emerald-600/80 shrink-0" />
+                    </MobileInfoPopover>
+                  )}
+                  {etapa.value === 'Inactivo' && (
+                    <MobileInfoPopover content="Aquellos propietarios con todas sus propiedades inactivas serán puestos aquí automáticamente, y de igual manera si a un propietario inactivo se le asigna una propiedad nueva o se le pasa una a disponible se le pondrá automáticamente a propietario activo.">
+                      <RefreshCcw className="w-3.5 h-3.5 text-rose-600/80 shrink-0" />
                     </MobileInfoPopover>
                   )}
                   <span className="font-black text-slate-800 uppercase tracking-tighter text-[11px] break-words flex-1 min-w-0 whitespace-normal">{etapa.label}</span>
@@ -66,7 +71,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                         key={contacto.id} 
                         draggableId={contacto.id} 
                         index={index}
-                        isDragDisabled={(!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && (contacto.estadoPropietario === 'Cerrado' || contacto.estadoPropietario === 'Inactivo'))}
+                        isDragDisabled={(!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && contacto.estadoPropietario === 'Cerrado')}
                       >
                         {(provided, snapshot) => (
                             <Link

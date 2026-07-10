@@ -56,6 +56,24 @@ public static class ActualizarContactoFeature
                 }
             }
 
+            if (contacto.EsPropietario && !command.EsPropietario)
+            {
+                var tienePropiedades = await context.Properties.AnyAsync(p => p.PropietarioId == id, ct);
+                if (tienePropiedades)
+                {
+                    return Results.BadRequest(new { error = "No puedes quitar el rol de Propietario porque tiene propiedades enlazadas." });
+                }
+            }
+
+            if (contacto.EsCliente && !command.EsCliente)
+            {
+                var tienePropiedadesCerradas = await context.Properties.AnyAsync(p => p.CerradoConId == id && (p.EstadoComercial == "Reservada" || p.EstadoComercial == "Alquilada" || p.EstadoComercial == "Vendida"), ct);
+                if (tienePropiedadesCerradas)
+                {
+                    return Results.BadRequest(new { error = "No puedes quitar el rol de Cliente porque tiene propiedades enlazadas (Reservadas, Alquiladas o Vendidas)." });
+                }
+            }
+
             contacto.Nombre = command.Nombre;
             contacto.Apellido = command.Apellido;
             contacto.Email = command.Email;

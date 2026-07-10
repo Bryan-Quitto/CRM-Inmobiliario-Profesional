@@ -133,7 +133,7 @@ public static class ActualizarPropiedadFeature
             var oldPropietarioId = propiedad.PropietarioId;
 
             // Manejo de Propietario (Spec 015 - Auto Promotion)
-            if (command.PropietarioId.HasValue)
+            if (command.PropietarioId.HasValue && oldPropietarioId != command.PropietarioId)
             {
                 var propietario = await context.Contactos.FindAsync(command.PropietarioId.Value);
                 if (propietario != null)
@@ -146,6 +146,7 @@ public static class ActualizarPropiedadFeature
                     {
                         propietario.EstadoPropietario = "Activo";
                     }
+                    propietario.NumeroPropiedadesCaptadas++;
                 }
             }
             propiedad.PropietarioId = command.PropietarioId;
@@ -179,15 +180,16 @@ public static class ActualizarPropiedadFeature
                 if (oldPropietarioId.HasValue && oldPropietarioId != command.PropietarioId)
                 {
                     logger.LogInformation("ActualizarPropiedad {Id}: Demoteando antiguo propietario {PropietarioId}", id, oldPropietarioId);
-                    var tienePropiedades = await context.Properties.AnyAsync(p => p.PropietarioId == oldPropietarioId);
-                    if (!tienePropiedades)
+                    var oldPropietario = await context.Contactos.FindAsync(oldPropietarioId.Value);
+                    if (oldPropietario != null)
                     {
-                        var oldPropietario = await context.Contactos.FindAsync(oldPropietarioId.Value);
-                        if (oldPropietario != null)
+                        oldPropietario.NumeroPropiedadesCaptadas = Math.Max(0, oldPropietario.NumeroPropiedadesCaptadas - 1);
+                        var tienePropiedades = await context.Properties.AnyAsync(p => p.PropietarioId == oldPropietarioId);
+                        if (!tienePropiedades)
                         {
                             oldPropietario.EsPropietario = false;
-                await context.SaveChangesAsync();
                         }
+                        await context.SaveChangesAsync();
                     }
                 }
             }

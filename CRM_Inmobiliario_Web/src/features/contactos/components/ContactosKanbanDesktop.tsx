@@ -48,7 +48,12 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                       )}
                       {(etapa.value === 'Cerrado' || etapa.value === 'Cerrado Ganado') && (
                         <Tooltip content={isOwnerMode ? "Columna automática. Un propietario pasa a Cerrado cuando todas sus propiedades han sido Vendidas o Alquiladas. Se reactivará automáticamente si vuelve a tener propiedades Disponibles." : "Columna automática al concretar operaciones. Puedes arrastrar a estos clientes de regreso a 'Nuevo' o 'Contactado' para iniciar un nuevo ciclo comercial."} position="top">
-                          <RefreshCcw className="w-3.5 h-3.5 text-emerald-600/80 cursor-help shrink-0" />
+                          <Lock className="w-3.5 h-3.5 text-emerald-600/80 cursor-help shrink-0" />
+                        </Tooltip>
+                      )}
+                      {etapa.value === 'Inactivo' && (
+                        <Tooltip content="Aquellos propietarios con todas sus propiedades inactivas serán puestos aquí automáticamente, y de igual manera si a un propietario inactivo se le asigna una propiedad nueva o se le pasa una a disponible se le pondrá automáticamente a propietario activo." position="top">
+                          <RefreshCcw className="w-3.5 h-3.5 text-rose-600/80 cursor-help shrink-0" />
                         </Tooltip>
                       )}
                       <TruncatedText as="span" className="font-black text-slate-800 uppercase tracking-tighter text-[11px] truncate">{etapa.label}</TruncatedText>
@@ -106,7 +111,7 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                           key={contacto.id} 
                           draggableId={contacto.id} 
                           index={index}
-                          isDragDisabled={(!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && (contacto.estadoPropietario === 'Cerrado' || contacto.estadoPropietario === 'Inactivo'))}
+                          isDragDisabled={(!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && contacto.estadoPropietario === 'Cerrado')}
                         >
                           {(provided, snapshot) => (
                               <Link

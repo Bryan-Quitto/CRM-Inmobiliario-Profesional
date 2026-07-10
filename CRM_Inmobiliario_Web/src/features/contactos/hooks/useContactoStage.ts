@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { KeyedMutator, ScopedMutator } from 'swr';
 import { useContactoCommercialLogic } from './useContactoCommercialLogic';
 import type { Contacto } from '../types';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 interface Params {
   contacto: Contacto | undefined;
@@ -94,31 +95,37 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
     if (!id || !contacto) return;
     
     setIsUpdatingEstado(true);
+    setNewCycleConfirmation(null); // UI Optimistic
+    usePendingOperationsStore.getState().addPendingOperation();
 
-    await cambiarEstado(id, nuevoEstado, tipo, undefined, {
-      onOptimisticUpdate: () => mutate(tipo === 'propietario' 
-        ? { ...contacto, estadoPropietario: nuevoEstado }
-        : { ...contacto, estadoEmbudo: nuevoEstado }, 
-      false),
-      onSuccess: async () => { await mutate(); },
-      onError: () => mutate()
-    });
-
-    setIsUpdatingEstado(false);
-    setNewCycleConfirmation(null);
+    try {
+      await cambiarEstado(id, nuevoEstado, tipo, undefined, {
+        onOptimisticUpdate: () => mutate(tipo === 'propietario' 
+          ? { ...contacto, estadoPropietario: nuevoEstado }
+          : { ...contacto, estadoEmbudo: nuevoEstado }, 
+        false),
+        onSuccess: async () => { await mutate(); },
+        onError: () => mutate()
+      });
+    } finally {
+      setIsUpdatingEstado(false);
+      usePendingOperationsStore.getState().removePendingOperation();
+    }
   };
 
   const confirmPropietarioReactivation = async () => {
     if (propietarioReactivationModal) {
-      await executeStageChange(propietarioReactivationModal.estado, 'propietario');
+      const estado = propietarioReactivationModal.estado;
       setPropietarioReactivationModal(null);
+      await executeStageChange(estado, 'propietario');
     }
   };
 
   const confirmPropietarioDeactivation = async () => {
     if (propietarioDeactivationModal) {
-      await executeStageChange(propietarioDeactivationModal.estado, 'propietario');
+      const estado = propietarioDeactivationModal.estado;
       setPropietarioDeactivationModal(null);
+      await executeStageChange(estado, 'propietario');
     }
   };
 

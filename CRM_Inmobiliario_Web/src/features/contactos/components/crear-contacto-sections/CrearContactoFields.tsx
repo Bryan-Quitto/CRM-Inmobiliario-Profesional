@@ -1,8 +1,9 @@
 import { type UseFormRegister, type FieldErrors, type Control, useWatch, Controller } from 'react-hook-form';
-import { User, Mail, UserCheck, Search } from 'lucide-react';
+import { User, Mail, UserCheck, Search, ShieldAlert } from 'lucide-react';
 import { type CrearContactoDTO } from '../../api/crearContacto';
 import { PhoneInputWorldClass } from '../PhoneInputWorldClass';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import type { Contacto } from '../../types';
 
 interface CrearContactoFieldsProps {
   register: UseFormRegister<CrearContactoDTO>;
@@ -12,6 +13,7 @@ interface CrearContactoFieldsProps {
   isSuccess: boolean;
   validateTelefono: (value: string) => Promise<string | true>;
   roleError?: boolean;
+  initialData?: Contacto;
 }
 
 export const CrearContactoFields = ({
@@ -21,12 +23,20 @@ export const CrearContactoFields = ({
   setValue,
   isSuccess,
   validateTelefono,
-  roleError
+  roleError,
+  initialData
 }: CrearContactoFieldsProps) => {
   const esCliente = useWatch({ control, name: 'esCliente' });
   const esPropietario = useWatch({ control, name: 'esPropietario' });
   const origen = useWatch({ control, name: 'origen' });
   const isWhatsApp = origen?.toLowerCase().includes('whatsapp');
+
+  const numPropiedadesCaptadas = initialData?.numeroPropiedadesCaptadas ?? initialData?.propiedadesCaptadas?.length ?? 0;
+  const tienePropiedadesComoPropietario = numPropiedadesCaptadas > 0;
+  
+  const tienePropiedadesCerradasComoCliente = initialData ? ((initialData.numeroReservas || 0) > 0 || (initialData.numeroCierres || 0) > 0) : false;
+
+
 
   return (
     <div className="space-y-8 w-full">
@@ -38,48 +48,66 @@ export const CrearContactoFields = ({
         <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 p-1 rounded-3xl transition-all w-full ${roleError ? 'bg-rose-50 ring-2 ring-rose-200' : ''}`}>
           <button
             type="button"
-            onClick={() => setValue('esCliente', !esCliente)}
-            disabled={isSuccess}
-            className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer w-full ${
+            onClick={() => {
+              if (tienePropiedadesCerradasComoCliente) return;
+              setValue('esCliente', !esCliente);
+            }}
+            disabled={isSuccess || tienePropiedadesCerradasComoCliente}
+            title={tienePropiedadesCerradasComoCliente ? "No se puede quitar el rol porque tiene propiedades reservadas, alquiladas o vendidas." : ""}
+            className={`relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all w-full ${
+              tienePropiedadesCerradasComoCliente ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'
+            } ${
               esCliente 
-                ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10' 
+                ? (tienePropiedadesCerradasComoCliente ? 'border-slate-300 bg-slate-100' : 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10')
                 : 'border-slate-100 bg-slate-50 hover:border-slate-200'
             }`}
           >
             <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
-              esCliente ? 'bg-blue-500' : 'bg-slate-200'
+              esCliente ? (tienePropiedadesCerradasComoCliente ? 'bg-slate-400' : 'bg-blue-500') : 'bg-slate-200'
             }`}>
               <Search className={`h-4 w-4 shrink-0 ${esCliente ? 'text-white' : 'text-slate-500'}`} />
             </div>
-            <div className="text-left flex-1 min-w-0">
-              <TruncatedText as="p" className={`text-xs font-black uppercase truncate ${esCliente ? 'text-blue-900' : 'text-slate-500'}`}>Cliente</TruncatedText>
-              <TruncatedText as="p" className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esCliente ? 'text-blue-600' : 'text-slate-400'}`}>
+            <div className="text-left flex-1 min-w-0 pr-6">
+              <TruncatedText as="p" className={`text-xs font-black uppercase truncate ${esCliente ? (tienePropiedadesCerradasComoCliente ? 'text-slate-700' : 'text-blue-900') : 'text-slate-500'}`}>Cliente</TruncatedText>
+              <TruncatedText as="p" className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esCliente ? (tienePropiedadesCerradasComoCliente ? 'text-slate-500' : 'text-blue-600') : 'text-slate-400'}`}>
                 {esCliente ? 'Habilitado' : 'Inactivo'}
               </TruncatedText>
             </div>
+            {tienePropiedadesCerradasComoCliente && (
+              <ShieldAlert className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            )}
           </button>
 
           <button
             type="button"
-            onClick={() => setValue('esPropietario', !esPropietario)}
-            disabled={isSuccess}
-            className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all cursor-pointer w-full ${
+            onClick={() => {
+               if (tienePropiedadesComoPropietario) return;
+               setValue('esPropietario', !esPropietario);
+            }}
+            disabled={isSuccess || tienePropiedadesComoPropietario}
+            title={tienePropiedadesComoPropietario ? "No se puede quitar el rol de propietario porque tiene propiedades enlazadas." : ""}
+            className={`relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all w-full ${
+              tienePropiedadesComoPropietario ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'
+            } ${
               esPropietario 
-                ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-500/10' 
+                ? (tienePropiedadesComoPropietario ? 'border-slate-300 bg-slate-100' : 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-500/10')
                 : 'border-slate-100 bg-slate-50 hover:border-slate-200'
             }`}
           >
             <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
-              esPropietario ? 'bg-emerald-500' : 'bg-slate-200'
+              esPropietario ? (tienePropiedadesComoPropietario ? 'bg-slate-400' : 'bg-emerald-500') : 'bg-slate-200'
             }`}>
               <UserCheck className={`h-4 w-4 shrink-0 ${esPropietario ? 'text-white' : 'text-slate-500'}`} />
             </div>
-            <div className="text-left flex-1 min-w-0">
-              <TruncatedText as="p" className={`text-xs font-black uppercase truncate ${esPropietario ? 'text-emerald-900' : 'text-slate-500'}`}>Propietario</TruncatedText>
-              <TruncatedText as="p" className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esPropietario ? 'text-emerald-600' : 'text-slate-400'}`}>
+            <div className="text-left flex-1 min-w-0 pr-6">
+              <TruncatedText as="p" className={`text-xs font-black uppercase truncate ${esPropietario ? (tienePropiedadesComoPropietario ? 'text-slate-700' : 'text-emerald-900') : 'text-slate-500'}`}>Propietario</TruncatedText>
+              <TruncatedText as="p" className={`text-[9px] font-bold uppercase leading-none mt-0.5 truncate ${esPropietario ? (tienePropiedadesComoPropietario ? 'text-slate-500' : 'text-emerald-600') : 'text-slate-400'}`}>
                 {esPropietario ? 'Habilitado' : 'Inactivo'}
               </TruncatedText>
             </div>
+            {tienePropiedadesComoPropietario && (
+               <ShieldAlert className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            )}
           </button>
         </div>
         <input type="hidden" {...register('esCliente')} />

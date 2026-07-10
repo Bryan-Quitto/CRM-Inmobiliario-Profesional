@@ -25,6 +25,7 @@ public static class CambiarEstadoPropiedadFeature
             Command command, 
             ClaimsPrincipal user, 
             CrmDbContext context,
+            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage,
             ILoggerFactory loggerFactory,
             IOutputCacheStore cacheStore,
             IKpiWarmingService warmingService,
@@ -67,6 +68,36 @@ public static class CambiarEstadoPropiedadFeature
                     context.Entry(validation.Property!).Property(p => p.Version).OriginalValue = parsedVersion;
                 }
 
+                // Limpieza de recursos si pasa a "Inactiva"
+                if (command.NuevoEstado == "Inactiva")
+                {
+                    logger.LogInformation("🧹 [ESTADO] Propiedad {Id} marcada como Inactiva. Limpiando archivos físicos e imágenes...", id);
+                    var storagePaths = await context.PropertyMedia
+                        .Where(m => m.PropiedadId == id && !string.IsNullOrEmpty(m.StoragePath))
+                        .Select(m => m.StoragePath!)
+                        .ToListAsync(ct);
+
+                    var keysToDelete = storagePaths.Select(path => $"propiedades/{id}/{path}").ToList();
+                    keysToDelete.Add($"propiedades/{id}/ficha_{id}.pdf"); // Agregar PDF
+
+                    try
+                    {
+                        if (keysToDelete.Any())
+                        {
+                            await r2Storage.DeleteManyAsync(keysToDelete);
+                            logger.LogInformation("🧹 [ESTADO] {Count} archivos eliminados de R2 para la propiedad {Id}", keysToDelete.Count, id);
+                        }
+                    }
+                    catch (Exception storageEx)
+                    {
+                        logger.LogWarning(storageEx, "⚠️ [ESTADO] Error al eliminar archivos de Storage (huérfanos potenciales) para {Id}.", id);
+                    }
+
+                    // Eliminar las imágenes de Supabase DB y Secciones
+                    await context.PropertyMedia.Where(m => m.PropiedadId == id).ExecuteDeleteAsync(ct);
+                    await context.PropertyGallerySections.Where(s => s.PropiedadId == id).ExecuteDeleteAsync(ct);
+                }
+
                 // 4. PERSISTENCIA Y EFECTOS SECUNDARIOS
                 logger.LogInformation("💾 [ESTADO] Ejecutando SaveChangesAsync...");
                 await context.SaveChangesAsync(CancellationToken.None);
@@ -105,4 +136,3 @@ public static class CambiarEstadoPropiedadFeature
         await cacheStore.EvictByTagAsync("properties-data", ct);
     }
 }
-
