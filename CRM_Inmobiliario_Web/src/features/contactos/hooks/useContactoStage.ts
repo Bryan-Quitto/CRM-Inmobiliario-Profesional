@@ -24,8 +24,7 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
   const { cambiarEstado } = useContactoCommercialLogic();
 
   const handleStageChange = async (nuevoEstado: string, tipo: 'cliente' | 'propietario' | string = 'cliente') => {
-    console.log("=== [DEBUG STAGE DROPDOWN] ===");
-    console.log("1. Contacto ID:", id, "| ¿Existe contacto?:", !!contacto);
+
     
     if (!id || !contacto) return;
     
@@ -34,11 +33,10 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
     
     const etapaActual = tipoNormalizado === 'propietario' ? contacto.estadoPropietario : contacto.estadoEmbudo;
     
-    console.log("2. Tipo original:", tipo, "| Tipo normalizado:", tipoNormalizado);
-    console.log("3. Etapa Actual:", etapaActual, "| Nuevo Estado:", nuevoEstado);
+
 
     if (etapaActual === nuevoEstado) {
-      console.log("4. Operación cancelada: El estado es el mismo.");
+
       return;
     }
     
@@ -49,15 +47,15 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
       const actualStr = etapaActual?.toLowerCase() || '';
       const nuevoStr = nuevoEstado.toLowerCase();
 
-      console.log("5. Evaluando lógica de Propietario SSoT -> actualStr:", actualStr, "| nuevoStr:", nuevoStr);
+
 
       if (actualStr === 'inactivo' && nuevoStr === 'activo') {
-        console.log("6. ⚡ INTERCEPCIÓN SSoT: Inactivo -> Activo. Abriendo modal Reactivación...");
+
         setPropietarioReactivationModal({ isOpen: true, estado: nuevoEstado });
         return; 
       }
       if (actualStr !== 'inactivo' && nuevoStr === 'inactivo') {
-        console.log("6. ⚡ INTERCEPCIÓN SSoT: Hacia Inactivo. Abriendo modal Desactivación...");
+
         setPropietarioDeactivationModal({ isOpen: true, estado: nuevoEstado });
         return; 
       }
@@ -87,7 +85,7 @@ export const useContactoStage = ({ contacto, id, mutate }: Params) => {
       }
     }
 
-    console.log("7. ⚠️ NO HUBO INTERCEPCIÓN SSoT. Llamando a executeStageChange directo...");
+
     await executeStageChange(nuevoEstado, tipoNormalizado);
   };
 

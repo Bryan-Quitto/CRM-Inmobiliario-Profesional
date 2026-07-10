@@ -230,7 +230,7 @@ export const ContactoCard = ({
                     {waToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_WA === 'Escalado' ? 'Escalado' : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'Límite de uso' : contacto.estadoIA_WA === 'Derivado a Captacion' ? 'Desactivado (Captación)' : 'Desactivado'}
                   </span>
                 )}
-                <div className="opacity-0 group-hover:opacity-100 transition-all inline-block ml-1">
+                <div className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all inline-block ml-1">
                   <div className="hidden lg:block">
                     <Tooltip content={!isWhatsAppAiEnabled ? "Debes activar la IA de WhatsApp en Configuración para usar esta función" : (waToggle.isBotActivo ? 'Desactivar IA WA' : 'Activar IA WA')}>
                       <button
@@ -343,7 +343,7 @@ export const ContactoCard = ({
                     {fbToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_FB === 'Escalado' ? 'Escalado' : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'Límite de uso' : contacto.estadoIA_FB === 'Derivado a Captacion' ? 'Desactivado (Captación)' : 'Desactivado'}
                   </span>
                 )}
-                <div className="opacity-0 group-hover:opacity-100 transition-all inline-block ml-1">
+                <div className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all inline-block ml-1">
                   <div className="hidden lg:block">
                     <Tooltip content={!isFacebookAiEnabled ? "Debes activar la IA de Facebook en Configuración para usar esta función" : (fbToggle.isBotActivo ? 'Desactivar IA FB' : 'Activar IA FB')}>
                       <button
@@ -452,7 +452,7 @@ export const ContactoCard = ({
                       e.stopPropagation();
                       setIsShareModalOpen(true);
                     }}
-                    className="shrink-0 h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-amber-50 hover:text-amber-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                    className="shrink-0 h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-amber-50 hover:text-amber-600 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 cursor-pointer"
                   >
                     <Share2 className="h-3.5 w-3.5" />
                   </button>
@@ -464,7 +464,7 @@ export const ContactoCard = ({
                       e.stopPropagation();
                       onEdit(contacto);
                     }}
-                    className="shrink-0 h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                    className="shrink-0 h-8 w-8 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 cursor-pointer"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>

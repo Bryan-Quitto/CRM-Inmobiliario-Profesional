@@ -97,7 +97,7 @@ export const PropiedadCard = ({
                 e.stopPropagation();
                 setSelectedPropiedadIdForEdit(p.id);
               }}
-              className="h-8 w-8 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:scale-110 transition-all shadow-sm opacity-0 group-hover:opacity-100 cursor-pointer"
+              className="h-8 w-8 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:scale-110 transition-all shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 cursor-pointer"
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>

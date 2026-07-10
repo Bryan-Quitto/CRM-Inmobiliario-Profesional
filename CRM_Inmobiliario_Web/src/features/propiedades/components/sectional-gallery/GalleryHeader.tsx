@@ -170,7 +170,7 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
                 </>
               )}
               {sectionId && !isReadOnly && (
-                <button onClick={() => setIsEditingName(true)} className="p-2 text-slate-300 hover:text-indigo-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer">
+                <button onClick={() => setIsEditingName(true)} className="p-2 text-slate-300 hover:text-indigo-600 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 cursor-pointer">
                   <Pencil size={16} />
                 </button>
               )}

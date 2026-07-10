@@ -158,7 +158,7 @@ export const MediaCard = React.memo<MediaCardProps>(({
 
         {/* Quick Actions (Floating) */}
         {showActions && !isSelected && !isReadOnly && (
-          <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-500">
+          <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-500">
             <button 
               onClick={(e) => { e.stopPropagation(); onDownload(item.urlPublica, `foto_${item.id.split('-')[0]}.webp`); }}
               className="bg-white/90 backdrop-blur-xl p-3 rounded-2xl hover:bg-indigo-600 hover:text-white shadow-xl transition-all cursor-pointer"
@@ -183,7 +183,7 @@ export const MediaCard = React.memo<MediaCardProps>(({
           !isSelected && !isReadOnly && (
             <button 
               onClick={(e) => { e.stopPropagation(); onSetCover(item.id); }}
-              className="absolute bottom-4 left-4 px-4 py-2 bg-white/90 backdrop-blur-xl text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-2xl flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all hover:bg-indigo-600 hover:text-white cursor-pointer"
+              className="absolute bottom-4 left-4 px-4 py-2 bg-white/90 backdrop-blur-xl text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl shadow-2xl flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all hover:bg-indigo-600 hover:text-white cursor-pointer"
             >
               <Star size={14} /> Hacer Portada
             </button>

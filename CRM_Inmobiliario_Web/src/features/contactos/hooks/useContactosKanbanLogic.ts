@@ -43,41 +43,38 @@ export const useContactosKanbanLogic = ({ contactos, activeSegment, onStageChang
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
     
-    console.log("=== [DEBUG KANBAN DND] ===");
-    console.log("1. Result completo:", result);
-    console.log("2. isOwnerMode (activeSegment === 'propietarios'):", isOwnerMode, "| activeSegment actual:", activeSegment);
+
 
     if (!destination) {
-      console.log("3. Operación cancelada: No hay destination");
+
       return;
     }
     
     if (destination.droppableId === source.droppableId && destination.index === source.index) {
-      console.log("3. Operación cancelada: Mismo origen y destino");
+
       return;
     }
     
     const destId = destination.droppableId.toLowerCase();
     const sourceId = source.droppableId.toLowerCase();
 
-    console.log("4. Droppable Source normalizado:", sourceId);
-    console.log("5. Droppable Destino normalizado:", destId);
+
 
     // Interceptar Inactivo -> Activo
     if (isOwnerMode && sourceId === 'inactivo' && destId === 'activo') {
-      console.log("6. ⚡ INTERCEPCIÓN EXITOSA: Inactivo -> Activo. Abriendo modal...");
+
       setReactivationModal({ isOpen: true, contactoId: draggableId });
       return;
     }
 
     // Interceptar Activo -> Inactivo
     if (isOwnerMode && sourceId !== 'inactivo' && destId === 'inactivo') {
-      console.log("6. ⚡ INTERCEPCIÓN EXITOSA: Hacia Inactivo. Abriendo modal...");
+
       setDeactivationModal({ isOpen: true, contactoId: draggableId });
       return;
     }
 
-    console.log("7. ⚠️ NO HUBO INTERCEPCIÓN. Llamando directamente a onStageChange...");
+
     onStageChange(draggableId, destination.droppableId, isOwnerMode ? 'propietario' : 'contacto');
   };
 

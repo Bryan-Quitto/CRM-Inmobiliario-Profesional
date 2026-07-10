@@ -65,7 +65,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             e.stopPropagation();
             onEdit();
           }}
-          className="absolute bottom-2 left-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10 cursor-pointer"
+          className="absolute bottom-2 left-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 cursor-pointer"
         >
           <Pencil className="h-3 w-3" />
         </button>      )}
