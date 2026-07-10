@@ -46,6 +46,7 @@ public static class ObtenerPerfil
 
             var perfilData = await context.Agents
                 .AsNoTracking()
+                .Include(a => a.Agencia)
                 .Where(a => a.Id == agenteId)
                 .Select(a => new {
                     Agent = a,

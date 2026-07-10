@@ -14,7 +14,6 @@ const ConfiguracionPerfilDesktop: React.FC<Props> = ({ logic }) => {
     perfil,
     formData,
     setFormData,
-    showSuccess,
     handleSubmit,
     pwdData,
     setPwdData,
@@ -51,7 +50,6 @@ const ConfiguracionPerfilDesktop: React.FC<Props> = ({ logic }) => {
             formData={formData}
             setFormData={setFormData}
             perfil={perfil}
-            showSuccess={showSuccess}
             handleSubmit={handleSubmit}
           />
 

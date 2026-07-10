@@ -39,7 +39,6 @@ export const useConfiguracionPerfilLogic = () => {
     promptPersonalIA: ''
   });
 
-  const [showSuccess, setShowSuccess] = useState(false);
 
   // Estados para Cambio de Contraseña
   const [pwdData, setPwdData] = useState<PwdData>({
@@ -60,25 +59,26 @@ export const useConfiguracionPerfilLogic = () => {
 
   const allValid = Object.values(validations).every(v => v);
 
+  if (perfil && !isInitialized.current) {
+    setFormData({
+      nombre: perfil.nombre ?? '',
+      apellido: perfil.apellido ?? '',
+      telefono: perfil.telefono ?? '',
+      agenciaId: perfil.agenciaId ?? '',
+      fotoUrl: perfil.fotoUrl ?? '',
+      logoUrl: perfil.logoUrl ?? '',
+      direccionFisica: perfil.direccionFisica ?? '',
+      promptPersonalIA: perfil.promptPersonalIA ?? ''
+    });
+    isInitialized.current = true;
+    lastSyncedData.current = perfil;
+  }
+
   useEffect(() => {
     if (!perfil) return;
 
-    const isFirstTime = !isInitialized.current;
-
-    if (isFirstTime) {
-      setFormData({
-        nombre: perfil.nombre ?? '',
-        apellido: perfil.apellido ?? '',
-        telefono: perfil.telefono ?? '',
-        agenciaId: perfil.agenciaId ?? '',
-        fotoUrl: perfil.fotoUrl ?? '',
-        logoUrl: perfil.logoUrl ?? '',
-        direccionFisica: perfil.direccionFisica ?? '',
-        promptPersonalIA: perfil.promptPersonalIA ?? ''
-      });
-      isInitialized.current = true;
-      lastSyncedData.current = perfil;
-    } else {
+    // Update if perfil changes from backend after initialization
+    if (isInitialized.current && perfil !== lastSyncedData.current) {
       setFormData(prev => {
         const getMerged = (field: keyof FormDataPerfil, perfilValue: string | null | undefined) => {
           const lastValue = (lastSyncedData.current as Record<keyof FormDataPerfil, string | null | undefined> | undefined)?.[field] ?? '';
@@ -105,8 +105,12 @@ export const useConfiguracionPerfilLogic = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    if (formData.telefono.replace(/\D/g, '').length < 10) {
+      toast.error('Número inválido', {
+        description: 'Por favor ingresa un número de teléfono válido (mínimo 10 dígitos incluyendo el código de país).'
+      });
+      return;
+    }
 
     try {
       await actualizarPerfil({
@@ -114,6 +118,9 @@ export const useConfiguracionPerfilLogic = () => {
         agenciaId: formData.agenciaId || null
       });
       await mutate();
+      toast.success('Perfil actualizado', {
+        description: 'Tus datos personales han sido guardados correctamente.'
+      });
     } catch {
       toast.error('No se pudo sincronizar el perfil', {
         description: 'Tus cambios se mantendrán localmente pero hubo un error de conexión.'
@@ -174,7 +181,6 @@ export const useConfiguracionPerfilLogic = () => {
     isLoading,
     formData,
     setFormData,
-    showSuccess,
     handleSubmit,
     pwdData,
     setPwdData,

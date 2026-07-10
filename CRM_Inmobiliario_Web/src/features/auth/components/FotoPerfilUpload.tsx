@@ -4,6 +4,7 @@ import imageCompression from 'browser-image-compression';
 import { Camera, Trash2, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
+import ImageCropperModal from './ImageCropperModal';
 
 interface FotoPerfilUploadProps {
   userId: string;
@@ -20,6 +21,8 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
   const compressImage = async (file: File) => {
     const options = {
@@ -35,7 +38,7 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
     }
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -45,9 +48,21 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
       return;
     }
 
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setSelectedImageSrc(reader.result?.toString() || null);
+      setShowCropper(true);
+    });
+    reader.readAsDataURL(file);
+    e.target.value = ''; // Reset
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
     setIsUploading(true);
     try {
+      const file = new File([croppedBlob], 'profile.webp', { type: 'image/webp' });
       const compressedFile = await compressImage(file);
+      
       const formData = new FormData();
       formData.append('file', compressedFile);
 
@@ -56,15 +71,15 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
       });
 
       const publicUrl = response.data.url;
-
       onUploadSuccess(publicUrl);
+      setShowCropper(false);
+      setSelectedImageSrc(null);
       toast.success('Foto de perfil actualizada');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error desconocido';
       toast.error('Error al subir foto', { description: message });
     } finally {
       setIsUploading(false);
-      e.target.value = '';
     }
   };
 
@@ -108,14 +123,14 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
 
         <label 
           title="Cambiar foto"
-          className={`absolute bottom-0 right-0 p-2 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-110 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`absolute bottom-0 right-0 p-2 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-110 cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
         >
           <Camera size={20} />
           <input 
             type="file" 
             className="hidden" 
-            accept="image/*" 
-            onChange={handleUpload}
+            accept="image/jpeg,image/png,image/webp" 
+            onChange={handleFileSelect}
             disabled={isUploading}
           />
         </label>
@@ -139,6 +154,18 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
         description="Esta acción eliminará permanentemente tu foto del servidor."
         confirmText="Sí, eliminar"
         isDeleting={isUploading}
+      />
+
+      {/* Modal de Cropping */}
+      <ImageCropperModal
+        isOpen={showCropper}
+        onClose={() => {
+          setShowCropper(false);
+          setSelectedImageSrc(null);
+        }}
+        imageSrc={selectedImageSrc}
+        onCropComplete={handleCropComplete}
+        isProcessing={isUploading}
       />
     </div>
   );

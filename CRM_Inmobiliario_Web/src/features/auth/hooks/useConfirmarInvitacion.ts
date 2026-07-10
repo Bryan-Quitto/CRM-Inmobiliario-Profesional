@@ -49,7 +49,7 @@ export const useConfirmarInvitacion = () => {
   }, []);
 
   const validations = {
-    personal: formData.nombre.trim() !== '' && formData.apellido.trim() !== '' && formData.telefono.trim() !== '',
+    personal: formData.nombre.trim() !== '' && formData.apellido.trim() !== '' && (formData.telefono.replace(/\D/g, '').length >= 10),
     length: formData.password.length >= 8,
     hasUpper: /[A-Z]/.test(formData.password),
     hasLower: /[a-z]/.test(formData.password),

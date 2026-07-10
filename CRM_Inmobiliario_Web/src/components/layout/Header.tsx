@@ -92,9 +92,11 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session, isSidebarOpen, 
                 session?.user?.email?.split('@')[0] || 'Agente'
               )}
             </TruncatedText>
-            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Agente Activo</p>
+            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+              {perfil?.agenciaNombre || 'Agente Independiente'}
+            </p>
           </div>
-          <div className="h-10 w-10 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm uppercase overflow-hidden">
+          <div className="h-10 w-10 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm uppercase overflow-hidden">
             {perfil?.fotoUrl ? (
               <img src={perfil.fotoUrl} alt="Perfil" className="w-full h-full object-cover" />
             ) : (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Save, CheckCircle, Building2 } from 'lucide-react';
+import { Save, Building2 } from 'lucide-react';
 import type { PerfilAgente } from '../../api/perfil';
 import type { FormDataPerfil } from '../../hooks/useConfiguracionPerfil';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
@@ -8,7 +8,6 @@ interface DatosPersonalesFormProps {
   formData: FormDataPerfil;
   setFormData: React.Dispatch<React.SetStateAction<FormDataPerfil>>;
   perfil: PerfilAgente;
-  showSuccess: boolean;
   handleSubmit: (e: React.FormEvent) => void;
 }
 
@@ -16,7 +15,6 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
   formData,
   setFormData,
   perfil,
-  showSuccess,
   handleSubmit
 }) => {
   return (
@@ -116,11 +114,6 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
           </div>
 
           <div className="pt-6 border-t border-slate-50 flex flex-col items-center gap-4">
-            {showSuccess && (
-              <span className="text-emerald-600 flex items-center gap-2 font-black text-sm animate-in fade-in slide-in-from-left-4 w-full justify-center text-center">
-                <CheckCircle size={20} className="shrink-0" /> PERFIL ACTUALIZADO
-              </span>
-            )}
             
             <button
               type="submit"

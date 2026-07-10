@@ -28,7 +28,7 @@ export const GalleryUploadZone: React.FC<GalleryUploadZoneProps> = ({
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all border-t border-slate-50 ${
+      className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all border-t border-slate-50 cursor-pointer ${
         isDragging ? 'bg-indigo-600 text-white' : 'bg-slate-50/20 hover:bg-indigo-50/30'
       }`}
     >

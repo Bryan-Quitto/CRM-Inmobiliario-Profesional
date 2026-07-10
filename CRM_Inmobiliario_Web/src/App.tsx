@@ -250,8 +250,8 @@ function MainApp() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-12 w-12 text-indigo-600 animate-spin" />
       </div>
     );
   }

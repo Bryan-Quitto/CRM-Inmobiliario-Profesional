@@ -4,6 +4,7 @@ import imageCompression from 'browser-image-compression';
 import { Image, Trash2, Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
+import ImageCropperModal from './ImageCropperModal';
 
 interface LogoAgenciaUploadProps {
   userId: string;
@@ -20,6 +21,8 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [cropperModalOpen, setCropperModalOpen] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
   const compressLogo = async (file: File) => {
     const options = {
@@ -35,7 +38,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
     }
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -45,8 +48,18 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
       return;
     }
 
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedImageSrc(objectUrl);
+    setCropperModalOpen(true);
+    e.target.value = ''; // Permite subir el mismo archivo después si se cancela
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setCropperModalOpen(false);
     setIsUploading(true);
+
     try {
+      const file = new File([croppedBlob], 'logo-agencia.webp', { type: 'image/webp' });
       const compressedFile = await compressLogo(file);
       const formData = new FormData();
       formData.append('file', compressedFile);
@@ -64,7 +77,10 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
       toast.error('Error al subir logo', { description: message });
     } finally {
       setIsUploading(false);
-      e.target.value = '';
+      if (selectedImageSrc) {
+        URL.revokeObjectURL(selectedImageSrc);
+        setSelectedImageSrc(null);
+      }
     }
   };
 
@@ -112,7 +128,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
 
           {/* Botón de cambio overlay */}
           {!isUploading && (
-            <label className="absolute inset-0 flex items-center justify-center bg-indigo-600/0 hover:bg-indigo-600/10 transition-all">
+            <label className="absolute inset-0 flex items-center justify-center bg-indigo-600/0 hover:bg-indigo-600/10 transition-all cursor-pointer">
               <input 
                 type="file" 
                 className="hidden" 
@@ -125,7 +141,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
         </div>
 
         {/* Botón flotante de subida rápida */}
-        <label className="absolute -top-3 -right-3 p-2 bg-indigo-600 text-white rounded-xl shadow-lg hover:bg-indigo-700 transition-all hover:scale-110">
+        <label className="absolute -top-3 -right-3 p-2 bg-indigo-600 text-white rounded-xl shadow-lg hover:bg-indigo-700 transition-all hover:scale-110 cursor-pointer">
           <Upload size={16} />
           <input type="file" className="hidden" accept="image/*" onChange={handleUpload} />
         </label>
@@ -148,6 +164,24 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
         description="Esta acción eliminará el logo corporativo de tus fichas técnicas."
         confirmText="Sí, quitar"
         isDeleting={isUploading}
+      />
+
+      <ImageCropperModal
+        isOpen={cropperModalOpen}
+        onClose={() => {
+          setCropperModalOpen(false);
+          if (selectedImageSrc) {
+            URL.revokeObjectURL(selectedImageSrc);
+            setSelectedImageSrc(null);
+          }
+        }}
+        imageSrc={selectedImageSrc}
+        onCropComplete={handleCropComplete}
+        isProcessing={isUploading}
+        aspectRatio={3}
+        cropShape="rect"
+        title="Ajustar logo de la agencia"
+        allowRatioSelection={true}
       />
     </div>
   );
