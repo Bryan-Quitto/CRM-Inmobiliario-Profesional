@@ -21,6 +21,14 @@ const getLocalTokenSync = () => {
       const key = localStorage.key(i);
       if (key?.startsWith('sb-') && key?.endsWith('-auth-token')) {
         const data = JSON.parse(localStorage.getItem(key) || '{}');
+        // Prevenir el uso de un token caducado (margen de 15 segundos)
+        if (data.access_token && data.expires_at) {
+          const now = Math.floor(Date.now() / 1000);
+          if (data.expires_at > now + 15) {
+            return data.access_token;
+          }
+          return null; // Token caducado o a punto de expirar, forzar refresh
+        }
         return data.access_token || null;
       }
     }
@@ -30,6 +38,21 @@ const getLocalTokenSync = () => {
 
 // Variable global para mantener el token en memoria sin bloqueos
 let memoryToken: string | null = getLocalTokenSync();
+
+// Variables para manejar la concurrencia de refresco de tokens tras un 401
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (token: string) => void, reject: (error: unknown) => void }> = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else if (token) {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 // Escuchar cambios de sesión en tiempo real para refrescos futuros
 supabase.auth.onAuthStateChange((event, session) => {
@@ -55,6 +78,7 @@ api.interceptors.request.use(async (config) => {
       config.headers.Authorization = `Bearer ${memoryToken}`;
     } else {
       // Fallback extremo protegido contra Thundering Herd de Promise locks
+      // Si memoryToken es null (porque expiró), getSession forzará una renovación segura
       if (!sessionPromise) {
         sessionPromise = supabase.auth.getSession();
       }
@@ -106,9 +130,62 @@ api.interceptors.response.use(
       });
     }
 
-    // Errores de Autenticación / Baneo
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      // Forzar cierre de sesión si el token es inválido o el usuario fue bloqueado
+    // Errores de Autenticación (401)
+    if (error.response?.status === 401) {
+      const originalRequest = error.config as import('axios').InternalAxiosRequestConfig & { _retry?: boolean };
+      
+      if (originalRequest && !originalRequest._retry) {
+        if (isRefreshing) {
+          // Si ya se está refrescando, poner la petición en la cola para reintentarla después
+          return new Promise(function(resolve, reject) {
+            failedQueue.push({ resolve, reject });
+          }).then(token => {
+            originalRequest.headers.Authorization = 'Bearer ' + token;
+            return api(originalRequest);
+          }).catch(err => {
+            return Promise.reject(err);
+          });
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        return (async () => {
+          try {
+            // refreshSession fuerza la actualización usando el refresh_token
+            const { data, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshError || !data.session) {
+              processQueue(refreshError || new Error('No session'), null);
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+              throw error;
+            } else {
+              const newToken = data.session.access_token;
+              memoryToken = newToken;
+              processQueue(null, newToken);
+              originalRequest.headers.Authorization = 'Bearer ' + newToken;
+              return api(originalRequest);
+            }
+          } catch (err) {
+            processQueue(err, null);
+            await supabase.auth.signOut();
+            window.location.href = '/login';
+            throw err;
+          } finally {
+            isRefreshing = false;
+          }
+        })();
+      } else {
+        // Si ya fue reintentado y sigue fallando, la sesión es irreversiblemente inválida
+        supabase.auth.signOut().then(() => {
+          window.location.href = '/login';
+        });
+      }
+    }
+
+    // Errores de Baneo / Falta de Permisos (403)
+    if (error.response?.status === 403) {
       supabase.auth.signOut().then(() => {
         window.location.href = '/login';
       });
