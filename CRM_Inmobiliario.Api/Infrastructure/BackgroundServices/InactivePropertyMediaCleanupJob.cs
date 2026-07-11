@@ -28,12 +28,44 @@ public class InactivePropertyMediaCleanupJob
     {
         _logger.LogInformation("Iniciando tarea de limpieza de propiedades archivadas.");
 
-        var utcNow = DateTimeOffset.UtcNow;
+        var utcMinus5 = new DateTimeOffset(DateTime.UtcNow).ToOffset(TimeSpan.FromHours(-5));
+        var cutoffGlobal = utcMinus5.AddDays(-365);
+        var fechaProgramada = utcMinus5.AddDays(31);
 
+        // 1. Cancelar limpiezas que ya no aplican (actividad reciente o estado protegido)
+        var sqlCancelCleanup = $@"
+            UPDATE ""Properties"" p
+            SET ""FechaProgramadaLimpiezaR2"" = NULL
+            WHERE p.""FechaProgramadaLimpiezaR2"" IS NOT NULL
+            AND (
+                p.""EstadoComercial"" = 'Vendida' OR p.""EstadoComercial"" = 'Alquilada'
+                OR
+                COALESCE(
+                    (SELECT MAX(""LastActivityUtc"") FROM ""AgentPropertyActivities"" apa WHERE apa.""PropertyId"" = p.""Id""),
+                    p.""FechaIngreso""
+                ) > '{cutoffGlobal:O}'
+            );";
+        await _context.Database.ExecuteSqlRawAsync(sqlCancelCleanup);
+
+        // 2. Programar nuevas limpiezas
+        var sqlProgramCleanup = $@"
+            UPDATE ""Properties"" p
+            SET ""FechaProgramadaLimpiezaR2"" = '{fechaProgramada:O}'
+            WHERE p.""FechaProgramadaLimpiezaR2"" IS NULL
+            AND p.""EstadoComercial"" != 'Vendida' AND p.""EstadoComercial"" != 'Alquilada'
+            AND (
+                COALESCE(
+                    (SELECT MAX(""LastActivityUtc"") FROM ""AgentPropertyActivities"" apa WHERE apa.""PropertyId"" = p.""Id""),
+                    p.""FechaIngreso""
+                ) <= '{cutoffGlobal:O}'
+            );";
+        await _context.Database.ExecuteSqlRawAsync(sqlProgramCleanup);
+
+        // 3. Obtener propiedades pendientes de limpieza física en R2
         var propertiesToClean = await _context.Properties
             .Include(p => p.Media)
             .Include(p => p.GallerySections)
-            .Where(p => p.FechaProgramadaLimpiezaR2 != null && p.FechaProgramadaLimpiezaR2 <= utcNow)
+            .Where(p => p.FechaProgramadaLimpiezaR2 != null && p.FechaProgramadaLimpiezaR2 <= utcMinus5)
             .ToListAsync();
 
         if (!propertiesToClean.Any())

@@ -20,8 +20,8 @@ export const ManualConsecuenciasPropiedadMobile: React.FC = () => {
           
           <div className="space-y-2 mb-4">
             <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-              <h4 className="font-bold text-orange-900 text-xs mb-1">Limpieza por Inactividad</h4>
-              <p className="text-xs text-slate-600">Al superar el Límite de Inactividad + 31 días sin actividad (esté o no archivada), se borrarán las fotos secundarias y el PDF.</p>
+              <h4 className="font-bold text-orange-900 text-xs mb-1">Limpieza Global</h4>
+              <p className="text-xs text-slate-600"><strong>Inactivas:</strong> 1 año sin actividad (excepto cerradas) = alerta roja 31 días y limpieza. <br/><strong>Cerradas:</strong> Alerta roja al cerrarse y limpieza innegociable al año.</p>
             </div>
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
               <h4 className="font-bold text-rose-800 text-xs mb-1">Datos y Compartir</h4>

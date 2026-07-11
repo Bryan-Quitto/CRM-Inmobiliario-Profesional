@@ -98,6 +98,9 @@ public class ClosedPropertyMediaCleanupJob
             {
                 _context.PropertyGallerySections.RemoveRange(property.GallerySections);
             }
+
+            // Limpiar la alerta roja una vez eliminados físicamente
+            property.FechaProgramadaLimpiezaR2 = null;
         }
 
         // 4. Guardar los cambios en la DB

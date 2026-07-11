@@ -78,12 +78,12 @@ export const PropiedadDetalleDesktop = ({ id, onClose, logic }: Props) => {
           {activeTab === 'detalle' && (
             <>
               {propiedad.fechaProgramadaLimpiezaR2 && (
-                <div className="bg-red-500 text-white p-4 mx-0 lg:mx-8 mt-0 lg:mt-8 rounded-xl shadow-lg border border-red-600 flex flex-col sm:flex-row items-center gap-4 animate-in slide-in-from-top-4 mb-8">
+                <div className="bg-red-500 text-white p-4 mx-0 lg:mx-8 rounded-xl shadow-lg border border-red-600 flex flex-col sm:flex-row items-center gap-4 animate-in slide-in-from-top-4">
                   <div className="bg-white/20 p-2 rounded-full shrink-0">
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1 text-center sm:text-left">
-                    <h4 className="font-black uppercase tracking-wider text-sm mb-1">Propiedad inactiva — Limpieza programada</h4>
+                    <h4 className="font-black uppercase tracking-wider text-sm mb-1">Limpieza programada</h4>
                     <p className="text-sm font-medium text-red-50">
                       {propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada' ? (
                         <>La propiedad ha sido vendida/alquilada, sus imágenes (excepto la foto principal) y su archivo PDF (ficha técnica) serán eliminados permanentemente el <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong> para optimizar espacio, al transcurrir 1 año desde su cierre.</>

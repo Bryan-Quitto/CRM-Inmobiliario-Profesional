@@ -1,6 +1,6 @@
 # Lúmina Terms of Service
 
-**Date of last update:** July 4, 2026
+**Date of last update:** July 11, 2026
 
 Welcome to Lúmina, the Professional Real Estate CRM ("Lúmina", "we", "the Platform"). These Terms of Service ("Terms") govern the access and use of our Software as a Service platform by Professional Real Estate Agents ("User", "Agent", or "you"). The figure of "Agency" within the system operates solely as a collaborative grouping functionality, and does not constitute a contractual link between Lúmina and such companies or franchises.
 
@@ -46,6 +46,12 @@ The User agrees to:
 *   Not attempt to bypass, reverse engineer, or overload Lúmina's security and infrastructure (including its databases on Supabase and its cloud services).
 
 Lúmina reserves the right to suspend or terminate accounts that violate the acceptable use rules, without the right to a refund.
+
+### 4.1. Storage Optimization and Automatic Cleanup
+Lúmina will perform the permanent and automatic deletion of secondary multimedia resources and PDF files attached to properties, under the following two strict global cleanup rules (which apply regardless of the agent's auto-archive configuration):
+1. **Inactivity Cleanup:** Any property (except those in "Vendida" or "Alquilada" status) that reaches 1 year (365 days) without activity will enter a 31-day red alert grace period. If no activity is recorded, the resources will be deleted.
+2. **Closed Business Cleanup:** Any property that changes to "Vendida" or "Alquilada" status will immediately display a red alert, and its resources will be non-negotiably deleted exactly 1 year after its closing date (regardless of any subsequent activity).
+*Note: The primary photograph of the property will always be kept.*
 
 ## 5. Intellectual Property
 

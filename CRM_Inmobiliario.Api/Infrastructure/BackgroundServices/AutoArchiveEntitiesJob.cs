@@ -35,37 +35,7 @@ public class AutoArchiveEntitiesJob
 
             var utcMinus5 = new DateTimeOffset(DateTime.UtcNow).ToOffset(TimeSpan.FromHours(-5));
 
-            // 1. Cancelar limpiezas que ya no aplican (actividad reciente o cambio de responsable)
-            var propertiesWithCountdown = await _dbContext.Properties
-                .Include(p => p.Agente)
-                .Include(p => p.CreatedByAgente)
-                .Where(p => p.FechaProgramadaLimpiezaR2 != null)
-                .ToListAsync();
 
-            if (propertiesWithCountdown.Any())
-            {
-                foreach(var p in propertiesWithCountdown)
-                {
-                    var responsable = p.EsCaptadorActivo ? p.Agente : p.CreatedByAgente;
-                    if (responsable == null || !responsable.AutoArchivarPropiedades) 
-                    {
-                        p.FechaProgramadaLimpiezaR2 = null;
-                        continue;
-                    }
-                    
-                    var lastActivity = await _dbContext.Set<AgentPropertyActivity>()
-                        .Where(a => a.PropertyId == p.Id)
-                        .MaxAsync(a => (DateTimeOffset?)a.LastActivityUtc);
-                        
-                    var cutoffDateCheck = lastActivity ?? p.FechaIngreso;
-                        
-                    if (cutoffDateCheck > utcMinus5.AddDays(-responsable.DiasInactividadPropiedades))
-                    {
-                        p.FechaProgramadaLimpiezaR2 = null;
-                    }
-                }
-                await _dbContext.SaveChangesAsync();
-            }
 
             foreach (var agent in agents)
             {
@@ -117,23 +87,7 @@ public class AutoArchiveEntitiesJob
 
                         int archivedPropertiesCount = await _dbContext.Database.ExecuteSqlRawAsync(sqlProperties);
 
-                        var sqlProgramCleanup = $@"
-                            UPDATE ""Properties"" p
-                            SET ""FechaProgramadaLimpiezaR2"" = '{fechaProgramada:O}'
-                            WHERE p.""FechaProgramadaLimpiezaR2"" IS NULL
-                            AND (
-                                (p.""EsCaptadorActivo"" = true AND p.""AgenteId"" = '{agent.Id}')
-                                OR 
-                                (p.""EsCaptadorActivo"" = false AND p.""CreatedByAgenteId"" = '{agent.Id}')
-                            )
-                            AND (
-                                COALESCE(
-                                    (SELECT MAX(""LastActivityUtc"") FROM ""AgentPropertyActivities"" apa WHERE apa.""PropertyId"" = p.""Id""),
-                                    p.""FechaIngreso""
-                                ) <= '{cutoffPropiedades:O}'
-                            );";
-                        
-                        await _dbContext.Database.ExecuteSqlRawAsync(sqlProgramCleanup);
+
                     }
                 }
                 catch (Exception ex)

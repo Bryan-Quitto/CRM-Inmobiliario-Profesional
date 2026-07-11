@@ -212,7 +212,12 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             @"INSERT INTO ""AgentPropertyActivities"" (""AgentId"", ""PropertyId"", ""LastActivityUtc"")
               VALUES ({0}, {1}, {2})
               ON CONFLICT (""AgentId"", ""PropertyId"") 
-              DO UPDATE SET ""LastActivityUtc"" = EXCLUDED.""LastActivityUtc"";",
+              DO UPDATE SET ""LastActivityUtc"" = EXCLUDED.""LastActivityUtc"";
+              
+              UPDATE ""Properties""
+              SET ""FechaProgramadaLimpiezaR2"" = NULL
+              WHERE ""Id"" = {1} AND ""FechaProgramadaLimpiezaR2"" IS NOT NULL
+              AND ""EstadoComercial"" != 'Vendida' AND ""EstadoComercial"" != 'Alquilada';",
             agentId, propertyId, timestamp.ToUniversalTime());
     }
 
@@ -236,6 +241,19 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             var p = entry.Entity;
             var text = NormalizeText($"{p.Titulo} {p.Descripcion} {p.Sector} {p.Ciudad}");
             p.NormalizedSearchText = text.Length > 2000 ? text.Substring(0, 2000) : text;
+            
+            // Si la propiedad es editada de cualquier forma, cancelar la alerta de limpieza R2 (Salvable)
+            // EXCEPTO si es innegociable (Vendida/Alquilada)
+            if (p.FechaProgramadaLimpiezaR2 != null && p.EstadoComercial != "Vendida" && p.EstadoComercial != "Alquilada")
+            {
+                p.FechaProgramadaLimpiezaR2 = null;
+            }
+
+            // Asignar alerta innegociable automáticamente para propiedades cerradas
+            if ((p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null)
+            {
+                p.FechaProgramadaLimpiezaR2 = p.FechaCierre.Value.AddDays(365);
+            }
         }
 
         var entries = ChangeTracker.Entries<Contacto>()

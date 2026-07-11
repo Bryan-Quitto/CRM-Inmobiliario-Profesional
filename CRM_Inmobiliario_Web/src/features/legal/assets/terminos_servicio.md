@@ -1,6 +1,6 @@
 # Términos de Servicio de Lúmina
 
-**Fecha de última actualización:** 4 de julio de 2026
+**Fecha de última actualización:** 11 de julio de 2026
 
 Bienvenidos a Lúmina, el CRM Inmobiliario Profesional ("Lúmina", "nosotros", "la Plataforma"). Estos Términos de Servicio ("Términos") regulan el acceso y uso de nuestra plataforma de Software como Servicio por parte de Agentes Profesionales Inmobiliarios ("Usuario", "Agente", o "usted"). La figura de "Agencia" dentro del sistema opera únicamente como una funcionalidad de agrupación colaborativa, y no constituye un vínculo contractual entre Lúmina y dichas empresas o franquicias.
 
@@ -49,6 +49,12 @@ Lúmina se reserva el derecho de suspender o cancelar cuentas que violen las nor
 
 ### 4.2. Límites de Uso y Recursos
 El servicio de Lúmina está sujeto a cuotas mensuales de uso (como número de operaciones de subida y capacidad de almacenamiento de archivos multimedia), las cuales dependen del plan suscrito por el Agente. Lúmina informará de manera transparente el consumo de estos recursos dentro de la plataforma. Si el Usuario excede dichas cuotas, Lúmina se reserva el derecho de restringir temporalmente la funcionalidad de subida de nuevos archivos hasta el siguiente ciclo de facturación o hasta que el Usuario amplíe su plan de suscripción. Lúmina aplica técnicas de compresión (como formato WebP) para optimizar el almacenamiento, pero el control y gestión del espacio consumido es responsabilidad del Agente.
+
+### 4.3. Optimización de Almacenamiento y Limpieza Automática
+Lúmina realizará la eliminación permanente y automática de recursos multimedia secundarios y archivos PDF adjuntos a las propiedades, bajo las siguientes dos reglas estrictas de limpieza global (las cuales aplican independientemente de la configuración de archivado del agente):
+1. **Limpieza por Inactividad:** Toda propiedad (exceptuando "Vendida" o "Alquilada") que alcance 1 año (365 días) sin registrar ninguna actividad, entrará en una alerta roja de limpieza por 31 días. Si se supera este periodo de gracia sin actividad, los recursos serán eliminados.
+2. **Limpieza por Cierre de Negocio:** Toda propiedad que pase a estado "Vendida" o "Alquilada" mostrará inmediatamente una alerta roja, y sus recursos serán eliminados de forma innegociable al cumplirse 1 año desde su fecha de cierre (sin importar si registra actividad posterior).
+*Nota: La fotografía principal de la propiedad siempre se conservará.*
 
 ## 5. Propiedad Intelectual
 

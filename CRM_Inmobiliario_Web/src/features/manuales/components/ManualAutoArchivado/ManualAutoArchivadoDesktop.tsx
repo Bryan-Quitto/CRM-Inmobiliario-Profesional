@@ -93,8 +93,8 @@ export const ManualAutoArchivadoDesktop: React.FC = () => {
                   <li>• Cambio de estado</li>
                 </ul>
                 <div className="bg-white/60 p-3 rounded-lg border border-rose-200/50">
-                  <h4 className="font-bold text-orange-900 text-xs mb-1 uppercase tracking-wide">⚠️ Limpieza por Inactividad</h4>
-                  <p className="text-xs text-rose-800/90">Al superar el <strong>Límite de Inactividad + 31 días</strong> sin actividad, se eliminarán sus fotos secundarias y PDF. Esto ocurre estrictamente por inactividad, <strong>sin importar si está archivada o no</strong>.</p>
+                  <h4 className="font-bold text-orange-900 text-xs mb-1 uppercase tracking-wide">⚠️ Limpieza de Almacenamiento</h4>
+                  <p className="text-xs text-rose-800/90">Aplica reglas globales estrictas sin importar si está archivada o no: <br/>1) <strong>Inactivas:</strong> Alerta roja por 31 días tras 1 año sin actividad y limpieza posterior. <br/>2) <strong>Cerradas:</strong> Alerta roja inmediata al vender/alquilar y limpieza innegociable al año de cierre.</p>
                 </div>
               </div>
             </div>

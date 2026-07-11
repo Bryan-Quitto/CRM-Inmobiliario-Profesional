@@ -1,4 +1,4 @@
-import { Tag, RefreshCcw, XCircle, CheckCircle, Shield, Lock, Users, Archive, FilePlus, UserCheck, Hash, Bot, Camera, Image as ImageIcon, Folder } from 'lucide-react';
+import { Tag, RefreshCcw, XCircle, CheckCircle, Shield, Lock, Users, Archive, FilePlus, UserCheck, Hash, Bot, Camera, Image as ImageIcon, Folder, Trash2 } from 'lucide-react';
 import { ManualSection } from '../../../../components/ui/manuales/ManualSection';
 import { ManualAlert } from '../../../../components/ui/manuales/ManualAlert';
 import { ManualBadge } from '../../../../components/ui/manuales/ManualBadge';
@@ -121,11 +121,15 @@ export const ManualPropiedadesMobile: React.FC = () => {
 
       <ManualSection title="6. Limpieza Automática de Recursos" icon={<RefreshCcw className="w-5 h-5" />}>
         <p className="text-sm text-slate-600 mb-3">Limpieza de archivos pesados bajo reglas estrictas:</p>
-        <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-3">
-          <h3 className="font-bold text-indigo-900 mb-2 text-sm">Cerradas {'>'} 1 año</h3>
-          <p className="text-xs text-slate-700 mb-2">
-            Si permanece "Vendida" o "Alquilada" por más de 1 año (365 días), se eliminan fotos secundarias, secciones y PDF.
-          </p>
+        <div className="bg-orange-50 p-4 rounded-xl border border-orange-200 mt-6 space-y-2">
+          <h3 className="font-bold text-orange-900 text-sm flex items-center gap-2">
+            <Trash2 className="w-4 h-4 text-orange-600" /> Limpieza Global
+          </h3>
+          <p className="text-xs text-slate-700">Reglas estrictas para optimizar almacenamiento (esté o no archivada):</p>
+          <ul className="text-xs text-slate-700 list-disc pl-4 space-y-1">
+            <li><strong>Inactividad:</strong> Si pasa 1 año sin actividad (excepto cerradas), muestra alerta roja por 31 días. Se limpia si no hay actividad nueva.</li>
+            <li><strong>Por Cierre:</strong> Al pasar a "Vendida" o "Alquilada" muestra alerta roja inmediata. Se limpia al cumplir 1 año (Innegociable).</li>
+          </ul>
           <p className="text-xs text-indigo-800 font-semibold">
             Nota: La foto principal se conserva intacta.
           </p>

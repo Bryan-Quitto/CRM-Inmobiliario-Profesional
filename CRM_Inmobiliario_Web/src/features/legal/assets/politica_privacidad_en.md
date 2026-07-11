@@ -1,6 +1,6 @@
 # Lúmina Privacy Policy
 
-**Date of last update:** July 4, 2026
+**Date of last update:** July 11, 2026
 
 Lúmina ("we", "our", "the Platform") is committed to protecting personal data. This Privacy Policy describes how we collect, use, store, and protect personal information, in compliance with the Organic Law on Personal Data Protection (LOPDP) of Ecuador, the General Data Protection Regulation (GDPR), and other applicable international standards.
 
@@ -106,6 +106,11 @@ We retain personal data only for the time strictly necessary for the purposes fo
 | WebPush subscriptions | Until the Agent revokes them or deletes their account |
 
 Once the retention period expires, data is securely deleted or anonymized. In the specific case of User (Agent) accounts, after 30 days from the deletion request, a logical deletion and anonymization is applied. This involves the permanent removal of identifying data (name, phone, email, profile photo, etc.), leaving the account as an "Anonymous Agent". This process is performed to preserve the integrity of the platform's historical metrics without maintaining personally identifiable information.
+
+Additionally, as part of our data retention and storage optimization policies, Lúmina will perform the permanent and automatic deletion of secondary multimedia resources and PDF files attached to properties, under the following two strict global cleanup rules (which apply regardless of the agent's auto-archive configuration):
+1. **Inactivity Cleanup:** Any property (except those in "Vendida" or "Alquilada" status) that reaches 1 year (365 days) without activity will enter a 31-day red alert grace period. If no activity is recorded, the resources will be deleted.
+2. **Closed Business Cleanup:** Any property that changes to "Vendida" or "Alquilada" status will immediately display a red alert, and its resources will be non-negotiably deleted exactly 1 year after its closing date (regardless of any subsequent activity).
+*Note: The primary photograph of the property will always be kept.*
 
 ## 12. International Transfers
 

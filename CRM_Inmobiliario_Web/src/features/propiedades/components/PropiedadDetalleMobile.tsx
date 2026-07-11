@@ -67,7 +67,7 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
         {activeTab === 'detalle' && (
           <>
             {propiedad.fechaProgramadaLimpiezaR2 && (
-              <div className="bg-red-500 text-white p-3 rounded-xl shadow-lg border border-red-600 flex flex-col items-center gap-2 mb-4 w-full">
+              <div className="bg-red-500 text-white p-3 rounded-xl shadow-lg border border-red-600 flex flex-col items-center gap-2 w-full">
                 <div className="bg-white/20 p-2 rounded-full shrink-0">
                   <AlertTriangle className="h-6 w-6 text-white" />
                 </div>
