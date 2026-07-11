@@ -8,16 +8,16 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 
-public class ArchivedPropertyCleanupJob
+public class InactivePropertyMediaCleanupJob
 {
     private readonly CrmDbContext _context;
     private readonly IR2StorageService _r2StorageService;
-    private readonly ILogger<ArchivedPropertyCleanupJob> _logger;
+    private readonly ILogger<InactivePropertyMediaCleanupJob> _logger;
 
-    public ArchivedPropertyCleanupJob(
+    public InactivePropertyMediaCleanupJob(
         CrmDbContext context,
         IR2StorageService r2StorageService,
-        ILogger<ArchivedPropertyCleanupJob> logger)
+        ILogger<InactivePropertyMediaCleanupJob> logger)
     {
         _context = context;
         _r2StorageService = r2StorageService;
@@ -28,19 +28,17 @@ public class ArchivedPropertyCleanupJob
     {
         _logger.LogInformation("Iniciando tarea de limpieza de propiedades archivadas.");
 
-        // Límite de 31 días hacia atrás
-        var cutoffDate = DateTimeOffset.UtcNow.AddDays(-31);
+        var utcNow = DateTimeOffset.UtcNow;
 
         var propertiesToClean = await _context.Properties
             .Include(p => p.Media)
-            .Where(p => p.EstadoComercial == "Archivado" && 
-                        p.FechaArchivado != null && 
-                        p.FechaArchivado <= cutoffDate)
+            .Include(p => p.GallerySections)
+            .Where(p => p.FechaProgramadaLimpiezaR2 != null && p.FechaProgramadaLimpiezaR2 <= utcNow)
             .ToListAsync();
 
         if (!propertiesToClean.Any())
         {
-            _logger.LogInformation("No se encontraron propiedades archivadas hace más de 31 días que requieran limpieza.");
+            _logger.LogInformation("No se encontraron propiedades pendientes de limpieza de R2.");
             return;
         }
 
@@ -49,13 +47,13 @@ public class ArchivedPropertyCleanupJob
 
         foreach (var property in propertiesToClean)
         {
-            // Omitimos propiedades que ya fueron limpiadas (sin Media) para optimizar
-            // Sin embargo, queremos re-intentar borrar el PDF por si acaso.
-            
+            var mediaToDelete = property.Media.Where(m => !m.EsPrincipal).ToList();
+
             // 1. Recopilar claves de R2 a eliminar
-            var keysToDelete = property.Media
-                .Where(m => !string.IsNullOrEmpty(m.UrlPublica))
-                .Select(m => ExtraerClaveR2(m.UrlPublica))
+            var keysToDelete = mediaToDelete
+                .Select(m => !string.IsNullOrEmpty(m.StoragePath) 
+                    ? $"propiedades/{property.Id}/{m.StoragePath}" 
+                    : ExtraerClaveR2(m.UrlPublica))
                 .Where(k => !string.IsNullOrEmpty(k))
                 .Cast<string>()
                 .ToList();
@@ -70,7 +68,7 @@ public class ArchivedPropertyCleanupJob
                 try
                 {
                     await _r2StorageService.DeleteManyAsync(keysToDelete);
-                    totalMediaDeleted += property.Media.Count;
+                    totalMediaDeleted += mediaToDelete.Count;
                     totalPdfDeleted++;
                 }
                 catch (Exception ex)
@@ -81,10 +79,25 @@ public class ArchivedPropertyCleanupJob
             }
 
             // 3. Eliminar de la base de datos (Eliminación fuerte)
-            if (property.Media.Any())
+            if (mediaToDelete.Any())
             {
-                _context.PropertyMedia.RemoveRange(property.Media);
+                _context.PropertyMedia.RemoveRange(mediaToDelete);
             }
+            
+            // Rescatar foto principal si estaba dentro de una sección para que no se borre en cascada
+            var principalMedia = property.Media.FirstOrDefault(m => m.EsPrincipal);
+            if (principalMedia != null && principalMedia.SectionId != null)
+            {
+                principalMedia.SectionId = null;
+            }
+
+            if (property.GallerySections.Any())
+            {
+                _context.PropertyGallerySections.RemoveRange(property.GallerySections);
+            }
+
+            // Resetear el flag
+            property.FechaProgramadaLimpiezaR2 = null;
         }
 
         // 4. Guardar los cambios en la DB

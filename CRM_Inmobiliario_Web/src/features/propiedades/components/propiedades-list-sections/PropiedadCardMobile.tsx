@@ -1,4 +1,4 @@
-import { Handshake, Pencil, MapPin, Plus, Image as ImageIcon, X } from 'lucide-react';
+import { Handshake, Pencil, MapPin, Plus, Image as ImageIcon, X, AlertTriangle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '../../constants/propiedades';
@@ -10,6 +10,7 @@ import { useState } from 'react';
 import type { Propiedad } from '../../types';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface PropiedadCardMobileProps {
   propiedad: Propiedad;
@@ -108,6 +109,14 @@ export const PropiedadCardMobile = ({
               {p.operacion}
             </TruncatedText>
           </div>
+
+          {p.fechaProgramadaLimpiezaR2 && (
+            <Tooltip content={`Limpieza programada para el ${new Date(p.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}`} className="absolute bottom-3 right-3 z-20 pointer-events-auto">
+              <div className="h-6 w-6 bg-red-500 rounded flex items-center justify-center text-white shadow-lg border border-red-600">
+                <AlertTriangle className="h-3 w-3" />
+              </div>
+            </Tooltip>
+          )}
         </div>
 
         {/* Bottom: Details */}

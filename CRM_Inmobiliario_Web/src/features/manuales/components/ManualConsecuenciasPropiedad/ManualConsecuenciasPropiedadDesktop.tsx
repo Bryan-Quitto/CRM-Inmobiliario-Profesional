@@ -20,13 +20,13 @@ export const ManualConsecuenciasPropiedadDesktop: React.FC = () => {
             </p>
             
             <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-200/50 mb-4">
-              <h3 className="font-bold text-orange-900 mb-2 flex items-center gap-2"><Archive className="w-5 h-5 text-orange-600" /> Limpieza Automática (31 Días)</h3>
+              <h3 className="font-bold text-orange-900 mb-2 flex items-center gap-2"><Archive className="w-5 h-5 text-orange-600" /> Limpieza por Inactividad</h3>
               <p className="text-sm text-slate-700 mb-3">
-                Para optimizar el almacenamiento del servidor, si una propiedad permanece en estado <strong>"Archivado" por más de 31 días consecutivos</strong>, el sistema realizará una limpieza automática de recursos pesados.
+                Para optimizar almacenamiento, si la propiedad supera su <strong>Límite de Inactividad y pasan 31 días adicionales sin registrar ninguna actividad</strong>, se limpiarán los recursos pesados. <strong>NO IMPORTA si está archivada o no</strong>; la limpieza depende estrictamente de la inactividad.
               </p>
               <ul className="space-y-2 text-sm text-slate-700">
-                <li><strong className="text-orange-800">Galería Fotográfica:</strong> Se eliminarán todas las fotografías permanentemente.</li>
-                <li><strong className="text-orange-800">Ficha Técnica (PDF):</strong> Se eliminará el PDF pre-generado (podrás volver a generarlo luego).</li>
+                <li><strong className="text-orange-800">Galería Fotográfica:</strong> Se eliminarán las fotografías secundarias (se conserva la foto principal).</li>
+                <li><strong className="text-orange-800">Ficha Técnica (PDF):</strong> Se eliminará el PDF pre-generado.</li>
               </ul>
             </div>
 

@@ -52,3 +52,15 @@ Al registrar una nueva propiedad en el sistema:
 
 - **Secciones de Fotos**: Para que se vea más organizado, puedes separar las fotos por zonas, como las del patio, las habitaciones o las áreas comunes.
 - **Foto Principal**: Tú decides el orden de las secciones y eliges cuál será la foto principal que se verá como portada de la propiedad en todas partes.
+
+## 6. Limpieza Automática de Recursos (Ahorro de Espacio)
+
+Para mantener la plataforma optimizada, el sistema realiza limpiezas de archivos pesados bajo reglas estrictas que protegen el estado visual de tus inmuebles:
+
+### A. Propiedades Cerradas (Más de 1 año)
+Si una propiedad permanece ininterrumpidamente en estado **"Vendida"** o **"Alquilada"** por más de **1 año (365 días)**, el sistema eliminará automáticamente para ahorrar espacio:
+- Todas las fotografías secundarias de la galería.
+- Las secciones de fotos creadas.
+- La Ficha Técnica (PDF).
+
+**Nota importante:** La **foto principal** se rescata y conserva siempre para que el historial siga viéndose bien.

@@ -124,6 +124,19 @@ export const ManualPropiedadesDesktop: React.FC = () => {
             </li>
           </ul>
         </ManualSection>
+
+        <ManualSection title="6. Limpieza Automática de Recursos" icon={<RefreshCcw className="w-6 h-6" />}>
+          <p className="mb-4">Para optimizar almacenamiento, el sistema limpia archivos pesados bajo esta regla estricta:</p>
+          <div className="bg-indigo-50/50 p-5 rounded-xl border border-indigo-100/50">
+            <h3 className="font-bold text-indigo-900 mb-2">Propiedades Cerradas (Más de 1 año)</h3>
+            <p className="text-sm text-slate-700 mb-3">
+              Si una propiedad permanece ininterrumpidamente como <strong>"Vendida"</strong> o <strong>"Alquilada"</strong> por más de <strong>1 año (365 días)</strong>, se eliminarán automáticamente sus fotografías secundarias, secciones y PDF.
+            </p>
+            <p className="text-sm text-indigo-800 font-semibold">
+              Nota: La foto principal siempre se conserva intacta para el historial.
+            </p>
+          </div>
+        </ManualSection>
       </div>
     </div>
   );

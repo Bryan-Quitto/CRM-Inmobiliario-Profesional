@@ -118,6 +118,19 @@ export const ManualPropiedadesMobile: React.FC = () => {
           </li>
         </ul>
       </ManualSection>
+
+      <ManualSection title="6. Limpieza Automática de Recursos" icon={<RefreshCcw className="w-5 h-5" />}>
+        <p className="text-sm text-slate-600 mb-3">Limpieza de archivos pesados bajo reglas estrictas:</p>
+        <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-3">
+          <h3 className="font-bold text-indigo-900 mb-2 text-sm">Cerradas {'>'} 1 año</h3>
+          <p className="text-xs text-slate-700 mb-2">
+            Si permanece "Vendida" o "Alquilada" por más de 1 año (365 días), se eliminan fotos secundarias, secciones y PDF.
+          </p>
+          <p className="text-xs text-indigo-800 font-semibold">
+            Nota: La foto principal se conserva intacta.
+          </p>
+        </div>
+      </ManualSection>
     </div>
   );
 };

@@ -4,12 +4,12 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 
-public class TokenLimitResetJob
+public class ResetAiBotDailyLimitsJob
 {
     private readonly CrmDbContext _context;
-    private readonly ILogger<TokenLimitResetJob> _logger;
+    private readonly ILogger<ResetAiBotDailyLimitsJob> _logger;
 
-    public TokenLimitResetJob(CrmDbContext context, ILogger<TokenLimitResetJob> logger)
+    public ResetAiBotDailyLimitsJob(CrmDbContext context, ILogger<ResetAiBotDailyLimitsJob> logger)
     {
         _context = context;
         _logger = logger;

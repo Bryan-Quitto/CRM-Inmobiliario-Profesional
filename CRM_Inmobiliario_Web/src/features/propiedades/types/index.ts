@@ -75,4 +75,5 @@ export interface Propiedad {
   activeTransaction?: ActiveTransactionInfo;
   version?: string;
   isArchivedForCurrentUser?: boolean;
+  fechaProgramadaLimpiezaR2?: string | null;
 }

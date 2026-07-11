@@ -44,6 +44,9 @@ public static class ListarPropiedadesFeature
                 .FirstOrDefaultAsync();
 
             var query = ListarPropiedadesQueryBuilder.BuildPermissionsQuery(context, currentUserId, agenciaId, request.IsArchived);
+
+            var limite31Dias = DateTimeOffset.UtcNow.AddYears(-1).AddDays(31);
+
             query = ListarPropiedadesQueryBuilder.ApplyFilters(context, query, request);
 
             var memCache = serviceProvider.GetRequiredService<IMemoryCache>();
@@ -102,7 +105,15 @@ public static class ListarPropiedadesFeature
                     x.Property.AreaTotal,
                     x.Property.AniosAntiguedad,
                     false,
-                    request.IsArchived)) 
+                    request.IsArchived,
+                    x.Property.FechaProgramadaLimpiezaR2 ?? (
+                        (x.Property.EstadoComercial == "Vendida" || x.Property.EstadoComercial == "Alquilada") && 
+                        x.Property.FechaCierre != null && 
+                        x.Property.FechaCierre <= limite31Dias &&
+                        (x.Property.Media.Any(m => !m.EsPrincipal) || x.Property.GallerySections.Any())
+                            ? x.Property.FechaCierre.Value.AddYears(1) 
+                            : null
+                    ))) 
                 .ToListAsync(cancellationToken);
 
             if (cleanPhoneToShare != null)

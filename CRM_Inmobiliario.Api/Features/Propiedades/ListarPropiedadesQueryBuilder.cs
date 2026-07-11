@@ -57,7 +57,21 @@ public static class ListarPropiedadesQueryBuilder
         }
 
         if (!string.IsNullOrWhiteSpace(request.EstadoComercial) && request.EstadoComercial != "Todos")
-            query = query.Where(p => p.EstadoComercial == request.EstadoComercial);
+        {
+            if (request.EstadoComercial == "Por limpiar")
+            {
+                var limite31Dias = DateTimeOffset.UtcNow.AddYears(-1).AddDays(31);
+                query = query.Where(p => p.FechaProgramadaLimpiezaR2 != null || 
+                    ((p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && 
+                     p.FechaCierre != null && 
+                     p.FechaCierre <= limite31Dias && 
+                     (p.Media.Any(m => !m.EsPrincipal) || p.GallerySections.Any())));
+            }
+            else
+            {
+                query = query.Where(p => p.EstadoComercial == request.EstadoComercial);
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(request.TipoPropiedad) && request.TipoPropiedad != "Todos")
             query = query.Where(p => p.TipoPropiedad == request.TipoPropiedad);

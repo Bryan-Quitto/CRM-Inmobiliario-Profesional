@@ -20,8 +20,8 @@ export const ManualConsecuenciasPropiedadMobile: React.FC = () => {
           
           <div className="space-y-2 mb-4">
             <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-              <h4 className="font-bold text-orange-900 text-xs mb-1">Limpieza a los 31 días</h4>
-              <p className="text-xs text-slate-600">Si pasa más de 31 días consecutivos archivada, se borrarán permanentemente sus fotos y PDF para ahorrar espacio.</p>
+              <h4 className="font-bold text-orange-900 text-xs mb-1">Limpieza por Inactividad</h4>
+              <p className="text-xs text-slate-600">Al superar el Límite de Inactividad + 31 días sin actividad (esté o no archivada), se borrarán las fotos secundarias y el PDF.</p>
             </div>
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
               <h4 className="font-bold text-rose-800 text-xs mb-1">Datos y Compartir</h4>

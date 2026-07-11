@@ -52,7 +52,8 @@ public static class ObtenerPropiedadPorIdFeature
         PropertyPermissions Permissions,
         ActiveTransactionInfo? ActiveTransaction,
         string Version,
-        bool IsArchivedForCurrentUser = false);
+        bool IsArchivedForCurrentUser = false,
+        DateTimeOffset? FechaProgramadaLimpiezaR2 = null);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -90,6 +91,8 @@ public static class ObtenerPropiedadPorIdFeature
                 .Where(a => a.Id == currentUserId)
                 .Select(a => a.AgenciaId)
                 .FirstOrDefaultAsync();
+
+            var limite31Dias = DateTimeOffset.UtcNow.AddYears(-1).AddDays(31);
 
             var propiedad = await context.Properties
                 .AsNoTracking()
@@ -186,7 +189,15 @@ public static class ObtenerPropiedadPorIdFeature
                     ),
                     x.ActiveTransaction,
                     x.Property.Version.ToString(),
-                    context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id)))
+                    context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id),
+                    x.Property.FechaProgramadaLimpiezaR2 ?? (
+                        (x.Property.EstadoComercial == "Vendida" || x.Property.EstadoComercial == "Alquilada") && 
+                        x.Property.FechaCierre != null && 
+                        x.Property.FechaCierre <= limite31Dias &&
+                        (x.Property.Media.Any(m => !m.EsPrincipal) || x.Property.GallerySections.Any())
+                            ? x.Property.FechaCierre.Value.AddYears(1) 
+                            : null
+                    )))
                 .FirstOrDefaultAsync();
 
             return propiedad is not null 

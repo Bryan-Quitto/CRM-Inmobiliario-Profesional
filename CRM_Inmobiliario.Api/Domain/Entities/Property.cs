@@ -119,6 +119,7 @@ public sealed class Property
     [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "vector(768)")]
     public Pgvector.Vector? GeminiEmbedding { get; set; }
 
+    public DateTimeOffset? FechaProgramadaLimpiezaR2 { get; set; }
 
     // Relaciones de navegación
     public ICollection<PropertyGallerySection> GallerySections { get; set; } = new List<PropertyGallerySection>();

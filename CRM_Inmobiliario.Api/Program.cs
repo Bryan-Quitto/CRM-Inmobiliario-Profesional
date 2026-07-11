@@ -138,12 +138,13 @@ if (!string.IsNullOrEmpty(r2AccessKey) && !string.IsNullOrEmpty(r2SecretKey) && 
 }
 builder.Services.AddHostedService<PdfWorker>();
 builder.Services.AddHostedService<KpiWarmingBackgroundService>();
-builder.Services.AddScoped<TokenLimitResetJob>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.TaskNotificationJob>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.SendWebPushNotificationJob>();
+builder.Services.AddScoped<ResetAiBotDailyLimitsJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.EnqueueTaskNotificationsJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.ProcessWebPushOutboxJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchivadoJob>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.ArchivedPropertyCleanupJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchiveEntitiesJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.InactivePropertyMediaCleanupJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.ClosedPropertyMediaCleanupJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService, CRM_Inmobiliario.Api.Features.PushNotifications.Services.PushNotificationService>();
 
 builder.Services.AddProblemDetails(); // RFC 7807 (ProblemDetails)
@@ -204,35 +205,38 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 // Registrar Job Recurrente de Hangfire (00:00 UTC-5 equivale a 05:00 UTC)
 app.Lifetime.ApplicationStarted.Register(() => 
 {
-    RecurringJob.AddOrUpdate<TokenLimitResetJob>(
-        "reset-daily-token-limits", 
-        job => job.ResetDailyLimitsAsync(), 
-        "0 5 * * *" 
-    );
+    RecurringJob.AddOrUpdate<ResetAiBotDailyLimitsJob>(
+        "reset-ai-bot-daily-limits",
+        job => job.ResetDailyLimitsAsync(),
+        "0 5 * * *"); // A las 05:00 UTC (Media noche en UTC-5)
 
-    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Features.Tareas.Jobs.TaskNotificationJob>(
-        "notify-tasks", 
-        job => job.ProcessNotificationsAsync(), 
-        "* * * * *" 
-    );
+    // Notificaciones Outbox
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Features.Tareas.Jobs.EnqueueTaskNotificationsJob>(
+        "enqueue-task-notifications",
+        job => job.ProcessNotificationsAsync(),
+        "* * * * *"); // Cada minuto
 
-    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Features.Tareas.Jobs.SendWebPushNotificationJob>(
-        "send-web-push", 
-        job => job.ExecuteAsync(), 
-        "* * * * *" 
-    );
-
-    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchivadoJob>(
-        "auto-archivado-diario",
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Features.Tareas.Jobs.ProcessWebPushOutboxJob>(
+        "process-web-push-outbox",
         job => job.ExecuteAsync(),
-        "0 7 * * *" // 07:00 UTC (02:00 AM UTC-5)
-    );
+        "* * * * *");
 
-    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.ArchivedPropertyCleanupJob>(
-        "cleanup-archived-properties",
+    // Limpieza de inactivos
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchiveEntitiesJob>(
+        "daily-auto-archive-entities",
         job => job.ExecuteAsync(),
-        "0 8 1 * *" // 08:00 UTC (03:00 AM UTC-5) el día 1 de cada mes
-    );
+        "0 7 * * *");
+
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.InactivePropertyMediaCleanupJob>(
+        "cleanup-inactive-properties-media",
+        job => job.ExecuteAsync(),
+        "0 8 1 * *");
+
+    // Limpieza vendidas
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.ClosedPropertyMediaCleanupJob>(
+        "cleanup-closed-properties-media",
+        job => job.ExecuteAsync(),
+        "0 9 1 * *"); // 09:00 UTC (04:00 AM UTC-5) el día 1 de cada mes
 });
 
 

@@ -12,16 +12,16 @@ using Hangfire;
 
 namespace CRM_Inmobiliario.Api.Features.Tareas.Jobs;
 
-public class TaskNotificationJob
+public class EnqueueTaskNotificationsJob
 {
     private readonly CrmDbContext _dbContext;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<TaskNotificationJob> _logger;
+    private readonly ILogger<EnqueueTaskNotificationsJob> _logger;
 
-    public TaskNotificationJob(
+    public EnqueueTaskNotificationsJob(
         CrmDbContext dbContext,
         IConfiguration configuration,
-        ILogger<TaskNotificationJob> logger)
+        ILogger<EnqueueTaskNotificationsJob> logger)
     {
         _dbContext = dbContext;
         _configuration = configuration;

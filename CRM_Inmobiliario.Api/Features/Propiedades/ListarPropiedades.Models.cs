@@ -50,7 +50,8 @@ public record Response(
     decimal AreaTotal,
     int? AniosAntiguedad,
     bool AlreadyHasContact = false,
-    bool IsArchivedForCurrentUser = false);
+    bool IsArchivedForCurrentUser = false,
+    DateTimeOffset? FechaProgramadaLimpiezaR2 = null);
 
 public record PropertyPermissions(
     bool CanEditMasterData,

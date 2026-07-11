@@ -41,7 +41,7 @@ export const AVAILABLE_PROPERTY_FILTERS: FilterDefinition[] = [
     key: 'estadoComercial', 
     label: 'Estado Comercial', 
     type: 'select', 
-    options: ['Todos', ...ESTADOS.map(o => o.value)] 
+    options: ['Todos', ...ESTADOS.map(o => o.value), 'Por limpiar'] 
   },
 
   // Range

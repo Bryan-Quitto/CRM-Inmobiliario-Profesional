@@ -55,8 +55,8 @@ export const ManualAutoArchivadoMobile: React.FC = () => {
               <h3 className="font-bold text-rose-900 text-xs mb-1.5">Propiedades Archivadas:</h3>
               <p className="text-xs text-rose-800 mb-2">Se bloquea la edición, FAQs, compartir, exportar, transacciones, cambiar estado y multimedia.</p>
               <div className="bg-white/60 p-2 rounded border border-rose-200/50">
-                <p className="text-[10px] text-orange-900 font-bold uppercase mb-0.5">⚠️ A los 31 días</p>
-                <p className="text-[10px] text-rose-800">Se eliminarán permanentemente las fotos y el PDF para ahorrar espacio.</p>
+                <p className="text-[10px] text-orange-900 font-bold uppercase mb-0.5">⚠️ Limpieza por Inactividad</p>
+                <p className="text-[10px] text-rose-800">Al pasar el Límite de Inactividad + 31 días (esté o no archivada), se borran fotos secundarias y PDF.</p>
               </div>
             </div>
             

@@ -12,15 +12,15 @@ using Hangfire;
 
 namespace CRM_Inmobiliario.Api.Features.Tareas.Jobs;
 
-public class SendWebPushNotificationJob
+public class ProcessWebPushOutboxJob
 {
     private readonly IConfiguration _configuration;
-    private readonly ILogger<SendWebPushNotificationJob> _logger;
+    private readonly ILogger<ProcessWebPushOutboxJob> _logger;
     private readonly CrmDbContext _dbContext;
 
-    public SendWebPushNotificationJob(
+    public ProcessWebPushOutboxJob(
         IConfiguration configuration,
-        ILogger<SendWebPushNotificationJob> logger,
+        ILogger<ProcessWebPushOutboxJob> logger,
         CrmDbContext dbContext)
     {
         _configuration = configuration;
