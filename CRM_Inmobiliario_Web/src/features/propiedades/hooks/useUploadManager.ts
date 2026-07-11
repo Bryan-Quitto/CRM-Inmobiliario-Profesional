@@ -106,7 +106,16 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
 
         errorMsg = 'Error en la subida';
         if (isAxiosError(err)) {
-          errorMsg = err.response?.data?.detail || err.message;
+          const data = err.response?.data;
+          if (typeof data === 'string') {
+            errorMsg = data;
+          } else if (data?.detail) {
+            errorMsg = data.detail;
+          } else if (data?.message) {
+            errorMsg = data.message;
+          } else {
+            errorMsg = err.message;
+          }
         }
         setUploads(prev => prev.map(u => u.id === currentUploadId ? { 
           ...u, 
@@ -127,7 +136,8 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
               ...current,
               completedFiles: newCompleted,
               progreso: Math.round((newCompleted / current.totalFiles) * 100),
-              estado: isFinished ? (errorMsg && newCompleted === 1 ? 'error' : 'completed') : 'loading'
+              estado: isFinished ? (errorMsg && newCompleted === 1 ? 'error' : 'completed') : 'loading',
+              errorMsg: errorMsg || current.errorMsg
             }
           };
         });
@@ -154,7 +164,7 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
         if (finalProcess.estado === 'completed') {
           toast.success(`Carga completa en "${nombrePropiedad}"`, { id: toastId });
         } else {
-          toast.error(`Error al subir imágenes en "${nombrePropiedad}"`, { id: toastId });
+          toast.error(finalProcess.errorMsg || `Error al subir imágenes en "${nombrePropiedad}"`, { id: toastId });
         }
 
         // Limpiar el proceso activo después de un tiempo si no hay una nueva subida iniciada

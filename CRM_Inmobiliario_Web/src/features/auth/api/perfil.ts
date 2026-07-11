@@ -19,6 +19,8 @@ export interface PerfilAgente {
   monthlyStorageBytesLimit: number;
   currentMonthStorageBytesUsed: number;
   daysUntilStorageReset: number;
+  monthlyUploadOpsLimit: number;
+  currentMonthUploadOpsUsed: number;
 }
 
 export const usePerfil = () => {

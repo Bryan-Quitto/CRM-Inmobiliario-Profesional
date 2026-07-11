@@ -2,6 +2,7 @@ import React from 'react';
 import { Camera, Image as ImageIcon } from 'lucide-react';
 import FotoPerfilUpload from '../FotoPerfilUpload';
 import LogoAgenciaUpload from '../LogoAgenciaUpload';
+import CuotaSection from './CuotaSection';
 import type { FormDataPerfil } from '../../hooks/useConfiguracionPerfil';
 import type { PerfilAgente } from '../../api/perfil';
 
@@ -12,6 +13,7 @@ interface BrandingSectionProps {
   onUpdate: (data: Partial<PerfilAgente>) => Promise<void>;
   setFormData: React.Dispatch<React.SetStateAction<FormDataPerfil>>;
   formData: FormDataPerfil;
+  perfil: PerfilAgente;
 }
 
 const BrandingSection: React.FC<BrandingSectionProps> = ({ 
@@ -20,7 +22,8 @@ const BrandingSection: React.FC<BrandingSectionProps> = ({
   logoUrl, 
   onUpdate, 
   setFormData,
-  formData 
+  formData,
+  perfil 
 }) => {
   return (
     <div className="lg:col-span-1 space-y-8">
@@ -71,6 +74,9 @@ const BrandingSection: React.FC<BrandingSectionProps> = ({
           El logo aparecerá en la cabecera de tus PDFs profesionales.
         </p>
       </div>
+
+      {/* Uso de Plataforma */}
+      <CuotaSection perfil={perfil} />
     </div>
   );
 };

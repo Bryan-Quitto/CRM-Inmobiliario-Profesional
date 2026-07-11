@@ -19,6 +19,7 @@ import { ManualNotificaciones } from '../../features/manuales/components/ManualN
 import { ManualAutoArchivado } from '../../features/manuales/components/ManualAutoArchivado';
 import { ManualConsecuenciasContacto } from '../../features/manuales/components/ManualConsecuenciasContacto';
 import { ManualConsecuenciasPropiedad } from '../../features/manuales/components/ManualConsecuenciasPropiedad';
+import { ManualUsoPlataforma } from '../../features/manuales/components/ManualUsoPlataforma';
 
 const componentMap: Record<string, React.ReactNode> = {
   '/docs/manuales/manual_busqueda.md': <ManualBusqueda />,
@@ -42,7 +43,8 @@ const componentMap: Record<string, React.ReactNode> = {
   '/docs/manuales/manual_sistema-ia_registros.md#facebook': <ManualSistemaIARegistros section="facebook" />,
   '/docs/manuales/manual_sistema-ia_registros.md#personal': <ManualSistemaIARegistros section="personal" />,
   '/docs/manuales/manual_sistema-ia_registros.md#general': <ManualSistemaIARegistros section="general" />,
-  '/docs/manuales/manual_comunicaciones.md': <ManualComunicaciones />
+  '/docs/manuales/manual_comunicaciones.md': <ManualComunicaciones />,
+  '/docs/manuales/manual_uso_plataforma.md': <ManualUsoPlataforma />
 };
 
 export const HelpDrawer = () => {

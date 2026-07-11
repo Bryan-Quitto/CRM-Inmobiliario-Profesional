@@ -31,6 +31,10 @@ public static class SubirLogoAgenciaFeature
             if (file == null || file.Length == 0)
                 return Results.BadRequest("No se proporcionó ningún archivo.");
 
+            const long MaxLogoBytes = 20 * 1024 * 1024; // 20 MB
+            if (file.Length > MaxLogoBytes)
+                return Results.BadRequest($"El logo no puede superar {MaxLogoBytes / 1024 / 1024} MB.");
+
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             var nombreArchivo = $"logo-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}{extension}";
             var key = $"perfiles/{agenteId}/{nombreArchivo}";

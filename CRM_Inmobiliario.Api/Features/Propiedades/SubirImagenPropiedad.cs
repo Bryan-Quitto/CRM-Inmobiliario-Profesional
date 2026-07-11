@@ -29,6 +29,10 @@ public static class SubirImagenPropiedadFeature
             if (file == null || file.Length == 0)
                 return Results.BadRequest("No se proporcionó ningún archivo.");
 
+            const long MaxImageSizeBytes = 20 * 1024 * 1024; // 20 MB
+            if (file.Length > MaxImageSizeBytes)
+                return Results.BadRequest($"La imagen no puede superar {MaxImageSizeBytes / 1024 / 1024} MB.");
+
             // 1. Verificar si la propiedad existe y el usuario tiene permisos de gestión
             var propiedad = await context.Properties
                 .Include(p => p.Media)

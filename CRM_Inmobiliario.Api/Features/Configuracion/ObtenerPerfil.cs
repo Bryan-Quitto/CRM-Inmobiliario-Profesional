@@ -27,7 +27,9 @@ public static class ObtenerPerfil
         DateTimeOffset FechaCreacion,
         long MonthlyStorageBytesLimit,
         long CurrentMonthStorageBytesUsed,
-        int DaysUntilStorageReset);
+        int DaysUntilStorageReset,
+        int MonthlyUploadOpsLimit,
+        int CurrentMonthUploadOpsUsed);
 
     public static IEndpointRouteBuilder MapObtenerPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
@@ -58,7 +60,8 @@ public static class ObtenerPerfil
             {
                 return Results.Ok(new Response(
                     agenteId, "", "", email, null, null, null, null, null, null, null, "Agente", null, DateTimeOffset.UtcNow,
-                    209715200, 0, daysUntilReset
+                    209715200, 0, daysUntilReset,
+                    5000, 0
                 ));
             }
 
@@ -79,7 +82,9 @@ public static class ObtenerPerfil
                 perfilData.Agent.FechaCreacion,
                 perfilData.Agent.MonthlyStorageBytesLimit,
                 perfilData.Usage != null ? perfilData.Usage.TotalBytesUploaded : 0,
-                daysUntilReset);
+                daysUntilReset,
+                perfilData.Agent.MonthlyStorageUploadsLimit,
+                perfilData.Usage != null ? perfilData.Usage.UploadOpsCount : 0);
 
             return Results.Ok(perfil);
 

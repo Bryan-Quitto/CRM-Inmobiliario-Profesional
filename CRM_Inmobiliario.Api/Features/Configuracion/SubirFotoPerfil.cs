@@ -28,6 +28,10 @@ public static class SubirFotoPerfilFeature
             if (file == null || file.Length == 0)
                 return Results.BadRequest("No se proporcionó ningún archivo.");
 
+            const long MaxProfilePhotoBytes = 20 * 1024 * 1024; // 20 MB
+            if (file.Length > MaxProfilePhotoBytes)
+                return Results.BadRequest($"La foto de perfil no puede superar {MaxProfilePhotoBytes / 1024 / 1024} MB.");
+
             var agente = await context.Agents.FindAsync(id);
             if (agente == null) return Results.NotFound("Agente no encontrado.");
 

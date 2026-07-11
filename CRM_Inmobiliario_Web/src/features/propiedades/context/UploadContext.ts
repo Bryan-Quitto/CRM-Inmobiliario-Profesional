@@ -9,6 +9,7 @@ export interface UploadProcess {
   estado: 'loading' | 'completed' | 'error';
   totalFiles: number;
   completedFiles: number;
+  errorMsg?: string;
   dismissed?: boolean;
 }
 

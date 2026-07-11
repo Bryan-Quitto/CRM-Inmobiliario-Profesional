@@ -47,6 +47,9 @@ El Usuario se compromete a:
 
 Lúmina se reserva el derecho de suspender o cancelar cuentas que violen las normas de uso aceptable, sin derecho a reembolso.
 
+### 4.2. Límites de Uso y Recursos
+El servicio de Lúmina está sujeto a cuotas mensuales de uso (como número de operaciones de subida y capacidad de almacenamiento de archivos multimedia), las cuales dependen del plan suscrito por el Agente. Lúmina informará de manera transparente el consumo de estos recursos dentro de la plataforma. Si el Usuario excede dichas cuotas, Lúmina se reserva el derecho de restringir temporalmente la funcionalidad de subida de nuevos archivos hasta el siguiente ciclo de facturación o hasta que el Usuario amplíe su plan de suscripción. Lúmina aplica técnicas de compresión (como formato WebP) para optimizar el almacenamiento, pero el control y gestión del espacio consumido es responsabilidad del Agente.
+
 ## 5. Propiedad Intelectual
 
 *   **Propiedad de Lúmina:** La estructura, código, algoritmos, interfaz y experiencia de usuario y marca de Lúmina son propiedad exclusiva de la empresa proveedora del software. No se otorgan licencias para reproducir, modificar o comercializar el software fuera del ámbito del servicio de software contratado.

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Caching.Memory;
 using CRM_Inmobiliario.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +35,13 @@ builder.Services.AddProjectAuthentication(builder.Configuration);
 builder.Services.AddOutputCache(options => {
     options.AddBasePolicy(b => b.Expire(TimeSpan.FromMinutes(5)).SetVaryByHeader("Authorization"));
 });
+
+// Configuración de límites de carga
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 25 * 1024 * 1024; // 25 MB
+});
+
 
 // Inyección de Dependencias (Slices & IA)
     builder.Services.AddScoped<IAgentStateService, AgentStateService>();

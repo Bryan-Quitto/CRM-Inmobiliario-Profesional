@@ -44,6 +44,7 @@ const ConfiguracionPerfilMobile: React.FC<Props> = ({ logic }) => {
             onUpdate={actualizarPerfil}
             setFormData={setFormData}
             formData={formData}
+            perfil={perfil}
           />
         </div>
 

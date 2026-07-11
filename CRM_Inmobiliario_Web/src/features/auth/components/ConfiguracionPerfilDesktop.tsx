@@ -43,6 +43,7 @@ const ConfiguracionPerfilDesktop: React.FC<Props> = ({ logic }) => {
           onUpdate={actualizarPerfil}
           setFormData={setFormData}
           formData={formData}
+          perfil={perfil}
         />
 
         <div className="lg:col-span-2 space-y-8">

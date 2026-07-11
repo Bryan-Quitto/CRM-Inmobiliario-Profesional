@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Inmobiliario.Api.Features.WhatsApp.Services;
 
@@ -67,12 +68,14 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
             await stream.CopyToAsync(memoryStream, cancellationToken);
             var audioBytes = memoryStream.ToArray();
 
+            var dbContext = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
+            var agent = await dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId, cancellationToken);
+            var agentId = agent?.Id;
+
             var r2Storage = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService>();
             var fileName = $"{Guid.NewGuid()}.ogg";
             var key = $"whatsapp_audio/{fileName}";
-            var mediaUrl = await r2Storage.UploadAsync(audioBytes, key, "audio/ogg");
-
-
+            var mediaUrl = await r2Storage.UploadAsync(audioBytes, key, "audio/ogg", agentId);
             await aiService.ProcessIncomingAudioAsync(phone, audioBytes, mediaUrl, phoneNumberId, cancellationToken);
         }
         catch (Polly.Timeout.TimeoutRejectedException)

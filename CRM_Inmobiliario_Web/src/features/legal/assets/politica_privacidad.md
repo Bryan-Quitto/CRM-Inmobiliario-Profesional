@@ -39,6 +39,7 @@ Utilizamos la información recopilada con las siguientes finalidades:
 *   Procesar consultas, mensajes e información comercial mediante servicios de Inteligencia Artificial para asistir a los agentes (clasificación, resúmenes, y respuestas automáticas).
 *   Enviar notificaciones push relacionadas con la operatividad del sistema.
 *   Cumplir con obligaciones legales y prevenir fraudes o usos indebidos de la plataforma.
+*   Procesar, comprimir y optimizar los archivos multimedia (ej. conversión a formato WebP) subidos por el Agente para maximizar la eficiencia del almacenamiento y mejorar el rendimiento de la plataforma.
 
 ## 4. Subencargados del Tratamiento (Terceros)
 
