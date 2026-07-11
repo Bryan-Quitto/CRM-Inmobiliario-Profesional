@@ -64,3 +64,10 @@ Si una propiedad permanece ininterrumpidamente en estado **"Vendida"** o **"Alqu
 - La Ficha Técnica (PDF).
 
 **Nota importante:** La **foto principal** se rescata y conserva siempre para que el historial siga viéndose bien.
+
+### B. Propiedades Inactivas (Limpieza Inmediata)
+Al momento en que una propiedad pasa al estado **"Inactiva"** (ya sea de forma directa, al cancelarse un trato, o porque su propietario fue desactivado), el sistema ejecuta una limpieza inmediata de recursos:
+- Se eliminan todas las fotografías secundarias de la galería y el PDF (Ficha Técnica).
+- Se eliminan las secciones de fotos creadas.
+
+**Nota importante:** La **foto principal** (portada) se rescata y se mueve a la galería general automáticamente, garantizando que el registro visual del inmueble permanezca intacto de forma permanente.

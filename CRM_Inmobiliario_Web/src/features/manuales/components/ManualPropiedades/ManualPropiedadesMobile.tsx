@@ -127,7 +127,8 @@ export const ManualPropiedadesMobile: React.FC = () => {
           </h3>
           <p className="text-xs text-slate-700">Reglas estrictas para optimizar almacenamiento (esté o no archivada):</p>
           <ul className="text-xs text-slate-700 list-disc pl-4 space-y-1">
-            <li><strong>Inactividad:</strong> Si pasa 1 año sin actividad (excepto cerradas), muestra alerta roja por 31 días. Se limpia si no hay actividad nueva.</li>
+            <li><strong>Estado Inactiva:</strong> Al pasar a "Inactiva", se ejecuta una limpieza inmediata de recursos y fotos secundarias.</li>
+            <li><strong>Inactividad (1 año):</strong> Si pasa 1 año sin actividad (excepto cerradas), muestra alerta roja por 31 días. Se limpia si no hay actividad nueva.</li>
             <li><strong>Por Cierre:</strong> Al pasar a "Vendida" o "Alquilada" muestra alerta roja inmediata. Se limpia al cumplir 1 año (Innegociable).</li>
           </ul>
           <p className="text-xs text-indigo-800 font-semibold">

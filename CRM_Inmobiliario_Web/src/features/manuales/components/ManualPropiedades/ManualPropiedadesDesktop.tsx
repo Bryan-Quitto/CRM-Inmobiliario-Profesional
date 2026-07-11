@@ -130,7 +130,8 @@ export const ManualPropiedadesDesktop: React.FC = () => {
             <h3 className="font-bold text-orange-900 flex items-center gap-2"><Trash2 className="w-5 h-5 text-orange-600" /> Limpieza de Almacenamiento (Reglas Globales)</h3>
             <p className="text-sm text-slate-700">Para optimizar almacenamiento, Lúmina aplica dos reglas globales estrictas (independientes del estado de archivado):</p>
             <ul className="text-sm text-slate-700 list-disc pl-5 space-y-2">
-              <li><strong>Limpieza por Inactividad:</strong> Toda propiedad (excepto "Vendida" o "Alquilada") que alcance 1 año (365 días) sin actividad mostrará una alerta roja por 31 días. Si no hay actividad en ese periodo, se limpiarán sus fotos secundarias y PDF (salvable).</li>
+              <li><strong>Limpieza por Estado Inactiva:</strong> Al momento en que una propiedad pasa al estado "Inactiva" (directamente o porque su dueño se desactivó), el sistema ejecuta una limpieza inmediata e innegociable de fotos secundarias, secciones y PDF.</li>
+              <li><strong>Limpieza por Inactividad (Tiempo):</strong> Toda propiedad (excepto "Vendida" o "Alquilada") que alcance 1 año (365 días) sin actividad mostrará una alerta roja por 31 días. Si no hay actividad en ese periodo, se limpiarán sus fotos secundarias y PDF (salvable).</li>
               <li><strong>Limpieza por Cierre:</strong> Toda propiedad "Vendida" o "Alquilada" mostrará de inmediato una alerta roja y se limpiará de forma innegociable al transcurrir exactamente 1 año desde su cierre.</li>
             </ul>
           </div>

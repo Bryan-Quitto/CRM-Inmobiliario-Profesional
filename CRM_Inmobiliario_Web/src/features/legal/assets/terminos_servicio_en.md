@@ -48,9 +48,10 @@ The User agrees to:
 Lúmina reserves the right to suspend or terminate accounts that violate the acceptable use rules, without the right to a refund.
 
 ### 4.1. Storage Optimization and Automatic Cleanup
-Lúmina will perform the permanent and automatic deletion of secondary multimedia resources and PDF files attached to properties, under the following two strict global cleanup rules (which apply regardless of the agent's auto-archive configuration):
-1. **Inactivity Cleanup:** Any property (except those in "Vendida" or "Alquilada" status) that reaches 1 year (365 days) without activity will enter a 31-day red alert grace period. If no activity is recorded, the resources will be deleted.
-2. **Closed Business Cleanup:** Any property that changes to "Vendida" or "Alquilada" status will immediately display a red alert, and its resources will be non-negotiably deleted exactly 1 year after its closing date (regardless of any subsequent activity).
+Lúmina will perform the permanent and automatic deletion of secondary multimedia resources and PDF files attached to properties, under the following three strict global cleanup rules (which apply regardless of the agent's auto-archive configuration):
+1. **Inactive Status Cleanup:** Any property that is changed to the "Inactiva" commercial status will undergo an immediate and non-negotiable cleanup of its secondary resources.
+2. **Inactivity Cleanup (Time-based):** Any property (except those in "Vendida" or "Alquilada" status) that reaches 1 year (365 days) without activity will enter a 31-day red alert grace period. If no activity is recorded, the resources will be deleted.
+3. **Closed Business Cleanup:** Any property that changes to "Vendida" or "Alquilada" status will immediately display a red alert, and its resources will be non-negotiably deleted exactly 1 year after its closing date (regardless of any subsequent activity).
 *Note: The primary photograph of the property will always be kept.*
 
 ## 5. Intellectual Property

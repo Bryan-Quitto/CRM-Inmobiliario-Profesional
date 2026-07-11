@@ -73,7 +73,7 @@ public static class CambiarEstadoPropiedadFeature
                 {
                     logger.LogInformation("🧹 [ESTADO] Propiedad {Id} marcada como Inactiva. Limpiando archivos físicos e imágenes...", id);
                     var storagePaths = await context.PropertyMedia
-                        .Where(m => m.PropiedadId == id && !string.IsNullOrEmpty(m.StoragePath))
+                        .Where(m => m.PropiedadId == id && !string.IsNullOrEmpty(m.StoragePath) && !m.EsPrincipal)
                         .Select(m => m.StoragePath!)
                         .ToListAsync(ct);
 
@@ -93,8 +93,13 @@ public static class CambiarEstadoPropiedadFeature
                         logger.LogWarning(storageEx, "⚠️ [ESTADO] Error al eliminar archivos de Storage (huérfanos potenciales) para {Id}.", id);
                     }
 
-                    // Eliminar las imágenes de Supabase DB y Secciones
-                    await context.PropertyMedia.Where(m => m.PropiedadId == id).ExecuteDeleteAsync(ct);
+                    // Rescatar la foto de portada si estaba dentro de una sección antes de borrarla
+                    await context.PropertyMedia
+                        .Where(m => m.PropiedadId == id && m.EsPrincipal && m.SectionId != null)
+                        .ExecuteUpdateAsync(s => s.SetProperty(m => m.SectionId, (Guid?)null), ct);
+
+                    // Eliminar las imágenes de Supabase DB y Secciones EXCEPTO la portada
+                    await context.PropertyMedia.Where(m => m.PropiedadId == id && !m.EsPrincipal).ExecuteDeleteAsync(ct);
                     await context.PropertyGallerySections.Where(s => s.PropiedadId == id).ExecuteDeleteAsync(ct);
                 }
 

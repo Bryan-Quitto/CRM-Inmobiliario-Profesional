@@ -108,9 +108,10 @@ Conservamos los datos personales únicamente durante el tiempo estrictamente nec
 
 Una vez vencido el plazo, los datos son eliminados o anonimizados de forma segura. En el caso específico de las cuentas de Usuario (Agente), pasados los 30 días de su solicitud de eliminación, se aplica un borrado lógico y anonimización. Esto implica la eliminación definitiva de datos identificativos (nombre, teléfono, email, foto de perfil, etc.), quedando la cuenta como un "Agente Anónimo". Este proceso se realiza para preservar la integridad de las métricas históricas de la plataforma sin mantener información personal identificable.
 
-Adicionalmente, como parte de nuestras políticas de retención y optimización de almacenamiento, Lúmina realizará la eliminación permanente y automática de recursos multimedia secundarios y archivos PDF adjuntos a las propiedades, bajo las siguientes dos reglas estrictas de limpieza global (independientes de la configuración de archivado del agente):
-1. **Limpieza por Inactividad:** Toda propiedad (exceptuando "Vendida" o "Alquilada") que alcance 1 año (365 días) sin actividad, entrará en alerta roja por 31 días. Si no hay actividad, se eliminarán sus recursos.
-2. **Limpieza por Cierre de Negocio:** Toda propiedad en estado "Vendida" o "Alquilada" mostrará una alerta roja y sus recursos serán eliminados innegociablemente al cumplirse 1 año desde su cierre.
+Adicionalmente, como parte de nuestras políticas de retención y optimización de almacenamiento, Lúmina realizará la eliminación permanente y automática de recursos multimedia secundarios y archivos PDF adjuntos a las propiedades, bajo las siguientes tres reglas estrictas de limpieza global (independientes de la configuración de archivado del agente):
+1. **Limpieza por Estado Inactiva:** Toda propiedad que sea pasada al estado comercial "Inactiva", sufrirá una limpieza inmediata e innegociable de sus recursos secundarios.
+2. **Limpieza por Inactividad (Tiempo):** Toda propiedad (exceptuando "Vendida" o "Alquilada") que alcance 1 año (365 días) sin actividad, entrará en alerta roja por 31 días. Si no hay actividad, se eliminarán sus recursos.
+3. **Limpieza por Cierre de Negocio:** Toda propiedad en estado "Vendida" o "Alquilada" mostrará una alerta roja y sus recursos serán eliminados innegociablemente al cumplirse 1 año desde su cierre.
 *Nota: La fotografía principal de la propiedad siempre se conservará.*
 
 ## 12. Transferencias Internacionales

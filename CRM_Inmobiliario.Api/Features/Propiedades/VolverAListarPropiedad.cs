@@ -229,7 +229,7 @@ public static class VolverAListarPropiedadFeature
             {
                 logger.LogInformation("🧹 [RELIST] Propiedad {Id} marcada como Inactiva. Limpiando archivos...", id);
                 var storagePaths = await context.PropertyMedia
-                    .Where(m => m.PropiedadId == id && !string.IsNullOrEmpty(m.StoragePath))
+                    .Where(m => m.PropiedadId == id && !string.IsNullOrEmpty(m.StoragePath) && !m.EsPrincipal)
                     .Select(m => m.StoragePath!)
                     .ToListAsync(ct);
 
@@ -249,7 +249,12 @@ public static class VolverAListarPropiedadFeature
                     logger.LogWarning(ex, "⚠️ [RELIST] Error al borrar archivos físicos.");
                 }
 
-                await context.PropertyMedia.Where(m => m.PropiedadId == id).ExecuteDeleteAsync(ct);
+                // Rescatar la foto de portada si estaba dentro de una sección antes de borrarla
+                await context.PropertyMedia
+                    .Where(m => m.PropiedadId == id && m.EsPrincipal && m.SectionId != null)
+                    .ExecuteUpdateAsync(s => s.SetProperty(m => m.SectionId, (Guid?)null), ct);
+
+                await context.PropertyMedia.Where(m => m.PropiedadId == id && !m.EsPrincipal).ExecuteDeleteAsync(ct);
                 await context.PropertyGallerySections.Where(s => s.PropiedadId == id).ExecuteDeleteAsync(ct);
             }
 

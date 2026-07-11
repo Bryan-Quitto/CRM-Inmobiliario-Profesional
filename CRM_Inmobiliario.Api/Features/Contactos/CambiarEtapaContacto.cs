@@ -109,7 +109,7 @@ public static class CambiarEstadoContactoFeature
                     // 0. Borrar recursos físicos (Imágenes y PDFs) de R2
                     var propertiesToInactivate = await propiedadesAfectadas.Select(p => p.Id).ToListAsync(ct);
                     var allMediaPaths = await context.PropertyMedia
-                        .Where(m => propertiesToInactivate.Contains(m.PropiedadId) && !string.IsNullOrEmpty(m.StoragePath))
+                        .Where(m => propertiesToInactivate.Contains(m.PropiedadId) && !string.IsNullOrEmpty(m.StoragePath) && !m.EsPrincipal)
                         .Select(m => new { m.PropiedadId, m.StoragePath })
                         .ToListAsync(ct);
                         
@@ -129,10 +129,17 @@ public static class CambiarEstadoContactoFeature
                         }
                     }
 
-                    // 1. Borrar masivamente toda la Media (Fotos, PDFs generados, documentos) asociados
-                    await propiedadesAfectadas.SelectMany(p => p.Media).ExecuteDeleteAsync(ct);
+                    // 1. Mover la portada a la galería general (SectionId = null) para no romper constraints
+                    await context.PropertyMedia
+                        .Where(m => propertiesToInactivate.Contains(m.PropiedadId) && m.EsPrincipal && m.SectionId != null)
+                        .ExecuteUpdateAsync(s => s.SetProperty(m => m.SectionId, (Guid?)null), ct);
+
+                    // 2. Borrar masivamente toda la Media (Fotos, documentos) EXCEPTO la portada
+                    await context.PropertyMedia
+                        .Where(m => propertiesToInactivate.Contains(m.PropiedadId) && !m.EsPrincipal)
+                        .ExecuteDeleteAsync(ct);
                     
-                    // 2. Borrar masivamente las carpetas lógicas de las galerías (si aplica)
+                    // 3. Borrar masivamente las carpetas lógicas de las galerías (si aplica)
                     await propiedadesAfectadas.SelectMany(p => p.GallerySections).ExecuteDeleteAsync(ct);
 
                     // 3. Cambiar masivamente el estado de la propiedad a Inactiva
