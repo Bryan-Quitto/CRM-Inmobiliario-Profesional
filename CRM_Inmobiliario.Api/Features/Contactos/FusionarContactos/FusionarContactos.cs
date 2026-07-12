@@ -140,12 +140,6 @@ public static class FusionarContactosFeature
                 if (string.IsNullOrWhiteSpace(primary.Origen)) { primary.Origen = secondary.Origen; }
                 else if (!string.IsNullOrWhiteSpace(secondary.Origen) && secondary.Origen != primary.Origen) { reporteFusion.AppendLine($"[Fusión - Origen]: {secondary.Origen}"); }
 
-                if (!string.IsNullOrWhiteSpace(secondary.Notas))
-                {
-                    reporteFusion.AppendLine("--- Notas Secundarias ---");
-                    reporteFusion.AppendLine(secondary.Notas);
-                }
-
                 if (reporteFusion.Length > 0)
                 {
                     var interaction = new Interaction

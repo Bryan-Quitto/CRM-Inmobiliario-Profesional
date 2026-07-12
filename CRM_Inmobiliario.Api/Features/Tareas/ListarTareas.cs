@@ -20,6 +20,7 @@ public static class ListarTareasFeature
         int DuracionMinutos,
         string? ColorHex,
         string Estado,
+        bool EsVencida,
         string? ContactoNombre,
         string? PropiedadTitulo,
         string? Lugar,
@@ -33,6 +34,8 @@ public static class ListarTareasFeature
         return app.MapGet("/tareas", async (ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
+            var ecOffset = TimeSpan.FromHours(-5);
+            var nowEc = DateTimeOffset.UtcNow.ToOffset(ecOffset);
 
             var tareas = await context.Tasks
                 .AsNoTracking()
@@ -48,6 +51,7 @@ public static class ListarTareasFeature
                     t.DuracionMinutos,
                     t.ColorHex,
                     t.Estado,
+                    t.Estado == "Pendiente" && t.FechaInicio.AddMinutes(t.DuracionMinutos) < nowEc,
                     t.Contacto != null ? $"{t.Contacto.Nombre} {t.Contacto.Apellido}".Trim() : null,
                     t.Propiedad != null ? t.Propiedad.Titulo : null,
                     t.Lugar,

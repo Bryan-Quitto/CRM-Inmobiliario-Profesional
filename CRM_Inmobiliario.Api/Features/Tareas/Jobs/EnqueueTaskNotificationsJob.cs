@@ -76,8 +76,8 @@ public class EnqueueTaskNotificationsJob
             ||
             // 2. Tareas Vencidas (Overdue)
             (t.TipoTarea != "AiHelp" 
-             && t.FechaInicio < nowEc 
-             && (nowEc - t.FechaInicio).TotalHours <= t.Agente!.NotifyOverdueTasksMaxHours
+             && t.FechaInicio.AddMinutes(t.DuracionMinutos) < nowEc 
+             && (nowEc - t.FechaInicio.AddMinutes(t.DuracionMinutos)).TotalHours <= t.Agente!.NotifyOverdueTasksMaxHours
              && (t.UltimaNotificacionEnviada == null || (nowEc - t.UltimaNotificacionEnviada.Value).TotalMinutes >= t.Agente.NotifyOverdueTasksIntervalMinutes))
             ||
             // 3. Tareas de Hoy / Próximas
@@ -103,9 +103,10 @@ public class EnqueueTaskNotificationsJob
             {
                 message = $"Asistencia IA Requerida: {task.Titulo}";
             }
-            else if (task.FechaInicio < nowEc)
+            else if (task.FechaInicio.AddMinutes(task.DuracionMinutos) < nowEc)
             {
-                message = $"Tarea Vencida: {task.Titulo} (Debió iniciar a las {fechaInicioEc:HH:mm})";
+                var fechaFin = fechaInicioEc.AddMinutes(task.DuracionMinutos);
+                message = $"Tarea Vencida: {task.Titulo} (Debió finalizar a las {fechaFin:HH:mm})";
             }
             else
             {

@@ -19,6 +19,7 @@ public static class ObtenerTareaPorIdFeature
         int DuracionMinutos,
         string? ColorHex,
         string Estado,
+        bool EsVencida,
         string? ContactoNombre,
         string? PropiedadTitulo,
         Guid? ContactoId,
@@ -32,6 +33,8 @@ public static class ObtenerTareaPorIdFeature
         return app.MapGet("/tareas/{id:guid}", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var agenteId = user.GetRequiredUserId();
+            var ecOffset = TimeSpan.FromHours(-5);
+            var nowEc = DateTimeOffset.UtcNow.ToOffset(ecOffset);
 
             var tarea = await context.Tasks
                 .AsNoTracking()
@@ -51,6 +54,7 @@ public static class ObtenerTareaPorIdFeature
                 tarea.DuracionMinutos,
                 tarea.ColorHex,
                 tarea.Estado,
+                tarea.Estado == "Pendiente" && tarea.FechaInicio.AddMinutes(tarea.DuracionMinutos) < nowEc,
                 tarea.Contacto != null ? $"{tarea.Contacto.Nombre} {tarea.Contacto.Apellido}" : null,
                 tarea.Propiedad?.Titulo,
                 tarea.ContactoId,

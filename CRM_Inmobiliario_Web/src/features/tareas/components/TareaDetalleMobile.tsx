@@ -80,7 +80,10 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
       <div className="flex-1 w-full overflow-y-auto p-2 space-y-3 scrollbar-hide relative z-10 pb-12">
         {/* Estado y Tipo Mobile */}
         <div className="flex flex-col gap-3 w-full">
-          <span className={`px-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest self-start text-center break-words max-w-full ${colorClass}`}>
+          <span 
+            className={`px-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest self-start text-center break-words max-w-full ${!tarea.colorHex ? colorClass : ''}`}
+            style={tarea.colorHex ? { backgroundColor: `${tarea.colorHex}15`, color: tarea.colorHex } : undefined}
+          >
             {tarea.tipoTarea}
           </span>
           <div className="flex flex-col gap-2 w-full">
@@ -120,9 +123,17 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
             <Calendar className="h-4 w-4 shrink-0" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] break-words">Programación</span>
           </div>
-          <p className="text-sm font-bold text-slate-700 capitalize break-words">
-            {formatFecha(tarea.fechaInicio)}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm font-bold text-slate-700 capitalize break-words">
+              {formatFecha(tarea.fechaInicio)}
+            </p>
+            {tarea.duracionMinutos > 0 && (
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-100 px-2 py-1 rounded-md flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {tarea.duracionMinutos >= 60 ? (tarea.duracionMinutos % 60 === 0 ? `${tarea.duracionMinutos / 60}h` : `${Math.floor(tarea.duracionMinutos / 60)}h ${tarea.duracionMinutos % 60}m`) : `${tarea.duracionMinutos} min`}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Descripción Mobile */}
@@ -197,7 +208,10 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
       </div>
 
       {/* Decorative Icon */}
-      <div className="absolute -right-8 -bottom-8 opacity-[0.03] pointer-events-none z-0">
+      <div 
+        className="absolute -right-8 -bottom-8 opacity-[0.03] pointer-events-none z-0"
+        style={tarea.colorHex ? { color: tarea.colorHex } : undefined}
+      >
         <Icon size={160} />
       </div>
     </div>

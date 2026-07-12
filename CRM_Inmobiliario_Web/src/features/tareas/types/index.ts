@@ -6,10 +6,13 @@ export interface Tarea {
   fechaInicio: string;
   fechaCreacion: string;
   estado: 'Pendiente' | 'Completada' | 'Cancelada';
+  esVencida: boolean;
   contactoNombre?: string;
   propiedadTitulo?: string;
   propiedadDireccion?: string;
   propiedadImagenPortadaUrl?: string;
+  duracionMinutos: number;
+  colorHex?: string;
   contactoId?: string;
   propiedadId?: string;
   lugar?: string;
@@ -23,6 +26,8 @@ export interface CrearTareaDTO {
   contactoId?: string;
   propiedadId?: string;
   lugar?: string;
+  duracionMinutos?: number | null;
+  colorHex?: string | null;
 }
 
 export interface ActualizarTareaDTO {

@@ -14,6 +14,8 @@ import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import type { EditarTareaFormValues } from '../hooks/useEditarTarea';
 import { InputWithCounter } from '@/components/ui/InputWithCounter';
 import { TextAreaWithCounter } from '@/components/ui/TextAreaWithCounter';
+import { TimeDurationInput } from '../../configuracion/components/TimeDurationInput';
+import { TaskColorPicker } from './TaskColorPicker';
 
 interface EditarTareaFormContentProps {
   register: UseFormRegister<EditarTareaFormValues>;
@@ -153,6 +155,39 @@ export const EditarTareaFormContent = ({
           />
         </div>
         {errors.fechaInicio && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.fechaInicio.message}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Duración (Opcional)</label>
+        <Controller
+          name="duracionMinutos"
+          control={control}
+          render={({ field }) => (
+            <TimeDurationInput
+              value={field.value ?? 0}
+              onChange={(val) => field.onChange(val)}
+              baseUnit="minutes"
+              allowedUnits={['minutes', 'hours']}
+              min={0}
+              error={errors.duracionMinutos?.message}
+            />
+          )}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Color (Opcional)</label>
+        <Controller
+          name="colorHex"
+          control={control}
+          render={({ field }) => (
+            <TaskColorPicker
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.colorHex?.message}
+            />
+          )}
+        />
       </div>
 
       {!isReadOnly && (

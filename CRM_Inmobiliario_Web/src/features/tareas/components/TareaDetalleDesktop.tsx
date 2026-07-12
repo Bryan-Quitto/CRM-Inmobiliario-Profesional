@@ -82,7 +82,10 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
       <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide relative z-10">
         {/* Estado y Tipo */}
         <div className="flex items-center justify-between">
-          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${colorClass}`}>
+          <span 
+            className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${!tarea.colorHex ? colorClass : ''}`}
+            style={tarea.colorHex ? { backgroundColor: `${tarea.colorHex}15`, color: tarea.colorHex } : undefined}
+          >
             {tarea.tipoTarea}
           </span>
           <div className="flex items-center gap-2">
@@ -122,9 +125,17 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
             <Calendar className="h-4 w-4" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Programación</span>
           </div>
-          <p className="text-sm font-bold text-slate-700 capitalize">
-            {formatFecha(tarea.fechaInicio)}
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-bold text-slate-700 capitalize">
+              {formatFecha(tarea.fechaInicio)}
+            </p>
+            {tarea.duracionMinutos > 0 && (
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {tarea.duracionMinutos >= 60 ? (tarea.duracionMinutos % 60 === 0 ? `${tarea.duracionMinutos / 60}h` : `${Math.floor(tarea.duracionMinutos / 60)}h ${tarea.duracionMinutos % 60}m`) : `${tarea.duracionMinutos} min`}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Descripción */}
@@ -199,7 +210,10 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
       </div>
 
       {/* Decorative Icon */}
-      <div className="absolute -right-12 -bottom-12 opacity-[0.03] pointer-events-none z-0">
+      <div 
+        className="absolute -right-12 -bottom-12 opacity-[0.03] pointer-events-none z-0"
+        style={tarea.colorHex ? { color: tarea.colorHex } : undefined}
+      >
         <Icon size={240} />
       </div>
     </div>

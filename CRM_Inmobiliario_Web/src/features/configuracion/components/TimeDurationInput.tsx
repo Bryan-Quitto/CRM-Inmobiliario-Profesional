@@ -75,6 +75,7 @@ export interface TimeDurationInputProps {
   prefix?: string;
   unitLabels?: Record<TimeUnit, string>;
   error?: string;
+  min?: number;
 }
 
 const calculateBaseValue = (num: number, unit: TimeUnit, baseUnit: 'minutes' | 'hours') => {
@@ -106,7 +107,8 @@ export const TimeDurationInput: React.FC<TimeDurationInputProps> = ({
   allowedUnits,
   prefix,
   unitLabels = { minutes: 'Minutos', hours: 'Horas', days: 'Días' },
-  error
+  error,
+  min = 1
 }) => {
   const [displayNum, setDisplayNum] = useState<string>(getInitialState(value, baseUnit, allowedUnits).num.toString());
   const [displayUnit, setDisplayUnit] = useState<TimeUnit>(getInitialState(value, baseUnit, allowedUnits).unit);
@@ -150,7 +152,7 @@ export const TimeDurationInput: React.FC<TimeDurationInputProps> = ({
         )}
         <input
           type="number"
-          min="1"
+          min={min}
           step="1"
           value={displayNum}
           onChange={handleNumChange}

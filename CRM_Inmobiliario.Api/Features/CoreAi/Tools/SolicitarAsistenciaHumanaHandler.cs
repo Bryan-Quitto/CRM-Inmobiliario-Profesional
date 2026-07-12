@@ -58,12 +58,21 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                 EstadoIA_WA = isFacebook ? null : "Escalado",
                 EstadoIA_FB = isFacebook ? "Escalado" : null,
                 EsCliente = true,
-                Notas = $"Escalamiento: {motivo}",
                 BotActivoWA = !isFacebook ? false : true,
                 BotActivoFB = isFacebook ? false : true,
                 TransferenciaNotificada = true
             };
             _context.Contactos.Add(contacto);
+
+            _context.Interactions.Add(new Interaction
+            {
+                Id = Guid.NewGuid(),
+                AgenteId = agentIdToUse ?? Guid.Empty,
+                ContactoId = contacto.Id,
+                TipoInteraccion = "Nota",
+                Notas = $"Escalamiento: {motivo}",
+                FechaInteraccion = DateTimeOffset.UtcNow
+            });
         }
         else
         {
@@ -79,10 +88,15 @@ public sealed class SolicitarAsistenciaHumanaHandler : BaseCoreAiToolHandler
                 contacto.BotActivoWA = false;
             }
             
-            contacto.Notas = string.IsNullOrWhiteSpace(contacto.Notas) 
-                ? $"Escalamiento: {motivo}" 
-                : $"{contacto.Notas}\nEscalamiento: {motivo}";
-            
+            _context.Interactions.Add(new Interaction
+            {
+                Id = Guid.NewGuid(),
+                AgenteId = contacto.AgenteId,
+                ContactoId = contacto.Id,
+                TipoInteraccion = "Nota",
+                Notas = $"Escalamiento: {motivo}",
+                FechaInteraccion = DateTimeOffset.UtcNow
+            });
             contacto.TransferenciaNotificada = true;
             
             _context.Contactos.Update(contacto);

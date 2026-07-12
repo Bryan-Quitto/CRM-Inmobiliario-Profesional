@@ -74,6 +74,8 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
         contactoId: prefill.contactoId,
         propiedadId: prefill.propiedadId,
         lugar: prefill.lugar,
+        duracionMinutos: 0,
+        colorHex: null
       };
     }
 
@@ -82,14 +84,16 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
       try {
         const draft = JSON.parse(saved);
         delete draft.fechaInicio;
-        return { ...draft, fechaInicio: defaultFecha };
+        return { ...draft, fechaInicio: defaultFecha, duracionMinutos: draft.duracionMinutos ?? 0, colorHex: draft.colorHex ?? null };
       } catch { /* ignore */ }
     }
     return {
       titulo: '',
       descripcion: '',
       tipoTarea: 'Llamada',
-      fechaInicio: defaultFecha
+      fechaInicio: defaultFecha,
+      duracionMinutos: 0,
+      colorHex: null
     };
   };
 
@@ -111,12 +115,15 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
     const nuevaTareaOptimista: Tarea = {
       id: tempId,
       ...data,
+      duracionMinutos: data.duracionMinutos ?? 0,
+      colorHex: data.colorHex ?? undefined,
       tipoTarea: data.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
       estado: 'Pendiente' as const,
       fechaInicio: new Date(data.fechaInicio).toISOString(),
       fechaCreacion: new Date().toISOString(),
       contactoNombre: contacto ? [contacto.nombre, contacto.apellido].filter(Boolean).join(' ') : undefined,
-      propiedadTitulo: propiedad ? propiedad.titulo : undefined
+      propiedadTitulo: propiedad ? propiedad.titulo : undefined,
+      esVencida: false
     };
 
     const payload = {

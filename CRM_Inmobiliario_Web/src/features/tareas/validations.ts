@@ -5,7 +5,7 @@ export const taskSchema = z.object({
   descripcion: z.string().max(500, 'Máximo 500 caracteres').optional().nullable().or(z.literal('')),
   tipoTarea: z.string().min(1, 'Seleccione el tipo de tarea'),
   fechaInicio: z.string().min(1, 'La fecha es requerida'),
-  duracionMinutos: z.coerce.number().int().min(5, 'La duración mínima es 5 minutos').max(1440, 'La duración máxima es 24 horas').optional().nullable(),
+  duracionMinutos: z.coerce.number().int().min(0, 'La duración mínima es 0 minutos').max(600, 'La duración máxima es 10 horas').optional().nullable(),
   contactoId: z.string().uuid('ID inválido').optional().nullable(),
   propiedadId: z.string().uuid('ID inválido').optional().nullable(),
   lugar: z.string().max(255, 'Máximo 255 caracteres').optional().nullable().or(z.literal('')),

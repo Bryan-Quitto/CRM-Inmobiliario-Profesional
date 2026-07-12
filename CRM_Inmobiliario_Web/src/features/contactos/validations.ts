@@ -9,8 +9,7 @@ export const contactSchema = z.object({
   estadoEmbudo: z.string().max(50).optional().nullable().or(z.literal('')),
   esCliente: z.boolean().optional().nullable(),
   estadoPropietario: z.string().max(50).optional().nullable().or(z.literal('')),
-  esPropietario: z.boolean().optional().nullable(),
-  notas: z.string().max(2000).optional().nullable().or(z.literal(''))
+  esPropietario: z.boolean().optional().nullable()
 });
 
 export type ContactFormValues = z.infer<typeof contactSchema>;

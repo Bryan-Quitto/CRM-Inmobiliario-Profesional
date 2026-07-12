@@ -7,8 +7,9 @@ export const formatDateTime = (dateString: string) => {
   }).format(new Date(dateString)).replace('.', '');
 };
 
-export const isExpired = (dateString: string) => {
-  const hoy = new Date();
-  hoy.setHours(23, 59, 59, 999);
-  return new Date(dateString) <= hoy;
+export const isExpired = (dateString: string, duracionMinutos: number = 0) => {
+  const ahora = new Date();
+  const finTarea = new Date(dateString);
+  finTarea.setMinutes(finTarea.getMinutes() + duracionMinutos);
+  return finTarea < ahora;
 };

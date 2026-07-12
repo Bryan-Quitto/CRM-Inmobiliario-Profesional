@@ -19,6 +19,8 @@ public static class RegistrarTareaFeature
         string? Descripcion,
         string TipoTarea,
         DateTimeOffset FechaInicio,
+        int? DuracionMinutos,
+        string? ColorHex,
         Guid? ContactoId,
         Guid? PropiedadId,
         string? Lugar);
@@ -55,7 +57,8 @@ public static class RegistrarTareaFeature
                 Descripcion = command.Descripcion,
                 TipoTarea = command.TipoTarea,
                 FechaInicio = command.FechaInicio,
-                DuracionMinutos = 30, // Default para registros rápidos de tareas
+                DuracionMinutos = command.DuracionMinutos ?? 0,
+                ColorHex = command.ColorHex,
                 ContactoId = command.ContactoId,
                 PropiedadId = command.PropiedadId,
                 Lugar = command.Lugar,

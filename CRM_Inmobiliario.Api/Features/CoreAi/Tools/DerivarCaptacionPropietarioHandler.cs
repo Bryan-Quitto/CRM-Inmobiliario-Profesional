@@ -71,11 +71,21 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
                     BotActivoFB = isFacebook ? false : true,
                     TransferenciaNotificada = true,
                     EstadoIA_WA = isFacebook ? null : "Derivado a Captacion",
-                    EstadoIA_FB = isFacebook ? "Derivado a Captacion" : null,
-                    Notas = "Derivado automáticamente para captación de propiedad."
+                    EstadoIA_FB = isFacebook ? "Derivado a Captacion" : null
                 };
                 _context.Contactos.Add(newPropietario);
                 await LogAiActionAsync("Registro Propietario Captacion", args.RootElement.GetRawText(), context);
+
+                _context.Interactions.Add(new Interaction
+                {
+                    Id = Guid.NewGuid(),
+                    AgenteId = agentIdToUse ?? Guid.Empty,
+                    ContactoId = newPropietario.Id,
+                    TipoInteraccion = "Nota",
+                    Notas = "Derivado automáticamente para captación de propiedad.",
+                    FechaInteraccion = DateTimeOffset.UtcNow
+                });
+
                 existing = newPropietario;
             }
         }
@@ -97,9 +107,16 @@ public sealed class DerivarCaptacionPropietarioHandler : BaseCoreAiToolHandler
             }
             
             existing.TransferenciaNotificada = true;
-            existing.Notas = string.IsNullOrWhiteSpace(existing.Notas) 
-                ? "Derivado automáticamente para captación de propiedad." 
-                : $"{existing.Notas}\nDerivado automáticamente para captación de propiedad.";
+            
+            _context.Interactions.Add(new Interaction
+            {
+                Id = Guid.NewGuid(),
+                AgenteId = existing.AgenteId,
+                ContactoId = existing.Id,
+                TipoInteraccion = "Nota",
+                Notas = "Derivado automáticamente para captación de propiedad.",
+                FechaInteraccion = DateTimeOffset.UtcNow
+            });
             await LogAiActionAsync("Actualizacion a Propietario", args.RootElement.GetRawText(), context);
         }
         if (existing != null && existing.AgenteId != Guid.Empty)

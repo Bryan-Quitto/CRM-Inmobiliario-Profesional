@@ -64,7 +64,8 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
       lugar: initialData.lugar,
       contactoNombre: initialData.contactoNombre,
       propiedadTitulo: initialData.propiedadTitulo,
-      duracionMinutos: 30
+      duracionMinutos: initialData.duracionMinutos ?? 0,
+      colorHex: initialData.colorHex ?? undefined
     } : undefined
   });
 
@@ -172,6 +173,7 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
       tipoTarea: data.tipoTarea,
       fechaInicio: new Date(values.fechaInicio).toISOString(),
       duracionMinutos: data.duracionMinutos,
+      colorHex: data.colorHex,
       contactoId: data.contactoId,
       propiedadId: data.propiedadId,
       lugar: data.lugar

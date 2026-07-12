@@ -44,7 +44,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 }) => {
   const Icon = TIPO_ICONOS[tarea.tipoTarea] || Clock;
   const colorClass = TIPO_COLORES[tarea.tipoTarea] || 'text-slate-600 bg-slate-50';
-  const expired = isExpired(tarea.fechaInicio) && tarea.estado === 'Pendiente';
+  const expired = isExpired(tarea.fechaInicio, tarea.duracionMinutos) && tarea.estado === 'Pendiente';
 
   return (
     <div 
@@ -68,7 +68,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           className="absolute bottom-2 left-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 cursor-pointer"
         >
           <Pencil className="h-3 w-3" />
-        </button>      )}
+        </button>
+      )}
 
       <div className="flex items-start gap-3">
         {/* Custom Checkbox */}
@@ -92,7 +93,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${colorClass}`}>
+            <span 
+              className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${!tarea.colorHex ? colorClass : ''}`}
+              style={tarea.colorHex ? { backgroundColor: `${tarea.colorHex}15`, color: tarea.colorHex } : undefined}
+            >
               {tarea.tipoTarea}
             </span>
             <span className={`text-[10px] font-bold ${expired ? 'text-rose-500 animate-pulse' : 'text-slate-400 italic'}`}>
@@ -139,7 +143,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       </div>
       
       {/* Background decoration */}
-      <div className={`absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity`}>
+      <div 
+        className={`absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity`}
+        style={tarea.colorHex ? { color: tarea.colorHex } : undefined}
+      >
         <Icon className="h-12 w-12" />
       </div>
     </div>

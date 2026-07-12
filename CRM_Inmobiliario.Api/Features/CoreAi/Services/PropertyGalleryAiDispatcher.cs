@@ -34,7 +34,7 @@ public sealed class PropertyGalleryAiDispatcher : IPropertyGalleryAiDispatcher
             .Where(m => m.PropiedadId == propiedadId && 
                         m.SectionId != null && 
                         m.Section!.Nombre.ToLower() == nombreSeccion.ToLower() &&
-                        m.TipoMultimedia.StartsWith("image/"));
+                        m.TipoMultimedia == "Image");
 
         int totalCount = await mediaQuery.CountAsync(cancellationToken);
 

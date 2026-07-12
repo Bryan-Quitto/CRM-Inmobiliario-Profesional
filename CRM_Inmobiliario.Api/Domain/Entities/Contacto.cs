@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CRM_Inmobiliario.Api.Domain.Entities;
 
@@ -38,9 +38,6 @@ public sealed class Contacto
 
     [Required]
     public bool EsPropietario { get; set; } = false;
-
-    public string? Notas { get; set; }
-
 
     public bool BotActivoWA { get; set; } = true;
     public bool BotActivoFB { get; set; } = true;

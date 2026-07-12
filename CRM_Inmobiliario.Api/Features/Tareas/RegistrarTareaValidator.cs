@@ -25,6 +25,15 @@ public class RegistrarTareaCommandValidator : AbstractValidator<RegistrarTareaFe
             .InclusiveBetween(new DateTime(2000, 1, 1), new DateTime(2100, 1, 1))
             .WithMessage("La fecha ingresada está fuera de los límites permitidos (2000 a 2100).");
 
+        RuleFor(x => x.DuracionMinutos)
+            .InclusiveBetween(0, 600).WithMessage("La duración debe estar entre 0 y 600 minutos.")
+            .When(x => x.DuracionMinutos.HasValue);
+
+        RuleFor(x => x.ColorHex)
+            .MaximumLength(7).WithMessage("Color inválido.")
+            .Matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$").WithMessage("Color inválido.")
+            .When(x => !string.IsNullOrEmpty(x.ColorHex));
+
         RuleFor(x => x.ContactoId)
             .NotEmpty().WithMessage("El ID del contacto es inválido.")
             .When(x => x.ContactoId.HasValue);

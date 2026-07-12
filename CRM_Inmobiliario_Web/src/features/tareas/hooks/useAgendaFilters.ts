@@ -54,25 +54,34 @@ export const useAgendaFilters = (
 
   const tareasAtrasadas = useMemo(() => {
     const ahora = new Date();
-    ahora.setHours(0, 0, 0, 0);
-    return tareasPendientes.filter(t => new Date(t.fechaInicio) < ahora);
+    return tareasPendientes.filter(t => {
+      const finTarea = new Date(t.fechaInicio);
+      finTarea.setMinutes(finTarea.getMinutes() + (t.duracionMinutos || 0));
+      return finTarea < ahora;
+    });
   }, [tareasPendientes]);
 
   const tareasHoy = useMemo(() => {
+    const ahora = new Date();
     const hoy = new Date();
-    const inicioHoy = new Date(hoy.setHours(0, 0, 0, 0));
     const finHoy = new Date(hoy.setHours(23, 59, 59, 999));
     
     return tareasPendientes.filter(t => {
       const fecha = new Date(t.fechaInicio);
-      return fecha >= inicioHoy && fecha <= finHoy;
+      const finTarea = new Date(fecha.getTime());
+      finTarea.setMinutes(finTarea.getMinutes() + (t.duracionMinutos || 0));
+      
+      const isOverdue = finTarea < ahora;
+      const isFuture = fecha > finHoy;
+      
+      return !isOverdue && !isFuture;
     });
   }, [tareasPendientes]);
 
   const tareasFuturas = useMemo(() => {
     const hoy = new Date();
-    hoy.setHours(23, 59, 59, 999);
-    return tareasPendientes.filter(t => new Date(t.fechaInicio) > hoy);
+    const finHoy = new Date(hoy.setHours(23, 59, 59, 999));
+    return tareasPendientes.filter(t => new Date(t.fechaInicio) > finHoy);
   }, [tareasPendientes]);
 
   return {

@@ -97,7 +97,7 @@ public static class SubirImagenPropiedadFeature
                     PropiedadId = id,
                     SectionId = sectionId,
                     Descripcion = descripcion,
-                    TipoMultimedia = "Imagen",
+                    TipoMultimedia = "Image",
                     UrlPublica = urlPublica,
                     StoragePath = nombreArchivo,
                     EsPrincipal = !propiedad.Media.Any(m => m.EsPrincipal),
