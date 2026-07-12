@@ -2,8 +2,9 @@ import { type UseFormRegister, type FieldErrors, type Control, useWatch, Control
 import { User, Mail, UserCheck, Search, ShieldAlert } from 'lucide-react';
 import { type CrearContactoDTO } from '../../api/crearContacto';
 import { PhoneInputWorldClass } from '../PhoneInputWorldClass';
-import { TruncatedText } from '@/components/ui/TruncatedText';
 import type { Contacto } from '../../types';
+import { InputWithCounter } from '@/components/ui/InputWithCounter';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface CrearContactoFieldsProps {
   register: UseFormRegister<CrearContactoDTO>;
@@ -117,45 +118,43 @@ export const CrearContactoFields = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         <div className="space-y-2 w-full">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 block break-words">Nombre</label>
-          <div className="relative w-full">
-            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />
-            <input 
-              {...register('nombre', { required: 'El nombre es obligatorio' })}
-              type="text" 
-              disabled={isSuccess}
-              placeholder="Ej. Juan"
-              className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
-            />
-          </div>
+          <InputWithCounter 
+            {...register('nombre')}
+            icon={<User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />}
+            maxLength={100}
+            type="text" 
+            disabled={isSuccess}
+            placeholder="Ej. Juan"
+            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
+          />
           {errors.nombre && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase break-words">{errors.nombre.message}</p>}
         </div>
 
         <div className="space-y-2 w-full">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 block break-words">Apellido</label>
-          <input 
+          <InputWithCounter 
             {...register('apellido')}
+            maxLength={100}
             type="text" 
             disabled={isSuccess}
             placeholder="Ej. Pérez"
             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
           />
+          {errors.apellido && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase break-words">{errors.apellido.message}</p>}
         </div>
       </div>
 
       <div className="space-y-2 w-full">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 block break-words">Correo Electrónico</label>
-        <div className="relative w-full">
-          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />
-          <input 
-            {...register('email', { 
-              pattern: { value: /^\S+@\S+$/i, message: 'Email inválido' }
-            })}
-            type="email" 
-            disabled={isSuccess}
-            placeholder="juan.perez@ejemplo.com"
-            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
-          />
-        </div>
+        <InputWithCounter 
+          {...register('email')}
+          icon={<Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />}
+          maxLength={150}
+          type="email" 
+          disabled={isSuccess}
+          placeholder="juan.perez@ejemplo.com"
+          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
+        />
         {errors.email && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase break-words">{errors.email.message}</p>}
       </div>
 

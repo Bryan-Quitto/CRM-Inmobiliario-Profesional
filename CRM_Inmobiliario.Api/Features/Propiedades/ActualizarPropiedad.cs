@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.OutputCaching;
 using Hangfire;
 using CRM_Inmobiliario.Api.Features.Propiedades.Jobs;
+using CRM_Inmobiliario.Api.Infrastructure.Validation;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
@@ -206,6 +207,7 @@ public static class ActualizarPropiedadFeature
             return Results.NoContent();
         })
         .WithTags("Propiedades")
-        .WithName("ActualizarPropiedad");
+        .WithName("ActualizarPropiedad")
+        .WithValidation<Command>();
     }
 }

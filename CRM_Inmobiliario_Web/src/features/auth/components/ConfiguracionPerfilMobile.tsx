@@ -12,8 +12,7 @@ interface Props {
 const ConfiguracionPerfilMobile: React.FC<Props> = ({ logic }) => {
   const {
     perfil,
-    formData,
-    setFormData,
+    methods,
     handleSubmit,
     pwdData,
     setPwdData,
@@ -39,21 +38,17 @@ const ConfiguracionPerfilMobile: React.FC<Props> = ({ logic }) => {
         <div className="w-full">
           <BrandingSection 
             userId={perfil.id}
-            fotoUrl={formData.fotoUrl}
-            logoUrl={formData.logoUrl}
             onUpdate={actualizarPerfil}
-            setFormData={setFormData}
-            formData={formData}
+            methods={methods}
             perfil={perfil}
           />
         </div>
 
         <div className="w-full">
           <DatosPersonalesForm 
-            formData={formData}
-            setFormData={setFormData}
+            methods={methods}
             perfil={perfil}
-            handleSubmit={handleSubmit}
+            onSubmit={handleSubmit}
           />
         </div>
 
@@ -71,7 +66,7 @@ const ConfiguracionPerfilMobile: React.FC<Props> = ({ logic }) => {
 
         <div className="w-full">
           <PdfBrandingPreview 
-            formData={formData}
+            formData={methods.watch()}
             perfil={perfil}
           />
         </div>

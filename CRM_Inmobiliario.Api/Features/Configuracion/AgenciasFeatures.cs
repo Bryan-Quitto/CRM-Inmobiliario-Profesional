@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using CRM_Inmobiliario.Api.Infrastructure.Validation;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
@@ -73,7 +74,8 @@ public static class AgenciasFeatures
             return Results.Created($"/api/configuracion/agencias/{agencia.Id}", new AgencyResponse(agencia.Id, agencia.Nombre, agencia.FechaCreacion, agencia.TelefonoCorporativo, agencia.EmailCorporativo, agencia.DireccionFisica, agencia.SitioWeb, agencia.ContextoCorporativoIA));
         })
         .WithName("CrearAgencia")
-        .RequireAuthorization("AdminPolicy");
+        .RequireAuthorization("AdminPolicy")
+        .WithValidation<CreateAgencyRequest>();
 
         // Actualizar Agencia (Solo Administrador)
         group.MapPut("/{id:guid}", async (Guid id, UpdateAgencyRequest request, CrmDbContext context) =>
@@ -101,6 +103,7 @@ public static class AgenciasFeatures
             return Results.Ok(new AgencyResponse(agencia.Id, agencia.Nombre, agencia.FechaCreacion, agencia.TelefonoCorporativo, agencia.EmailCorporativo, agencia.DireccionFisica, agencia.SitioWeb, agencia.ContextoCorporativoIA));
         })
         .WithName("ActualizarAgencia")
-        .RequireAuthorization("AdminPolicy");
+        .RequireAuthorization("AdminPolicy")
+        .WithValidation<UpdateAgencyRequest>();
     }
 }

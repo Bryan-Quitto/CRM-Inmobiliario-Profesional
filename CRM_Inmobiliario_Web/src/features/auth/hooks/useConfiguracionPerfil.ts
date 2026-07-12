@@ -2,17 +2,22 @@ import { useState, useEffect, useRef } from 'react';
 import { usePerfil } from '../api/perfil';
 import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-export interface FormDataPerfil {
-  nombre: string;
-  apellido: string;
-  telefono: string;
-  agenciaId: string;
-  fotoUrl: string;
-  logoUrl: string;
-  direccionFisica: string;
-  promptPersonalIA: string;
-}
+export const perfilSchema = z.object({
+  nombre: z.string().min(1, 'El nombre es obligatorio').max(100),
+  apellido: z.string().min(1, 'El apellido es obligatorio').max(100),
+  telefono: z.string().optional(),
+  agenciaId: z.string().optional(),
+  fotoUrl: z.string().optional(),
+  logoUrl: z.string().optional(),
+  direccionFisica: z.string().max(500).optional(),
+  promptPersonalIA: z.string().max(2000).optional()
+});
+
+export type FormDataPerfil = z.infer<typeof perfilSchema>;
 
 export interface PwdData {
   currentPassword: string;
@@ -26,16 +31,22 @@ export const useConfiguracionPerfil = () => {
   const isInitialized = useRef(false);
   const lastSyncedData = useRef(perfil);
 
-  const [formData, setFormData] = useState<FormDataPerfil>({
-    nombre: '',
-    apellido: '',
-    telefono: '',
-    agenciaId: '',
-    fotoUrl: '',
-    logoUrl: '',
-    direccionFisica: '',
-    promptPersonalIA: ''
+  const methods = useForm<FormDataPerfil>({
+    resolver: zodResolver(perfilSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      nombre: '',
+      apellido: '',
+      telefono: '',
+      agenciaId: '',
+      fotoUrl: '',
+      logoUrl: '',
+      direccionFisica: '',
+      promptPersonalIA: ''
+    }
   });
+
+  const { reset, handleSubmit: hookSubmit, getValues } = methods;
 
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -61,7 +72,7 @@ export const useConfiguracionPerfil = () => {
     if (!perfil) return;
 
     if (!isInitialized.current && (perfil.nombre || perfil.apellido)) {
-      setFormData({
+      reset({
         nombre: perfil.nombre ?? '',
         apellido: perfil.apellido ?? '',
         telefono: perfil.telefono ?? '',
@@ -77,33 +88,30 @@ export const useConfiguracionPerfil = () => {
     }
 
     if (isInitialized.current) {
-      setFormData(prev => {
-        const merged = {
-          nombre: prev.nombre !== (lastSyncedData.current?.nombre ?? '') ? prev.nombre : (perfil.nombre ?? ''),
-          apellido: prev.apellido !== (lastSyncedData.current?.apellido ?? '') ? prev.apellido : (perfil.apellido ?? ''),
-          telefono: prev.telefono !== (lastSyncedData.current?.telefono ?? '') ? prev.telefono : (perfil.telefono ?? ''),
-          agenciaId: prev.agenciaId !== (lastSyncedData.current?.agenciaId ?? '') ? prev.agenciaId : (perfil.agenciaId ?? ''),
-          fotoUrl: prev.fotoUrl !== (lastSyncedData.current?.fotoUrl ?? '') ? prev.fotoUrl : (perfil.fotoUrl ?? ''),
-          logoUrl: prev.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? prev.logoUrl : (perfil.logoUrl ?? ''),
-          direccionFisica: prev.direccionFisica !== (lastSyncedData.current?.direccionFisica ?? '') ? prev.direccionFisica : (perfil.direccionFisica ?? ''),
-          promptPersonalIA: prev.promptPersonalIA !== (lastSyncedData.current?.promptPersonalIA ?? '') ? prev.promptPersonalIA : (perfil.promptPersonalIA ?? '')
-        };
-        lastSyncedData.current = perfil;
-        return merged;
-      });
+      const currentValues = getValues();
+      const merged = {
+        nombre: currentValues.nombre !== (lastSyncedData.current?.nombre ?? '') ? currentValues.nombre : (perfil.nombre ?? ''),
+        apellido: currentValues.apellido !== (lastSyncedData.current?.apellido ?? '') ? currentValues.apellido : (perfil.apellido ?? ''),
+        telefono: currentValues.telefono !== (lastSyncedData.current?.telefono ?? '') ? currentValues.telefono : (perfil.telefono ?? ''),
+        agenciaId: currentValues.agenciaId !== (lastSyncedData.current?.agenciaId ?? '') ? currentValues.agenciaId : (perfil.agenciaId ?? ''),
+        fotoUrl: currentValues.fotoUrl !== (lastSyncedData.current?.fotoUrl ?? '') ? currentValues.fotoUrl : (perfil.fotoUrl ?? ''),
+        logoUrl: currentValues.logoUrl !== (lastSyncedData.current?.logoUrl ?? '') ? currentValues.logoUrl : (perfil.logoUrl ?? ''),
+        direccionFisica: currentValues.direccionFisica !== (lastSyncedData.current?.direccionFisica ?? '') ? currentValues.direccionFisica : (perfil.direccionFisica ?? ''),
+        promptPersonalIA: currentValues.promptPersonalIA !== (lastSyncedData.current?.promptPersonalIA ?? '') ? currentValues.promptPersonalIA : (perfil.promptPersonalIA ?? '')
+      };
+      reset(merged);
+      lastSyncedData.current = perfil;
     }
-  }, [perfil]);
+  }, [perfil, reset, getValues]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async (data: FormDataPerfil) => {
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
 
     try {
       await actualizarPerfil({
-        ...formData,
-        agenciaId: formData.agenciaId || null
+        ...data,
+        agenciaId: data.agenciaId || undefined
       });
       await mutate();
     } catch {
@@ -157,10 +165,9 @@ export const useConfiguracionPerfil = () => {
   return {
     perfil,
     isLoading,
-    formData,
-    setFormData,
+    methods,
     showSuccess,
-    handleSubmit,
+    handleSubmit: hookSubmit(onSubmit),
     pwdData,
     setPwdData,
     isUpdatingPwd,

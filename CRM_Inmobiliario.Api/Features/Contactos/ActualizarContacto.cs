@@ -4,6 +4,7 @@ using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
+using CRM_Inmobiliario.Api.Infrastructure.Validation;
 
 namespace CRM_Inmobiliario.Api.Features.Contactos;
 
@@ -89,6 +90,7 @@ public static class ActualizarContactoFeature
         })
         .RequireAuthorization()
         .WithTags("Contactos")
-        .WithName("ActualizarContacto");
+        .WithName("ActualizarContacto")
+        .WithValidation<Command>();
     }
 }

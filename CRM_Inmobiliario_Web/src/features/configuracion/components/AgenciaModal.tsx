@@ -2,6 +2,9 @@ import React from 'react';
 import { Building2, Loader2, Pencil } from 'lucide-react';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
 import type { ConfiguracionAgenciasLogic } from '../hooks/useConfiguracionAgenciasLogic';
+import { InputWithCounter } from '@/components/ui/InputWithCounter';
+import { TextAreaWithCounter } from '@/components/ui/TextAreaWithCounter';
+import { Controller } from 'react-hook-form';
 
 interface Props {
   logic: ConfiguracionAgenciasLogic;
@@ -13,12 +16,13 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
     setIsModalOpen,
     editingAgency,
     isSubmitting,
-    formData,
-    setFormData,
-    handleSubmit,
+    methods,
+    onSubmit,
   } = logic;
 
-  if (!isModalOpen) return null;
+  if (!isModalOpen || !methods) return null;
+
+  const { register, control, formState: { errors } } = methods;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
@@ -38,59 +42,67 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={onSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Nombre Comercial <span className="text-rose-500">*</span></label>
-                <input
+                <InputWithCounter
+                  {...register('nombre')}
+                  maxLength={150}
                   type="text"
-                  required
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium`}
                   placeholder="Ej. RE/MAX Diamante"
                 />
+                {errors.nombre && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.nombre.message}</p>}
               </div>
               
               <div>
                 <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Teléfono Corporativo</label>
-                <PhoneInputWorldClass
-                  value={formData.telefonoCorporativo || ''}
-                  onChange={(phone) => setFormData({ ...formData, telefonoCorporativo: phone })}
+                <Controller
+                  name="telefonoCorporativo"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInputWorldClass
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                    />
+                  )}
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Email Corporativo</label>
-                <input
+                <InputWithCounter
+                  {...register('emailCorporativo')}
+                  maxLength={255}
                   type="email"
-                  value={formData.emailCorporativo || ''}
-                  onChange={(e) => setFormData({ ...formData, emailCorporativo: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.emailCorporativo ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium`}
                   placeholder="contacto@agencia.com"
                 />
+                {errors.emailCorporativo && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.emailCorporativo.message}</p>}
               </div>
 
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Dirección Física</label>
-                <input
+                <InputWithCounter
+                  {...register('direccionFisica')}
+                  maxLength={500}
                   type="text"
-                  value={formData.direccionFisica || ''}
-                  onChange={(e) => setFormData({ ...formData, direccionFisica: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.direccionFisica ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium`}
                   placeholder="Dirección completa de la oficina..."
                 />
               </div>
 
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Sitio Web</label>
-                <input
-                  type="url"
-                  value={formData.sitioWeb || ''}
-                  onChange={(e) => setFormData({ ...formData, sitioWeb: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                <InputWithCounter
+                  {...register('sitioWeb')}
+                  maxLength={255}
+                  type="text"
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.sitioWeb ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium`}
                   placeholder="https://www.agencia.com"
                 />
+                {errors.sitioWeb && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.sitioWeb.message}</p>}
               </div>
 
               <div className="col-span-1 md:col-span-2">
@@ -98,15 +110,12 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
                   <span className="flex-1 min-w-0 break-words">Contexto Corporativo (Prompt para IA)</span>
                   <span className="text-[10px] font-medium normal-case text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shrink-0">Altamente recomendado</span>
                 </label>
-                <textarea
-                  value={formData.contextoCorporativoIA || ''}
-                  onChange={(e) => setFormData({ ...formData, contextoCorporativoIA: e.target.value })}
-                  className="w-full px-4 py-3 bg-indigo-50/30 border border-indigo-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium min-h-[120px] resize-y"
-                  placeholder="Ej. Somos una agencia especializada en propiedades comerciales de lujo en Quito. Nuestro trato es extremadamente formal. Operamos de Lunes a Sábado de 9h00 a 18h00. Solo trabajamos con exclusividad."
+                <TextAreaWithCounter
+                  {...register('contextoCorporativoIA')}
+                  maxLength={2000}
+                  className={`w-full px-4 py-3 bg-indigo-50/30 border ${errors.contextoCorporativoIA ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-indigo-100 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium min-h-[120px] resize-y`}
+                  placeholder="Ej. Somos una agencia especializada en propiedades comerciales de lujo en Quito. Nuestro trato es extremadamente formal..."
                 />
-                <p className="text-xs text-slate-500 mt-2">
-                  Este texto será inyectado silenciosamente a la IA de todos los agentes de esta agencia, dándole contexto sobre cómo comportarse y qué directrices seguir en WhatsApp y Facebook.
-                </p>
               </div>
             </div>
 
@@ -120,7 +129,7 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !formData.nombre.trim()}
+                disabled={isSubmitting}
                 className="w-full sm:w-auto bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting && <Loader2 size={18} className="animate-spin" />}

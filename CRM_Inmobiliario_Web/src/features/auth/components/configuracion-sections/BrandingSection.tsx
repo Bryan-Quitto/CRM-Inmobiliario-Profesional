@@ -5,26 +5,22 @@ import LogoAgenciaUpload from '../LogoAgenciaUpload';
 import CuotaSection from './CuotaSection';
 import type { FormDataPerfil } from '../../hooks/useConfiguracionPerfil';
 import type { PerfilAgente } from '../../api/perfil';
+import type { UseFormReturn } from 'react-hook-form';
 
 interface BrandingSectionProps {
   userId: string;
-  fotoUrl: string;
-  logoUrl: string;
   onUpdate: (data: Partial<PerfilAgente>) => Promise<void>;
-  setFormData: React.Dispatch<React.SetStateAction<FormDataPerfil>>;
-  formData: FormDataPerfil;
+  methods: UseFormReturn<FormDataPerfil>;
   perfil: PerfilAgente;
 }
 
 const BrandingSection: React.FC<BrandingSectionProps> = ({ 
   userId, 
-  fotoUrl, 
-  logoUrl, 
   onUpdate, 
-  setFormData,
-  formData,
+  methods,
   perfil 
 }) => {
+  const formData = methods.watch();
   return (
     <div className="lg:col-span-1 space-y-8">
       {/* Card: Foto de Perfil */}
@@ -34,16 +30,14 @@ const BrandingSection: React.FC<BrandingSectionProps> = ({
         </h3>
         <FotoPerfilUpload 
           userId={userId} 
-          currentFotoUrl={fotoUrl}
+          currentFotoUrl={formData.fotoUrl || ''}
           onUploadSuccess={async (url) => {
-            const nuevosDatos = { ...formData, fotoUrl: url };
-            setFormData(nuevosDatos);
-            await onUpdate(nuevosDatos);
+            methods.setValue('fotoUrl', url, { shouldDirty: true });
+            await onUpdate(methods.getValues() as Partial<PerfilAgente>);
           }}
           onDeleteSuccess={async () => {
-            const nuevosDatos = { ...formData, fotoUrl: '' };
-            setFormData(nuevosDatos);
-            await onUpdate(nuevosDatos);
+            methods.setValue('fotoUrl', '', { shouldDirty: true });
+            await onUpdate(methods.getValues() as Partial<PerfilAgente>);
           }}
         />
         <p className="text-xs text-slate-400 mt-6 contactoing-relaxed">
@@ -58,16 +52,14 @@ const BrandingSection: React.FC<BrandingSectionProps> = ({
         </h3>
         <LogoAgenciaUpload 
           userId={userId} 
-          currentLogoUrl={logoUrl}
+          currentLogoUrl={formData.logoUrl || ''}
           onUploadSuccess={async (url) => {
-            const nuevosDatos = { ...formData, logoUrl: url };
-            setFormData(nuevosDatos);
-            await onUpdate(nuevosDatos);
+            methods.setValue('logoUrl', url, { shouldDirty: true });
+            await onUpdate(methods.getValues() as Partial<PerfilAgente>);
           }}
           onDeleteSuccess={async () => {
-            const nuevosDatos = { ...formData, logoUrl: '' };
-            setFormData(nuevosDatos);
-            await onUpdate(nuevosDatos);
+            methods.setValue('logoUrl', '', { shouldDirty: true });
+            await onUpdate(methods.getValues() as Partial<PerfilAgente>);
           }}
         />
         <p className="text-xs text-slate-400 mt-6 contactoing-relaxed">

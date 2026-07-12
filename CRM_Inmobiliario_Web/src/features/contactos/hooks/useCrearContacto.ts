@@ -6,6 +6,9 @@ import { invalidateCRMData } from '@/lib/swr';
 import { crearContacto, type CrearContactoDTO } from '../api/crearContacto';
 import { actualizarContacto } from '../api/actualizarContacto';
 import type { Contacto } from '../types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { Resolver, SubmitHandler } from 'react-hook-form';
+import { contactSchema } from '../validations';
 
 interface UseCrearContactoProps {
   initialData?: Contacto;
@@ -53,6 +56,8 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
     setValue, 
     getValues 
   } = useForm<CrearContactoDTO>({
+    resolver: zodResolver(contactSchema) as unknown as Resolver<CrearContactoDTO>,
+    mode: 'onBlur',
     defaultValues: getInitialValues() as CrearContactoDTO
   });
 
@@ -236,7 +241,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
 
   return {
     register,
-    handleSubmit: handleSubmit(onSubmit),
+    handleSubmit: handleSubmit(onSubmit as unknown as SubmitHandler<CrearContactoDTO>),
     errors,
     control,
     setValue,

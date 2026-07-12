@@ -10,6 +10,9 @@ import { actualizarPropiedad } from '../api/actualizarPropiedad';
 import { getPropiedadById } from '../api/getPropiedadById';
 import type { Propiedad } from '../types';
 import type { CrearPropiedadDTO } from '../api/crearPropiedad';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { Resolver, SubmitHandler } from 'react-hook-form';
+import { propertySchema } from '../validations';
 
 // Hooks & Constants
 import { usePropertyDraft } from './usePropertyDraft';
@@ -105,6 +108,8 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
   }, [isEditing]);
 
   const methods = useForm<CrearPropiedadDTO>({
+    resolver: zodResolver(propertySchema) as unknown as Resolver<CrearPropiedadDTO>,
+    mode: 'onBlur',
     defaultValues: getInitialValues() as CrearPropiedadDTO
   });
 
@@ -174,7 +179,7 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
     missedFields,
     handleImportar,
     handleClearDraft,
-    onSubmit: handleSubmit(onSubmit),
+    onSubmit: handleSubmit(onSubmit as unknown as SubmitHandler<CrearPropiedadDTO>),
     tipoSeleccionado,
     initialData
   };

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 using Hangfire;
 using CRM_Inmobiliario.Api.Features.Propiedades.Jobs;
+using CRM_Inmobiliario.Api.Infrastructure.Validation;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
@@ -154,6 +155,7 @@ public static class RegistrarPropiedadFeature
             return Results.Created($"/propiedades/{propiedad.Id}", propiedad);
         })
         .WithTags("Propiedades")
-        .WithName("RegistrarPropiedad");
+        .WithName("RegistrarPropiedad")
+        .WithValidation<Command>();
     }
 }

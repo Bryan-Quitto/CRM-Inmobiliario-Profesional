@@ -1,8 +1,22 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { api } from '../../../lib/axios';
-import { crearAgencia, actualizarAgencia, type Agency, type AgencyData } from '../api/agencias';
+import { crearAgencia, actualizarAgencia, type Agency } from '../api/agencias';
 import { toast } from 'sonner';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+export const agenciaSchema = z.object({
+  nombre: z.string().min(1, 'El nombre comercial es obligatorio').max(150, 'Máximo 150 caracteres'),
+  telefonoCorporativo: z.string().optional().nullable().or(z.literal('')),
+  emailCorporativo: z.string().max(255).optional().nullable().or(z.literal('')),
+  direccionFisica: z.string().max(500).optional().nullable().or(z.literal('')),
+  sitioWeb: z.string().url('Ingrese una URL válida (ej. https://...)').optional().nullable().or(z.literal('')),
+  contextoCorporativoIA: z.string().max(2000, 'Máximo 2000 caracteres').optional().nullable().or(z.literal(''))
+});
+
+export type AgenciaFormValues = z.infer<typeof agenciaSchema>;
 
 export const useConfiguracionAgenciasLogic = () => {
   const { data: agencias, isLoading, mutate } = useSWR<Agency[]>('/configuracion/agencias', (url: string) => api.get(url).then(res => res.data));
@@ -12,24 +26,30 @@ export const useConfiguracionAgenciasLogic = () => {
   const [editingAgency, setEditingAgency] = useState<Agency | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<AgencyData>({
-    nombre: '',
-    telefonoCorporativo: '',
-    emailCorporativo: '',
-    direccionFisica: '',
-    sitioWeb: '',
-    contextoCorporativoIA: ''
+  const methods = useForm<AgenciaFormValues>({
+    resolver: zodResolver(agenciaSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      nombre: '',
+      telefonoCorporativo: '',
+      emailCorporativo: '',
+      direccionFisica: '',
+      sitioWeb: '',
+      contextoCorporativoIA: ''
+    }
   });
+
+  const { reset, handleSubmit: hookSubmit } = methods;
 
   const handleOpenCreate = () => {
     setEditingAgency(null);
-    setFormData({ nombre: '', telefonoCorporativo: '', emailCorporativo: '', direccionFisica: '', sitioWeb: '', contextoCorporativoIA: '' });
+    reset({ nombre: '', telefonoCorporativo: '', emailCorporativo: '', direccionFisica: '', sitioWeb: '', contextoCorporativoIA: '' });
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (agency: Agency) => {
     setEditingAgency(agency);
-    setFormData({
+    reset({
       nombre: agency.nombre,
       telefonoCorporativo: agency.telefonoCorporativo || '',
       emailCorporativo: agency.emailCorporativo || '',
@@ -40,18 +60,15 @@ export const useConfiguracionAgenciasLogic = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.nombre.trim()) return;
-
+  const onSubmit = async (data: AgenciaFormValues) => {
     setIsSubmitting(true);
     try {
       if (editingAgency) {
-        await actualizarAgencia(editingAgency.id, formData);
-        toast.success('Agencia actualizada', { description: `La agencia "${formData.nombre}" ha sido modificada.` });
+        await actualizarAgencia(editingAgency.id, data);
+        toast.success('Agencia actualizada', { description: `La agencia "${data.nombre}" ha sido modificada.` });
       } else {
-        await crearAgencia(formData);
-        toast.success('Agencia creada', { description: `La agencia "${formData.nombre}" ha sido registrada.` });
+        await crearAgencia(data);
+        toast.success('Agencia creada', { description: `La agencia "${data.nombre}" ha sido registrada.` });
       }
       setIsModalOpen(false);
       mutate();
@@ -75,11 +92,10 @@ export const useConfiguracionAgenciasLogic = () => {
     setIsModalOpen,
     editingAgency,
     isSubmitting,
-    formData,
-    setFormData,
+    methods,
     handleOpenCreate,
     handleOpenEdit,
-    handleSubmit,
+    onSubmit: hookSubmit(onSubmit),
     filteredAgencias,
   };
 };

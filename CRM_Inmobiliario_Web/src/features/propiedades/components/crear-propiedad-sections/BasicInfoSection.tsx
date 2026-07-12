@@ -3,6 +3,8 @@ import { PenLine, AlignLeft, Mic, MicOff, Building, ChevronDown, Check } from 'l
 import type { CrearPropiedadDTO } from '../../api/crearPropiedad';
 import { TIPOS_PROPIEDAD } from '../../constants/propertyForm';
 import { useState, useRef, useEffect } from 'react';
+import { InputWithCounter } from '@/components/ui/InputWithCounter';
+import { TextAreaWithCounter } from '@/components/ui/TextAreaWithCounter';
 
 interface Props {
   isSuccess: boolean;
@@ -32,16 +34,15 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
       {/* 1. TÍTULO */}
       <div className="md:col-span-6 space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título de la Propiedad</label>
-        <div className="relative">
-          <PenLine className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            {...register('titulo', { required: 'El título es obligatorio' })}
-            type="text" 
-            disabled={isSuccess}
-            placeholder="Ej. Penthouse de Lujo en La Carolina"
-            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.titulo ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
-          />
-        </div>
+        <InputWithCounter 
+          {...register('titulo')}
+          icon={<PenLine className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
+          maxLength={150}
+          type="text" 
+          disabled={isSuccess}
+          placeholder="Ej. Penthouse de Lujo en La Carolina"
+          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.titulo ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
+        />
         {errors.titulo && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.titulo.message}</p>}
       </div>
 
@@ -66,9 +67,10 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
           </button>
         </div>
         <div className="relative">
-          <AlignLeft className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />
-          <textarea 
-            {...register('descripcion', { required: 'La descripción es obligatoria' })}
+          <TextAreaWithCounter 
+            {...register('descripcion')}
+            icon={<AlignLeft className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />}
+            maxLength={1000}
             disabled={isSuccess}
             placeholder="Describe las características principales, acabados, seguridad, etc."
             rows={3}

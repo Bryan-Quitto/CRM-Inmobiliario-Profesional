@@ -2,6 +2,8 @@ import { useFormContext, Controller, useWatch } from 'react-hook-form';
 import { KeySquare, ChevronDown, Check, Coins, Calendar, Map, Building2, Navigation, Globe, AlertCircle } from 'lucide-react';
 import type { CrearPropiedadDTO } from '../../api/crearPropiedad';
 import { useState, useRef, useEffect } from 'react';
+import { InputWithCounter } from '@/components/ui/InputWithCounter';
+import { FormattedNumberInput } from '@/components/ui/FormattedNumberInput';
 
 interface Props {
   isSuccess: boolean;
@@ -75,16 +77,20 @@ export const LocationSection = ({ isSuccess }: Props) => {
       {/* Precio */}
       <div className="md:col-span-3 space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Precio ($)</label>
-        <div className="relative">
-          <Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            {...register('precio', { required: 'Requerido', min: 1 })}
-            type="number" 
-            disabled={isSuccess}
-            step="any"
-            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-          />
-        </div>
+        <Controller
+          name="precio"
+          control={control}
+          rules={{ required: 'Requerido', min: 1 }}
+          render={({ field }) => (
+            <FormattedNumberInput
+              {...field}
+              icon={<Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+              disabled={isSuccess}
+              placeholder="Ej. 150.000"
+              error={errors.precio?.message}
+            />
+          )}
+        />
       </div>
 
       {/* Fecha de Captación */}
@@ -106,46 +112,46 @@ export const LocationSection = ({ isSuccess }: Props) => {
 
       <div className="md:col-span-3 space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Sector</label>
-        <div className="relative">
-          <Map className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            {...register('sector', { required: 'Requerido' })}
-            type="text" 
-            disabled={isSuccess}
-            placeholder="Ej. La Carolina"
-            className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-          />
-        </div>
+        <InputWithCounter 
+          {...register('sector')}
+          icon={<Map className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
+          maxLength={100}
+          type="text" 
+          disabled={isSuccess}
+          placeholder="Ej. La Carolina"
+          className={`w-full pl-10 px-4 py-3 bg-slate-50 border ${errors.sector ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
+        />
+        {errors.sector && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.sector.message}</p>}
       </div>
 
       {/* Ciudad */}
       <div className="md:col-span-3 space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Ciudad</label>
-        <div className="relative">
-          <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            {...register('ciudad', { required: 'Requerido' })}
-            type="text" 
-            disabled={isSuccess}
-            placeholder="Ej. Quito"
-            className="w-full pl-10 px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-          />
-        </div>
+        <InputWithCounter 
+          {...register('ciudad')}
+          icon={<Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
+          maxLength={100}
+          type="text" 
+          disabled={isSuccess}
+          placeholder="Ej. Quito"
+          className={`w-full pl-10 px-4 py-3 bg-slate-50 border ${errors.ciudad ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
+        />
+        {errors.ciudad && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.ciudad.message}</p>}
       </div>
 
       {/* Dirección Exacta */}
       <div className="md:col-span-6 space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Dirección Exacta</label>
-        <div className="relative">
-          <Navigation className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            {...register('direccion', { required: 'La dirección es obligatoria' })}
-            type="text" 
-            disabled={isSuccess}
-            placeholder="Calle principal, número y calle secundaria"
-            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
-          />
-        </div>
+        <InputWithCounter 
+          {...register('direccion')}
+          icon={<Navigation className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
+          maxLength={255}
+          type="text" 
+          disabled={isSuccess}
+          placeholder="Calle principal, número y calle secundaria"
+          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.direccion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
+        />
+        {errors.direccion && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.direccion.message}</p>}
       </div>
 
       {/* Google Maps */}

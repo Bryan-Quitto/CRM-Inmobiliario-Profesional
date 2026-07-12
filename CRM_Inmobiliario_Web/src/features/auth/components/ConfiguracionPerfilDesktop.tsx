@@ -12,8 +12,7 @@ interface Props {
 const ConfiguracionPerfilDesktop: React.FC<Props> = ({ logic }) => {
   const {
     perfil,
-    formData,
-    setFormData,
+    methods,
     handleSubmit,
     pwdData,
     setPwdData,
@@ -38,20 +37,16 @@ const ConfiguracionPerfilDesktop: React.FC<Props> = ({ logic }) => {
         
         <BrandingSection 
           userId={perfil.id}
-          fotoUrl={formData.fotoUrl}
-          logoUrl={formData.logoUrl}
           onUpdate={actualizarPerfil}
-          setFormData={setFormData}
-          formData={formData}
+          methods={methods}
           perfil={perfil}
         />
 
         <div className="lg:col-span-2 space-y-8">
           <DatosPersonalesForm 
-            formData={formData}
-            setFormData={setFormData}
+            methods={methods}
             perfil={perfil}
-            handleSubmit={handleSubmit}
+            onSubmit={handleSubmit}
           />
 
           <SeguridadSection 
@@ -65,7 +60,7 @@ const ConfiguracionPerfilDesktop: React.FC<Props> = ({ logic }) => {
           />
 
           <PdfBrandingPreview 
-            formData={formData}
+            formData={methods.watch()}
             perfil={perfil}
           />
         </div>

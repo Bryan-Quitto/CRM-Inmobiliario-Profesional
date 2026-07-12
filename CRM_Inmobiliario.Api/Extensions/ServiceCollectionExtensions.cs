@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
+using FluentValidation;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -85,6 +86,9 @@ public static class ServiceCollectionExtensions
 
         // QuestPDF
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+        // FluentValidation
+        services.AddValidatorsFromAssemblyContaining<Program>();
 
         return services;
     }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using CRM_Inmobiliario.Api.Infrastructure.Validation;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
@@ -70,7 +71,8 @@ public static class ActualizarPerfil
             return Results.NoContent();
         })
         .WithTags("Configuracion")
-        .WithName("ActualizarPerfil");
+        .WithName("ActualizarPerfil")
+        .WithValidation<Request>();
 
         return endpoints;
     }

@@ -1,10 +1,11 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Features.Dashboard;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
+using CRM_Inmobiliario.Api.Infrastructure.Validation;
 
 namespace CRM_Inmobiliario.Api.Features.Contactos;
 
@@ -67,6 +68,7 @@ public static class RegistrarContactoFeature
         })
         .RequireAuthorization()
         .WithTags("Contactos")
-        .WithName("RegistrarContacto");
+        .WithName("RegistrarContacto")
+        .WithValidation<Command>();
     }
 }

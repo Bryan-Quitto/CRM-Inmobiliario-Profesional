@@ -1,6 +1,8 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Ruler, LandPlot, Box, Bed, Bath, Droplet, CarFront, Clock } from 'lucide-react';
 import type { CrearPropiedadDTO } from '../../api/crearPropiedad';
+import { Controller } from 'react-hook-form';
+import { FormattedNumberInput } from '@/components/ui/FormattedNumberInput';
 
 interface Props {
   isSuccess: boolean;
@@ -8,7 +10,7 @@ interface Props {
 }
 
 export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
-  const { register, control } = useFormContext<CrearPropiedadDTO>();
+  const { control, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
   const tipoSeleccionado = useWatch({ control, name: 'tipoPropiedad' });
 
 
@@ -22,16 +24,21 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
           Área Total (m²) {missedFields.includes('areaTotal') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
         </label>
-        <div className="relative">
-          <Ruler className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            {...register('areaTotal', { required: 'Requerido', min: 1 })}
-            type="number" 
-            disabled={isSuccess}
-            step="any"
-            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('areaTotal') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
-          />
-        </div>
+        <Controller
+          name="areaTotal"
+          control={control}
+          rules={{ required: 'Requerido', min: 1 }}
+          render={({ field }) => (
+            <FormattedNumberInput
+              {...field}
+              icon={<Ruler className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+              suffixIcon={<span className="text-slate-400 text-xs font-bold mr-1">m²</span>}
+              disabled={isSuccess}
+              error={errors.areaTotal?.message}
+              containerClassName={missedFields.includes('areaTotal') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+            />
+          )}
+        />
       </div>
 
       {/* Área Terreno */}
@@ -40,16 +47,20 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
             Área Terreno (m²) {missedFields.includes('areaTerreno') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
-          <div className="relative">
-            <LandPlot className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input 
-              {...register('areaTerreno')}
-              type="number" 
-              disabled={isSuccess}
-              step="any"
-              className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('areaTerreno') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
-            />
-          </div>
+          <Controller
+            name="areaTerreno"
+            control={control}
+            render={({ field }) => (
+              <FormattedNumberInput
+                {...field}
+                icon={<LandPlot className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+                suffixIcon={<span className="text-slate-400 text-xs font-bold mr-1">m²</span>}
+                disabled={isSuccess}
+                error={errors.areaTerreno?.message}
+                containerClassName={missedFields.includes('areaTerreno') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              />
+            )}
+          />
         </div>
       )}
 
@@ -59,16 +70,20 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
             Área Cubierta (m²) {missedFields.includes('areaConstruccion') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
-          <div className="relative">
-            <Box className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input 
-              {...register('areaConstruccion')}
-              type="number" 
-              disabled={isSuccess}
-              step="any"
-              className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('areaConstruccion') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
-            />
-          </div>
+          <Controller
+            name="areaConstruccion"
+            control={control}
+            render={({ field }) => (
+              <FormattedNumberInput
+                {...field}
+                icon={<Box className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+                suffixIcon={<span className="text-slate-400 text-xs font-bold mr-1">m²</span>}
+                disabled={isSuccess}
+                error={errors.areaConstruccion?.message}
+                containerClassName={missedFields.includes('areaConstruccion') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              />
+            )}
+          />
         </div>
       )}
 
@@ -78,15 +93,20 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
             Habitaciones {missedFields.includes('habitaciones') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
-          <div className="relative">
-            <Bed className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input 
-              {...register('habitaciones', { min: 0 })}
-              type="number" 
-              disabled={isSuccess}
-              className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('habitaciones') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
-            />
-          </div>
+          <Controller
+            name="habitaciones"
+            control={control}
+            rules={{ min: 0 }}
+            render={({ field }) => (
+              <FormattedNumberInput
+                {...field}
+                icon={<Bed className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+                disabled={isSuccess}
+                error={errors.habitaciones?.message}
+                containerClassName={missedFields.includes('habitaciones') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              />
+            )}
+          />
         </div>
       )}
 
@@ -96,16 +116,20 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
             Baños {missedFields.includes('banos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
-          <div className="relative">
-            <Bath className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input 
-              {...register('banos', { min: 0 })}
-              type="number" 
-              disabled={isSuccess}
-              step="0.5"
-              className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('banos') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
-            />
-          </div>
+          <Controller
+            name="banos"
+            control={control}
+            rules={{ min: 0 }}
+            render={({ field }) => (
+              <FormattedNumberInput
+                {...field}
+                icon={<Bath className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+                disabled={isSuccess}
+                error={errors.banos?.message}
+                containerClassName={missedFields.includes('banos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              />
+            )}
+          />
         </div>
       )}
       
@@ -115,15 +139,19 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
             Medios Baños {missedFields.includes('mediosBanos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
-          <div className="relative">
-            <Droplet className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input 
-              {...register('mediosBanos')}
-              type="number" 
-              disabled={isSuccess}
-              className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('mediosBanos') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
-            />
-          </div>
+          <Controller
+            name="mediosBanos"
+            control={control}
+            render={({ field }) => (
+              <FormattedNumberInput
+                {...field}
+                icon={<Droplet className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+                disabled={isSuccess}
+                error={errors.mediosBanos?.message}
+                containerClassName={missedFields.includes('mediosBanos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              />
+            )}
+          />
         </div>
       )}
 
@@ -133,15 +161,19 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
             Parqueaderos {missedFields.includes('estacionamientos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
-          <div className="relative">
-            <CarFront className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input 
-              {...register('estacionamientos')}
-              type="number" 
-              disabled={isSuccess}
-              className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('estacionamientos') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
-            />
-          </div>
+          <Controller
+            name="estacionamientos"
+            control={control}
+            render={({ field }) => (
+              <FormattedNumberInput
+                {...field}
+                icon={<CarFront className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+                disabled={isSuccess}
+                error={errors.estacionamientos?.message}
+                containerClassName={missedFields.includes('estacionamientos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              />
+            )}
+          />
         </div>
       )}
 
@@ -151,15 +183,19 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
             Antigüedad (Años) {missedFields.includes('aniosAntiguedad') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
-          <div className="relative">
-            <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input 
-              {...register('aniosAntiguedad')}
-              type="number" 
-              disabled={isSuccess}
-              className={`w-full pl-10 px-4 py-3 bg-slate-50 border rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all disabled:opacity-50 ${missedFields.includes('aniosAntiguedad') ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/20' : 'border-slate-200'}`}
-            />
-          </div>
+          <Controller
+            name="aniosAntiguedad"
+            control={control}
+            render={({ field }) => (
+              <FormattedNumberInput
+                {...field}
+                icon={<Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
+                disabled={isSuccess}
+                error={errors.aniosAntiguedad?.message}
+                containerClassName={missedFields.includes('aniosAntiguedad') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              />
+            )}
+          />
         </div>
       )}
     </div>

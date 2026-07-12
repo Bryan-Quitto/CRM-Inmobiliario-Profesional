@@ -11,6 +11,7 @@ import { swrDefaultConfig } from '@/lib/swr';
 import type { Propiedad } from '../../types';
 import { usePerfil } from '@/features/auth/api/perfil';
 import { PhoneInputWorldClass } from '@/features/contactos/components/PhoneInputWorldClass';
+import { FormattedNumberInput } from '@/components/ui/FormattedNumberInput';
 
 interface Props {
   initialData?: Propiedad;
@@ -154,12 +155,18 @@ export const CommissionSection = ({ initialData }: Props) => {
             <span className="text-xs font-black text-slate-900 uppercase tracking-tight">Comisión (%)</span>
             <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest opacity-70">Porcentaje pactado</span>
           </div>
-          <div className="relative w-24">
-            <input 
-              {...register('porcentajeComision', { required: true, min: 0, max: 100 })}
-              type="number" 
-              step="0.1"
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black text-blue-600 text-center focus:ring-4 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all shadow-sm"
+          <div className="relative w-32">
+            <Controller
+              name="porcentajeComision"
+              control={control}
+              rules={{ required: true, min: 0, max: 100 }}
+              render={({ field }) => (
+                <FormattedNumberInput
+                  {...field}
+                  suffixIcon={<span className="text-blue-600 font-black">%</span>}
+                  className="text-center font-black text-blue-600 !pl-4"
+                />
+              )}
             />
           </div>
         </div>

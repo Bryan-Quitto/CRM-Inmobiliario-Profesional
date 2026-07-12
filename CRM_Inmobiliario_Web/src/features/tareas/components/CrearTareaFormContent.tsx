@@ -1,7 +1,7 @@
 import { 
-  Type, 
   AlignLeft, 
   MapPin, 
+  PenLine,
   Calendar, 
   User, 
   Home 
@@ -21,6 +21,8 @@ import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
 import { buscarPropiedades } from '../../propiedades/api/buscarPropiedades';
 import type { CrearTareaDTO } from '../types';
 import type { EditarTareaFormValues } from '../hooks/useEditarTarea';
+import { InputWithCounter } from '@/components/ui/InputWithCounter';
+import { TextAreaWithCounter } from '@/components/ui/TextAreaWithCounter';
 
 interface CrearTareaFormContentProps {
   register: UseFormRegister<CrearTareaDTO>;
@@ -55,30 +57,28 @@ export const CrearTareaFormContent = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-10">
       <div className="space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título</label>
-        <div className="relative">
-          <Type className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            {...register('titulo', { required: 'El título es obligatorio' })}
-            type="text"
-            placeholder="Ej. Llamar a Juan..."
-            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.titulo ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4`}
-          />
-        </div>
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título de la tarea</label>
+        <InputWithCounter
+          {...register('titulo')}
+          icon={<PenLine className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />}
+          maxLength={100}
+          type="text"
+          placeholder="Ej. Llamar al cliente..."
+          className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 border ${errors.titulo ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4`}
+        />
         {errors.titulo && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.titulo.message}</p>}
       </div>
 
       <div className="space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Descripción</label>
-        <div className="relative">
-          <AlignLeft className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />
-          <textarea
-            {...register('descripcion')}
-            placeholder="Detalles adicionales..."
-            rows={3}
-            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none resize-none"
-          />
-        </div>
+        <TextAreaWithCounter
+          {...register('descripcion')}
+          icon={<AlignLeft className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />}
+          maxLength={500}
+          placeholder="Detalles adicionales..."
+          rows={3}
+          className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none resize-none"
+        />
       </div>
 
       <TipoTareaSelect 
@@ -131,15 +131,15 @@ export const CrearTareaFormContent = ({
       {(formData.tipoTarea === 'Visita' || formData.tipoTarea === 'Reunión') && !formData.propiedadId && (
         <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Lugar</label>
-          <div className="relative">
-            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              {...register('lugar')}
-              type="text"
-              placeholder="Dirección o punto de encuentro..."
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none"
-            />
-          </div>
+          <InputWithCounter
+            {...register('lugar')}
+            icon={<MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
+            maxLength={255}
+            type="text"
+            placeholder="Dirección o punto de encuentro..."
+            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.lugar ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none focus:ring-4`}
+          />
+          {errors.lugar && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.lugar.message}</p>}
         </div>
       )}
 
@@ -150,6 +150,8 @@ export const CrearTareaFormContent = ({
           <input
             {...register('fechaInicio', { required: 'La fecha es obligatoria' })}
             type="datetime-local"
+            min="2000-01-01T00:00"
+            max="2100-12-31T23:59"
             className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.fechaInicio ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none`}
           />
         </div>

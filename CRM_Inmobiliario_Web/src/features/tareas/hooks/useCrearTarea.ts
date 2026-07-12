@@ -8,6 +8,9 @@ import type { CrearTareaDTO, Tarea } from '../types';
 
 import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { Resolver } from 'react-hook-form';
+import { taskSchema } from '../validations';
 import { swrDefaultConfig, invalidateCRMData } from '@/lib/swr';
 import useSWR from 'swr';
 
@@ -91,6 +94,8 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
   };
 
   const { register, handleSubmit, formState: { errors }, reset, control, setValue, watch } = useForm<CrearTareaDTO>({
+    resolver: zodResolver(taskSchema) as unknown as Resolver<CrearTareaDTO>,
+    mode: 'onBlur',
     defaultValues: getInitialValues()
   });
 

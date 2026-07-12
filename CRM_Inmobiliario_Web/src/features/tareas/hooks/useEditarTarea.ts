@@ -20,6 +20,9 @@ import { getDropdownContactos } from '../../contactos/api/getDropdownContactos';
 import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import { swrDefaultConfig, invalidateCRMData } from '@/lib/swr';
 import useSWR from 'swr';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { Resolver } from 'react-hook-form';
+import { taskSchema } from '../validations';
 
 interface UseEditarTareaProps {
   tareaId: string;
@@ -49,6 +52,8 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
     setValue, 
     getValues 
   } = useForm<EditarTareaFormValues>({
+    resolver: zodResolver(taskSchema) as unknown as Resolver<EditarTareaFormValues>,
+    mode: 'onBlur',
     defaultValues: initialData ? {
       titulo: initialData.titulo,
       descripcion: initialData.descripcion || '',

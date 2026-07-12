@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.OutputCaching;
+using CRM_Inmobiliario.Api.Infrastructure.Validation;
 
 namespace CRM_Inmobiliario.Api.Features.Tareas;
 
@@ -76,7 +77,8 @@ public static class RegistrarTareaFeature
             return Results.Created($"/tareas/{tarea.Id}", new { tarea.Id, tarea.Titulo, tarea.Estado });
         })
         .WithTags("Tareas")
-        .WithName("RegistrarTarea");
+        .WithName("RegistrarTarea")
+        .WithValidation<Command>();
     }
 }
 

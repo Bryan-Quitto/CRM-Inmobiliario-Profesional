@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.OutputCaching;
+using CRM_Inmobiliario.Api.Infrastructure.Validation;
 
 namespace CRM_Inmobiliario.Api.Features.Tareas;
 
@@ -73,7 +74,7 @@ public static class ActualizarTareaFeature
             return Results.NoContent();
         })
         .WithTags("Tareas")
-        .WithName("ActualizarTarea");
+        .WithName("ActualizarTarea")
+        .WithValidation<Command>();
     }
 }
-

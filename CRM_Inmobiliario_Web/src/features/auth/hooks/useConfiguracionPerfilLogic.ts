@@ -4,23 +4,9 @@ import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
 import { usePasswordLockout } from './usePasswordLockout';
 import { translateAuthError } from '../../../lib/auth-errors';
-
-export interface FormDataPerfil {
-  nombre: string;
-  apellido: string;
-  telefono: string;
-  agenciaId: string;
-  fotoUrl: string;
-  logoUrl: string;
-  direccionFisica: string;
-  promptPersonalIA: string;
-}
-
-export interface PwdData {
-  currentPassword: string;
-  password: string;
-  confirmPassword: string;
-}
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { perfilSchema, type FormDataPerfil, type PwdData } from './useConfiguracionPerfil';
 
 export const useConfiguracionPerfilLogic = () => {
   const { perfil, actualizarPerfil, mutate, isLoading } = usePerfil();
@@ -28,17 +14,22 @@ export const useConfiguracionPerfilLogic = () => {
   const isInitialized = useRef(false);
   const lastSyncedData = useRef(perfil);
 
-  const [formData, setFormData] = useState<FormDataPerfil>({
-    nombre: '',
-    apellido: '',
-    telefono: '',
-    agenciaId: '',
-    fotoUrl: '',
-    logoUrl: '',
-    direccionFisica: '',
-    promptPersonalIA: ''
+  const methods = useForm<FormDataPerfil>({
+    resolver: zodResolver(perfilSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      nombre: '',
+      apellido: '',
+      telefono: '',
+      agenciaId: '',
+      fotoUrl: '',
+      logoUrl: '',
+      direccionFisica: '',
+      promptPersonalIA: ''
+    }
   });
 
+  const { reset, handleSubmit: hookSubmit, getValues } = methods;
 
   // Estados para Cambio de Contraseña
   const [pwdData, setPwdData] = useState<PwdData>({
@@ -60,7 +51,7 @@ export const useConfiguracionPerfilLogic = () => {
   const allValid = Object.values(validations).every(v => v);
 
   if (perfil && !isInitialized.current) {
-    setFormData({
+    reset({
       nombre: perfil.nombre ?? '',
       apellido: perfil.apellido ?? '',
       telefono: perfil.telefono ?? '',
@@ -77,35 +68,33 @@ export const useConfiguracionPerfilLogic = () => {
   useEffect(() => {
     if (!perfil) return;
 
-    // Update if perfil changes from backend after initialization
     if (isInitialized.current && perfil !== lastSyncedData.current) {
-      setFormData(prev => {
-        const getMerged = (field: keyof FormDataPerfil, perfilValue: string | null | undefined) => {
-          const lastValue = (lastSyncedData.current as Record<keyof FormDataPerfil, string | null | undefined> | undefined)?.[field] ?? '';
-          const currentValue = prev[field] ?? '';
-          const incomingValue = perfilValue ?? '';
-          return currentValue !== lastValue ? currentValue : incomingValue;
-        };
+      const currentValues = getValues();
+      
+      const getMerged = (field: keyof FormDataPerfil, perfilValue: string | null | undefined) => {
+        const lastValue = (lastSyncedData.current as Record<keyof FormDataPerfil, string | null | undefined> | undefined)?.[field] ?? '';
+        const currentValue = currentValues[field] ?? '';
+        const incomingValue = perfilValue ?? '';
+        return currentValue !== lastValue ? currentValue : incomingValue;
+      };
 
-        return {
-          nombre: getMerged('nombre', perfil.nombre),
-          apellido: getMerged('apellido', perfil.apellido),
-          telefono: getMerged('telefono', perfil.telefono),
-          agenciaId: getMerged('agenciaId', perfil.agenciaId),
-          fotoUrl: getMerged('fotoUrl', perfil.fotoUrl),
-          logoUrl: getMerged('logoUrl', perfil.logoUrl),
-          direccionFisica: getMerged('direccionFisica', perfil.direccionFisica),
-          promptPersonalIA: getMerged('promptPersonalIA', perfil.promptPersonalIA)
-        };
+      reset({
+        nombre: getMerged('nombre', perfil.nombre),
+        apellido: getMerged('apellido', perfil.apellido),
+        telefono: getMerged('telefono', perfil.telefono),
+        agenciaId: getMerged('agenciaId', perfil.agenciaId),
+        fotoUrl: getMerged('fotoUrl', perfil.fotoUrl),
+        logoUrl: getMerged('logoUrl', perfil.logoUrl),
+        direccionFisica: getMerged('direccionFisica', perfil.direccionFisica),
+        promptPersonalIA: getMerged('promptPersonalIA', perfil.promptPersonalIA)
       });
       lastSyncedData.current = perfil;
     }
-  }, [perfil]);
+  }, [perfil, reset, getValues]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (formData.telefono.replace(/\D/g, '').length < 10) {
+  const onSubmit = async (data: FormDataPerfil) => {
+    const phone = data.telefono || '';
+    if (phone.replace(/\D/g, '').length < 10 && phone.replace(/\D/g, '').length > 0) {
       toast.error('Número inválido', {
         description: 'Por favor ingresa un número de teléfono válido (mínimo 10 dígitos incluyendo el código de país).'
       });
@@ -114,8 +103,8 @@ export const useConfiguracionPerfilLogic = () => {
 
     try {
       await actualizarPerfil({
-        ...formData,
-        agenciaId: formData.agenciaId || null
+        ...data,
+        agenciaId: data.agenciaId || undefined
       });
       await mutate();
       toast.success('Perfil actualizado', {
@@ -179,9 +168,8 @@ export const useConfiguracionPerfilLogic = () => {
   return {
     perfil,
     isLoading,
-    formData,
-    setFormData,
-    handleSubmit,
+    methods,
+    handleSubmit: hookSubmit(onSubmit),
     pwdData,
     setPwdData,
     isUpdatingPwd,
