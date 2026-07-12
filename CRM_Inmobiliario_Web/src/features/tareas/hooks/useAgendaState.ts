@@ -47,9 +47,14 @@ export const useAgendaState = (allTareas: Tarea[]) => {
   const [isToolbarOpen, setIsToolbarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTipos, setFilterTipos] = useState<string[]>([]);
+  const [filterColores, setFilterColores] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'fechaInicio' | 'fechaCreacion'>('fechaInicio');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [historySortOrder, setHistorySortOrder] = useState<'desc' | 'asc'>('desc');
+  const [historyFilterTipos, setHistoryFilterTipos] = useState<string[]>([]);
+  const [historyFilterColores, setHistoryFilterColores] = useState<string[]>([]);
+  const [historySortBy, setHistorySortBy] = useState<'fechaInicio' | 'fechaCreacion'>('fechaInicio');
+  const [isHistoryToolbarOpen, setIsHistoryToolbarOpen] = useState(false);
 
   const selectedTarea = useMemo(() => 
     allTareas.find(t => t.id === selectedTareaId), 
@@ -79,11 +84,21 @@ export const useAgendaState = (allTareas: Tarea[]) => {
     setSearchQuery,
     filterTipos,
     setFilterTipos,
+    filterColores,
+    setFilterColores,
     sortBy,
     setSortBy,
     sortOrder,
     setSortOrder,
     historySortOrder,
-    setHistorySortOrder
+    setHistorySortOrder,
+    historyFilterTipos,
+    setHistoryFilterTipos,
+    historyFilterColores,
+    setHistoryFilterColores,
+    historySortBy,
+    setHistorySortBy,
+    isHistoryToolbarOpen,
+    setIsHistoryToolbarOpen
   };
 };

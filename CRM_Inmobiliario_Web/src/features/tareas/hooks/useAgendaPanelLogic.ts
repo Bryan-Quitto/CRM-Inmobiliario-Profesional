@@ -18,9 +18,13 @@ export function useAgendaPanelLogic() {
     state.historySearch, 
     state.searchQuery, 
     state.filterTipos, 
+    state.filterColores,
     state.sortBy, 
     state.sortOrder,
-    state.historySortOrder
+    state.historySortOrder,
+    state.historyFilterTipos,
+    state.historyFilterColores,
+    state.historySortBy
   );
 
   const actions = useAgendaActions({

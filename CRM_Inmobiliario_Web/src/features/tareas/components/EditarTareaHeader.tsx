@@ -1,4 +1,4 @@
-import { ChevronLeft, RefreshCw, Trash2 } from 'lucide-react';
+import { ChevronLeft, RefreshCw, XCircle } from 'lucide-react';
 
 interface EditarTareaHeaderProps {
   isReadOnly: boolean;
@@ -46,7 +46,7 @@ export const EditarTareaHeader = ({
             onClick={onCancelTask}
             className="p-2.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
           >
-            <Trash2 className="h-5 w-5" />
+            <XCircle className="h-5 w-5" />
           </button>
         )}
       </div>

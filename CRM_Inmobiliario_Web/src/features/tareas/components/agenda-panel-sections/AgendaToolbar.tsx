@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, ArrowUp, ArrowDown } from 'lucide-react';
 import { SearchInput } from '@/components/ui/SearchInput';
+import { COLORS } from '../../constants/taskColors';
 
 interface AgendaToolbarProps {
   searchQuery: string;
   onSearchChange: (val: string) => void;
   filterTipos: string[];
   onFilterTiposChange: (val: string[]) => void;
+  filterColores: string[];
+  onFilterColoresChange: (val: string[]) => void;
   sortBy: 'fechaInicio' | 'fechaCreacion';
   onSortByChange: (val: 'fechaInicio' | 'fechaCreacion') => void;
   sortOrder: 'asc' | 'desc';
@@ -20,6 +23,8 @@ export const AgendaToolbar: React.FC<AgendaToolbarProps> = ({
   onSearchChange,
   filterTipos,
   onFilterTiposChange,
+  filterColores,
+  onFilterColoresChange,
   sortBy,
   onSortByChange,
   sortOrder,
@@ -43,6 +48,14 @@ export const AgendaToolbar: React.FC<AgendaToolbarProps> = ({
       onFilterTiposChange(filterTipos.filter(t => t !== tipo));
     } else {
       onFilterTiposChange([...filterTipos, tipo]);
+    }
+  };
+
+  const toggleColor = (hex: string) => {
+    if (filterColores.includes(hex)) {
+      onFilterColoresChange(filterColores.filter(c => c !== hex));
+    } else {
+      onFilterColoresChange([...filterColores, hex]);
     }
   };
 
@@ -77,6 +90,29 @@ export const AgendaToolbar: React.FC<AgendaToolbarProps> = ({
             {tipo}
           </button>
         ))}
+      </div>
+
+      {/* Filtros rápidos por Color */}
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+        {COLORS.map((color) => {
+          const isSelected = filterColores.includes(color.hex);
+          return (
+            <button
+              key={color.hex}
+              onClick={() => toggleColor(color.hex)}
+              className={`w-5 h-5 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                isSelected ? 'ring-2 ring-offset-1 ring-slate-800 scale-110' : 'hover:scale-110 opacity-80 hover:opacity-100'
+              }`}
+              style={{ backgroundColor: color.hex }}
+              title={color.name}
+              aria-label={color.name}
+            >
+              {isSelected && (
+                <Check className="w-3 h-3 text-white" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Controles de Ordenamiento */}

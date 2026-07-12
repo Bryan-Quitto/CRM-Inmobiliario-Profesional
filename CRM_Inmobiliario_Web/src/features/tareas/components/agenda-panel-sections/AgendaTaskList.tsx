@@ -15,6 +15,7 @@ interface AgendaTaskListProps {
   onComplete: (id: string) => void;
   onSelectTask: (id: string) => void;
   onEditTask: (id: string) => void;
+  onCancelTask: (id: string) => void;
 }
 
 export const AgendaTaskList: React.FC<AgendaTaskListProps> = ({
@@ -28,7 +29,8 @@ export const AgendaTaskList: React.FC<AgendaTaskListProps> = ({
   onToggleFuturas,
   onComplete,
   onSelectTask,
-  onEditTask
+  onEditTask,
+  onCancelTask
 }) => {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
@@ -62,6 +64,7 @@ export const AgendaTaskList: React.FC<AgendaTaskListProps> = ({
                     onComplete={onComplete}
                     onClick={() => onSelectTask(tarea.id)}
                     onEdit={() => onEditTask(tarea.id)}
+                    onCancel={() => onCancelTask(tarea.id)}
                     isCompleting={false}
                   />
                 ))}
@@ -84,6 +87,7 @@ export const AgendaTaskList: React.FC<AgendaTaskListProps> = ({
                     onComplete={onComplete}
                     onClick={() => onSelectTask(tarea.id)}
                     onEdit={() => onEditTask(tarea.id)}
+                    onCancel={() => onCancelTask(tarea.id)}
                     isCompleting={false}
                   />
                 ))}
@@ -118,6 +122,7 @@ export const AgendaTaskList: React.FC<AgendaTaskListProps> = ({
                       onComplete={onComplete}
                       onClick={() => onSelectTask(tarea.id)}
                       onEdit={() => onEditTask(tarea.id)}
+                      onCancel={() => onCancelTask(tarea.id)}
                       isCompleting={false}
                     />
                   ))}

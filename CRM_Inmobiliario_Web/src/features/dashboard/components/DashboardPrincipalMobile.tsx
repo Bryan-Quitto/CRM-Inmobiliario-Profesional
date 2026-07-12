@@ -48,7 +48,7 @@ export const DashboardPrincipalMobile: React.FC<Props> = ({ logic }) => {
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-bold text-slate-800 break-words">Activa las alertas</h3>
-              <p className="text-xs text-slate-600 mt-1 break-words">Recibe notificaciones inmediatas de la IA.</p>
+              <p className="text-xs text-slate-600 mt-1 break-words">Recibe notificaciones de la IA y de las tareas en tu agenda.</p>
             </div> 
           </div>
           <Link 

@@ -46,7 +46,7 @@ export const DashboardPrincipalDesktop: React.FC<Props> = ({ logic }) => {
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-800">Activa las notificaciones en tiempo real</h3>
-              <p className="text-sm text-slate-600 mt-0.5">Recibe alertas inmediatas cuando la IA requiera asistencia con un cliente o con las tareas de tu agenda.</p>
+              <p className="text-sm text-slate-600 mt-0.5">Recibe notificaciones cuando la IA requiera asistencia con un cliente o con las tareas de tu agenda.</p>
             </div> 
           </div>
           <Link 

@@ -106,6 +106,8 @@ export const AgendaPanelMobile: React.FC<AgendaPanelMobileProps> = ({ logic, onC
           onSearchChange={state.setSearchQuery}
           filterTipos={state.filterTipos}
           onFilterTiposChange={state.setFilterTipos}
+          filterColores={state.filterColores}
+          onFilterColoresChange={state.setFilterColores}
           sortBy={state.sortBy}
           onSortByChange={state.setSortBy}
           sortOrder={state.sortOrder}
@@ -113,22 +115,39 @@ export const AgendaPanelMobile: React.FC<AgendaPanelMobileProps> = ({ logic, onC
         />
       )}
 
-      <AgendaTaskList 
-        loading={loading}
-        allTareasCount={allTareas.length}
-        tareasPendientes={filters.tareasPendientes}
-        tareasAtrasadas={filters.tareasAtrasadas}
-        tareasHoy={filters.tareasHoy}
-        tareasFuturas={filters.tareasFuturas}
-        isFuturasExpanded={state.isFuturasExpanded}
-        onToggleFuturas={() => state.setIsFuturasExpanded(!state.isFuturasExpanded)}
-        onComplete={actions.handleCompletar}
-        onSelectTask={handlers.handleSelectTask}
-        onEditTask={(id) => {
-          state.setSelectedTareaId(id);
-          state.setView('edit');
-        }}
-      />
+      {!(state.showHistory && state.isHistoryToolbarOpen) && (
+        <>
+          <AgendaTaskList 
+            loading={loading}
+            allTareasCount={allTareas.length}
+            tareasPendientes={filters.tareasPendientes}
+            tareasAtrasadas={filters.tareasAtrasadas}
+            tareasHoy={filters.tareasHoy}
+            tareasFuturas={filters.tareasFuturas}
+            isFuturasExpanded={state.isFuturasExpanded}
+            onToggleFuturas={() => state.setIsFuturasExpanded(!state.isFuturasExpanded)}
+            onComplete={actions.handleCompletar}
+            onSelectTask={handlers.handleSelectTask}
+            onEditTask={(id) => {
+              state.setSelectedTareaId(id);
+              state.setView('edit');
+            }}
+            onCancelTask={(id) => {
+              state.setSelectedTareaId(id);
+              state.setIsConfirmingCancel(true);
+            }}
+          />
+          <ConfirmModal 
+            isOpen={state.isConfirmingCancel}
+            title="¿Cancelar Tarea?"
+            description="Esta acción no se puede deshacer. La tarea quedará marcada como cancelada en el historial."
+            confirmText="Sí, cancelar"
+            type="danger"
+            onConfirm={() => actions.handleCancelar(state.selectedTareaId)}
+            onClose={() => state.setIsConfirmingCancel(false)}
+          />
+        </>
+      )}
 
       <AgendaHistory 
         showHistory={state.showHistory}
@@ -138,7 +157,15 @@ export const AgendaPanelMobile: React.FC<AgendaPanelMobileProps> = ({ logic, onC
         filteredHistorial={filters.filteredHistorial}
         onSelectTask={handlers.handleSelectTask}
         historySortOrder={state.historySortOrder}
-        onToggleHistorySort={() => state.setHistorySortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+        onHistorySortOrderChange={state.setHistorySortOrder}
+        historyFilterTipos={state.historyFilterTipos}
+        onHistoryFilterTiposChange={state.setHistoryFilterTipos}
+        historyFilterColores={state.historyFilterColores}
+        onHistoryFilterColoresChange={state.setHistoryFilterColores}
+        historySortBy={state.historySortBy}
+        onHistorySortByChange={state.setHistorySortBy}
+        isHistoryToolbarOpen={state.isHistoryToolbarOpen}
+        onToggleHistoryToolbar={() => state.setIsHistoryToolbarOpen(!state.isHistoryToolbarOpen)}
       />
 
       <ComandoPanel

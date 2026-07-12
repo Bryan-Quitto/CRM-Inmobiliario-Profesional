@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import { getPropiedades } from '../../propiedades/api/getPropiedades';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver } from 'react-hook-form';
 import { taskSchema } from '../validations';
+import { DEFAULT_TASK_COLORS } from '../constants/taskColors';
 import { swrDefaultConfig, invalidateCRMData } from '@/lib/swr';
 import useSWR from 'swr';
 
@@ -66,16 +67,17 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
 
   const getInitialValues = (): CrearTareaDTO => {
     if (prefill) {
+      const tipo = prefill.tipoTarea ?? 'Llamada';
       return {
         titulo: prefill.titulo ?? '',
         descripcion: '',
-        tipoTarea: prefill.tipoTarea ?? 'Llamada',
+        tipoTarea: tipo,
         fechaInicio: prefill.fechaInicio ?? defaultFecha,
         contactoId: prefill.contactoId,
         propiedadId: prefill.propiedadId,
         lugar: prefill.lugar,
         duracionMinutos: 0,
-        colorHex: null
+        colorHex: DEFAULT_TASK_COLORS[tipo]
       };
     }
 
@@ -84,7 +86,8 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
       try {
         const draft = JSON.parse(saved);
         delete draft.fechaInicio;
-        return { ...draft, fechaInicio: defaultFecha, duracionMinutos: draft.duracionMinutos ?? 0, colorHex: draft.colorHex ?? null };
+        const tipo = draft.tipoTarea ?? 'Llamada';
+        return { ...draft, fechaInicio: defaultFecha, duracionMinutos: draft.duracionMinutos ?? 0, colorHex: draft.colorHex ?? DEFAULT_TASK_COLORS[tipo] };
       } catch { /* ignore */ }
     }
     return {
@@ -93,7 +96,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
       tipoTarea: 'Llamada',
       fechaInicio: defaultFecha,
       duracionMinutos: 0,
-      colorHex: null
+      colorHex: DEFAULT_TASK_COLORS['Llamada']
     };
   };
 
@@ -104,6 +107,19 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
   });
 
   const formData = useWatch({ control });
+
+  const tipoTarea = formData.tipoTarea;
+  const colorHex = formData.colorHex;
+  const lastTipoRef = useRef(tipoTarea);
+
+  useEffect(() => {
+    if (tipoTarea && tipoTarea !== lastTipoRef.current) {
+      if (!colorHex || colorHex === DEFAULT_TASK_COLORS[lastTipoRef.current as string]) {
+        setValue('colorHex', DEFAULT_TASK_COLORS[tipoTarea]);
+      }
+      lastTipoRef.current = tipoTarea;
+    }
+  }, [tipoTarea, colorHex, setValue]);
 
   const onSubmit = (data: CrearTareaDTO) => {
     localStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -116,7 +132,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
       id: tempId,
       ...data,
       duracionMinutos: data.duracionMinutos ?? 0,
-      colorHex: data.colorHex ?? undefined,
+      colorHex: data.colorHex ?? DEFAULT_TASK_COLORS[data.tipoTarea],
       tipoTarea: data.tipoTarea as 'Llamada' | 'Visita' | 'Reunión' | 'Trámite',
       estado: 'Pendiente' as const,
       fechaInicio: new Date(data.fechaInicio).toISOString(),
@@ -128,6 +144,7 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
 
     const payload = {
       ...data,
+      colorHex: data.colorHex ?? DEFAULT_TASK_COLORS[data.tipoTarea],
       fechaInicio: new Date(data.fechaInicio).toISOString()
     };
 

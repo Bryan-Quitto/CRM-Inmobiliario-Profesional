@@ -9,7 +9,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Trash2,
   User,
   ExternalLink
 } from 'lucide-react';
@@ -65,7 +64,7 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
                 onClick={onCancelTask}
                 className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
               >
-                <Trash2 className="h-4 w-4" />
+                <XCircle className="h-4 w-4" />
               </button>
               <button 
                 title="Editar Tarea"

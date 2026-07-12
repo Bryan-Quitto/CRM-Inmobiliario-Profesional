@@ -9,7 +9,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Trash2,
   User,
   ExternalLink
 } from 'lucide-react';
@@ -70,7 +69,7 @@ export const TareaDetalleMobile = ({ logic }: Props) => {
               onClick={onCancelTask}
               className="cursor-pointer w-full flex items-center justify-center gap-2 p-3 text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all font-bold text-sm"
             >
-              <Trash2 className="h-5 w-5 shrink-0" />
+              <XCircle className="h-5 w-5 shrink-0" />
               Cancelar Tarea
             </button>
           </div>

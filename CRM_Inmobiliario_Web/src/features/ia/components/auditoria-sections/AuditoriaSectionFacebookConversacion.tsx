@@ -149,7 +149,7 @@ export const AuditoriaSectionFacebookConversacion = ({ psid, isActive }: Section
                     <div className={`flex items-center gap-2 mt-1 mb-3 ${isIA ? 'justify-end mr-1' : 'ml-10'}`}>
                       {isIA && msg.origenMensaje && (
                         <div className="text-[10px] font-bold text-[#65676B] bg-[#F0F2F5] px-2 py-0.5 rounded-md">
-                          {msg.origenMensaje === 'IA' ? '🤖 IA' : '👤 Agente'}
+                          {msg.origenMensaje.toUpperCase() === 'IA' ? '🤖 IA' : '👤 Agente'}
                         </div>
                       )}
                       <div className="text-[11px] font-medium text-[#8C939D]">

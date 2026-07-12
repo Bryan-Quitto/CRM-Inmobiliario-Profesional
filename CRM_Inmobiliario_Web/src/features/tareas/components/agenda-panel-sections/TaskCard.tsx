@@ -7,7 +7,8 @@ import {
   Loader2,
   Check,
   Briefcase,
-  Pencil
+  Pencil,
+  XCircle
 } from 'lucide-react';
 import type { Tarea } from '../../types';
 import { formatDateTime, isExpired } from '../../utils';
@@ -32,6 +33,7 @@ interface TaskCardProps {
   onComplete: (id: string) => void;
   onClick: () => void;
   onEdit: () => void;
+  onCancel: () => void;
   isCompleting: boolean;
 }
 
@@ -40,6 +42,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onComplete, 
   onClick, 
   onEdit, 
+  onCancel,
   isCompleting 
 }) => {
   const Icon = TIPO_ICONOS[tarea.tipoTarea] || Clock;
@@ -57,18 +60,31 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         tarea.estado === 'Completada' ? 'opacity-50 scale-95 translate-x-4 grayscale' : ''
       }`}
     >
-      {/* Botón de Editar en la esquina inferior izquierda */}
+      {/* Botones de acción (Editar a la izquierda, Cancelar a la derecha) */}
       {tarea.estado === 'Pendiente' && (
-        <button
-          title="Editar Tarea"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          className="absolute bottom-2 left-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 cursor-pointer"
-        >
-          <Pencil className="h-3 w-3" />
-        </button>
+        <>
+          <button
+            title="Editar Tarea"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="absolute bottom-2 left-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 cursor-pointer"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+          
+          <button
+            title="Cancelar Tarea"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel();
+            }}
+            className="absolute bottom-2 right-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-rose-600 hover:border-rose-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 cursor-pointer"
+          >
+            <XCircle className="h-3 w-3" />
+          </button>
+        </>
       )}
 
       <div className="flex items-start gap-3">

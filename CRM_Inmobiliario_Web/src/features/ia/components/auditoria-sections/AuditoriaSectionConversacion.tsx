@@ -100,7 +100,7 @@ export const AuditoriaSectionConversacion = ({ telefono, isActive }: SectionConv
                       <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200/50 border-dashed">
                         {msg.rol === 'ia' && msg.origenMensaje && (
                           <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-white/50 px-2 py-0.5 rounded-md">
-                            {msg.origenMensaje === 'IA' ? '🤖 IA' : '👤 Agente'}
+                            {msg.origenMensaje.toUpperCase() === 'IA' ? '🤖 IA' : '👤 Agente'}
                           </div>
                         )}
                         <div className="flex items-center gap-1.5 opacity-50 ml-auto">

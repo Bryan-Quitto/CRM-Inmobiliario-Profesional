@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import type { 
   UseFormRegister, 
   UseFormHandleSubmit, 
@@ -23,6 +23,7 @@ import useSWR from 'swr';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver } from 'react-hook-form';
 import { taskSchema } from '../validations';
+import { DEFAULT_TASK_COLORS } from '../constants/taskColors';
 
 interface UseEditarTareaProps {
   tareaId: string;
@@ -65,7 +66,7 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
       contactoNombre: initialData.contactoNombre,
       propiedadTitulo: initialData.propiedadTitulo,
       duracionMinutos: initialData.duracionMinutos ?? 0,
-      colorHex: initialData.colorHex ?? undefined
+      colorHex: initialData.colorHex ?? DEFAULT_TASK_COLORS[initialData.tipoTarea]
     } : undefined
   });
 
@@ -150,6 +151,19 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tareaId, initialData]);
 
+  const tipoTarea = useWatch({ control, name: 'tipoTarea' });
+  const colorHex = useWatch({ control, name: 'colorHex' });
+  const lastTipoRef = useRef<string | undefined>(initialData?.tipoTarea);
+
+  useEffect(() => {
+    if (tipoTarea && lastTipoRef.current && tipoTarea !== lastTipoRef.current) {
+      if (!colorHex || colorHex === DEFAULT_TASK_COLORS[lastTipoRef.current]) {
+        setValue('colorHex', DEFAULT_TASK_COLORS[tipoTarea]);
+      }
+      lastTipoRef.current = tipoTarea;
+    }
+  }, [tipoTarea, colorHex, setValue]);
+
   const onSubmit = (data: EditarTareaFormValues) => {
     if (isReadOnly) return;
     
@@ -173,7 +187,7 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
       tipoTarea: data.tipoTarea,
       fechaInicio: new Date(values.fechaInicio).toISOString(),
       duracionMinutos: data.duracionMinutos,
-      colorHex: data.colorHex,
+      colorHex: data.colorHex ?? DEFAULT_TASK_COLORS[data.tipoTarea],
       contactoId: data.contactoId,
       propiedadId: data.propiedadId,
       lugar: data.lugar
