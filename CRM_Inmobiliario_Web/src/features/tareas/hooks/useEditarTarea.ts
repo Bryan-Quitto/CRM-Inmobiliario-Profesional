@@ -180,11 +180,12 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
     const savePromise = actualizarTarea(tareaId, payload);
     
     updateTarea(tareaId, updatedFields, savePromise).catch(() => {
-
       toast.error('No se pudo sincronizar el cambio');
     });
 
-    invalidateCRMData(mutate);
+    savePromise.finally(() => {
+      invalidateCRMData(mutate);
+    });
 
     onSuccess();
   };

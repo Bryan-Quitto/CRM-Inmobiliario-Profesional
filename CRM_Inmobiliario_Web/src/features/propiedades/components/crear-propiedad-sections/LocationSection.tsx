@@ -86,7 +86,7 @@ export const LocationSection = ({ isSuccess }: Props) => {
               {...field}
               icon={<Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
               disabled={isSuccess}
-              placeholder="Ej. 150.000"
+              placeholder="Ej. 150.000,00"
               error={errors.precio?.message}
             />
           )}

@@ -127,11 +127,12 @@ export const useCrearTarea = ({ onSuccess, fechaInicial, prefill }: UseCrearTare
     const savePromise = crearTarea(payload);
 
     addTarea(nuevaTareaOptimista, savePromise).catch(() => {
-
       toast.error('No se pudo sincronizar la tarea');
     });
 
-    invalidateCRMData(mutate);
+    savePromise.finally(() => {
+      invalidateCRMData(mutate);
+    });
 
     onSuccess();
   };

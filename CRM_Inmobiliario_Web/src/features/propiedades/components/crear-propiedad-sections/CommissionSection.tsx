@@ -165,6 +165,7 @@ export const CommissionSection = ({ initialData }: Props) => {
                   {...field}
                   suffixIcon={<span className="text-blue-600 font-black">%</span>}
                   className="text-center font-black text-blue-600 !pl-4"
+                  placeholder="Ej. 5,00"
                 />
               )}
             />

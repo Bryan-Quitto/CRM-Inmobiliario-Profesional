@@ -36,6 +36,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
               disabled={isSuccess}
               error={errors.areaTotal?.message}
               containerClassName={missedFields.includes('areaTotal') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              placeholder="Ej. 120,50"
             />
           )}
         />
@@ -58,6 +59,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 disabled={isSuccess}
                 error={errors.areaTerreno?.message}
                 containerClassName={missedFields.includes('areaTerreno') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                placeholder="Ej. 250,00"
               />
             )}
           />
@@ -81,6 +83,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 disabled={isSuccess}
                 error={errors.areaConstruccion?.message}
                 containerClassName={missedFields.includes('areaConstruccion') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                placeholder="Ej. 180,50"
               />
             )}
           />

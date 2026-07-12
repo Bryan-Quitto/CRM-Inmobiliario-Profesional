@@ -3,6 +3,7 @@ import { X, DollarSign, User, Check, Loader2, Info, Home, ChevronDown } from 'lu
 import { DynamicSearchSelect } from '@/components/DynamicSearchSelect';
 import { useClosingModal } from '../hooks/useClosingModal';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { NumericFormat } from 'react-number-format';
 
 interface ClosingModalProps {
   isOpen: boolean;
@@ -128,12 +129,13 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
                  </label>
                  <div className="relative group">
                    <DollarSign className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${!isReserva && (tipoCierre === 'Vendida' || tipoCierre === 'Alquilada') ? 'text-slate-300' : 'text-slate-400 group-focus-within:text-emerald-500'}`} />
-                   <input
-                     type="number"
+                   <NumericFormat
+                     thousandSeparator="."
+                     decimalSeparator=","
                      value={precioCierre}
-                     onChange={(e) => setPrecioCierre(e.target.value)}
+                     onValueChange={(values) => setPrecioCierre(values.floatValue?.toString() || '')}
                      disabled={!isReserva && (tipoCierre === 'Vendida' || tipoCierre === 'Alquilada')}
-                     placeholder="0.00"
+                     placeholder="0,00"
                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl text-base font-black text-slate-700 transition-all outline-none ${(!isReserva && (tipoCierre === 'Vendida' || tipoCierre === 'Alquilada')) ? 'cursor-not-allowed opacity-70 bg-slate-100' : ''}`}
                    />
                  </div>
@@ -147,11 +149,12 @@ export const ClosingModal: React.FC<ClosingModalProps> = (props) => {
                    </label>
                    <div className="relative group">
                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                     <input
-                       type="number"
+                     <NumericFormat
+                       thousandSeparator="."
+                       decimalSeparator=","
                        value={montoReserva}
-                       onChange={(e) => setMontoReserva(e.target.value)}
-                       placeholder="0.00"
+                       onValueChange={(values) => setMontoReserva(values.floatValue?.toString() || '')}
+                       placeholder="0,00"
                        className="w-full pl-10 pr-4 py-3 bg-indigo-50/50 border border-indigo-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 rounded-2xl text-base font-black text-indigo-900 transition-all outline-none"
                      />
                    </div>

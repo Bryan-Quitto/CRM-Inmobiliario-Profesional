@@ -49,7 +49,7 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           optimisticData,
           rollbackOnError: true,
           revalidate: true,
-          populateCache: false // Queremos que use el resultado del fetch real
+          populateCache: true // Usamos el resultado de getTareas() directamente
         }
       );
     } catch { /* ignore */ }
@@ -68,7 +68,7 @@ export const TareasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           optimisticData,
           rollbackOnError: true,
           revalidate: true,
-          populateCache: false
+          populateCache: true
         }
       );
     } catch { /* ignore */ }
