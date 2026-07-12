@@ -1,4 +1,4 @@
-# Contexto del Proyecto: Lúmina | CRM Inmobiliario Profesional
+# Contexto del Proyecto: Ziel Luxora CRM | CRM Inmobiliario Profesional
 
 ## Descripción General
 Este proyecto es un **CRM (Customer Relationship Management) especializado para el sector inmobiliario profesional**. Su propósito es ayudar a agentes y agencias inmobiliarias a gestionar de forma centralizada y eficiente todo su embudo de ventas, propiedades, clientes, citas y analíticas.

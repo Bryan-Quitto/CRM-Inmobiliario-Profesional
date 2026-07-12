@@ -1,6 +1,6 @@
-{
-  "name": "Lúmina CRM",
-  "short_name": "Lúmina CRM",
+﻿{
+  "name": "Ziel Luxora CRM",
+  "short_name": "Ziel Luxora CRM",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -14,3 +14,4 @@
     }
   ]
 }
+

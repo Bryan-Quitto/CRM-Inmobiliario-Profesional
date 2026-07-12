@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import type { UseConfiguracionPortabilidadLogicReturn } from '../hooks/useConfiguracionPortabilidadLogic';
 import { Download, Users, Home } from 'lucide-react';
 
@@ -65,7 +65,7 @@ const ConfiguracionPortabilidadDesktop: React.FC<Props> = ({ logic }) => {
 
       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
         <p className="text-sm text-slate-600">
-          <strong>Aviso Legal:</strong> Al exportar estos datos, asumes la responsabilidad total de su custodia y tratamiento bajo la ley de protección de datos aplicable. Lúmina no se hace responsable por la filtración de la información una vez descargada del sistema.
+          <strong>Aviso Legal:</strong> Al exportar estos datos, asumes la responsabilidad total de su custodia y tratamiento bajo la ley de protección de datos aplicable. Ziel Luxora CRM no se hace responsable por la filtración de la información una vez descargada del sistema.
         </p>
       </div>
     </div>
@@ -73,3 +73,4 @@ const ConfiguracionPortabilidadDesktop: React.FC<Props> = ({ logic }) => {
 };
 
 export default ConfiguracionPortabilidadDesktop;
+

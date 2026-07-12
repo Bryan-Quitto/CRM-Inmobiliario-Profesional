@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Mail, Lock, Loader2, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useLoginFormLogic } from '../hooks/useLoginFormLogic';
 
@@ -31,9 +31,9 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
 
 
         <div className="flex flex-col items-center mb-4 mt-4">
-          <img src="/logo.png" alt="Lúmina Logo" className="h-16 w-16 object-contain drop-shadow-[0_0_10px_rgba(37,99,235,0.4)] mb-3" />
+          <img src="/logo.png" alt="Ziel Luxora CRM Logo" className="h-16 w-16 object-contain drop-shadow-[0_0_10px_rgba(37,99,235,0.4)] mb-3" />
           <h1 className="text-lg md:text-xl md:text-2xl font-black text-miui-white tracking-tight text-center">
-            Lúmina
+            Ziel Luxora CRM
           </h1>
           <p className="text-miui-slate-400 mt-1 font-bold uppercase tracking-[0.15em] text-xs">
             CRM Inmobiliario
@@ -137,10 +137,11 @@ export const LoginFormMobile: React.FC<LoginFormMobileProps> = ({ logic }) => {
             <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="cursor-pointer hover:text-blue-400 transition-colors">Privacidad</a>
           </div>
           <p className="text-center text-miui-slate-500 text-[10px] font-bold uppercase tracking-widest">
-            © 2026 Lúmina CRM
+            © 2026 Ziel Luxora CRM
           </p>
         </div>
       </div>
     </div>
   );
 };
+

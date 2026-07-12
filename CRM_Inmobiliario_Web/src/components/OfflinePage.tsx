@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { WifiOff, RefreshCcw, AlertTriangle, Home } from 'lucide-react';
 
 interface OfflinePageProps {
@@ -87,9 +87,10 @@ export const OfflinePage: React.FC<OfflinePageProps> = ({
 
         {/* Footer info */}
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-8">
-          Lúmina CRM • v1.1.0-Elite
+          Ziel Luxora CRM • v1.1.0-Elite
         </p>
       </div>
     </div>
   );
 };
+

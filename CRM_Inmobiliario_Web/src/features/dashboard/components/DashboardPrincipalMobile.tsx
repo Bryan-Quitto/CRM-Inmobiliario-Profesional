@@ -69,7 +69,7 @@ export const DashboardPrincipalMobile: React.FC<Props> = ({ logic }) => {
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-bold text-slate-800 break-words">Límite de Almacenamiento ({Math.round(perfil.monthlyStorageBytesLimit / (1024 * 1024))} MB)</h3>
               <p className="text-xs text-slate-600 mt-1 break-words">
-                Tu cuota se renueva en <strong>{perfil.daysUntilStorageReset} días</strong>.<br/><br/>Contáctate con <a href="mailto:soporte@luminacrminmobiliario.com" className="text-red-700 font-bold hover:underline">soporte@luminacrminmobiliario.com</a> si deseas asistencia.
+                Tu cuota se renueva en <strong>{perfil.daysUntilStorageReset} días</strong>.<br/><br/>Contáctate con <a href="mailto:soporte@zielluxoracrm.com" className="text-red-700 font-bold hover:underline">soporte@zielluxoracrm.com</a> si deseas asistencia.
               </p>
             </div> 
           </div>

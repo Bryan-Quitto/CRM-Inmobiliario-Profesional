@@ -1,17 +1,17 @@
-# Política de Privacidad de Lúmina
+﻿# Política de Privacidad de Ziel Luxora CRM
 
 **Fecha de última actualización:** 11 de julio de 2026
 
-Lúmina ("nosotros", "nuestro", "la Plataforma") está comprometida con la protección de los datos personales. Esta Política de Privacidad describe cómo recopilamos, utilizamos, almacenamos y protegemos la información personal, en cumplimiento de la Ley Orgánica de Protección de Datos Personales (LOPDP) del Ecuador, el Reglamento General de Protección de Datos (GDPR) y otros estándares internacionales aplicables.
+Ziel Luxora CRM ("nosotros", "nuestro", "la Plataforma") está comprometida con la protección de los datos personales. Esta Política de Privacidad describe cómo recopilamos, utilizamos, almacenamos y protegemos la información personal, en cumplimiento de la Ley Orgánica de Protección de Datos Personales (LOPDP) del Ecuador, el Reglamento General de Protección de Datos (GDPR) y otros estándares internacionales aplicables.
 
-Esta política se aplica a todos los usuarios de nuestra plataforma de CRM Inmobiliario profesional (Software como Servicio), es decir, a los Agentes Inmobiliarios Independientes (en adelante, "Usuario" o "Agente"). La funcionalidad de "Agencias" dentro de la plataforma opera únicamente como un mecanismo de agrupación y colaboración (espacio de trabajo o equipo) para compartir propiedades, y no genera un vínculo contractual directo entre Lúmina y dichas franquicias o empresas.
+Esta política se aplica a todos los usuarios de nuestra plataforma de CRM Inmobiliario profesional (Software como Servicio), es decir, a los Agentes Inmobiliarios Independientes (en adelante, "Usuario" o "Agente"). La funcionalidad de "Agencias" dentro de la plataforma opera únicamente como un mecanismo de agrupación y colaboración (espacio de trabajo o equipo) para compartir propiedades, y no genera un vínculo contractual directo entre Ziel Luxora CRM y dichas franquicias o empresas.
 
 ## 1. Roles en el Tratamiento de Datos
 
 En el contexto de nuestros servicios, existen dos roles claramente diferenciados:
 
-*   **Lúmina como Responsable del Tratamiento:** Actuamos como Responsables respecto a los datos personales de nuestros Usuarios (agentes y representantes legales de agencias) necesarios para la prestación del servicio, gestión de cuentas y facturación.
-*   **Lúmina como Encargado del Tratamiento:** Actuamos como Encargados respecto a los datos personales de los clientes finales (contactos, prospectos, y propietarios de inmuebles) introducidos o vinculados a la plataforma por el Usuario. El Agente actúa como el **Responsable del Tratamiento** de los datos de su propia cartera de clientes y es el único responsable de recabar el consentimiento lícito para su tratamiento, incluyendo su procesamiento mediante herramientas de Inteligencia Artificial (IA) y canales de comunicación como WhatsApp.
+*   **Ziel Luxora CRM como Responsable del Tratamiento:** Actuamos como Responsables respecto a los datos personales de nuestros Usuarios (agentes y representantes legales de agencias) necesarios para la prestación del servicio, gestión de cuentas y facturación.
+*   **Ziel Luxora CRM como Encargado del Tratamiento:** Actuamos como Encargados respecto a los datos personales de los clientes finales (contactos, prospectos, y propietarios de inmuebles) introducidos o vinculados a la plataforma por el Usuario. El Agente actúa como el **Responsable del Tratamiento** de los datos de su propia cartera de clientes y es el único responsable de recabar el consentimiento lícito para su tratamiento, incluyendo su procesamiento mediante herramientas de Inteligencia Artificial (IA) y canales de comunicación como WhatsApp.
 
 ## 2. Datos que Recopilamos
 
@@ -33,7 +33,7 @@ Como Encargados del Tratamiento, procesamos por cuenta del Agente:
 ## 3. Uso de los Datos
 
 Utilizamos la información recopilada con las siguientes finalidades:
-*   Proveer, mantener y mejorar los servicios del CRM Lúmina.
+*   Proveer, mantener y mejorar los servicios del CRM Ziel Luxora CRM.
 *   Gestionar la autenticación segura y el acceso a la plataforma.
 *   Facilitar la comunicación omnicanal entre los Agentes y sus clientes mediante integraciones oficiales de Meta (WhatsApp, Facebook Messenger).
 *   Procesar consultas, mensajes e información comercial mediante servicios de Inteligencia Artificial para asistir a los agentes (clasificación, resúmenes, y respuestas automáticas).
@@ -52,13 +52,13 @@ Para proveer nuestro servicio, compartimos información de manera segura con pro
 
 ## 5. Almacenamiento Local
 
-Lúmina utiliza tecnologías de almacenamiento en el navegador del usuario final (Agente) para el correcto funcionamiento de la aplicación web. La plataforma es una Aplicación de Página Única (SPA) que utiliza tokens JWT en cabeceras de autorización (`Bearer`), y **no emplea cookies de sesión**:
+Ziel Luxora CRM utiliza tecnologías de almacenamiento en el navegador del usuario final (Agente) para el correcto funcionamiento de la aplicación web. La plataforma es una Aplicación de Página Única (SPA) que utiliza tokens JWT en cabeceras de autorización (`Bearer`), y **no emplea cookies de sesión**:
 
 *   **LocalStorage:** Utilizamos `localStorage` para persistir la sesión de Supabase Auth (tokens JWT) de forma segura en el navegador, evitando reconexiones constantes.
 *   **Caché de Aplicación (Zustand / SWR):** Ciertas preferencias de usuario y datos de la interfaz se almacenan temporalmente en la memoria o almacenamiento local/sesión para garantizar una experiencia rápida y fluida.
 *   **Notificaciones Push Nativas (WebPush/VAPID):** El Agente puede habilitar notificaciones push del sistema operativo (Windows, Android, macOS, iOS) mediante la tecnología estándar Web Push con claves VAPID propias. Estas notificaciones alertan sobre tareas pendientes, vencidas y solicitudes de asistencia de la IA. Su activación es completamente voluntaria y configurable desde el panel de ajustes.
 
-*Nota: Lúmina no utiliza cookies de sesión ni cookies de rastreo publicitario de terceros en su plataforma de software.*
+*Nota: Ziel Luxora CRM no utiliza cookies de sesión ni cookies de rastreo publicitario de terceros en su plataforma de software.*
 
 ## 6. Base Legal para el Tratamiento
 
@@ -74,7 +74,7 @@ De acuerdo con la LOPDP y el GDPR, los titulares de los datos tienen derecho a:
 *   **Oposición y Limitación:** Oponerse a ciertos tratamientos o solicitar su restricción.
 *   **Portabilidad:** Recibir sus datos en un formato estructurado y legible por máquina.
 
-Los Usuarios pueden ejercer estos derechos directamente desde su panel de configuración o contactándonos a través de nuestros canales de soporte. Para el caso de clientes finales, deberán ejercer estos derechos directamente ante el Agente inmobiliario correspondiente; Lúmina asistirá técnicamente al Agente para cumplir con tales solicitudes.
+Los Usuarios pueden ejercer estos derechos directamente desde su panel de configuración o contactándonos a través de nuestros canales de soporte. Para el caso de clientes finales, deberán ejercer estos derechos directamente ante el Agente inmobiliario correspondiente; Ziel Luxora CRM asistirá técnicamente al Agente para cumplir con tales solicitudes.
 
 ## 8. Seguridad de los Datos
 
@@ -82,16 +82,16 @@ Implementamos medidas técnicas y organizativas robustas para proteger los datos
 
 ## 9. Datos de Plataformas Meta (WhatsApp y Facebook Messenger)
 
-Cuando el Usuario vincula sus canales de WhatsApp Business o Facebook Messenger a la plataforma, Lúmina accede a los mensajes, metadatos de conversaciones y configuración de página exclusivamente para proveer las funcionalidades del CRM descritas en esta política. Lúmina declara expresamente que:
+Cuando el Usuario vincula sus canales de WhatsApp Business o Facebook Messenger a la plataforma, Ziel Luxora CRM accede a los mensajes, metadatos de conversaciones y configuración de página exclusivamente para proveer las funcionalidades del CRM descritas en esta política. Ziel Luxora CRM declara expresamente que:
 
-*   Los datos provenientes de plataformas de Meta **no son utilizados para publicidad** de ningún tipo, ni para crear perfiles comerciales propios de Lúmina ajenos a las funcionalidades del CRM.
+*   Los datos provenientes de plataformas de Meta **no son utilizados para publicidad** de ningún tipo, ni para crear perfiles comerciales propios de Ziel Luxora CRM ajenos a las funcionalidades del CRM.
 *   Los datos de conversaciones de WhatsApp y Messenger son tratados únicamente para mostrar el historial en el CRM, automatizar respuestas en nombre del Agente y generar alertas de asistencia para el Agente.
 *   El Agente (Usuario) es el único responsable de obtener el consentimiento leal y lícito de sus contactos para el uso de mensajería automatizada o asistida por IA, conforme a las Políticas de Negocio de Meta.
-*   Lúmina opera bajo el modelo de Proveedor de Tecnología (Tech Provider / ISV) sobre cuentas de WhatsApp Business API gestionadas por los propios Agentes.
+*   Ziel Luxora CRM opera bajo el modelo de Proveedor de Tecnología (Tech Provider / ISV) sobre cuentas de WhatsApp Business API gestionadas por los propios Agentes.
 
 ## 10. Menores de Edad
 
-Lúmina es un servicio exclusivamente destinado a profesionales y empresas (B2B). No está dirigido a personas menores de 18 años. No recopilamos intencionalmente datos personales de menores. Si tuviesemos conocimiento de haber recopilado datos de un menor sin consentimiento parental válido, procederemos a su eliminación inmediata.
+Ziel Luxora CRM es un servicio exclusivamente destinado a profesionales y empresas (B2B). No está dirigido a personas menores de 18 años. No recopilamos intencionalmente datos personales de menores. Si tuviesemos conocimiento de haber recopilado datos de un menor sin consentimiento parental válido, procederemos a su eliminación inmediata.
 
 ## 11. Retención de Datos
 
@@ -108,7 +108,7 @@ Conservamos los datos personales únicamente durante el tiempo estrictamente nec
 
 Una vez vencido el plazo, los datos son eliminados o anonimizados de forma segura. En el caso específico de las cuentas de Usuario (Agente), pasados los 30 días de su solicitud de eliminación, se aplica un borrado lógico y anonimización. Esto implica la eliminación definitiva de datos identificativos (nombre, teléfono, email, foto de perfil, etc.), quedando la cuenta como un "Agente Anónimo". Este proceso se realiza para preservar la integridad de las métricas históricas de la plataforma sin mantener información personal identificable.
 
-Adicionalmente, como parte de nuestras políticas de retención y optimización de almacenamiento, Lúmina realizará la eliminación permanente y automática de recursos multimedia secundarios y archivos PDF adjuntos a las propiedades, bajo las siguientes tres reglas estrictas de limpieza global (independientes de la configuración de archivado del agente):
+Adicionalmente, como parte de nuestras políticas de retención y optimización de almacenamiento, Ziel Luxora CRM realizará la eliminación permanente y automática de recursos multimedia secundarios y archivos PDF adjuntos a las propiedades, bajo las siguientes tres reglas estrictas de limpieza global (independientes de la configuración de archivado del agente):
 1. **Limpieza por Estado Inactiva:** Toda propiedad que sea pasada al estado comercial "Inactiva", sufrirá una limpieza inmediata e innegociable de sus recursos secundarios.
 2. **Limpieza por Inactividad (Tiempo):** Toda propiedad (exceptuando "Vendida" o "Alquilada") que alcance 1 año (365 días) sin actividad, entrará en alerta roja por 31 días. Si no hay actividad, se eliminarán sus recursos.
 3. **Limpieza por Cierre de Negocio:** Toda propiedad en estado "Vendida" o "Alquilada" mostrará una alerta roja y sus recursos serán eliminados innegociablemente al cumplirse 1 año desde su cierre.
@@ -124,4 +124,5 @@ Nos reservamos el derecho de actualizar esta política periódicamente. Los Usua
 
 ## 14. Contacto
 
-Para dudas sobre esta Política de Privacidad o consultas legales respecto a la protección de datos, por favor contáctese con: `soporte@luminacrminmobiliario.com`.
+Para dudas sobre esta Política de Privacidad o consultas legales respecto a la protección de datos, por favor contáctese con: `soporte@Ziel Luxora CRMcrminmobiliario.com`.
+

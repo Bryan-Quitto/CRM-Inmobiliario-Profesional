@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { FileText, ShieldCheck, ExternalLink, Loader2 } from 'lucide-react';
 import { api } from '@/lib/axios';
 import { toast } from 'sonner';
@@ -34,7 +34,7 @@ export const TermsOfServiceModal = () => {
           <h2 className="text-2xl font-bold text-slate-900 mb-3">Actualización Importante</h2>
           <p className="text-slate-600 mb-6 text-sm leading-relaxed">
             Hemos actualizado nuestros Términos de Servicio y Política de Privacidad. 
-            Para continuar utilizando Lúmina, es necesario que leas y aceptes las nuevas condiciones.
+            Para continuar utilizando Ziel Luxora CRM, es necesario que leas y aceptes las nuevas condiciones.
           </p>
 
           <div className="w-full flex flex-col gap-3 mb-8">
@@ -85,7 +85,7 @@ export const TermsOfServiceModal = () => {
               </svg>
             </div>
             <span className="text-sm text-slate-700 select-none">
-              He leído y acepto los nuevos Términos de Servicio y la Política de Privacidad de Lúmina.
+              He leído y acepto los nuevos Términos de Servicio y la Política de Privacidad de Ziel Luxora CRM.
             </span>
           </label>
         </div>
@@ -107,3 +107,4 @@ export const TermsOfServiceModal = () => {
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import { Tag, RefreshCcw, XCircle, CheckCircle, Shield, Lock, Users, Archive, FilePlus, UserCheck, Hash, UserPlus, Bot, Camera, Image as ImageIcon, Folder, Trash2 } from 'lucide-react';
+﻿import { Tag, RefreshCcw, XCircle, CheckCircle, Shield, Lock, Users, Archive, FilePlus, UserCheck, Hash, UserPlus, Bot, Camera, Image as ImageIcon, Folder, Trash2 } from 'lucide-react';
 import { ManualSection } from '../../../../components/ui/manuales/ManualSection';
 import { ManualAlert } from '../../../../components/ui/manuales/ManualAlert';
 import { ManualBadge } from '../../../../components/ui/manuales/ManualBadge';
@@ -128,7 +128,7 @@ export const ManualPropiedadesDesktop: React.FC = () => {
         <ManualSection title="6. Limpieza Automática de Recursos" icon={<RefreshCcw className="w-6 h-6" />}>
           <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-200/50 mt-6 space-y-3">
             <h3 className="font-bold text-orange-900 flex items-center gap-2"><Trash2 className="w-5 h-5 text-orange-600" /> Limpieza de Almacenamiento (Reglas Globales)</h3>
-            <p className="text-sm text-slate-700">Para optimizar almacenamiento, Lúmina aplica dos reglas globales estrictas (independientes del estado de archivado):</p>
+            <p className="text-sm text-slate-700">Para optimizar almacenamiento, Ziel Luxora CRM aplica dos reglas globales estrictas (independientes del estado de archivado):</p>
             <ul className="text-sm text-slate-700 list-disc pl-5 space-y-2">
               <li><strong>Limpieza por Estado Inactiva:</strong> Al momento en que una propiedad pasa al estado "Inactiva" (directamente o porque su dueño se desactivó), el sistema ejecuta una limpieza inmediata e innegociable de fotos secundarias, secciones y PDF.</li>
               <li><strong>Limpieza por Inactividad (Tiempo):</strong> Toda propiedad (excepto "Vendida" o "Alquilada") que alcance 1 año (365 días) sin actividad mostrará una alerta roja por 31 días. Si no hay actividad en ese periodo, se limpiarán sus fotos secundarias y PDF (salvable).</li>
@@ -143,3 +143,4 @@ export const ManualPropiedadesDesktop: React.FC = () => {
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Lock, Loader2, Save, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useActualizarClaveLogic } from '../hooks/useActualizarClaveLogic';
 import { PasswordRequirements } from './shared/PasswordRequirements';
@@ -31,9 +31,9 @@ export const ActualizarClaveMobile: React.FC<ActualizarClaveMobileProps> = ({ lo
 
       <div className="w-full max-w-sm flex-1 flex flex-col justify-center animate-in fade-in duration-500">
         <div className="flex flex-col items-center mb-4 mt-4">
-          <img src="/logo.png" alt="Lúmina Logo" className="h-16 w-16 object-contain drop-shadow-[0_0_10px_rgba(37,99,235,0.4)] mb-3" />
+          <img src="/logo.png" alt="Ziel Luxora CRM Logo" className="h-16 w-16 object-contain drop-shadow-[0_0_10px_rgba(37,99,235,0.4)] mb-3" />
           <h1 className="text-lg md:text-xl md:text-2xl font-black text-miui-white tracking-tight text-center">
-            Lúmina
+            Ziel Luxora CRM
           </h1>
           <p className="text-miui-slate-400 mt-1 font-bold uppercase tracking-[0.15em] text-xs">
             CRM Inmobiliario
@@ -137,3 +137,4 @@ export const ActualizarClaveMobile: React.FC<ActualizarClaveMobileProps> = ({ lo
     </div>
   );
 };
+

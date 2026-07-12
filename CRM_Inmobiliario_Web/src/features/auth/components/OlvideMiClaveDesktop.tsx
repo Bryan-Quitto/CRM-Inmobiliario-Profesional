@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Mail, Loader2, Send, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useOlvideMiClaveLogic } from '../hooks/useOlvideMiClaveLogic';
 import { Link } from 'react-router-dom';
@@ -19,9 +19,9 @@ export const OlvideMiClaveDesktop: React.FC<OlvideMiClaveDesktopProps> = ({ logi
       <div className="w-full max-w-md animate-in fade-in zoom-in duration-700">
         {/* Logo y Encabezado */}
         <div className="flex flex-col items-center mb-10">
-          <img src="/logo.png" alt="Lúmina Logo" className="h-20 w-20 object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.5)] mb-4" />
+          <img src="/logo.png" alt="Ziel Luxora CRM Logo" className="h-20 w-20 object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.5)] mb-4" />
           <h1 className="text-3xl font-black text-white tracking-tight text-center">
-            Lúmina
+            Ziel Luxora CRM
           </h1>
           <p className="text-slate-400 mt-2 font-bold uppercase tracking-[0.2em] text-[10px]">
             CRM Inmobiliario
@@ -104,3 +104,4 @@ export const OlvideMiClaveDesktop: React.FC<OlvideMiClaveDesktopProps> = ({ logi
     </div>
   );
 };
+

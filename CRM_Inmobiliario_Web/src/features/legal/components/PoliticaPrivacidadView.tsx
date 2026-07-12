@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { ContenidoLegal } from './ContenidoLegal';
 import politicaEs from '../assets/politica_privacidad.md?raw';
 import politicaEn from '../assets/politica_privacidad_en.md?raw';
@@ -14,7 +14,7 @@ export const PoliticaPrivacidadView = () => {
           <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
             <Shield className="w-6 h-6 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Lúmina CRM</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Ziel Luxora CRM</h1>
         </div>
         
         <div className="flex items-center bg-white border border-slate-200 p-1 rounded-lg shadow-sm">
@@ -46,3 +46,4 @@ export const PoliticaPrivacidadView = () => {
     </div>
   );
 };
+

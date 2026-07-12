@@ -68,7 +68,7 @@ export const DashboardPrincipalDesktop: React.FC<Props> = ({ logic }) => {
               <h3 className="text-sm font-bold text-slate-800">Has alcanzado tu límite mensual de almacenamiento ({Math.round(perfil.monthlyStorageBytesLimit / (1024 * 1024))} MB)</h3>
               <p className="text-sm text-slate-600 mt-0.5">
                 Tu cuota se renovará en <strong>{perfil.daysUntilStorageReset} días</strong>. 
-                Por favor, contáctate con <a href="mailto:soporte@luminacrminmobiliario.com" className="text-red-700 font-bold hover:underline">soporte@luminacrminmobiliario.com</a> si deseas asistencia.
+                Por favor, contáctate con <a href="mailto:soporte@zielluxoracrm.com" className="text-red-700 font-bold hover:underline">soporte@zielluxoracrm.com</a> si deseas asistencia.
               </p>
             </div> 
           </div>

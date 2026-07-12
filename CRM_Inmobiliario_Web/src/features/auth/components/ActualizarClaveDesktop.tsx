@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Lock, Loader2, Save, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useActualizarClaveLogic } from '../hooks/useActualizarClaveLogic';
 import { PasswordRequirements } from './shared/PasswordRequirements';
@@ -22,9 +22,9 @@ export const ActualizarClaveDesktop: React.FC<ActualizarClaveDesktopProps> = ({ 
       <div className="w-full max-w-md animate-in fade-in zoom-in duration-700">
         {/* Logo y Encabezado */}
         <div className="flex flex-col items-center mb-10">
-          <img src="/logo.png" alt="Lúmina Logo" className="h-20 w-20 object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.5)] mb-4" />
+          <img src="/logo.png" alt="Ziel Luxora CRM Logo" className="h-20 w-20 object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.5)] mb-4" />
           <h1 className="text-3xl font-black text-white tracking-tight text-center">
-            Lúmina
+            Ziel Luxora CRM
           </h1>
           <p className="text-slate-400 mt-2 font-bold uppercase tracking-[0.2em] text-[10px]">
             CRM Inmobiliario
@@ -129,3 +129,4 @@ export const ActualizarClaveDesktop: React.FC<ActualizarClaveDesktopProps> = ({ 
     </div>
   );
 };
+

@@ -22,7 +22,7 @@ export const useOlvideMiClaveLogic = () => {
 
       if (authError) {
         if (authError.status === 429) {
-          const limitMsg = 'Has alcanzado el límite de correos permitidos, por favor vuelve a intentarlo dentro de 1 hora o si tienes alguna urgencia, contáctate a soporte@luminacrminmobiliario.com';
+          const limitMsg = 'Has alcanzado el límite de correos permitidos, por favor vuelve a intentarlo dentro de 1 hora o si tienes alguna urgencia, contáctate a soporte@zielluxoracrm.com';
           setError(limitMsg);
           toast.warning(limitMsg, { duration: 8000 });
         } else {

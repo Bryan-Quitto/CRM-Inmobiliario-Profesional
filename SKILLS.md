@@ -1,4 +1,4 @@
-# Lúmina | CRM Inmobiliario Profesional - Project Skills & Standards (TL)
+# Ziel Luxora CRM | CRM Inmobiliario Profesional - Project Skills & Standards (TL)
 
 This file defines the strict technical standards and architectural rules for the project. All agents (including sub-agents) must adhere to these "Inquebrantables" rules.
 

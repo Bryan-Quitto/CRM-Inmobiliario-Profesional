@@ -1,4 +1,4 @@
-import { useLocation, Link } from 'react-router-dom';
+﻿import { useLocation, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { 
   Users, 
@@ -87,7 +87,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
           {isOpen && (
             <span className="text-lg font-black tracking-tight text-white animate-in fade-in duration-500">
-              Lúmina
+              Ziel Luxora CRM
             </span>
           )}
         </div>
@@ -163,3 +163,4 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     </>
   );
 };
+

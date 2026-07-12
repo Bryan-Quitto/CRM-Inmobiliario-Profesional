@@ -1,17 +1,17 @@
-# Lúmina Privacy Policy
+﻿# Ziel Luxora CRM Privacy Policy
 
 **Date of last update:** July 11, 2026
 
-Lúmina ("we", "our", "the Platform") is committed to protecting personal data. This Privacy Policy describes how we collect, use, store, and protect personal information, in compliance with the Organic Law on Personal Data Protection (LOPDP) of Ecuador, the General Data Protection Regulation (GDPR), and other applicable international standards.
+Ziel Luxora CRM ("we", "our", "the Platform") is committed to protecting personal data. This Privacy Policy describes how we collect, use, store, and protect personal information, in compliance with the Organic Law on Personal Data Protection (LOPDP) of Ecuador, the General Data Protection Regulation (GDPR), and other applicable international standards.
 
-This policy applies to all users of our professional Real Estate CRM platform (Software as a Service), meaning the Independent Real Estate Agents (hereinafter, "User" or "Agent"). The "Agencies" functionality within the platform operates solely as a grouping and collaboration mechanism (workspace or team) for sharing properties, and does not generate a direct contractual link between Lúmina and such franchises or companies.
+This policy applies to all users of our professional Real Estate CRM platform (Software as a Service), meaning the Independent Real Estate Agents (hereinafter, "User" or "Agent"). The "Agencies" functionality within the platform operates solely as a grouping and collaboration mechanism (workspace or team) for sharing properties, and does not generate a direct contractual link between Ziel Luxora CRM and such franchises or companies.
 
 ## 1. Roles in Data Processing
 
 In the context of our services, there are two clearly differentiated roles:
 
-*   **Lúmina as Data Controller:** We act as Data Controllers regarding the personal data of our Users (agents and legal representatives of agencies) necessary for the provision of the service, account management, and billing.
-*   **Lúmina as Data Processor:** We act as Data Processors regarding the personal data of end clients (contacts, prospects, and property owners) entered or linked to the platform by the User. The Agent acts as the **Data Controller** for the data of their own client portfolio and is solely responsible for obtaining lawful consent for its processing, including its processing via Artificial Intelligence (AI) tools and communication channels such as WhatsApp.
+*   **Ziel Luxora CRM as Data Controller:** We act as Data Controllers regarding the personal data of our Users (agents and legal representatives of agencies) necessary for the provision of the service, account management, and billing.
+*   **Ziel Luxora CRM as Data Processor:** We act as Data Processors regarding the personal data of end clients (contacts, prospects, and property owners) entered or linked to the platform by the User. The Agent acts as the **Data Controller** for the data of their own client portfolio and is solely responsible for obtaining lawful consent for its processing, including its processing via Artificial Intelligence (AI) tools and communication channels such as WhatsApp.
 
 ## 2. Data We Collect
 
@@ -33,7 +33,7 @@ As Data Processors, we process on behalf of the Agent:
 ## 3. Data Usage
 
 We use the collected information for the following purposes:
-*   Provide, maintain, and improve Lúmina CRM services.
+*   Provide, maintain, and improve Ziel Luxora CRM CRM services.
 *   Manage secure authentication and platform access.
 *   Facilitate omnichannel communication between Agents and their clients through official Meta integrations (WhatsApp, Facebook Messenger).
 *   Process queries, messages, and commercial information using Artificial Intelligence services to assist agents (classification, summaries, and automated responses).
@@ -51,13 +51,13 @@ To provide our service, we securely share information with strictly necessary ex
 
 ## 5. Local Storage
 
-Lúmina uses storage technologies in the end user's (Agent's) browser for the proper functioning of the web application. The platform is a Single-Page Application (SPA) that uses JWT tokens in `Authorization: Bearer` headers and **does not use session cookies**:
+Ziel Luxora CRM uses storage technologies in the end user's (Agent's) browser for the proper functioning of the web application. The platform is a Single-Page Application (SPA) that uses JWT tokens in `Authorization: Bearer` headers and **does not use session cookies**:
 
 *   **LocalStorage:** We use `localStorage` to securely persist the Supabase Auth session (JWT tokens) in the browser, avoiding constant reconnections.
 *   **Application Cache (Zustand / SWR):** Certain user preferences and interface data are temporarily stored in memory or local/session storage to ensure a fast and smooth experience.
 *   **Native Push Notifications (WebPush/VAPID):** The Agent may enable operating system-level push notifications (Windows, Android, macOS, iOS) via the standard Web Push technology using proprietary VAPID keys. These notifications alert about pending, overdue, and AI assistance tasks. Activation is entirely voluntary and configurable from the settings panel.
 
-*Note: Lúmina does not use session cookies or third-party advertising tracking cookies on its software platform.*
+*Note: Ziel Luxora CRM does not use session cookies or third-party advertising tracking cookies on its software platform.*
 
 ## 6. Legal Basis for Processing
 
@@ -73,7 +73,7 @@ In accordance with the LOPDP and the GDPR, data subjects have the right to:
 *   **Objection and Restriction:** Object to certain processing or request its restriction.
 *   **Portability:** Receive their data in a structured and machine-readable format.
 
-Users can exercise these rights directly from their settings dashboard or by contacting us through our support channels. In the case of end clients, they must exercise these rights directly with the corresponding Real Estate Agent; Lúmina will provide technical assistance to the Agent to fulfill such requests.
+Users can exercise these rights directly from their settings dashboard or by contacting us through our support channels. In the case of end clients, they must exercise these rights directly with the corresponding Real Estate Agent; Ziel Luxora CRM will provide technical assistance to the Agent to fulfill such requests.
 
 ## 8. Data Security
 
@@ -81,16 +81,16 @@ We implement robust technical and organizational measures to protect data agains
 
 ## 9. Meta Platform Data (WhatsApp and Facebook Messenger)
 
-When the User links their WhatsApp Business or Facebook Messenger channels to the platform, Lúmina accesses messages, conversation metadata, and page configuration exclusively to provide the CRM functionalities described in this policy. Lúmina expressly declares that:
+When the User links their WhatsApp Business or Facebook Messenger channels to the platform, Ziel Luxora CRM accesses messages, conversation metadata, and page configuration exclusively to provide the CRM functionalities described in this policy. Ziel Luxora CRM expressly declares that:
 
-*   Data from Meta platforms **is not used for advertising** of any kind, nor to create Lúmina's own commercial profiles unrelated to the CRM's functionalities.
+*   Data from Meta platforms **is not used for advertising** of any kind, nor to create Ziel Luxora CRM's own commercial profiles unrelated to the CRM's functionalities.
 *   WhatsApp and Messenger conversation data is processed solely to display the history in the CRM, automate responses on behalf of the Agent, and generate assistance alerts for the Agent.
 *   The Agent (User) is solely responsible for obtaining the lawful and legitimate consent of their contacts for the use of automated or AI-assisted messaging, in accordance with Meta's Business Policies.
-*   Lúmina operates under the Technology Provider (Tech Provider / ISV) model on WhatsApp Business API accounts managed by the Agents themselves.
+*   Ziel Luxora CRM operates under the Technology Provider (Tech Provider / ISV) model on WhatsApp Business API accounts managed by the Agents themselves.
 
 ## 10. Minors
 
-Lúmina is a service exclusively intended for professionals and businesses (B2B). It is not directed at persons under 18 years of age. We do not intentionally collect personal data from minors. If we became aware of having collected data from a minor without valid parental consent, we will proceed with its immediate deletion.
+Ziel Luxora CRM is a service exclusively intended for professionals and businesses (B2B). It is not directed at persons under 18 years of age. We do not intentionally collect personal data from minors. If we became aware of having collected data from a minor without valid parental consent, we will proceed with its immediate deletion.
 
 ## 11. Data Retention
 
@@ -107,7 +107,7 @@ We retain personal data only for the time strictly necessary for the purposes fo
 
 Once the retention period expires, data is securely deleted or anonymized. In the specific case of User (Agent) accounts, after 30 days from the deletion request, a logical deletion and anonymization is applied. This involves the permanent removal of identifying data (name, phone, email, profile photo, etc.), leaving the account as an "Anonymous Agent". This process is performed to preserve the integrity of the platform's historical metrics without maintaining personally identifiable information.
 
-Additionally, as part of our data retention and storage optimization policies, Lúmina will perform the permanent and automatic deletion of secondary multimedia resources and PDF files attached to properties, under the following three strict global cleanup rules (which apply regardless of the agent's auto-archive configuration):
+Additionally, as part of our data retention and storage optimization policies, Ziel Luxora CRM will perform the permanent and automatic deletion of secondary multimedia resources and PDF files attached to properties, under the following three strict global cleanup rules (which apply regardless of the agent's auto-archive configuration):
 1. **Inactive Status Cleanup:** Any property that is changed to the "Inactiva" commercial status will undergo an immediate and non-negotiable cleanup of its secondary resources.
 2. **Inactivity Cleanup (Time-based):** Any property (except those in "Vendida" or "Alquilada" status) that reaches 1 year (365 days) without activity will enter a 31-day red alert grace period. If no activity is recorded, the resources will be deleted.
 3. **Closed Business Cleanup:** Any property that changes to "Vendida" or "Alquilada" status will immediately display a red alert, and its resources will be non-negotiably deleted exactly 1 year after its closing date (regardless of any subsequent activity).
@@ -123,4 +123,5 @@ We reserve the right to update this policy periodically. Users will be notified 
 
 ## 14. Contact
 
-For questions about this Privacy Policy or legal inquiries regarding data protection, please contact: `soporte@luminacrminmobiliario.com`.
+For questions about this Privacy Policy or legal inquiries regarding data protection, please contact: `soporte@Ziel Luxora CRMcrminmobiliario.com`.
+
