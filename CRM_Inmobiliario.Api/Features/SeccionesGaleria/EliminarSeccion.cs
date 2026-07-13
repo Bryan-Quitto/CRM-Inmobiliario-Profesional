@@ -58,6 +58,10 @@ public static class EliminarSeccionFeature
 
                 if (rowsAffected > 0)
                 {
+                    await context.Properties
+                        .Where(p => p.Id == seccion.PropiedadId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.FechaActualizacion, DateTimeOffset.UtcNow), ct);
+                        
                     return Results.NoContent();
                 }
 

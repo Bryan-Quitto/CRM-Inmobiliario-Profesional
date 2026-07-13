@@ -51,7 +51,7 @@ El Service Worker escuchará el evento `push`. Al recibir un payload (ej. `{ "ti
 ### Configuración VAPID
 Se utilizará la librería estándar de la industria para .NET (`WebPush`).
 - **Claves VAPID:** Se generará un par de claves VAPID (Pública y Privada). Se almacenarán en los secretos del entorno (o `.env`).
-- `VapidSubject`: `mailto:soporte@crminmobiliario.com`
+- `VapidSubject`: `mailto:soporte@zielluxoracrm.com`
 
 ### Modificación de la Herramienta `SolicitarAsistenciaHumana`
 Cuando la IA (o el sistema) dispare la necesidad de asistencia humana:

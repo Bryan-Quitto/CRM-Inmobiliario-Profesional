@@ -16,7 +16,7 @@ const PdfBrandingPreview: React.FC<PdfBrandingPreviewProps> = ({ formData, perfi
 
       <div className="relative z-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10 pb-6 border-b border-white/10">
-          <h3 className="text-lg font-black tracking-tighter uppercase text-indigo-400">Previsualización de Marca</h3>
+          <h3 className="text-lg font-black tracking-tighter uppercase text-indigo-400">Previsualización de PDF (Propiedades)</h3>
           <div className="h-8 px-3 bg-white/10 rounded-full flex items-center text-[10px] font-black tracking-widest uppercase border border-white/10">
             Formato PDF A4
           </div>

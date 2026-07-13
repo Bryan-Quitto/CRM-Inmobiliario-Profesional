@@ -54,6 +54,13 @@ public static class ReordenarSeccionesFeature
 
                 await context.UpsertAgentPropertyActivityAsync(currentUserId, propiedad.Id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
+                if (totalActualizados > 0)
+                {
+                    await context.Properties
+                        .Where(p => p.Id == propiedadId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.FechaActualizacion, DateTimeOffset.UtcNow), ct);
+                }
+
                 return Results.NoContent();
             }
             catch (Exception ex)

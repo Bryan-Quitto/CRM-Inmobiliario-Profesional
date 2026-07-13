@@ -107,6 +107,8 @@ public sealed class Property
 
     public DateTimeOffset? FechaCierre { get; set; }
 
+    public DateTimeOffset? FechaActualizacion { get; set; }
+
     [Timestamp]
     public uint Version { get; set; }
 

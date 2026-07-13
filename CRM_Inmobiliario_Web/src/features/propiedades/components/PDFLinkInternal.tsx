@@ -1,27 +1,42 @@
-import { useState, useEffect } from 'react';
-import { FileDown, Loader2, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { FileDown, Loader2, RefreshCw, ChevronDown, Trash2 } from 'lucide-react';
 import { api } from '@/lib/axios'; 
 import type { Propiedad } from '../types';
 import { toast } from 'sonner';
+import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 interface PDFLinkInternalProps {
   propiedad: Propiedad;
 }
 
 const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
-  const [status, setStatus] = useState<'checking' | 'exists' | 'missing' | 'generating'>('checking');
+  const [status, setStatus] = useState<'checking' | 'exists' | 'missing' | 'generating' | 'deleting'>('checking');
+  const [actualPdfUrl, setActualPdfUrl] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const pdfUrl = `${supabaseUrl}/storage/v1/object/public/propiedades/ficha_${propiedad.id}.pdf`;
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const actionLock = useRef(false);
 
-  // 1. Sincronización con el estado REAL del servidor
+  const addPendingOperation = usePendingOperationsStore(state => state.addPendingOperation);
+  const removePendingOperation = usePendingOperationsStore(state => state.removePendingOperation);
+  const isProcessing = status === 'generating' || status === 'deleting' || isDownloading;
+
+  useEffect(() => {
+    if (isProcessing) {
+      addPendingOperation();
+      return () => removePendingOperation();
+    }
+  }, [isProcessing, addPendingOperation, removePendingOperation]);
+
+  // Sincronización con el estado REAL del servidor
   useEffect(() => {
     let isMounted = true;
     let timeoutId: NodeJS.Timeout;
 
     const checkServerStatus = async () => {
       try {
-        // Primero preguntamos a nuestra API si está en cola de generación
         const { data } = await api.get(`/propiedades/${propiedad.id}/pdf-status`);
         
         if (!isMounted) return;
@@ -32,19 +47,19 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
           return;
         }
 
-        // Si la API dice que NO está generando, verificamos si el archivo existe en Supabase
-        const response = await fetch(`${pdfUrl}?t=${Date.now()}`, { method: 'HEAD', cache: 'no-store' });
-        
-        if (!isMounted) return;
-
-        if (response.ok) {
-          if (status === 'generating') {
-            toast.success('¡PDF generado con éxito!');
+        if (data.pdfUrl) {
+          setActualPdfUrl(data.pdfUrl);
+          
+          if (data.exists) {
+            if (status === 'generating') {
+              toast.success('¡PDF generado con éxito!');
+            }
+            setStatus('exists');
+            return;
           }
-          setStatus('exists');
-        } else {
-          setStatus('missing');
         }
+        
+        setStatus('missing');
       } catch {
         if (isMounted) {
           setStatus('missing');
@@ -52,16 +67,37 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
       }
     };
 
-    checkServerStatus();
+    // Darle tiempo al backend para registrar la tarea en la cola antes de hacer el primer chequeo
+    if (status === 'generating' || status === 'deleting') {
+      timeoutId = setTimeout(checkServerStatus, 1500);
+    } else {
+      checkServerStatus();
+    }
 
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [pdfUrl, status, propiedad.id]);
+  }, [status, propiedad]);
+
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleGenerate = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    if (actionLock.current) return;
+    
+    actionLock.current = true;
+    setIsDropdownOpen(false);
+    
     try {
       setStatus('generating');
       await api.post(`/propiedades/${propiedad.id}/generar-pdf`);
@@ -69,16 +105,94 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
     } catch {
       toast.error('Error al solicitar la generación del PDF');
       setStatus('missing');
+    } finally {
+      actionLock.current = false;
     }
   };
 
-  const handleDownload = async () => {
+  const handleDelete = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (actionLock.current) return;
+    
+    actionLock.current = true;
+    setIsDropdownOpen(false);
+    
     try {
-      const freshUrl = `${pdfUrl}?t=${Date.now()}`;
+      setStatus('deleting');
+      await api.delete(`/propiedades/${propiedad.id}/pdf`);
+      toast.success('Ficha eliminada permanentemente.');
+      setStatus('missing');
+    } catch {
+      toast.error('Error al eliminar la ficha PDF.');
+      setStatus('exists');
+    } finally {
+      actionLock.current = false;
+    }
+  };
+
+  const handleRegenerate = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (actionLock.current) return;
+    
+    actionLock.current = true;
+    setIsDropdownOpen(false);
+    
+    try {
+      setStatus('generating');
+      await api.delete(`/propiedades/${propiedad.id}/pdf`);
+      await api.post(`/propiedades/${propiedad.id}/generar-pdf`);
+      toast.info('Iniciando regeneración de ficha técnica...');
+    } catch {
+      toast.error('Error al solicitar la regeneración del PDF');
+      setStatus('missing');
+    } finally {
+      actionLock.current = false;
+    }
+  };
+
+  const handleDownload = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (actionLock.current || isDownloading) return;
+    
+    actionLock.current = true;
+    setIsDownloading(true);
+    setDownloadProgress(0);
+    
+    try {
+      if (!actualPdfUrl) throw new Error();
+
+      const freshUrl = `${actualPdfUrl}?t=${Date.now()}`;
       const response = await fetch(freshUrl);
       if (!response.ok) throw new Error();
 
-      const blob = await response.blob();
+      const contentLength = response.headers.get('content-length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+      
+      let blob: Blob;
+      
+      if (total > 0 && response.body) {
+        const reader = response.body.getReader();
+        const chunks = [];
+        let received = 0;
+        let lastPercent = 0;
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          received += value.length;
+          
+          const percent = Math.round((received / total) * 100);
+          if (percent > lastPercent) {
+            setDownloadProgress(percent);
+            lastPercent = percent;
+          }
+        }
+        blob = new Blob(chunks, { type: 'application/pdf' });
+      } else {
+        blob = await response.blob();
+      }
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -98,22 +212,22 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
     } catch {
       toast.error('El PDF ya no está disponible. Por favor, genéralo de nuevo.');
       setStatus('missing');
+    } finally {
+      actionLock.current = false;
+      setIsDownloading(false);
+      setDownloadProgress(null);
     }
   };
 
-  if (status === 'checking') {
+  if (status === 'checking' || status === 'generating' || status === 'deleting') {
     return (
-      <div className="px-4 py-1.5 bg-slate-50 text-slate-400 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-slate-100 shadow-sm">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Verificando...
-      </div>
-    );
-  }
-
-  if (status === 'generating') {
-    return (
-      <div className="px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-indigo-100 animate-pulse shadow-sm cursor-wait">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generando...
-      </div>
+      <button 
+        onClick={(e) => e.preventDefault()}
+        className="px-4 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-500 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm flex items-center gap-2 cursor-wait opacity-80"
+      >
+        <Loader2 className="h-3.5 w-3.5 animate-spin" /> 
+        {status === 'generating' ? 'Generando...' : status === 'deleting' ? 'Eliminando...' : 'Verificando...'}
+      </button>
     );
   }
 
@@ -129,23 +243,46 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   }
 
   return (
-    <div className="flex items-center gap-1.5 animate-in fade-in zoom-in duration-500">
-      <button 
-        title="Descargar Ficha Técnica PDF"
-        onClick={handleDownload}
-        className="cursor-pointer px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
-      >
-        <FileDown className="h-3.5 w-3.5" />
-        Descargar PDF
-      </button>
-      
-      <button
-        title="Regenerar PDF (Forzar actualización)"
-        onClick={handleGenerate}
-        className="p-1.5 bg-white border border-slate-200 text-slate-400 rounded-full hover:text-indigo-600 hover:border-indigo-200 transition-all disabled:opacity-30 cursor-pointer"
-      >
-        <RefreshCw className="h-3.5 w-3.5" />
-      </button>
+    <div className="relative flex items-center gap-1 animate-in fade-in zoom-in duration-500" ref={dropdownRef}>
+      <div className="flex bg-indigo-600 rounded-full shadow-sm shadow-indigo-200 overflow-hidden divide-x divide-indigo-500/50">
+        <button 
+          title="Descargar Ficha Técnica PDF"
+          onClick={handleDownload}
+          className={`px-3 py-1.5 text-white text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1.5 ${isDownloading ? 'opacity-80 cursor-wait bg-indigo-500' : 'cursor-pointer hover:bg-indigo-700 active:bg-indigo-800'}`}
+        >
+          {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+          {isDownloading ? (downloadProgress !== null && downloadProgress > 0 ? `Descargando ${downloadProgress}%` : 'Descargando...') : 'Descargar PDF'}
+        </button>
+        
+        <button
+          onClick={(e) => {
+             if (e) e.stopPropagation();
+             if (!isDownloading) setIsDropdownOpen(!isDropdownOpen);
+          }}
+          className={`px-1.5 text-white transition-colors flex items-center ${isDownloading ? 'opacity-80 cursor-wait bg-indigo-500' : 'cursor-pointer hover:bg-indigo-700 active:bg-indigo-800'}`}
+        >
+          <ChevronDown className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {isDropdownOpen && !isDownloading && (
+        <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+          <button
+            onClick={handleRegenerate}
+            className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Volver a generar
+          </button>
+          <button
+            onClick={handleDelete}
+            className="w-full text-left px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Eliminar
+          </button>
+        </div>
+      )}
     </div>
   );
 };

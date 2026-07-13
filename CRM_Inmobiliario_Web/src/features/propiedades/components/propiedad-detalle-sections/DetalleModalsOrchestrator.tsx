@@ -77,7 +77,13 @@ export const DetalleModalsOrchestrator = ({
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
           <CrearPropiedadForm
             initialData={propiedad}
-            onSuccess={() => { mutate(); setShowEditModal(false); }}
+            onSuccess={() => { 
+              import('swr').then(({ mutate: globalMutate }) => {
+                globalMutate(`/propiedades/${propiedad.id}/pdf-status`);
+              });
+              mutate(); 
+              setShowEditModal(false); 
+            }}
             onCancel={() => setShowEditModal(false)}
           />
         </div>

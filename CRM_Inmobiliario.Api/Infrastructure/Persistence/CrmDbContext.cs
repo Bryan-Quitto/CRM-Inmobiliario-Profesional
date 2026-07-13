@@ -254,6 +254,43 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             {
                 p.FechaProgramadaLimpiezaR2 = p.FechaCierre.Value.AddDays(365);
             }
+
+            // Marcar siempre la fecha de actualización más reciente
+            p.FechaActualizacion = DateTimeOffset.UtcNow;
+        }
+
+        var affectedPropertyIds = new HashSet<Guid>();
+        affectedPropertyIds.UnionWith(ChangeTracker.Entries<PropertyMedia>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted)
+            .Select(e => e.Entity.PropiedadId));
+        
+        affectedPropertyIds.UnionWith(ChangeTracker.Entries<PropertyGallerySection>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted)
+            .Select(e => e.Entity.PropiedadId));
+
+        affectedPropertyIds.UnionWith(ChangeTracker.Entries<PropertyFaq>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted)
+            .Select(e => e.Entity.PropiedadId));
+
+        foreach (var id in affectedPropertyIds)
+        {
+            if (propertyEntries.Any(e => e.Entity.Id == id)) continue;
+
+            var tracked = ChangeTracker.Entries<Property>().FirstOrDefault(e => e.Entity.Id == id);
+            if (tracked != null)
+            {
+                tracked.Entity.FechaActualizacion = DateTimeOffset.UtcNow;
+                if (tracked.State == EntityState.Unchanged)
+                {
+                    tracked.State = EntityState.Modified;
+                }
+            }
+            else
+            {
+                var stub = new Property { Id = id, FechaActualizacion = DateTimeOffset.UtcNow };
+                var entry = Attach(stub);
+                entry.Property(p => p.FechaActualizacion).IsModified = true;
+            }
         }
 
         var entries = ChangeTracker.Entries<Contacto>()

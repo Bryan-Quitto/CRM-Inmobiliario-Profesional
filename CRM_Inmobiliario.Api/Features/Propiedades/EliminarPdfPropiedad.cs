@@ -1,0 +1,50 @@
+using System.Security.Claims;
+using CRM_Inmobiliario.Api.Extensions;
+using CRM_Inmobiliario.Api.Infrastructure.Persistence;
+using CRM_Inmobiliario.Api.Infrastructure.Services;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+
+namespace CRM_Inmobiliario.Api.Features.Propiedades;
+
+public static class EliminarPdfPropiedadFeature
+{
+    public static RouteHandlerBuilder MapEliminarPdfPropiedadEndpoint(this IEndpointRouteBuilder app)
+    {
+        return app.MapDelete("/propiedades/{id:guid}/pdf", async (Guid id, ClaimsPrincipal user, CrmDbContext context, IR2StorageService r2Storage) =>
+        {
+            var currentUserId = user.GetRequiredUserId();
+            
+            var propiedad = await context.Properties
+                .AsNoTracking()
+                .Include(p => p.Transactions)
+                .Include(p => p.Agente)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            
+            if (propiedad == null)
+            {
+                return Results.NotFound();
+            }
+
+            var hasAccess = propiedad.AgenteId == currentUserId || 
+                            (propiedad.Transactions.Any(t => t.CreatedById == currentUserId) && (propiedad.Agente == null || !propiedad.Agente.Activo));
+
+            if (!hasAccess)
+            {
+                return Results.Forbid();
+            }
+
+            var fileName = $"ficha_{id}.pdf";
+            var key = $"propiedades/{id}/{fileName}";
+
+            await r2Storage.DeleteAsync(key);
+
+            return Results.Ok(new { message = "PDF eliminado exitosamente" });
+        })
+        .WithTags("Propiedades")
+        .WithName("EliminarPdfPropiedad")
+        .AddEndpointFilter<CRM_Inmobiliario.Api.Infrastructure.Security.SecurityTelemetryFilter>();
+    }
+}

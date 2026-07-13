@@ -154,14 +154,14 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
               {!sectionId && (
                 <>
                   <div className="hidden lg:flex">
-                    <Tooltip content="Estas fotos no las ocupará la IA, solo aquellas subidas al crear secciones.">
+                    <Tooltip content="Estas fotos no se tomarán en cuenta para el PDF, ni las ocupará la IA, solo aquellas subidas en las secciones.">
                       <div className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help mt-1 flex">
                         <Info size={18} />
                       </div>
                     </Tooltip>
                   </div>
                   <div className="flex lg:hidden mt-1">
-                    <MobileInfoPopover content="Estas fotos no las ocupará la IA, solo aquellas subidas al crear secciones.">
+                    <MobileInfoPopover content="Estas fotos no se tomarán en cuenta para el PDF, ni las ocupará la IA, solo aquellas subidas en las secciones.">
                       <div className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help flex">
                         <Info size={18} />
                       </div>

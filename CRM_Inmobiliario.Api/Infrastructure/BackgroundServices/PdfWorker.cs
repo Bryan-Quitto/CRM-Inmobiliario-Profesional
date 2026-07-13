@@ -37,21 +37,23 @@ public class PdfWorker : BackgroundService
             {
                 var propiedadId = await _queue.DequeuePdfGenerationAsync(stoppingToken);
 
-        try
-        {
-            await ProcessPdfAsync(propiedadId, stoppingToken);
-        }
-        catch (Exception)
-        {
-        }
-        finally
-        {
-            _queue.SetStatus(propiedadId, false);
-        }
+                try
+                {
+                    await ProcessPdfAsync(propiedadId, stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error crítico al procesar el PDF para la propiedad {PropiedadId}", propiedadId);
+                }
+                finally
+                {
+                    _queue.SetStatus(propiedadId, false);
+                }
             }
             catch (OperationCanceledException) { break; }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error general en el PdfWorker");
             }
         }
     }
@@ -82,25 +84,33 @@ public class PdfWorker : BackgroundService
 
         try
         {
-            
-            var imagenPrincipal = !string.IsNullOrEmpty(propiedad.Media.FirstOrDefault(m => m.EsPrincipal)?.UrlPublica)
-                ? await DownloadImageAsync(propiedad.Media.First(m => m.EsPrincipal).UrlPublica, ct)
-                : null;
+            var imagenPrincipalTask = !string.IsNullOrEmpty(propiedad.Media.FirstOrDefault(m => m.EsPrincipal)?.UrlPublica)
+                ? DownloadImageAsync(propiedad.Media.First(m => m.EsPrincipal).UrlPublica, ct)
+                : Task.FromResult<byte[]?>(null);
 
-            byte[]? agenteLogo = null;
-            if (!string.IsNullOrEmpty(propiedad.Agente?.LogoUrl))
-            {
-                agenteLogo = await DownloadImageAsync(propiedad.Agente.LogoUrl, ct);
-            }
+            var agenteLogoTask = !string.IsNullOrEmpty(propiedad.Agente?.LogoUrl)
+                ? DownloadImageAsync(propiedad.Agente.LogoUrl, ct)
+                : Task.FromResult<byte[]?>(null);
+
+            // Iniciar descargas en paralelo
+            var imagenPrincipal = await imagenPrincipalTask;
+            var agenteLogo = await agenteLogoTask;
 
             var seccionesData = new List<FichaSeccionData>();
             foreach (var s in propiedad.GallerySections.OrderBy(s => s.Orden))
             {
                 var imagenesSeccion = new List<FichaImagenData>();
-                foreach (var m in s.Media.OrderBy(m => m.Orden))
+                var mediaTasks = s.Media.OrderBy(m => m.Orden).Select(async m =>
                 {
                     var bytes = await DownloadImageAsync(m.UrlPublica, ct);
-                    if (bytes != null) imagenesSeccion.Add(new FichaImagenData(bytes, m.Descripcion));
+                    return new { Bytes = bytes, Descripcion = m.Descripcion, Orden = m.Orden };
+                }).ToList();
+
+                var results = await Task.WhenAll(mediaTasks);
+
+                foreach (var res in results.OrderBy(r => r.Orden))
+                {
+                    if (res.Bytes != null) imagenesSeccion.Add(new FichaImagenData(res.Bytes, res.Descripcion));
                 }
                 seccionesData.Add(new FichaSeccionData(s.Nombre, s.Descripcion, imagenesSeccion));
             }
@@ -108,7 +118,10 @@ public class PdfWorker : BackgroundService
             var data = new FichaPdfData(
                 propiedad.Titulo, propiedad.Descripcion, propiedad.TipoPropiedad,
                 propiedad.Operacion, propiedad.Precio, $"{propiedad.Direccion}, {propiedad.Sector}, {propiedad.Ciudad}",
-                propiedad.Habitaciones, propiedad.Banos, propiedad.AreaTotal, imagenPrincipal,
+                propiedad.Habitaciones, propiedad.Banos, propiedad.AreaTotal,
+                propiedad.AreaTerreno, propiedad.AreaConstruccion, propiedad.Estacionamientos,
+                propiedad.MediosBanos, propiedad.AniosAntiguedad,
+                imagenPrincipal,
                 $"{propiedad.Agente?.Nombre ?? "Agente"} {propiedad.Agente?.Apellido ?? ""}".Trim(), 
                 $"{propiedad.Agente?.Email ?? ""} | {propiedad.Agente?.Telefono ?? ""}".Trim(' ', '|'),
                 propiedad.Agente?.Agencia?.Nombre, agenteLogo, seccionesData
@@ -135,7 +148,51 @@ public class PdfWorker : BackgroundService
 
     private async Task<byte[]?> DownloadImageAsync(string url, CancellationToken ct)
     {
-        var client = _httpClientFactory.CreateClient();
-        return await client.GetByteArrayAsync(url, ct); 
+        using var scope = _serviceProvider.CreateScope();
+        var config = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+        
+        var publicUrlBase = config["R2_PUBLIC_URL"]?.TrimEnd('/');
+        
+        // Si la URL es de nuestro bucket R2, saltamos el WAF de Cloudflare y la descargamos vía la API de S3 interna
+        if (!string.IsNullOrEmpty(publicUrlBase) && url.StartsWith(publicUrlBase, StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var s3Client = scope.ServiceProvider.GetRequiredService<Amazon.S3.IAmazonS3>();
+                var bucketName = config["R2_BUCKET_NAME"];
+                var key = url.Substring(publicUrlBase.Length).TrimStart('/');
+                
+                using var response = await s3Client.GetObjectAsync(bucketName, key, ct);
+                using var ms = new MemoryStream();
+                await response.ResponseStream.CopyToAsync(ms, ct);
+                return ms.ToArray();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al descargar imagen desde S3 internamente {Url}", url);
+                return null;
+            }
+        }
+
+        // Para URLs externas (ej. si guardan URLs de otro servidor), intentamos con HTTP
+        try
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            
+            var response = await client.GetAsync(url, ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Error al descargar imagen externa {Url}. Status: {StatusCode}", url, response.StatusCode);
+                return null;
+            }
+            
+            return await response.Content.ReadAsByteArrayAsync(ct); 
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error HTTP al descargar imagen externa {Url}", url);
+            return null;
+        }
     }
 }

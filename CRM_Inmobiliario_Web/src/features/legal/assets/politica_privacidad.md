@@ -124,5 +124,5 @@ Nos reservamos el derecho de actualizar esta política periódicamente. Los Usua
 
 ## 14. Contacto
 
-Para dudas sobre esta Política de Privacidad o consultas legales respecto a la protección de datos, por favor contáctese con: `soporte@Ziel Luxora CRMcrminmobiliario.com`.
+Para dudas sobre esta Política de Privacidad o consultas legales respecto a la protección de datos, por favor contáctese con: `soporte@zielluxoracrm.com`.
 

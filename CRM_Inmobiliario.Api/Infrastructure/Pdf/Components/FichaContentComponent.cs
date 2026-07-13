@@ -35,13 +35,52 @@ public class FichaContentComponent : IComponent
             }
 
             // Características Grid
-            col.Item().PaddingVertical(25).Row(row =>
+            col.Item().PaddingVertical(25).Table(table =>
             {
-                row.RelativeItem().Element(c => FeatureBox(c, "Habitaciones", _data.Habitaciones.ToString()));
-                row.RelativeItem().Element(c => FeatureBox(c, "Baños", _data.Banos.ToString("G29")));
-                row.RelativeItem().Element(c => FeatureBox(c, "Área Total", $"{_data.AreaTotal} m²"));
-                row.RelativeItem().Element(c => FeatureBox(c, "Tipo", _data.TipoPropiedad));
-                row.RelativeItem().Element(c => FeatureBox(c, "Operación", _data.Operacion));
+                var features = new List<(string Label, string Value)>();
+                
+                features.Add(("Tipo", _data.TipoPropiedad));
+                features.Add(("Operación", _data.Operacion));
+                features.Add(("Área Total", $"{_data.AreaTotal:G29} m²"));
+
+                var tipo = _data.TipoPropiedad;
+                var showAreaTerreno = tipo == "Casa" || tipo == "Terreno" || tipo == "Galpón" || tipo == "Bodega" || tipo == "Local Comercial" || tipo == "Hotel";
+                var showAreaConstruccion = tipo == "Casa" || tipo == "Galpón" || tipo == "Bodega" || tipo == "Hotel";
+                var showHabitaciones = tipo == "Casa" || tipo == "Departamento" || tipo == "Suite" || tipo == "Hotel";
+                var isNotTerreno = tipo != "Terreno";
+
+                if (showAreaTerreno && _data.AreaTerreno.HasValue)
+                    features.Add(("Área Terreno", $"{_data.AreaTerreno.Value:G29} m²"));
+                
+                if (showAreaConstruccion && _data.AreaConstruccion.HasValue)
+                    features.Add(("Área Cubierta", $"{_data.AreaConstruccion.Value:G29} m²"));
+
+                if (showHabitaciones)
+                    features.Add(("Habitaciones", _data.Habitaciones.ToString()));
+
+                if (isNotTerreno)
+                {
+                    features.Add(("Baños", _data.Banos.ToString("G29")));
+                    if (_data.MediosBanos.HasValue) features.Add(("Medios Baños", _data.MediosBanos.Value.ToString()));
+                    if (_data.Estacionamientos.HasValue) features.Add(("Parqueaderos", _data.Estacionamientos.Value.ToString()));
+                    if (_data.AniosAntiguedad.HasValue) features.Add(("Antigüedad", $"{_data.AniosAntiguedad.Value} años"));
+                }
+
+                // Ajustar columnas dinámicamente según cantidad (max 5) para que no queden huecos muy grandes
+                var cols = Math.Min(5, features.Count);
+                
+                table.ColumnsDefinition(columns =>
+                {
+                    for (int i = 0; i < cols; i++)
+                    {
+                        columns.RelativeColumn();
+                    }
+                });
+
+                foreach (var feature in features)
+                {
+                    table.Cell().PaddingBottom(15).PaddingRight(5).PaddingLeft(5).Element(c => FeatureBox(c, feature.Label, feature.Value));
+                }
             });
 
             // Descripción

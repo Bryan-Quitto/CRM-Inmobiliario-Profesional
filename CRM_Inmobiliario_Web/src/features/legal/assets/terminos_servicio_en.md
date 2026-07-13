@@ -75,5 +75,5 @@ We reserve the right to update these Terms at any time. Users will be notified o
 These Terms are governed and construed in accordance with the laws of the Republic of Ecuador. For any dispute arising from the application, interpretation, or execution of this contract, the parties submit to mediation and arbitration centers, and subsidiarily to the jurisdiction of the competent judges of the city of Quito, Ecuador.
 
 ---
-If you have questions about these Terms of Service, you may contact us at: `soporte@Ziel Luxora CRMcrminmobiliario.com`.
+If you have questions about these Terms of Service, you may contact us at: `soporte@zielluxoracrm.com`.
 

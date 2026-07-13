@@ -27,7 +27,7 @@ public class FichaFooterComponent : IComponent
                     c.Item().Text(x =>
                     {
                         x.Span("Ficha generada por ").FontSize(8).FontColor(PdfTheme.ColorTextoSecundario);
-                        x.Span(_data.AgenciaNombre ?? "CRM Inmobiliario").FontSize(8).Bold().FontColor(PdfTheme.ColorAzulPrimario);
+                        x.Span(_data.AgenciaNombre ?? "Ziel Luxora CRM").FontSize(8).Bold().FontColor(PdfTheme.ColorAzulPrimario);
                     });
                     c.Item().Text("Documento de carácter informativo. Sujeto a cambios sin previo aviso.").FontSize(6).FontColor(PdfTheme.ColorTextoSecundario);
                 });

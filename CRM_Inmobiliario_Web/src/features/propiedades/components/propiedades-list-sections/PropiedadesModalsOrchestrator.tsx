@@ -67,6 +67,9 @@ export const PropiedadesModalsOrchestrator = ({
           <CrearPropiedadForm 
             initialData={propiedades?.find(p => p.id === selectedPropiedadIdForEdit)}
             onSuccess={() => {
+              import('swr').then(({ mutate: globalMutate }) => {
+                globalMutate(`/propiedades/${selectedPropiedadIdForEdit}/pdf-status`);
+              });
               mutate();
               setSelectedPropiedadIdForEdit(null);
               toast.success('Propiedad actualizada con éxito');

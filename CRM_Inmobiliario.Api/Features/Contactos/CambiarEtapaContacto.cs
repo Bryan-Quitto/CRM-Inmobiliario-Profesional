@@ -143,14 +143,14 @@ public static class CambiarEstadoContactoFeature
                     await propiedadesAfectadas.SelectMany(p => p.GallerySections).ExecuteDeleteAsync(ct);
 
                     // 3. Cambiar masivamente el estado de la propiedad a Inactiva
-                    await propiedadesAfectadas.ExecuteUpdateAsync(s => s.SetProperty(p => p.EstadoComercial, "Inactiva"), ct);
+                    await propiedadesAfectadas.ExecuteUpdateAsync(s => s.SetProperty(p => p.EstadoComercial, "Inactiva").SetProperty(p => p.FechaActualizacion, DateTimeOffset.UtcNow), ct);
                 }
                 else if (esTipoPropietario && contacto.EstadoPropietario == "Inactivo" && command.NuevoEstado == "Activo")
                 {
                     // Cambiar masivamente el estado de regreso a Disponible
                     await context.Properties
                         .Where(p => p.PropietarioId == id && p.EstadoComercial == "Inactiva")
-                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.EstadoComercial, "Disponible"), ct);
+                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.EstadoComercial, "Disponible").SetProperty(p => p.FechaActualizacion, DateTimeOffset.UtcNow), ct);
                 }
 
                 // Actualizar etapa del contacto

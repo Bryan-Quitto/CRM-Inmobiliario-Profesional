@@ -65,6 +65,10 @@ public static class EliminarImagenesSeleccionadasFeature
                 if (deletedRows == 0)
                     return Results.NotFound("No se encontraron las imágenes especificadas.");
 
+                await context.Properties
+                    .Where(p => p.Id == propiedadId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.FechaActualizacion, DateTimeOffset.UtcNow), ct);
+
                 // 3. Limpiar los archivos físicos de R2
                 if (storagePaths.Count > 0)
                 {

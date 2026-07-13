@@ -123,5 +123,5 @@ We reserve the right to update this policy periodically. Users will be notified 
 
 ## 14. Contact
 
-For questions about this Privacy Policy or legal inquiries regarding data protection, please contact: `soporte@Ziel Luxora CRMcrminmobiliario.com`.
+For questions about this Privacy Policy or legal inquiries regarding data protection, please contact: `soporte@zielluxoracrm.com`.
 

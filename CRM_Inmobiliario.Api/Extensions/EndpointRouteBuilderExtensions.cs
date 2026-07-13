@@ -70,6 +70,9 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapObtenerHistorialPropiedadEndpoint();
         apiGroup.MapEliminarTransaccionEndpoint();
         apiGroup.MapTogglePropertyArchiveEndpoint();
+        apiGroup.MapGenerarPdfPropiedadEndpoint();
+        apiGroup.MapObtenerPdfStatusPropiedadEndpoint();
+        apiGroup.MapEliminarPdfPropiedadEndpoint();
 
         // Tareas
         apiGroup.MapRegistrarTareaEndpoint();

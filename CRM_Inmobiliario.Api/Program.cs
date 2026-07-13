@@ -144,6 +144,7 @@ builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.ProcessWebP
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchiveEntitiesJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.InactivePropertyMediaCleanupJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.LimpiezaPdfsObsoletosJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.ClosedPropertyMediaCleanupJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService, CRM_Inmobiliario.Api.Features.PushNotifications.Services.PushNotificationService>();
 
@@ -237,6 +238,12 @@ app.Lifetime.ApplicationStarted.Register(() =>
         "cleanup-closed-properties-media",
         job => job.ExecuteAsync(),
         "0 9 1 * *"); // 09:00 UTC (04:00 AM UTC-5) el día 1 de cada mes
+
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.LimpiezaPdfsObsoletosJob>(
+        "limpieza-pdfs-obsoletos-daily",
+        job => job.ExecuteAsync(CancellationToken.None),
+        "0 3 * * *" // Todos los días a las 3:00 AM
+    );
 });
 
 

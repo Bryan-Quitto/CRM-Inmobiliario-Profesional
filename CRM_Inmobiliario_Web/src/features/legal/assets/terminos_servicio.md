@@ -78,5 +78,5 @@ Nos reservamos el derecho de actualizar estos Términos en cualquier momento. Lo
 Estos Términos se rigen e interpretan conforme a las leyes de la República del Ecuador. Para cualquier controversia derivada de la aplicación, interpretación o ejecución de este contrato, las partes se someten a los centros de mediación y arbitraje, y subsidiariamente a la jurisdicción de los jueces competentes de la ciudad de Quito, Ecuador.
 
 ---
-Si tiene dudas sobre estos Términos de Servicio, puede comunicarse con nosotros en: `soporte@Ziel Luxora CRMcrminmobiliario.com`.
+Si tiene dudas sobre estos Términos de Servicio, puede comunicarse con nosotros en: `soporte@zielluxoracrm.com`.
 
