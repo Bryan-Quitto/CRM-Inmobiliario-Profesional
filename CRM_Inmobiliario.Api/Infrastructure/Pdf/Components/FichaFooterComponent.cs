@@ -26,8 +26,8 @@ public class FichaFooterComponent : IComponent
                 row.RelativeItem().Column(c => {
                     c.Item().Text(x =>
                     {
-                        x.Span("Ficha generada por ").FontSize(8).FontColor(PdfTheme.ColorTextoSecundario);
-                        x.Span(_data.AgenciaNombre ?? "Ziel Luxora CRM").FontSize(8).Bold().FontColor(PdfTheme.ColorAzulPrimario);
+                        x.Span("Ficha técnica generada por ").FontSize(8).FontColor(PdfTheme.ColorTextoSecundario);
+                        x.Span("Ziel Luxora CRM").FontSize(8).Bold().FontColor(PdfTheme.ColorAzulPrimario);
                     });
                     c.Item().Text("Documento de carácter informativo. Sujeto a cambios sin previo aviso.").FontSize(6).FontColor(PdfTheme.ColorTextoSecundario);
                 });

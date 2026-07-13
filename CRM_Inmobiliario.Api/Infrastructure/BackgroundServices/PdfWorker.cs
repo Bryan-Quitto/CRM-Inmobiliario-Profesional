@@ -72,6 +72,7 @@ public class PdfWorker : BackgroundService
             .AsNoTracking()
             .AsSplitQuery()
             .Include(p => p.Agente)
+                .ThenInclude(a => a!.Agencia)
             .Include(p => p.Media)
             .Include(p => p.GallerySections)
                 .ThenInclude(s => s.Media)
@@ -92,9 +93,14 @@ public class PdfWorker : BackgroundService
                 ? DownloadImageAsync(propiedad.Agente.LogoUrl, ct)
                 : Task.FromResult<byte[]?>(null);
 
+            var agenteFotoTask = !string.IsNullOrEmpty(propiedad.Agente?.FotoUrl)
+                ? DownloadImageAsync(propiedad.Agente.FotoUrl, ct)
+                : Task.FromResult<byte[]?>(null);
+
             // Iniciar descargas en paralelo
             var imagenPrincipal = await imagenPrincipalTask;
             var agenteLogo = await agenteLogoTask;
+            var agenteFoto = await agenteFotoTask;
 
             var seccionesData = new List<FichaSeccionData>();
             foreach (var s in propiedad.GallerySections.OrderBy(s => s.Orden))
@@ -117,14 +123,14 @@ public class PdfWorker : BackgroundService
             
             var data = new FichaPdfData(
                 propiedad.Titulo, propiedad.Descripcion, propiedad.TipoPropiedad,
-                propiedad.Operacion, propiedad.Precio, $"{propiedad.Direccion}, {propiedad.Sector}, {propiedad.Ciudad}",
+                propiedad.Operacion, propiedad.Precio, $"{propiedad.Sector}, {propiedad.Ciudad}",
                 propiedad.Habitaciones, propiedad.Banos, propiedad.AreaTotal,
                 propiedad.AreaTerreno, propiedad.AreaConstruccion, propiedad.Estacionamientos,
                 propiedad.MediosBanos, propiedad.AniosAntiguedad,
                 imagenPrincipal,
                 $"{propiedad.Agente?.Nombre ?? "Agente"} {propiedad.Agente?.Apellido ?? ""}".Trim(), 
-                $"{propiedad.Agente?.Email ?? ""} | {propiedad.Agente?.Telefono ?? ""}".Trim(' ', '|'),
-                propiedad.Agente?.Agencia?.Nombre, agenteLogo, seccionesData
+                propiedad.Agente?.Telefono ?? "",
+                propiedad.Agente?.Agencia?.Nombre, agenteLogo, agenteFoto, seccionesData
             );
 
             // PRODUCCIÓN: EnableDebugging ELIMINADO intencionalmente.

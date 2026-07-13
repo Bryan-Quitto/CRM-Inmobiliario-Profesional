@@ -9,7 +9,8 @@ export const createImage = (url: string): Promise<HTMLImageElement> =>
 
 export async function getCroppedImg(
   imageSrc: string,
-  pixelCrop: { x: number; y: number; width: number; height: number }
+  pixelCrop: { x: number; y: number; width: number; height: number },
+  shape: 'rect' | 'round' = 'rect'
 ): Promise<Blob | null> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
@@ -19,6 +20,12 @@ export async function getCroppedImg(
 
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
+
+  if (shape === 'round') {
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2 * Math.PI);
+    ctx.clip();
+  }
 
   ctx.drawImage(
     image,

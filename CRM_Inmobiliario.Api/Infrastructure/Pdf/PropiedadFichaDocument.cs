@@ -28,7 +28,7 @@ public class PropiedadFichaDocument : IDocument
             page.Margin(1, Unit.Centimetre);
             page.PageColor(PdfTheme.ColorBackground); 
             
-            page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Helvetica").FontColor(PdfTheme.ColorTextoPrincipal));
+            page.DefaultTextStyle(x => x.FontSize(10).FontColor(PdfTheme.ColorTextoPrincipal));
 
             page.Header().Component(new FichaHeaderComponent(_data));
             page.Content().Component(new FichaContentComponent(_data));
@@ -43,7 +43,7 @@ public class PropiedadFichaDocument : IDocument
                 page.Size(PageSizes.A4);
                 page.Margin(1, Unit.Centimetre);
                 page.PageColor(PdfTheme.ColorBackground); 
-                page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Helvetica").FontColor(PdfTheme.ColorTextoPrincipal));
+                page.DefaultTextStyle(x => x.FontSize(10).FontColor(PdfTheme.ColorTextoPrincipal));
 
                 page.Content().Component(new FichaGallerySectionComponent(seccion));
                 page.Footer().Component(new FichaFooterComponent(_data));

@@ -18,6 +18,7 @@ interface DetalleHeaderProps {
   setIsStatusDropdownOpen: (open: boolean) => void;
   handleStatusChange: (status: string) => void;
   handleWhatsAppShare: () => void;
+  handleCopyWhatsAppAdLink: () => void;
   handleMessengerShare: () => void;
   activeTab: 'detalle' | 'ia';
   onTabChange: (tab: 'detalle' | 'ia') => void;
@@ -34,6 +35,7 @@ export const DetalleHeader = ({
   setIsStatusDropdownOpen,
   handleStatusChange,
   handleWhatsAppShare,
+  handleCopyWhatsAppAdLink,
   handleMessengerShare,
   activeTab,
   onTabChange,
@@ -41,6 +43,7 @@ export const DetalleHeader = ({
   onToggleArchive
 }: DetalleHeaderProps) => {
   const [copied, setCopied] = useState(false);
+  const [waLinkCopied, setWaLinkCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { mutate } = useSWRConfig();
 
@@ -64,6 +67,12 @@ export const DetalleHeader = ({
     toast.success('Código copiado al portapapeles');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyWAAdLink = () => {
+    handleCopyWhatsAppAdLink();
+    setWaLinkCopied(true);
+    setTimeout(() => setWaLinkCopied(false), 2000);
   };
 
   return (
@@ -96,6 +105,14 @@ export const DetalleHeader = ({
                     <RefreshCw className={`h-3 w-3 ${isGenerating ? 'animate-spin' : ''}`} />
                   </button>
               )}
+              <button
+                title="Copiar Link WhatsApp para Ads"
+                onClick={handleCopyWAAdLink}
+                className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded-md text-[10px] font-bold text-emerald-600 uppercase tracking-widest hover:bg-emerald-100 transition-colors cursor-pointer"
+              >
+                Link WA
+                {waLinkCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <MessageCircle className="h-3 w-3" />}
+              </button>
             </div>
           </div>
         </div>

@@ -37,11 +37,11 @@ public class FichaContentComponent : IComponent
             // Características Grid
             col.Item().PaddingVertical(25).Table(table =>
             {
-                var features = new List<(string Label, string Value)>();
+                var features = new List<(string Label, string Value, string Icon)>();
                 
-                features.Add(("Tipo", _data.TipoPropiedad));
-                features.Add(("Operación", _data.Operacion));
-                features.Add(("Área Total", $"{_data.AreaTotal:G29} m²"));
+                features.Add(("Tipo", _data.TipoPropiedad, SvgIcons.Home));
+                features.Add(("Operación", _data.Operacion, SvgIcons.Tag));
+                features.Add(("Área Total", $"{_data.AreaTotal:G29} m²", SvgIcons.Maximize));
 
                 var tipo = _data.TipoPropiedad;
                 var showAreaTerreno = tipo == "Casa" || tipo == "Terreno" || tipo == "Galpón" || tipo == "Bodega" || tipo == "Local Comercial" || tipo == "Hotel";
@@ -50,20 +50,20 @@ public class FichaContentComponent : IComponent
                 var isNotTerreno = tipo != "Terreno";
 
                 if (showAreaTerreno && _data.AreaTerreno.HasValue)
-                    features.Add(("Área Terreno", $"{_data.AreaTerreno.Value:G29} m²"));
+                    features.Add(("Área Terreno", $"{_data.AreaTerreno.Value:G29} m²", SvgIcons.MapPin));
                 
                 if (showAreaConstruccion && _data.AreaConstruccion.HasValue)
-                    features.Add(("Área Cubierta", $"{_data.AreaConstruccion.Value:G29} m²"));
+                    features.Add(("Área Cubierta", $"{_data.AreaConstruccion.Value:G29} m²", SvgIcons.Maximize));
 
                 if (showHabitaciones)
-                    features.Add(("Habitaciones", _data.Habitaciones.ToString()));
+                    features.Add(("Habitaciones", _data.Habitaciones.ToString(), SvgIcons.Bed));
 
                 if (isNotTerreno)
                 {
-                    features.Add(("Baños", _data.Banos.ToString("G29")));
-                    if (_data.MediosBanos.HasValue) features.Add(("Medios Baños", _data.MediosBanos.Value.ToString()));
-                    if (_data.Estacionamientos.HasValue) features.Add(("Parqueaderos", _data.Estacionamientos.Value.ToString()));
-                    if (_data.AniosAntiguedad.HasValue) features.Add(("Antigüedad", $"{_data.AniosAntiguedad.Value} años"));
+                    features.Add(("Baños", _data.Banos.ToString("G29"), SvgIcons.Bath));
+                    if (_data.MediosBanos.HasValue) features.Add(("Medios Baños", _data.MediosBanos.Value.ToString(), SvgIcons.Bath));
+                    if (_data.Estacionamientos.HasValue) features.Add(("Parqueaderos", _data.Estacionamientos.Value.ToString(), SvgIcons.Car));
+                    if (_data.AniosAntiguedad.HasValue) features.Add(("Antigüedad", $"{_data.AniosAntiguedad.Value} años", SvgIcons.CalendarDays));
                 }
 
                 // Ajustar columnas dinámicamente según cantidad (max 5) para que no queden huecos muy grandes
@@ -79,7 +79,7 @@ public class FichaContentComponent : IComponent
 
                 foreach (var feature in features)
                 {
-                    table.Cell().PaddingBottom(15).PaddingRight(5).PaddingLeft(5).Element(c => FeatureBox(c, feature.Label, feature.Value));
+                    table.Cell().PaddingBottom(15).PaddingRight(5).PaddingLeft(5).Element(c => FeatureBox(c, feature.Label, feature.Value, feature.Icon));
                 }
             });
 
@@ -89,11 +89,12 @@ public class FichaContentComponent : IComponent
         });
     }
 
-    private void FeatureBox(IContainer container, string label, string value)
+    private void FeatureBox(IContainer container, string label, string value, string icon)
     {
         container.Column(col =>
         {
-            col.Item().AlignCenter().Text(value).FontSize(14).Bold().FontColor(PdfTheme.ColorAzulPrimario);
+            col.Item().AlignCenter().Width(20).Height(20).Svg(SvgIcons.WithColor(icon, PdfTheme.ColorAzulPrimario));
+            col.Item().AlignCenter().PaddingTop(6).Text(value).FontSize(13).Bold().FontColor(PdfTheme.ColorTextoPrincipal);
             col.Item().AlignCenter().PaddingTop(2).Text(label.ToUpper()).FontSize(7).Light().FontColor(PdfTheme.ColorTextoSecundario);
         });
     }

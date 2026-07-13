@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import type { DropResult } from '@hello-pangea/dnd';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { usePerfil } from '@/features/auth/api/perfil';
 import { usePropiedadDetalle } from './usePropiedadDetalle';
 import { usePropiedadArchive } from './usePropiedadArchive';
 
@@ -33,6 +34,7 @@ export const formatDate = (dateString: string) => {
 export const usePropiedadDetalleLogic = ({ id, onCoverUpdated }: UsePropiedadDetalleLogicProps) => {
   const [activeTab, setActiveTab] = useState<'detalle' | 'ia'>('detalle');
   const { user } = useAuth();
+  const { perfil } = usePerfil();
   const {
     propiedad,
     historial,
@@ -140,6 +142,40 @@ export const usePropiedadDetalleLogic = ({ id, onCoverUpdated }: UsePropiedadDet
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
 
+  const handleCopyWhatsAppAdLink = async () => {
+    if (!propiedad) return;
+    
+    const originalPhone = perfil?.telefono?.trim() || '';
+    if (!originalPhone) {
+      toast.warning('Debes configurar tu teléfono en tu perfil para generar este enlace');
+      return;
+    }
+
+    let formattedPhone = originalPhone.replace(/\D/g, '');
+    
+    // Si el usuario incluyó explícitamente un +, respetamos su código de país internacional
+    if (!originalPhone.startsWith('+')) {
+      // Si empieza con 0, asumimos formato local de Ecuador y lo reemplazamos por 593
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '593' + formattedPhone.slice(1);
+      } 
+      // Si no empieza con 593 ni con 0, asumimos que omitió el código y le ponemos el de Ecuador por defecto
+      else if (!formattedPhone.startsWith('593')) {
+        formattedPhone = '593' + formattedPhone;
+      }
+    }
+
+    const message = `Hola, estoy interesado en la propiedad *${propiedad.titulo}* que publicó, me podría ayudar con más información por favor`;
+    const link = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+    
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success('Enlace de WhatsApp para anuncios copiado');
+    } catch {
+      toast.error('No se pudo copiar al portapapeles');
+    }
+  };
+
   const handleMessengerShare = async () => {
     const message = buildShareMessage();
     if (!message) return;
@@ -164,7 +200,7 @@ export const usePropiedadDetalleLogic = ({ id, onCoverUpdated }: UsePropiedadDet
     handleInlineUpdateNote, handleStatusChange, handleRelist, handleCancelTransaction,
     mutate,
     isTogglingArchive, handleToggleArchive,
-    handleDragEnd, handleWhatsAppShare, handleMessengerShare
+    handleDragEnd, handleWhatsAppShare, handleMessengerShare, handleCopyWhatsAppAdLink
   };
 };
 

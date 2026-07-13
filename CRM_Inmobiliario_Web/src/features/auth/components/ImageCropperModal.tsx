@@ -19,6 +19,7 @@ interface ImageCropperModalProps {
 
 const RATIO_PRESETS = [
   { label: 'Cuadrado (1:1)', value: 1, shape: 'rect' as const },
+  { label: 'Círculo (1:1)', value: 1, shape: 'round' as const },
   { label: 'Apaisado (3:1)', value: 3, shape: 'rect' as const },
   { label: 'Banner (16:9)', value: 16/9, shape: 'rect' as const },
   { label: 'Horizontal (4:3)', value: 4/3, shape: 'rect' as const }
@@ -57,7 +58,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
   const handleConfirm = async () => {
     if (!imageSrc || !croppedAreaPixels) return;
     try {
-      const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
+      const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels, activeShape);
       if (croppedImage) {
         onCropComplete(croppedImage);
       }
@@ -107,23 +108,45 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
           {allowRatioSelection && (
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">Formato de Recorte</span>
-              <div className="flex flex-wrap gap-2">
-                {RATIO_PRESETS.map(preset => (
-                  <button
-                    key={preset.label}
-                    onClick={() => {
-                      setActiveAspect(preset.value);
-                      setActiveShape(preset.shape);
-                    }}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
-                      activeAspect === preset.value 
-                        ? 'bg-indigo-600 text-white shadow-sm' 
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
+              <div className="flex flex-col items-center gap-2 w-full">
+                {/* Primera fila: 3 opciones */}
+                <div className="flex flex-wrap justify-center gap-2 w-full">
+                  {RATIO_PRESETS.slice(0, 3).map(preset => (
+                    <button
+                      key={preset.label}
+                      onClick={() => {
+                        setActiveAspect(preset.value);
+                        setActiveShape(preset.shape);
+                      }}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                        activeAspect === preset.value && activeShape === preset.shape
+                          ? 'bg-indigo-600 text-white shadow-sm' 
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                {/* Segunda fila: 2 opciones */}
+                <div className="flex flex-wrap justify-center gap-2 w-full">
+                  {RATIO_PRESETS.slice(3, 5).map(preset => (
+                    <button
+                      key={preset.label}
+                      onClick={() => {
+                        setActiveAspect(preset.value);
+                        setActiveShape(preset.shape);
+                      }}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                        activeAspect === preset.value && activeShape === preset.shape
+                          ? 'bg-indigo-600 text-white shadow-sm' 
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}

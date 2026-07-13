@@ -20,6 +20,7 @@ public record FichaPdfData(
     string AgenteContacto,
     string? AgenciaNombre,
     byte[]? AgenteLogo,
+    byte[]? AgenteFoto,
     List<FichaSeccionData> Secciones);
 
 public record FichaSeccionData(

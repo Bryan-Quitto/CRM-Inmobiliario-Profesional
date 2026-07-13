@@ -26,7 +26,7 @@ export const PropiedadDetalleDesktop = ({ id, onClose, logic }: Props) => {
     handleConfirmAddSection, handleDeleteSection, handleRenameSection, handleClearGallery,
     handleMoveSection, handleInlineUpdateNote, handleStatusChange, handleRelist,
     handleCancelTransaction, mutate, isTogglingArchive, handleToggleArchive,
-    handleDragEnd, handleWhatsAppShare, handleMessengerShare
+    handleDragEnd, handleWhatsAppShare, handleMessengerShare, handleCopyWhatsAppAdLink
   } = logic;
 
   if (!propiedad && syncing) {
@@ -69,6 +69,7 @@ export const PropiedadDetalleDesktop = ({ id, onClose, logic }: Props) => {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           handleWhatsAppShare={handleWhatsAppShare}
+          handleCopyWhatsAppAdLink={handleCopyWhatsAppAdLink}
           handleMessengerShare={handleMessengerShare}
           isTogglingArchive={isTogglingArchive}
           onToggleArchive={handleToggleArchive}

@@ -19,7 +19,7 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
     showReversionModal, setIsStatusDropdownOpen, setShowEditModal, setStatusConfirmation,
     setIsClosingModalOpen, setClosingState, setShowReversionModal, handleClosingConfirm,
     handleStatusChange, handleRelist, handleCancelTransaction, mutate, isTogglingArchive,
-    handleToggleArchive, handleWhatsAppShare, handleMessengerShare
+    handleToggleArchive, handleWhatsAppShare, handleMessengerShare, handleCopyWhatsAppAdLink
   } = logic;
 
   if (!propiedad && syncing) {
@@ -58,6 +58,7 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         handleWhatsAppShare={handleWhatsAppShare}
+        handleCopyWhatsAppAdLink={handleCopyWhatsAppAdLink}
         handleMessengerShare={handleMessengerShare}
         isTogglingArchive={isTogglingArchive}
         onToggleArchive={handleToggleArchive}
