@@ -1,6 +1,6 @@
 ﻿# Política de Privacidad de Ziel Luxora CRM
 
-**Fecha de última actualización:** 11 de julio de 2026
+**Fecha de última actualización:** 13 de julio de 2026
 
 Ziel Luxora CRM ("nosotros", "nuestro", "la Plataforma") está comprometida con la protección de los datos personales. Esta Política de Privacidad describe cómo recopilamos, utilizamos, almacenamos y protegemos la información personal, en cumplimiento de la Ley Orgánica de Protección de Datos Personales (LOPDP) del Ecuador, el Reglamento General de Protección de Datos (GDPR) y otros estándares internacionales aplicables.
 

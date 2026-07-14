@@ -1,6 +1,6 @@
 # Términos de Servicio de Ziel Luxora CRM
 
-**Fecha de última actualización:** 11 de julio de 2026
+**Fecha de última actualización:** 13 de julio de 2026
 
 Bienvenidos a Ziel Luxora CRM, el CRM Inmobiliario Profesional ("Ziel Luxora CRM", "nosotros", "la Plataforma"). Estos Términos de Servicio ("Términos") regulan el acceso y uso de nuestra plataforma de Software como Servicio por parte de Agentes Profesionales Inmobiliarios ("Usuario", "Agente", o "usted"). La figura de "Agencia" dentro del sistema opera únicamente como una funcionalidad de agrupación colaborativa, y no constituye un vínculo contractual entre Ziel Luxora CRM y dichas empresas o franquicias.
 

@@ -1,6 +1,6 @@
 # Ziel Luxora CRM Terms of Service
 
-**Date of last update:** July 11, 2026
+**Date of last update:** July 13, 2026
 
 Welcome to Ziel Luxora CRM, the Professional Real Estate CRM ("Ziel Luxora CRM", "we", "the Platform"). These Terms of Service ("Terms") govern the access and use of our Software as a Service platform by Professional Real Estate Agents ("User", "Agent", or "you"). The figure of "Agency" within the system operates solely as a collaborative grouping functionality, and does not constitute a contractual link between Ziel Luxora CRM and such companies or franchises.
 
