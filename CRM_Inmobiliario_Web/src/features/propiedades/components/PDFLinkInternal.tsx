@@ -10,6 +10,7 @@ interface PDFLinkInternalProps {
 }
 
 const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
+  const isResponsable = !!propiedad.permissions?.canEditMasterData;
   const [status, setStatus] = useState<'checking' | 'exists' | 'missing' | 'generating' | 'deleting'>('checking');
   const [actualPdfUrl, setActualPdfUrl] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -36,6 +37,11 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
     let timeoutId: NodeJS.Timeout;
 
     const checkServerStatus = async () => {
+      if (actionLock.current) {
+        timeoutId = setTimeout(checkServerStatus, 500);
+        return;
+      }
+
       try {
         const { data } = await api.get(`/propiedades/${propiedad.id}/pdf-status`);
         
@@ -232,6 +238,8 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   }
 
   if (status === 'missing') {
+    if (!isResponsable) return null;
+    
     return (
       <button 
         onClick={handleGenerate}
@@ -244,7 +252,7 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
 
   return (
     <div className="relative flex items-center gap-1 animate-in fade-in zoom-in duration-500" ref={dropdownRef}>
-      <div className="flex bg-indigo-600 rounded-full shadow-sm shadow-indigo-200 overflow-hidden divide-x divide-indigo-500/50">
+      <div className={`flex bg-indigo-600 rounded-full shadow-sm shadow-indigo-200 overflow-hidden ${isResponsable ? 'divide-x divide-indigo-500/50' : ''}`}>
         <button 
           title="Descargar Ficha Técnica PDF"
           onClick={handleDownload}
@@ -254,18 +262,20 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
           {isDownloading ? (downloadProgress !== null && downloadProgress > 0 ? `Descargando ${downloadProgress}%` : 'Descargando...') : 'Descargar PDF'}
         </button>
         
-        <button
-          onClick={(e) => {
-             if (e) e.stopPropagation();
-             if (!isDownloading) setIsDropdownOpen(!isDropdownOpen);
-          }}
-          className={`px-1.5 text-white transition-colors flex items-center ${isDownloading ? 'opacity-80 cursor-wait bg-indigo-500' : 'cursor-pointer hover:bg-indigo-700 active:bg-indigo-800'}`}
-        >
-          <ChevronDown className="h-3.5 w-3.5" />
-        </button>
+        {isResponsable && (
+          <button
+            onClick={(e) => {
+               if (e) e.stopPropagation();
+               if (!isDownloading) setIsDropdownOpen(!isDropdownOpen);
+            }}
+            className={`px-1.5 text-white transition-colors flex items-center ${isDownloading ? 'opacity-80 cursor-wait bg-indigo-500' : 'cursor-pointer hover:bg-indigo-700 active:bg-indigo-800'}`}
+          >
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
-      {isDropdownOpen && !isDownloading && (
+      {isResponsable && isDropdownOpen && !isDownloading && (
         <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           <button
             onClick={handleRegenerate}

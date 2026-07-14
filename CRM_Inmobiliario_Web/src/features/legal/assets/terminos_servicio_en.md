@@ -1,4 +1,4 @@
-﻿# Ziel Luxora CRM Terms of Service
+# Ziel Luxora CRM Terms of Service
 
 **Date of last update:** July 11, 2026
 
@@ -53,6 +53,9 @@ Ziel Luxora CRM will perform the permanent and automatic deletion of secondary m
 2. **Inactivity Cleanup (Time-based):** Any property (except those in "Vendida" or "Alquilada" status) that reaches 1 year (365 days) without activity will enter a 31-day red alert grace period. If no activity is recorded, the resources will be deleted.
 3. **Closed Business Cleanup:** Any property that changes to "Vendida" or "Alquilada" status will immediately display a red alert, and its resources will be non-negotiably deleted exactly 1 year after its closing date (regardless of any subsequent activity).
 *Note: The primary photograph of the property will always be kept.*
+
+### 4.2. Technical Modification of Multimedia Content
+By uploading photographs, images, or any other material to the platform, the User understands and agrees that the System may apply automated processes for compression, resizing, metadata removal (EXIF), and format conversion. These technical optimizations have the sole purpose of ensuring platform performance, fast loading speeds, and saving cloud storage space, without substantially altering the original purpose of the provided visual content.
 
 ## 5. Intellectual Property
 

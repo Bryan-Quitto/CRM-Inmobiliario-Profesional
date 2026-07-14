@@ -1,4 +1,4 @@
-﻿# Términos de Servicio de Ziel Luxora CRM
+# Términos de Servicio de Ziel Luxora CRM
 
 **Fecha de última actualización:** 11 de julio de 2026
 
@@ -56,6 +56,9 @@ Ziel Luxora CRM realizará la eliminación permanente y automática de recursos 
 2. **Limpieza por Inactividad (Tiempo):** Toda propiedad (exceptuando "Vendida" o "Alquilada") que alcance 1 año (365 días) sin registrar ninguna actividad, entrará en una alerta roja de limpieza por 31 días. Si se supera este periodo de gracia sin actividad, los recursos serán eliminados.
 3. **Limpieza por Cierre de Negocio:** Toda propiedad que pase a estado "Vendida" o "Alquilada" mostrará inmediatamente una alerta roja, y sus recursos serán eliminados de forma innegociable al cumplirse 1 año desde su fecha de cierre (sin importar si registra actividad posterior).
 *Nota: La fotografía principal de la propiedad siempre se conservará.*
+
+### 4.4. Modificación Técnica del Contenido Multimedia
+Al subir fotografías, imágenes o cualquier otro material a la plataforma, el Usuario comprende y acepta que el Sistema podrá aplicar procesos automáticos de compresión, redimensionamiento, eliminación de metadatos (EXIF) y conversión de formatos. Estas optimizaciones técnicas tienen como único fin garantizar el rendimiento, la velocidad de carga de la plataforma, y ahorrar espacio de almacenamiento en la nube, sin alterar sustancialmente la finalidad original del contenido visual proporcionado.
 
 ## 5. Propiedad Intelectual
 

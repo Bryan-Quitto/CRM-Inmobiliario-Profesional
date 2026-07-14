@@ -40,13 +40,13 @@ public class RegistrarPropiedadCommandValidator : AbstractValidator<RegistrarPro
             .MaximumLength(100).WithMessage("La ciudad no puede exceder los 100 caracteres.");
 
         RuleFor(x => x.GoogleMapsUrl)
-            .Must(uri => Uri.IsWellFormedUriString(uri, UriKind.Absolute))
+            .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
             .When(x => !string.IsNullOrEmpty(x.GoogleMapsUrl))
             .WithMessage("Debe ser una URL válida.");
 
         RuleFor(x => x.UrlRemax)
             .MaximumLength(1000)
-            .Must(uri => Uri.IsWellFormedUriString(uri, UriKind.Absolute))
+            .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
             .When(x => !string.IsNullOrEmpty(x.UrlRemax))
             .WithMessage("Debe ser una URL válida.");
 

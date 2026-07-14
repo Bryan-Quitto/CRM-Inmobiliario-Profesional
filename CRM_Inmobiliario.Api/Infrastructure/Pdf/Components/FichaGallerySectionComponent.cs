@@ -42,7 +42,7 @@ public class FichaGallerySectionComponent : IComponent
                     {
                         imgCol.Item()
                               .Height(150)
-                              .Background(Colors.Grey.Lighten4)
+                              .Background(PdfTheme.ColorBackground)
                               .AlignCenter()
                               .AlignMiddle()
                               .Image(img.Content)

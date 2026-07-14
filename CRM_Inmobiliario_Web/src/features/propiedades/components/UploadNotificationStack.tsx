@@ -73,12 +73,14 @@ export const UploadNotificationStack: React.FC<UploadNotificationStackProps> = (
                 style={{ width: `${upload.progreso}%` }}
               />
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex justify-between items-start gap-2">
+              <span className={`text-[9px] font-bold uppercase tracking-widest leading-relaxed ${
+                upload.estado === 'error' ? 'text-rose-500 line-clamp-2' : 'text-slate-400'
+              }`}>
                 {upload.estado === 'loading' ? 'En progreso...' : 
-                 upload.estado === 'completed' ? 'Finalizado' : 'Error en carga'}
+                 upload.estado === 'completed' ? 'Finalizado' : (upload.errorMsg || 'Error en carga')}
               </span>
-              <span className="text-[11px] font-black text-slate-900">{upload.progreso}%</span>
+              <span className="text-[11px] font-black text-slate-900 shrink-0 mt-0.5">{upload.progreso}%</span>
             </div>
           </div>
         </div>

@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
 import { isAxiosError } from 'axios';
 import { uploadImagenPropiedad } from '../api/uploadImagenPropiedad';
@@ -43,7 +42,7 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [activeUploads]);
 
-  const processQueue = useCallback(async (processId: string, propiedadId: string, nombrePropiedad: string, sectionId?: string | null) => {
+  const processQueue = useCallback(async (processId: string, propiedadId: string, sectionId?: string | null) => {
     if (processingRef.current[processId]) return;
     processingRef.current[processId] = true;
     
@@ -154,19 +153,10 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
     // Blindaje Global: Quitar protección al terminar de procesar toda la cola
     usePendingOperationsStore.getState().removePendingOperation();
 
-    // Prevenimos notificaciones duplicadas en React StrictMode con un ID único
-    const toastId = `upload-toast-${processId}-${crypto.randomUUID()}`;
-
-    // Notificación final si todo el lote terminó
+    // Notificación final manejada exclusivamente por UploadNotificationStack
     setActiveUploads(prev => {
       const finalProcess = prev[processId];
       if (finalProcess && finalProcess.estado !== 'loading') {
-        if (finalProcess.estado === 'completed') {
-          toast.success(`Carga completa en "${nombrePropiedad}"`, { id: toastId });
-        } else {
-          toast.error(finalProcess.errorMsg || `Error al subir imágenes en "${nombrePropiedad}"`, { id: toastId });
-        }
-
         // Limpiar el proceso activo después de un tiempo si no hay una nueva subida iniciada
         setTimeout(() => {
           setActiveUploads(last => {
@@ -225,7 +215,7 @@ export const useUploadManager = (): UploadContextType & { dismissUpload: (id: st
     });
 
     // 3. Disparar el procesamiento de la cola
-    processQueue(processId, propiedadId, nombrePropiedad, sectionId);
+    processQueue(processId, propiedadId, sectionId);
   }, [processQueue]);
 
   const dismissUpload = useCallback((id: string) => {
