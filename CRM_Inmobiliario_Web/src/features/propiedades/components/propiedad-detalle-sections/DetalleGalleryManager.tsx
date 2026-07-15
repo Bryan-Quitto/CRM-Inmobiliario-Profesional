@@ -27,6 +27,7 @@ interface DetalleGalleryManagerProps {
   handleDragEnd: (result: DropResult) => void;
   mutate: () => void;
   isArchived?: boolean;
+  showOnly?: 'all' | 'general' | 'secciones';
 }
 
 export const DetalleGalleryManager = ({
@@ -49,7 +50,8 @@ export const DetalleGalleryManager = ({
   handleMoveSection,
   handleDragEnd,
   mutate,
-  isArchived
+  isArchived,
+  showOnly = 'all'
 }: DetalleGalleryManagerProps) => {
   
   const [now] = useState(() => Date.now());
@@ -66,9 +68,11 @@ export const DetalleGalleryManager = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="h-8 w-1 bg-indigo-600 rounded-full"></div>
-          <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Galerías del Inmueble</h3>
+          <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
+            {showOnly === 'general' ? 'Galería General' : showOnly === 'secciones' ? 'Secciones' : 'Galerías del Inmueble'}
+          </h3>
         </div>
-        {canManage && (
+        {canManage && (showOnly === 'all' || showOnly === 'secciones') && (
           <button
             onClick={handleAddSection}
             disabled={isCreatingInline}
@@ -81,58 +85,62 @@ export const DetalleGalleryManager = ({
       </div>
 
       {/* Galería General */}
-      <SectionalGallery
-        propiedadId={id}
-        propiedadTitulo={propiedad.titulo}
-        index={-1}
-        media={propiedad.mediaSinSeccion || []}
-        onSetCover={handleSetCover}
-        onDeleteMedia={handleDeleteMedia}
-        onImageUploaded={() => mutate()}
-        onClearGallery={handleClearGallery}
-        isReadOnly={!canManage}
-        isCleaned={!!isCleaned}
-      />
+      {(showOnly === 'all' || showOnly === 'general') && (
+        <SectionalGallery
+          propiedadId={id}
+          propiedadTitulo={propiedad.titulo}
+          index={-1}
+          media={propiedad.mediaSinSeccion || []}
+          onSetCover={handleSetCover}
+          onDeleteMedia={handleDeleteMedia}
+          onImageUploaded={() => mutate()}
+          onClearGallery={handleClearGallery}
+          isReadOnly={!canManage}
+          isCleaned={!!isCleaned}
+        />
+      )}
 
       {/* Secciones Dinámicas con Drag & Drop */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="sections-list" isDropDisabled={!canManage}>
-          {(provided) => (
-            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-12">
-              {propiedad.secciones?.map((seccion, index) => {
-                const seccionConClient = seccion as SeccionGaleria & { clientId?: string };
-                return (
-                  <SectionalGallery
-                    key={seccionConClient.clientId || seccion.id}
-                    index={index}
-                    sectionId={seccion.id}
-                    sectionNombre={seccion.nombre}
-                    sectionDescripcion={seccion.descripcion}
-                    propiedadId={id}
-                    propiedadTitulo={propiedad.titulo}
-                    media={seccion.media || []}
-                    onSetCover={handleSetCover}
-                    onDeleteMedia={handleDeleteMedia}
-                    onImageUploaded={() => mutate()}
-                    onDeleteSection={handleDeleteSection}
-                    onRenameSection={(id, nombre, desc) => handleRenameSection(id, nombre, desc, seccion.orden)}
-                    onMoveUp={() => handleMoveSection(index, 'up')}
-                    onMoveDown={() => handleMoveSection(index, 'down')}
-                    onMoveTo={(newIndex) => handleMoveSection(index, newIndex > index ? 'down' : 'up', newIndex)}
-                    totalSections={propiedad.secciones?.length || 0}
-                    isReadOnly={!canManage}
-                    isCleaned={!!isCleaned}
-                  />
-                );
-              })}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      {(showOnly === 'all' || showOnly === 'secciones') && (
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="sections-list" isDropDisabled={!canManage}>
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-12">
+                {propiedad.secciones?.map((seccion, index) => {
+                  const seccionConClient = seccion as SeccionGaleria & { clientId?: string };
+                  return (
+                    <SectionalGallery
+                      key={seccionConClient.clientId || seccion.id}
+                      index={index}
+                      sectionId={seccion.id}
+                      sectionNombre={seccion.nombre}
+                      sectionDescripcion={seccion.descripcion}
+                      propiedadId={id}
+                      propiedadTitulo={propiedad.titulo}
+                      media={seccion.media || []}
+                      onSetCover={handleSetCover}
+                      onDeleteMedia={handleDeleteMedia}
+                      onImageUploaded={() => mutate()}
+                      onDeleteSection={handleDeleteSection}
+                      onRenameSection={(id, nombre, desc) => handleRenameSection(id, nombre, desc, seccion.orden)}
+                      onMoveUp={() => handleMoveSection(index, 'up')}
+                      onMoveDown={() => handleMoveSection(index, 'down')}
+                      onMoveTo={(newIndex) => handleMoveSection(index, newIndex > index ? 'down' : 'up', newIndex)}
+                      totalSections={propiedad.secciones?.length || 0}
+                      isReadOnly={!canManage}
+                      isCleaned={!!isCleaned}
+                    />
+                  );
+                })}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      )}
 
       {/* Input Inline para Nueva Sección - World Class UX */}
-      {isCreatingInline && canManage && (
+      {isCreatingInline && canManage && (showOnly === 'all' || showOnly === 'secciones') && (
         <div className="bg-indigo-50/50 border-2 border-dashed border-indigo-200 rounded-[2rem] p-6 animate-in zoom-in-95 duration-300">
           <div className="flex items-start gap-4">
             <div className="h-12 w-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 shrink-0 mt-1">

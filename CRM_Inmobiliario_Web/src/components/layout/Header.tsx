@@ -96,7 +96,7 @@ export const Header = ({ isAgendaOpen, setIsAgendaOpen, session, isSidebarOpen, 
               {perfil?.agenciaNombre || 'Agente Independiente'}
             </p>
           </div>
-          <div className="h-10 w-10 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm uppercase overflow-hidden">
+          <div className="shrink-0 h-10 w-10 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center font-bold text-slate-600 shadow-sm uppercase overflow-hidden">
             {perfil?.fotoUrl ? (
               <img src={perfil.fotoUrl} alt="Perfil" className="w-full h-full object-cover" />
             ) : (

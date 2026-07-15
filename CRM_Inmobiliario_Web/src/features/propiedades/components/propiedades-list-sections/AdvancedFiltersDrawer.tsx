@@ -45,16 +45,16 @@ export const AdvancedFiltersDrawer = ({ propiedades, isOpen, onClose, filters, s
       <div className="fixed inset-y-0 right-0 w-full sm:w-[420px] bg-white shadow-2xl z-[210] flex flex-col animate-in slide-in-from-right duration-300">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <h3 className="font-extrabold text-lg text-slate-800">Filtros Avanzados</h3>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <h3 className="font-extrabold text-lg text-slate-800 truncate">Filtros Avanzados</h3>
             {activeCount > 0 && (
-              <span className="bg-blue-100 text-blue-700 text-xs font-black px-2 py-0.5 rounded-full">
+              <span className="bg-blue-100 text-blue-700 text-xs font-black px-2 py-0.5 rounded-full shrink-0">
                 {activeCount}
               </span>
             )}
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors cursor-pointer">
+          <button onClick={onClose} className="p-2 shrink-0 hover:bg-slate-100 rounded-full text-slate-400 transition-colors cursor-pointer">
             <X className="h-5 w-5" />
           </button>
         </div>

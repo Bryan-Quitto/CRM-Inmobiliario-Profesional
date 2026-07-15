@@ -20,8 +20,8 @@ interface DetalleHeaderProps {
   handleWhatsAppShare: () => void;
   handleCopyWhatsAppAdLink: () => void;
   handleMessengerShare: () => void;
-  activeTab: 'detalle' | 'ia';
-  onTabChange: (tab: 'detalle' | 'ia') => void;
+  activeTab: 'detalle' | 'galeria' | 'secciones' | 'historial' | 'ia';
+  onTabChange: (tab: 'detalle' | 'galeria' | 'secciones' | 'historial' | 'ia') => void;
   isTogglingArchive: boolean;
   onToggleArchive: () => void;
 }
@@ -77,19 +77,19 @@ export const DetalleHeader = ({
 
   return (
     <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-      <div className="px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-900 cursor-pointer">
+      <div className="px-4 md:px-6 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start lg:items-center gap-3 min-w-0">
+          <button onClick={onClose} className="p-2 shrink-0 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-900 cursor-pointer">
             <X className="h-6 w-6" />
           </button>
-          <div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight contactoing-none">Detalles de la Propiedad</h2>
-            <div className="flex items-center gap-3 mt-1 h-6">
+          <div className="min-w-0">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight truncate">Detalles de la Propiedad</h2>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
               {propiedad.codigoCorto ? (
                   <button
                     title="Copiar para Anuncios de Meta (Payload)"
                     onClick={handleCopyCode}
-                    className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded-md text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:bg-indigo-100 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded-md text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:bg-indigo-100 transition-colors cursor-pointer shrink-0"
                   >
                     Ref: {propiedad.codigoCorto}
                     {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
@@ -99,7 +99,7 @@ export const DetalleHeader = ({
                     onClick={handleGenerate}
                     disabled={isGenerating}
                     title="Generar Código Corto"
-                    className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-md text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-colors cursor-pointer disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-md text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
                   >
                     Generar Ref
                     <RefreshCw className={`h-3 w-3 ${isGenerating ? 'animate-spin' : ''}`} />
@@ -108,7 +108,7 @@ export const DetalleHeader = ({
               <button
                 title="Copiar Link WhatsApp para Ads"
                 onClick={handleCopyWAAdLink}
-                className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded-md text-[10px] font-bold text-emerald-600 uppercase tracking-widest hover:bg-emerald-100 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded-md text-[10px] font-bold text-emerald-600 uppercase tracking-widest hover:bg-emerald-100 transition-colors cursor-pointer shrink-0"
               >
                 Link WA
                 {waLinkCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <MessageCircle className="h-3 w-3" />}
@@ -116,7 +116,7 @@ export const DetalleHeader = ({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 pl-2 lg:pl-0">
           {!propiedad.isArchivedForCurrentUser && (
             <>
               <PDFLinkInternal propiedad={propiedad} />
@@ -170,11 +170,11 @@ export const DetalleHeader = ({
         </div>
       </div>
 
-      {/* Tab pills: Detalles | IA */}
-      <div className="flex gap-1 px-6 pb-3">
+      {/* Tab pills */}
+      <div className="flex gap-1 px-4 md:px-6 pb-3 overflow-x-auto hide-scrollbar whitespace-nowrap">
         <button
           onClick={() => onTabChange('detalle')}
-          className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
+          className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors cursor-pointer shrink-0 ${
             activeTab === 'detalle'
               ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
               : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
@@ -183,14 +183,44 @@ export const DetalleHeader = ({
           Detalles
         </button>
         <button
+          onClick={() => onTabChange('galeria')}
+          className={`lg:hidden px-3 py-1 rounded-full text-sm font-semibold transition-colors cursor-pointer shrink-0 ${
+            activeTab === 'galeria'
+              ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+          }`}
+        >
+          Galería General
+        </button>
+        <button
+          onClick={() => onTabChange('secciones')}
+          className={`lg:hidden px-3 py-1 rounded-full text-sm font-semibold transition-colors cursor-pointer shrink-0 ${
+            activeTab === 'secciones'
+              ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+          }`}
+        >
+          Secciones
+        </button>
+        <button
+          onClick={() => onTabChange('historial')}
+          className={`lg:hidden px-3 py-1 rounded-full text-sm font-semibold transition-colors cursor-pointer shrink-0 ${
+            activeTab === 'historial'
+              ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+          }`}
+        >
+          Historial
+        </button>
+        <button
           onClick={() => onTabChange('ia')}
-          className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
+          className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors cursor-pointer shrink-0 ${
             activeTab === 'ia'
               ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
               : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
           }`}
         >
-          IA
+          Preg. Frecuentes
         </button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-﻿import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { 
   Users, 
@@ -36,10 +36,9 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     { id: 'kpis', path: '/kpis', icon: <BarChart3 className="h-5 w-5" />, label: 'Ventas y KPIs' },
   ];
 
+  const isPending = optimisticState && optimisticState.from === location.pathname;
+
   const isActive = (path: string) => {
-    // Si la locación actual sigue siendo desde la que hicimos clic, usamos el optimista.
-    // Si la locación cambió (la navegación terminó), el optimista se ignora naturalmente.
-    const isPending = optimisticState && optimisticState.from === location.pathname;
     const currentPath = isPending ? optimisticState.path : location.pathname;
     
     if (path === '/') return currentPath === '/';
@@ -77,6 +76,13 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           aria-hidden="true"
         />
       )}
+      
+      {/* Global Top Loading Bar */}
+      {isPending && (
+        <div className="fixed top-0 left-0 right-0 h-1 z-[9999] bg-blue-100 overflow-hidden">
+          <div className="h-full bg-blue-600 rounded-r-full transition-all duration-300 w-full animate-pulse" />
+        </div>
+      )}
       <aside 
         className={`fixed left-0 top-0 h-[100dvh] bg-slate-900 text-slate-400 transition-all duration-300 z-[100] shadow-2xl flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
           isOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'
@@ -94,28 +100,36 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       </div>
 
       <nav className="flex-1 py-6 px-3 space-y-2">
-        {menuItems.map((item) => (
-          <Link
-            key={item.id}
-            to={item.path}
-            onClick={() => setOptimisticState({ path: item.path, from: location.pathname })}
-            aria-label={`Ir a ${item.label}`}
-            className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative block ${
-              isActive(item.path)
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
-                : 'hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <div className={isActive(item.path) ? 'text-white' : 'group-hover:scale-110 transition-transform'}>
-              {item.icon}
-            </div>
-            {isOpen && (
-              <span className="text-sm font-bold animate-in fade-in slide-in-from-left-2 duration-300">
-                {item.label}
-              </span>
-            )}
-          </Link>
-        ))}
+        {menuItems.map((item) => {
+          const isPendingItem = isPending && optimisticState.path === item.path;
+          return (
+            <Link
+              key={item.id}
+              to={item.path}
+              onClick={() => setOptimisticState({ path: item.path, from: location.pathname })}
+              aria-label={`Ir a ${item.label}`}
+              className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative block ${
+                isActive(item.path)
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                  : 'hover:bg-slate-800 hover:text-slate-200'
+              }`}
+            >
+              <div className={isActive(item.path) ? 'text-white' : 'group-hover:scale-110 transition-transform'}>
+                {item.icon}
+              </div>
+              {isOpen && (
+                <span className="text-sm font-bold animate-in fade-in slide-in-from-left-2 duration-300 flex-1">
+                  {item.label}
+                </span>
+              )}
+              {isPendingItem && (
+                <div className={`ml-auto ${!isOpen && 'absolute right-2 top-1/2 -translate-y-1/2'}`}>
+                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                </div>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="p-3 border-t border-slate-800/50 space-y-2">
@@ -130,7 +144,12 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           }`}
         >
           <Settings className={`h-5 w-5 ${isActive('/configuracion') ? '' : 'group-hover:rotate-45'} transition-transform`} />
-          {isOpen && <span className="text-sm font-bold">Configuración</span>}
+          {isOpen && <span className="text-sm font-bold flex-1">Configuración</span>}
+          {isPending && optimisticState.path === '/configuracion' && (
+            <div className={`ml-auto ${!isOpen && 'absolute right-2 top-1/2 -translate-y-1/2'}`}>
+              <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            </div>
+          )}
         </Link>
         <button 
           onClick={handleLogout}

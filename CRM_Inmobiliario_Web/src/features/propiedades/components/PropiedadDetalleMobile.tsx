@@ -1,9 +1,13 @@
-import { Loader2, MapPin, Handshake, Bed, Bath, CarFront, Maximize, Ruler, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { DetalleHeader } from './propiedad-detalle-sections/DetalleHeader';
 import { DetalleModalsOrchestrator } from './propiedad-detalle-sections/DetalleModalsOrchestrator';
 import { DetalleFaqManager } from './propiedad-detalle-sections/DetalleFaqManager';
-import { formatCurrency, type PropiedadDetalleLogic } from '../hooks/usePropiedadDetalleLogic';
-import type { MultimediaPropiedad } from '../types';
+import { DetalleHeroInfo } from './propiedad-detalle-sections/DetalleHeroInfo';
+import { DetalleStatsGrid } from './propiedad-detalle-sections/DetalleStatsGrid';
+import { DetalleContentLayout } from './propiedad-detalle-sections/DetalleContentLayout';
+import { DetalleGalleryManager } from './propiedad-detalle-sections/DetalleGalleryManager';
+import { DetalleHistoryTimeline } from './propiedad-detalle-sections/DetalleHistoryTimeline';
+import { formatCurrency, formatDate, type PropiedadDetalleLogic } from '../hooks/usePropiedadDetalleLogic';
 import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface Props {
@@ -14,12 +18,16 @@ interface Props {
 
 export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
   const {
-    activeTab, setActiveTab, user, propiedad, syncing, isUpdatingStatus,
-    statusConfirmation, isClosingModalOpen, closingState, isStatusDropdownOpen, showEditModal,
-    showReversionModal, setIsStatusDropdownOpen, setShowEditModal, setStatusConfirmation,
-    setIsClosingModalOpen, setClosingState, setShowReversionModal, handleClosingConfirm,
-    handleStatusChange, handleRelist, handleCancelTransaction, mutate, isTogglingArchive,
-    handleToggleArchive, handleWhatsAppShare, handleMessengerShare, handleCopyWhatsAppAdLink
+    activeTab, setActiveTab, user, propiedad, historial, syncing, isUpdatingStatus,
+    isAddingSection, isCreatingInline, newSectionName, newSectionDesc, statusConfirmation, isClosingModalOpen,
+    closingState, isStatusDropdownOpen, showEditModal, showReversionModal,
+    setNewSectionName, setNewSectionDesc, setIsCreatingInline, setIsStatusDropdownOpen, setShowEditModal,
+    setStatusConfirmation, setIsClosingModalOpen, setClosingState, setShowReversionModal,
+    handleClosingConfirm, handleSetCover, handleDeleteMedia, handleAddSection,
+    handleConfirmAddSection, handleDeleteSection, handleRenameSection, handleClearGallery,
+    handleMoveSection, handleInlineUpdateNote, handleStatusChange, handleRelist,
+    handleCancelTransaction, mutate, isTogglingArchive, handleToggleArchive,
+    handleDragEnd, handleWhatsAppShare, handleMessengerShare, handleCopyWhatsAppAdLink
   } = logic;
 
   if (!propiedad && syncing) {
@@ -64,11 +72,11 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
         onToggleArchive={handleToggleArchive}
       />
 
-      <div className="flex-1 overflow-y-auto p-2 pb-6 space-y-4 w-full">
+      <div className="flex-1 overflow-y-auto p-4 pb-12 space-y-8 w-full">
         {activeTab === 'detalle' && (
-          <>
+          <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
             {propiedad.fechaProgramadaLimpiezaR2 && (
-              <div className="bg-red-500 text-white p-3 rounded-xl shadow-lg border border-red-600 flex flex-col items-center gap-2 w-full">
+              <div className="bg-red-500 text-white p-4 mx-0 rounded-xl shadow-lg border border-red-600 flex flex-col items-center gap-2 animate-in slide-in-from-top-4">
                 <div className="bg-white/20 p-2 rounded-full shrink-0">
                   <AlertTriangle className="h-6 w-6 text-white" />
                 </div>
@@ -76,114 +84,97 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
                   <h4 className="font-black uppercase tracking-wider text-sm mb-1">Limpieza programada</h4>
                   <p className="text-xs font-medium text-red-50">
                     {propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada' ? (
-                      <>Sus imágenes secundarias y su archivo PDF serán eliminados el <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong> al cumplir 1 año de cierre.</>
+                      <>La propiedad ha sido vendida/alquilada, sus imágenes (excepto foto principal) y archivo PDF serán eliminados el <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong>.</>
                     ) : (
-                      <>Sus imágenes serán eliminadas el <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong>. Registra una actividad para cancelar automáticamente.</>
+                      <>Sus imágenes y archivo PDF serán eliminados el <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong>. Registra una actividad en el historial para cancelar esta limpieza.</>
                     )}
                   </p>
                 </div>
               </div>
             )}
-            {/* Hero Info */}
-            <div className="flex flex-col gap-2 w-full">
-              <div className="flex flex-wrap items-center gap-2 w-full">
-                <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md uppercase">
-                  {propiedad.tipoPropiedad}
-                </span>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase ${propiedad.operacion === 'Venta' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
-                  {propiedad.operacion}
-                </span>
-                <span className="text-[10px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-md uppercase flex items-center gap-1 max-w-full">
-                  <Handshake className="h-3 w-3 shrink-0" /> 
-                  <TruncatedText as="span" className="truncate flex-1 min-w-0">Captación: {propiedad.agenteNombre || 'Externa'}</TruncatedText>
-                </span>
-              </div>
-              
-              <h1 className="text-lg md:text-2xl font-black text-slate-900 break-words leading-tight w-full">{propiedad.titulo}</h1>
-              
-              <div className="flex items-start gap-2 text-slate-500 w-full">
-                <MapPin className="h-4 w-4 shrink-0 mt-1 text-indigo-500" />
-                <p className="text-sm font-medium break-words leading-snug flex-1 min-w-0">{propiedad.direccion || `${propiedad.sector}, ${propiedad.ciudad}`}</p>
-              </div>
+            <DetalleHeroInfo propiedad={propiedad} formatCurrency={formatCurrency} />
+            <DetalleStatsGrid propiedad={propiedad} formatDate={formatDate} />
+            <DetalleContentLayout propiedad={propiedad} />
+          </div>
+        )}
 
-              <div className="bg-indigo-50 p-2 rounded-xl flex flex-col items-center w-full text-center">
-                <p className="text-xs font-bold text-indigo-600/50 uppercase tracking-widest mb-1 break-words w-full">Precio de {propiedad.operacion}</p>
-                <p className="text-xl md:text-3xl font-black text-indigo-600 break-words w-full">{formatCurrency(propiedad.precio)}</p>
+        {activeTab === 'galeria' && (
+          <div className="animate-in slide-in-from-right-4 duration-300">
+            <DetalleGalleryManager
+              id={id}
+              propiedad={propiedad}
+              isCreatingInline={isCreatingInline}
+              isAddingSection={isAddingSection}
+              newSectionName={newSectionName}
+              newSectionDesc={newSectionDesc}
+              setNewSectionName={setNewSectionName}
+              setNewSectionDesc={setNewSectionDesc}
+              setIsCreatingInline={setIsCreatingInline}
+              handleAddSection={handleAddSection}
+              handleConfirmAddSection={handleConfirmAddSection}
+              handleSetCover={handleSetCover}
+              handleDeleteMedia={handleDeleteMedia}
+              handleClearGallery={handleClearGallery}
+              handleDeleteSection={handleDeleteSection}
+              handleRenameSection={handleRenameSection}
+              handleMoveSection={handleMoveSection}
+              handleDragEnd={handleDragEnd}
+              mutate={() => mutate()}
+              isArchived={propiedad.isArchivedForCurrentUser}
+              showOnly="general"
+            />
+          </div>
+        )}
 
-              </div>
-            </div>
+        {activeTab === 'secciones' && (
+          <div className="animate-in slide-in-from-right-4 duration-300">
+            <DetalleGalleryManager
+              id={id}
+              propiedad={propiedad}
+              isCreatingInline={isCreatingInline}
+              isAddingSection={isAddingSection}
+              newSectionName={newSectionName}
+              newSectionDesc={newSectionDesc}
+              setNewSectionName={setNewSectionName}
+              setNewSectionDesc={setNewSectionDesc}
+              setIsCreatingInline={setIsCreatingInline}
+              handleAddSection={handleAddSection}
+              handleConfirmAddSection={handleConfirmAddSection}
+              handleSetCover={handleSetCover}
+              handleDeleteMedia={handleDeleteMedia}
+              handleClearGallery={handleClearGallery}
+              handleDeleteSection={handleDeleteSection}
+              handleRenameSection={handleRenameSection}
+              handleMoveSection={handleMoveSection}
+              handleDragEnd={handleDragEnd}
+              mutate={() => mutate()}
+              isArchived={propiedad.isArchivedForCurrentUser}
+              showOnly="secciones"
+            />
+          </div>
+        )}
 
-            {/* Stats */}
-            <div className="flex flex-col gap-3 w-full">
-              {['Casa', 'Departamento', 'Suite', 'Local Comercial', 'Oficina', 'Hotel'].includes(propiedad.tipoPropiedad) && (
-                <div className="flex justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 w-full gap-2">
-                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><Bed className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Habitaciones</TruncatedText></div>
-                  <span className="text-sm font-black text-slate-900 shrink-0">{propiedad.habitaciones || 0}</span>
-                </div>
-              )}
-              {['Casa', 'Departamento', 'Suite', 'Local Comercial', 'Oficina', 'Hotel'].includes(propiedad.tipoPropiedad) && (
-                <div className="flex justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 w-full gap-2">
-                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><Bath className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Baños</TruncatedText></div>
-                  <span className="text-sm font-black text-slate-900 shrink-0">{propiedad.banos || 0}</span>
-                </div>
-              )}
-              {propiedad.estacionamientos && propiedad.estacionamientos > 0 ? (
-                <div className="flex justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 w-full gap-2">
-                  <div className="flex items-center gap-2 text-slate-600 min-w-0"><CarFront className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Parqueaderos</TruncatedText></div>
-                  <span className="text-sm font-black text-slate-900 shrink-0">{propiedad.estacionamientos}</span>
-                </div>
-              ) : null}
-              <div className="flex justify-between bg-indigo-50 p-2 rounded-lg border border-indigo-100 w-full gap-2">
-                <div className="flex items-center gap-2 text-indigo-600 min-w-0"><Maximize className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Área Construcción</TruncatedText></div>
-                <span className="text-sm font-black text-indigo-900 shrink-0">{propiedad.areaConstruccion || 0} m²</span>
-              </div>
-              <div className="flex justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 w-full gap-2">
-                <div className="flex items-center gap-2 text-slate-600 min-w-0"><Ruler className="h-4 w-4 shrink-0" /> <TruncatedText as="span" className="text-sm font-bold truncate">Área Total</TruncatedText></div>
-                <span className="text-sm font-black text-slate-900 shrink-0">{propiedad.areaTotal || 0} m²</span>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="flex flex-col gap-2 w-full">
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest w-full">Descripción</h2>
-              <p className="text-sm text-slate-600 leading-relaxed break-words whitespace-pre-wrap bg-slate-50 p-2 rounded-xl w-full">
-                {propiedad.descripcion}
-              </p>
-            </div>
-
-            {/* Gallery (Horizontal Scroll) */}
-            <div className="flex flex-col gap-2 w-full overflow-hidden">
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest w-full">Galería</h2>
-              {propiedad.media && propiedad.media.length > 0 ? (
-                <div className="flex w-full overflow-x-auto gap-2 snap-x snap-mandatory pb-4">
-                  {propiedad.media.map((img: MultimediaPropiedad) => (
-                    <img 
-                      key={img.id}
-                      src={img.urlPublica}
-                      alt="propiedad media"
-                      className="w-[85vw] h-64 object-cover rounded-xl snap-center shrink-0 border border-slate-200"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center w-full">
-                  <p className="text-sm font-bold text-slate-500">Sin imágenes</p>
-                </div>
-              )}
-            </div>
-            
-
-            
-          </>
+        {activeTab === 'historial' && (
+          <div className="animate-in slide-in-from-right-4 duration-300">
+            <DetalleHistoryTimeline
+              historial={historial}
+              handleInlineUpdateNote={handleInlineUpdateNote}
+              formatDate={formatDate}
+              formatCurrency={formatCurrency}
+              isArchived={propiedad.isArchivedForCurrentUser}
+            />
+          </div>
         )}
 
         {activeTab === 'ia' && (
-          <DetalleFaqManager
-            propiedadId={propiedad.id}
-            canManage={!!propiedad.permissions?.canEditMasterData}
-            currentAgenteId={user?.id ?? ''}
-            isArchived={propiedad.isArchivedForCurrentUser}
-          />
+          <div className="animate-in slide-in-from-right-4 duration-300">
+            <DetalleFaqManager
+              propiedadId={propiedad.id}
+              canManage={!!propiedad.permissions?.canEditMasterData}
+              currentAgenteId={user?.id ?? ''}
+              isArchived={propiedad.isArchivedForCurrentUser}
+            />
+          </div>
         )}
       </div>
 

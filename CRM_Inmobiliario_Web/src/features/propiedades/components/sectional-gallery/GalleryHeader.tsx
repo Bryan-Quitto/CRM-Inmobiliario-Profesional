@@ -118,7 +118,7 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
               <input 
                 value={nombre} 
                 onChange={(e) => setNombre(e.target.value)}
-                className="flex-1 bg-slate-50 border-2 border-indigo-100 rounded-xl px-4 py-2 text-xl font-black text-slate-900 outline-none focus:bg-white transition-all"
+                className="flex-1 min-w-0 bg-slate-50 border-2 border-indigo-100 rounded-xl px-4 py-2 text-xl font-black text-slate-900 outline-none focus:bg-white transition-all"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleRenameSubmit();
@@ -128,7 +128,7 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
                   }
                 }}
               />
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 shrink-0">
                   <button 
                     title="Confirmar"
                     onClick={handleRenameSubmit}

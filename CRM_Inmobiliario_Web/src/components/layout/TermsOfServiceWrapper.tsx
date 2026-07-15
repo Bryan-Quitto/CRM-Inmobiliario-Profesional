@@ -8,7 +8,7 @@ interface TermsOfServiceWrapperProps {
 }
 
 export const TermsOfServiceWrapper = ({ children }: TermsOfServiceWrapperProps) => {
-  const { perfil, isLoading } = usePerfil();
+  const { perfil, isLoading, isValidating } = usePerfil();
   const location = useLocation();
 
   // If loading or profile doesn't exist yet, we just render children 
@@ -24,6 +24,13 @@ export const TermsOfServiceWrapper = ({ children }: TermsOfServiceWrapperProps) 
   // We bypass the block if the user is already trying to read the terms or privacy policy.
   const isLegalPage = location.pathname === '/terminos' || location.pathname === '/privacidad';
   const needsAcceptance = !isLegalPage && currentVersion && perfil.terminosAceptadosVersion !== currentVersion;
+
+  // Fix Race Condition: SWR uses localStorage cache. If the local cache is outdated (e.g. from yesterday),
+  // needsAcceptance will be true, but SWR is currently fetching the real data (isValidating = true).
+  // We prevent showing the modal or the app until validation finishes to avoid flashes.
+  if (needsAcceptance && isValidating) {
+    return null;
+  }
 
   return (
     <>

@@ -18,7 +18,7 @@ export const ImportSection = ({ isSuccess, isScraping, onImport }: Props) => {
           <Globe className="h-4 w-4" /> Importación Inteligente (Remax) *
         </label>
       </div>
-      <div className="flex gap-2 relative">
+      <div className="flex flex-col sm:flex-row gap-2 relative">
         <input 
           {...register('urlRemax', { 
             required: 'La URL de Remax es obligatoria para el catálogo',
@@ -30,13 +30,13 @@ export const ImportSection = ({ isSuccess, isScraping, onImport }: Props) => {
           type="url" 
           disabled={isSuccess || isScraping}
           placeholder="https://www.remax.com.ec/listings/..."
-          className={`flex-1 px-4 py-3 bg-white border ${errors.urlRemax ? 'border-rose-300 ring-rose-50' : 'border-blue-200 focus:border-blue-500 focus:ring-blue-100'} focus:ring-4 rounded-xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
+          className={`w-full sm:flex-1 px-4 py-3 bg-white border ${errors.urlRemax ? 'border-rose-300 ring-rose-50' : 'border-blue-200 focus:border-blue-500 focus:ring-blue-100'} focus:ring-4 rounded-xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
         />
         <button
           type="button"
           onClick={onImport}
           disabled={isSuccess || isScraping}
-          className="px-5 py-3 bg-blue-600 text-white font-black text-sm uppercase tracking-tight rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+          className="w-full sm:w-auto px-5 py-3 shrink-0 bg-blue-600 text-white font-black text-sm uppercase tracking-tight rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 cursor-pointer"
         >
           {isScraping ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> Importando...</>

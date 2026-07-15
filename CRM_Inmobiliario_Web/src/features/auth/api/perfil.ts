@@ -24,7 +24,7 @@ export interface PerfilAgente {
 }
 
 export const usePerfil = () => {
-  const { data, error, isLoading, mutate } = useSWR<PerfilAgente>('/configuracion/perfil');
+  const { data, error, isLoading, isValidating, mutate } = useSWR<PerfilAgente>('/configuracion/perfil');
 
   const actualizarPerfil = async (datos: Partial<PerfilAgente>) => {
     await api.put('/configuracion/perfil', datos);
@@ -35,6 +35,7 @@ export const usePerfil = () => {
     perfil: data,
     error,
     isLoading,
+    isValidating,
     actualizarPerfil,
     mutate,
   };

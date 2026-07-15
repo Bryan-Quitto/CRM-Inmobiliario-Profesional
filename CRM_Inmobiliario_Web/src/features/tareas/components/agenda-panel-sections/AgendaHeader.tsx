@@ -20,8 +20,8 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
   onClose
 }) => {
   return (
-    <div className="px-4 py-5 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10 gap-2 overflow-hidden">
-      <div className="flex items-start gap-2 overflow-hidden">
+    <div className="px-4 py-5 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10 gap-4 overflow-hidden">
+      <div className="flex items-start gap-2 min-w-0">
         <div className="shrink-0">
           <h2 className="text-base font-black text-slate-900 tracking-tight whitespace-nowrap">Agenda Diaria</h2>
           <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 whitespace-nowrap">

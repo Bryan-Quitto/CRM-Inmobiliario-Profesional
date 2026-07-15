@@ -70,7 +70,7 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
             </div>
 
             {/* Fila inferior del header: shortcuts + botón info */}
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <kbd className="px-1.5 py-0.5 bg-white/10 text-slate-400 text-[9px] font-black rounded border border-white/10 tracking-widest">ESC</kbd>
                 <span className="text-[10px] text-slate-500">para cerrar</span>
@@ -83,7 +83,7 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
                 type="button"
                 onClick={() => setIsInstruccionesOpen(true)}
                 aria-label="Ver formatos de instrucción aceptados"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-violet-600 text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest rounded-lg border border-white/10 hover:border-violet-500 transition-all cursor-pointer group"
+                className="w-full sm:w-auto flex justify-center items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-violet-600 text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest rounded-lg border border-white/10 hover:border-violet-500 transition-all cursor-pointer group shrink-0"
               >
                 <Info className="h-3 w-3 group-hover:animate-pulse" />
                 ¿Cómo escribirlo?
@@ -124,12 +124,12 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
             )}
 
             {/* Action bar */}
-            <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
               {/* Botón de voz */}
               <button
                 type="button"
                 onClick={toggleListening}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[11px] font-black uppercase tracking-tight transition-all active:scale-95 cursor-pointer ${
+                className={`w-full sm:w-auto flex justify-center items-center gap-1.5 px-3 py-2 rounded-full text-[11px] font-black uppercase tracking-tight transition-all active:scale-95 cursor-pointer shrink-0 ${
                   isListening
                     ? 'bg-rose-500 text-white animate-pulse'
                     : 'bg-slate-100 text-slate-500 hover:bg-violet-600 hover:text-white'
@@ -153,7 +153,7 @@ export const ComandoPanel = ({ isOpen, onClose, onParsed }: ComandoPanelProps) =
                 id="comando-enviar-btn"
                 type="button"
                 onClick={handleProcesar}
-                className="bg-violet-600 hover:bg-violet-700 text-white font-black text-sm px-6 py-2.5 rounded-xl transition-all active:scale-95 shadow-lg shadow-violet-500/20 cursor-pointer"
+                className="w-full sm:w-auto flex justify-center items-center bg-violet-600 hover:bg-violet-700 text-white font-black text-sm px-6 py-2.5 rounded-xl transition-all active:scale-95 shadow-lg shadow-violet-500/20 cursor-pointer shrink-0"
               >
                 Procesar →
               </button>

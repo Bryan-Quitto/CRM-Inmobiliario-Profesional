@@ -32,7 +32,7 @@ export const formatDate = (dateString: string) => {
 };
 
 export const usePropiedadDetalleLogic = ({ id, onCoverUpdated }: UsePropiedadDetalleLogicProps) => {
-  const [activeTab, setActiveTab] = useState<'detalle' | 'ia'>('detalle');
+  const [activeTab, setActiveTab] = useState<'detalle' | 'galeria' | 'secciones' | 'historial' | 'ia'>('detalle');
   const { user } = useAuth();
   const { perfil } = usePerfil();
   const {
