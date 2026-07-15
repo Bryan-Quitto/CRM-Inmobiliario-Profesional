@@ -19,7 +19,7 @@ public class AutoArchiveEntitiesJob
         _logger = logger;
     }
 
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
 
         // Traemos todos los agentes que tengan el auto-archivado activado para contactos o propiedades.

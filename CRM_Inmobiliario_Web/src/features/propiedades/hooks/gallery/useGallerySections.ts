@@ -78,9 +78,20 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
     }
   };
 
-  const handleDeleteSection = async (sectionId: string) => {
+  const handleDeleteSection = async (sectionId: string, deleteMedia: boolean = false) => {
     if (!propiedad) return;
     const previousSecciones = [...(propiedad.secciones || [])];
+    const previousMediaSinSeccion = [...(propiedad.mediaSinSeccion || [])];
+
+    const seccionAEliminar = propiedad.secciones?.find(s => s.id === sectionId);
+    
+    // Si deleteMedia es true, la portada (si está en esta sección) se mueve a general.
+    // Si deleteMedia es false, TODAS las fotos de esta sección se mueven a general.
+    const mediaToMove = seccionAEliminar 
+      ? seccionAEliminar.media
+          .filter(m => deleteMedia ? m.esPrincipal : true)
+          .map(m => ({ ...m, sectionId: null })) 
+      : [];
 
     let isCancelled = false;
     let isProtectionActive = true;
@@ -93,16 +104,16 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
       }
       if (isCancelled) return;
       try {
-        await eliminarSeccion(sectionId);
+        await eliminarSeccion(sectionId, deleteMedia);
         mutate();
       } catch {
         toast.error("Error al eliminar sección del servidor");
-        mutate((prev: Propiedad | undefined) => prev ? { ...prev, secciones: previousSecciones } : prev, false);
+        mutate((prev: Propiedad | undefined) => prev ? { ...prev, secciones: previousSecciones, mediaSinSeccion: previousMediaSinSeccion } : prev, false);
       }
     };
 
-    toast.success("Sección eliminada", {
-      description: "Tienes unos segundos para deshacer.",
+    toast.success(deleteMedia ? "Sección completa eliminada" : "Sección eliminada", {
+      description: deleteMedia ? "Fotos de la sección eliminadas. Tienes unos segundos para deshacer." : "Las fotos se han movido a la galería general. Tienes unos segundos para deshacer.",
       action: {
         label: "Deshacer",
         onClick: () => {
@@ -124,7 +135,8 @@ export const useGallerySections = ({ id, propiedad, mutate }: UseGallerySections
       if (!prev) return prev;
       return {
         ...prev,
-        secciones: prev.secciones?.filter(s => s.id !== sectionId)
+        secciones: prev.secciones?.filter(s => s.id !== sectionId),
+        mediaSinSeccion: [...(prev.mediaSinSeccion || []), ...mediaToMove]
       };
     }, false);
   };

@@ -50,14 +50,14 @@ public static class SubirLogoAgenciaFeature
                 var keyPart = oldPath.Substring(oldPath.IndexOf("perfiles/"));
                 if (!string.IsNullOrEmpty(keyPart))
                 {
-                    await r2Storage.DeleteAsync(keyPart);
+                    await r2Storage.DeleteWithQuotaLiberationAsync(keyPart, agenteId);
                 }
             }
 
             string urlPublica;
             try
             {
-                urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType, agenteId);
+                urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType, agenteId, "Agencia", null, "Logo de Agencia");
             }
             catch (StorageQuotaExceededException ex)
             {
@@ -91,7 +91,7 @@ public static class SubirLogoAgenciaFeature
                 var keyPart = oldPath.Substring(oldPath.IndexOf("perfiles/"));
                 if (!string.IsNullOrEmpty(keyPart))
                 {
-                    await r2Storage.DeleteAsync(keyPart);
+                    await r2Storage.DeleteWithQuotaLiberationAsync(keyPart, agenteId);
                 }
             }
             

@@ -80,7 +80,20 @@ public static class SubirImagenPropiedadFeature
                 string urlPublica;
                 try
                 {
-                    urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType, agenteId);
+                    string targetContext = "Galería General";
+                    if (sectionId.HasValue)
+                    {
+                        var sectionName = await context.PropertyGallerySections
+                            .Where(s => s.Id == sectionId.Value)
+                            .Select(s => s.Nombre)
+                            .FirstOrDefaultAsync();
+                        if (!string.IsNullOrEmpty(sectionName))
+                        {
+                            targetContext = $"Sección: {sectionName}";
+                        }
+                    }
+                    
+                    urlPublica = await r2Storage.UploadAsync(bytes, key, file.ContentType, agenteId, "Propiedad", id.ToString(), targetContext);
                 }
                 catch (StorageQuotaExceededException ex)
                 {
@@ -128,4 +141,3 @@ public static class SubirImagenPropiedadFeature
         .WithName("SubirImagenPropiedad");
     }
 }
-

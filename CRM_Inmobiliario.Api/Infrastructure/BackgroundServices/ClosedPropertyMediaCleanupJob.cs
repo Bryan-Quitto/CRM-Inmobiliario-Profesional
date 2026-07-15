@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -24,105 +25,65 @@ public class ClosedPropertyMediaCleanupJob
         _logger = logger;
     }
 
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Iniciando tarea de limpieza de propiedades cerradas (Vendidas/Alquiladas > 1 año).");
 
-        var utcNow = DateTimeOffset.UtcNow;
+        var oneYearAgo = DateTimeOffset.UtcNow.AddYears(-1);
 
         var propertiesToClean = await _context.Properties
+            .Where(p => (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null && p.FechaCierre < oneYearAgo && p.FechaProgramadaLimpiezaR2 != null && p.FechaProgramadaLimpiezaR2 < DateTimeOffset.UtcNow)
             .Include(p => p.Media)
-            .Include(p => p.GallerySections)
-            .Where(p => (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") 
-                        && p.FechaCierre != null 
-                        && p.FechaCierre <= utcNow.AddYears(-1)
-                        && (p.Media.Any(m => !m.EsPrincipal) || p.GallerySections.Any()))
             .ToListAsync();
 
-        if (!propertiesToClean.Any())
-        {
-            _logger.LogInformation("No se encontraron propiedades cerradas pendientes de limpieza de R2.");
-            return;
-        }
-
-        int totalMediaDeleted = 0;
-        int totalPdfDeleted = 0;
+        int totalDeleted = 0;
 
         foreach (var property in propertiesToClean)
         {
-            var mediaToDelete = property.Media.Where(m => !m.EsPrincipal).ToList();
+            var keysToDelete = new List<string>();
 
-            // 1. Recopilar claves de R2 a eliminar
-            var keysToDelete = mediaToDelete
-                .Select(m => !string.IsNullOrEmpty(m.StoragePath) 
-                    ? $"propiedades/{property.Id}/{m.StoragePath}" 
-                    : ExtraerClaveR2(m.UrlPublica))
-                .Where(k => !string.IsNullOrEmpty(k))
-                .Cast<string>()
-                .ToList();
+            // Añadir imágenes que no son principales
+            var mediaToDelete = property.Media.Where(m => !m.EsPrincipal && !string.IsNullOrEmpty(m.StoragePath)).ToList();
+            keysToDelete.AddRange(mediaToDelete.Select(m => $"propiedades/{property.Id}/{m.StoragePath}"));
 
-            // Agregar el PDF a la lista de claves a eliminar
-            var pdfKey = $"propiedades/{property.Id}/ficha_{property.Id}.pdf";
-            keysToDelete.Add(pdfKey);
+            
+            var pdfLogs = await _context.AgentStorageFileLogs
+                .Where(l => l.TargetType == "Propiedad" && l.TargetId == property.Id.ToString() && l.Context == "PDF Ficha Comercial" && !l.IsDeleted)
+                .ToListAsync();
 
-            // 2. Eliminar físicamente de R2
-            if (keysToDelete.Any())
+            try
             {
-                try
+                if (keysToDelete.Any())
                 {
                     await _r2StorageService.DeleteManyAsync(keysToDelete);
-                    totalMediaDeleted += mediaToDelete.Count;
-                    totalPdfDeleted++;
+                    totalDeleted += keysToDelete.Count;
+                    _logger.LogInformation("Eliminados {Count} archivos de imagen para la propiedad Cerrada {Id}", keysToDelete.Count, property.Id);
                 }
-                catch (Exception ex)
+                
+                foreach(var log in pdfLogs)
                 {
-                    _logger.LogError(ex, "Error al eliminar archivos de R2 para la propiedad {PropertyId}.", property.Id);
-                    continue; // Saltar si falla la eliminación física para no borrar de la base prematuramente
+                    await _r2StorageService.DeleteWithQuotaLiberationAsync(log.ObjectKey, log.AgentId);
+                    totalDeleted++;
                 }
             }
 
-            // 3. Eliminar de la base de datos (Eliminación fuerte)
-            if (mediaToDelete.Any())
+            catch (Exception ex)
             {
-                _context.PropertyMedia.RemoveRange(mediaToDelete);
-            }
-            
-            // Rescatar foto principal si estaba dentro de una sección para que no se borre en cascada
-            var principalMedia = property.Media.FirstOrDefault(m => m.EsPrincipal);
-            if (principalMedia != null && principalMedia.SectionId != null)
-            {
-                principalMedia.SectionId = null;
+                _logger.LogError(ex, "Error eliminando archivos de R2 para la propiedad Cerrada {Id}", property.Id);
             }
 
-            if (property.GallerySections.Any())
-            {
-                _context.PropertyGallerySections.RemoveRange(property.GallerySections);
-            }
-
-            // Limpiar la alerta roja una vez eliminados físicamente
+            // Marcar como limpio para no volver a procesar
             property.FechaProgramadaLimpiezaR2 = null;
+
+            // Eliminar registros de la base de datos (excepto principal)
+            _context.PropertyMedia.RemoveRange(mediaToDelete);
         }
 
-        // 4. Guardar los cambios en la DB
-        int dbChanges = await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Limpieza de propiedades cerradas completada. {Count} propiedades procesadas. {Media} imágenes eliminadas, {Pdf} PDFs eliminados. Cambios en DB: {DbChanges}.", 
-            propertiesToClean.Count, totalMediaDeleted, totalPdfDeleted, dbChanges);
-    }
-
-    private string? ExtraerClaveR2(string? url)
-    {
-        if (string.IsNullOrEmpty(url)) return null;
-
-        try
+        if (propertiesToClean.Any())
         {
-            var uri = new Uri(url);
-            // El AbsolutePath suele incluir el primer slash, por lo que lo removemos para obtener la clave S3.
-            return uri.AbsolutePath.TrimStart('/');
+            await _context.SaveChangesAsync();
         }
-        catch
-        {
-            return null; // Ignorar URLs inválidas
-        }
+
+        _logger.LogInformation("ClosedPropertyMediaCleanupJob completado. Total archivos eliminados: {Total}", totalDeleted);
     }
 }

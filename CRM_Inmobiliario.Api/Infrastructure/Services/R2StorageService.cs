@@ -9,9 +9,12 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Services;
 
 public interface IR2StorageService
 {
-    Task<string> UploadAsync(byte[] content, string key, string contentType, Guid? agentId = null);
+    Task<string> UploadAsync(byte[] content, string key, string contentType, Guid? agentId = null, string targetType = "Desconocido", string? targetId = null, string? targetContext = null);
     Task DeleteAsync(string key);
     Task DeleteManyAsync(IEnumerable<string> keys);
+    Task<long> GetFileSizeAsync(string key);
+    Task DeleteWithQuotaLiberationAsync(string key, Guid agentId);
+    Task DeleteManyWithQuotaLiberationAsync(IEnumerable<string> keys, Guid agentId);
 }
 
 public class R2StorageService : IR2StorageService
@@ -29,7 +32,7 @@ public class R2StorageService : IR2StorageService
         _scopeFactory = scopeFactory;
     }
 
-    public async Task<string> UploadAsync(byte[] content, string key, string contentType, Guid? agentId = null)
+    public async Task<string> UploadAsync(byte[] content, string key, string contentType, Guid? agentId = null, string targetType = "Desconocido", string? targetId = null, string? targetContext = null)
     {
         if (agentId.HasValue)
         {
@@ -50,7 +53,19 @@ public class R2StorageService : IR2StorageService
                     context.AgentStorageUsages.Add(usage);
                 }
 
-                if (usage.TotalBytesUploaded + content.Length > agent.MonthlyStorageBytesLimit ||
+                var existingLogs = await context.AgentStorageFileLogs
+                    .Where(l => l.AgentId == agentId.Value && l.ObjectKey == key && !l.IsDeleted)
+                    .ToListAsync();
+                    
+                long overwrittenBytes = 0;
+                foreach (var oldLog in existingLogs)
+                {
+                    oldLog.IsDeleted = true;
+                    oldLog.DeletedAt = DateTimeOffset.UtcNow;
+                    overwrittenBytes += oldLog.FileSizeBytes;
+                }
+
+                if (usage.TotalBytesUploaded - overwrittenBytes + content.Length > agent.MonthlyStorageBytesLimit ||
                     usage.UploadOpsCount + 1 > agent.MonthlyStorageUploadsLimit)
                 {
                     throw new CRM_Inmobiliario.Api.Exceptions.StorageQuotaExceededException(
@@ -59,6 +74,22 @@ public class R2StorageService : IR2StorageService
 
                 usage.UploadOpsCount++;
                 usage.TotalBytesUploaded += content.Length;
+                usage.TotalBytesUploaded = Math.Max(0, usage.TotalBytesUploaded - overwrittenBytes);
+                
+                var fileLog = new CRM_Inmobiliario.Api.Domain.Entities.AgentStorageFileLog
+                {
+                    Id = Guid.NewGuid(),
+                    AgentId = agentId.Value,
+                    ObjectKey = key,
+                    FileSizeBytes = content.Length,
+                    TargetType = targetType,
+                    TargetId = targetId,
+                    Context = targetContext,
+                    UploadedAt = DateTimeOffset.UtcNow,
+                    IsDeleted = false
+                };
+                context.AgentStorageFileLogs.Add(fileLog);
+                
                 await context.SaveChangesAsync();
             }
         }
@@ -93,6 +124,31 @@ public class R2StorageService : IR2StorageService
         await _s3Client.DeleteObjectAsync(deleteRequest);
     }
 
+    public async Task DeleteWithQuotaLiberationAsync(string key, Guid agentId)
+    {
+        long fileSize = await GetFileSizeAsync(key);
+        
+        await DeleteAsync(key);
+        
+        if (fileSize > 0)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
+            var year = DateTime.UtcNow.Year;
+            var month = DateTime.UtcNow.Month;
+            
+            await context.AgentStorageUsages
+                .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalBytesUploaded, u => Math.Max(0, u.TotalBytesUploaded - fileSize)));
+                
+            await context.AgentStorageFileLogs
+                .Where(l => l.AgentId == agentId && l.ObjectKey == key && !l.IsDeleted)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(l => l.IsDeleted, true)
+                    .SetProperty(l => l.DeletedAt, DateTimeOffset.UtcNow));
+        }
+    }
+
     public async Task DeleteManyAsync(IEnumerable<string> keys)
     {
         var deleteRequest = new DeleteObjectsRequest
@@ -104,6 +160,56 @@ public class R2StorageService : IR2StorageService
         if (deleteRequest.Objects.Any())
         {
             await _s3Client.DeleteObjectsAsync(deleteRequest);
+        }
+    }
+
+    public async Task DeleteManyWithQuotaLiberationAsync(IEnumerable<string> keys, Guid agentId)
+    {
+        var keyList = keys.ToList();
+        if (keyList.Count == 0) return;
+
+        long totalSize = 0;
+        foreach (var key in keyList)
+        {
+            totalSize += await GetFileSizeAsync(key);
+        }
+
+        await DeleteManyAsync(keyList);
+
+        if (totalSize > 0)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
+            var year = DateTime.UtcNow.Year;
+            var month = DateTime.UtcNow.Month;
+            
+            await context.AgentStorageUsages
+                .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalBytesUploaded, u => Math.Max(0, u.TotalBytesUploaded - totalSize)));
+                
+            await context.AgentStorageFileLogs
+                .Where(l => l.AgentId == agentId && keyList.Contains(l.ObjectKey) && !l.IsDeleted)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(l => l.IsDeleted, true)
+                    .SetProperty(l => l.DeletedAt, DateTimeOffset.UtcNow));
+        }
+    }
+
+    public async Task<long> GetFileSizeAsync(string key)
+    {
+        try
+        {
+            var request = new GetObjectMetadataRequest
+            {
+                BucketName = _bucketName,
+                Key = key
+            };
+            var response = await _s3Client.GetObjectMetadataAsync(request);
+            return response.ContentLength;
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return 0;
         }
     }
 }

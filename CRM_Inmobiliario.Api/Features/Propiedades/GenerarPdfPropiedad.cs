@@ -17,10 +17,12 @@ public static class GenerarPdfPropiedadFeature
         {
             var currentUserId = user.GetRequiredUserId();
             
-            // Validar que la propiedad exista y el usuario tenga acceso a ella (sea el captador o tenga transacción activa)
+            var reqAgente = await context.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Id == currentUserId);
+            if (reqAgente == null) return Results.Forbid();
+
+            // Validar que la propiedad exista y el usuario tenga acceso a ella (sea de la misma agencia)
             var propiedad = await context.Properties
                 .AsNoTracking()
-                .Include(p => p.Transactions)
                 .Include(p => p.Agente)
                 .FirstOrDefaultAsync(p => p.Id == id);
             
@@ -29,16 +31,15 @@ public static class GenerarPdfPropiedadFeature
                 return Results.NotFound();
             }
 
-            var hasAccess = propiedad.AgenteId == currentUserId || 
-                            (propiedad.Transactions.Any(t => t.CreatedById == currentUserId) && (propiedad.Agente == null || !propiedad.Agente.Activo));
-
+            var hasAccess = reqAgente.Rol == "Admin" || (propiedad.AgenciaId != null && propiedad.AgenciaId == reqAgente.AgenciaId);
             if (!hasAccess)
             {
                 return Results.Forbid();
             }
 
             // Encolar la generación asíncrona
-            await pdfQueue.QueuePdfGenerationAsync(id);
+            await pdfQueue.QueuePdfGenerationAsync(new PdfGenerationRequest(id, currentUserId));
+
             return Results.Ok();
         })
         .WithTags("Propiedades")

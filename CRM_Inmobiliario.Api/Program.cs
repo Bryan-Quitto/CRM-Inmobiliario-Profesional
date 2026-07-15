@@ -219,24 +219,24 @@ app.Lifetime.ApplicationStarted.Register(() =>
 
     RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Features.Tareas.Jobs.ProcessWebPushOutboxJob>(
         "process-web-push-outbox",
-        job => job.ExecuteAsync(),
+        job => job.ExecuteAsync(CancellationToken.None),
         "* * * * *");
 
     // Limpieza de inactivos
     RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchiveEntitiesJob>(
         "daily-auto-archive-entities",
-        job => job.ExecuteAsync(),
+        job => job.ExecuteAsync(CancellationToken.None),
         "0 7 * * *");
 
     RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.InactivePropertyMediaCleanupJob>(
         "cleanup-inactive-properties-media",
-        job => job.ExecuteAsync(),
+        job => job.ExecuteAsync(CancellationToken.None),
         "0 8 1 * *");
 
     // Limpieza vendidas
     RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.ClosedPropertyMediaCleanupJob>(
         "cleanup-closed-properties-media",
-        job => job.ExecuteAsync(),
+        job => job.ExecuteAsync(CancellationToken.None),
         "0 9 1 * *"); // 09:00 UTC (04:00 AM UTC-5) el día 1 de cada mes
 
     RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.LimpiezaPdfsObsoletosJob>(
@@ -295,4 +295,3 @@ public class AdminAuthorizationFilter : Hangfire.Dashboard.IDashboardAuthorizati
 }
 
 public partial class Program { }
-

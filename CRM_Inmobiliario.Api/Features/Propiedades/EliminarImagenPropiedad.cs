@@ -39,7 +39,7 @@ public static class EliminarImagenPropiedadFeature
                 if (!string.IsNullOrEmpty(media.StoragePath))
                 {
                     var key = $"propiedades/{propiedadId}/{media.StoragePath}";
-                    await r2Storage.DeleteAsync(key);
+                    await r2Storage.DeleteWithQuotaLiberationAsync(key, agenteId);
                 }
 
                 // 2. Eliminar registro de la DB
@@ -58,4 +58,3 @@ public static class EliminarImagenPropiedadFeature
         .WithName("EliminarImagenPropiedad");
     }
 }
-

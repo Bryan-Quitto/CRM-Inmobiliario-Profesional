@@ -29,7 +29,7 @@ public class ProcessWebPushOutboxJob
     }
 
     [DisableConcurrentExecution(timeoutInSeconds: 30)]
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var outboxRecords = await _dbContext.PushNotificationsOutbox
             .OrderBy(o => o.RetryCount)

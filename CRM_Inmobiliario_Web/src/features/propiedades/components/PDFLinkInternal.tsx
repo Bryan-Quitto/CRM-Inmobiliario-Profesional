@@ -3,6 +3,7 @@ import { FileDown, Loader2, RefreshCw, ChevronDown, Trash2 } from 'lucide-react'
 import { api } from '@/lib/axios'; 
 import type { Propiedad } from '../types';
 import { toast } from 'sonner';
+import { mutate as globalMutate } from 'swr';
 import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
 interface PDFLinkInternalProps {
@@ -10,7 +11,16 @@ interface PDFLinkInternalProps {
 }
 
 const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
-  const isResponsable = !!propiedad.permissions?.canEditMasterData;
+  const isResponsable = true;
+
+  const [now] = useState(() => Date.now());
+  const isCleaned = propiedad.bloqueoLimpiezaOverride !== null && propiedad.bloqueoLimpiezaOverride !== undefined
+    ? propiedad.bloqueoLimpiezaOverride
+    : (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && 
+      propiedad.fechaProgramadaLimpiezaR2 === null && 
+      propiedad.fechaCierre && 
+      new Date(propiedad.fechaCierre).getTime() < now - 365 * 24 * 60 * 60 * 1000;
+
   const [status, setStatus] = useState<'checking' | 'exists' | 'missing' | 'generating' | 'deleting'>('checking');
   const [actualPdfUrl, setActualPdfUrl] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -101,6 +111,11 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
     if (e) e.stopPropagation();
     if (actionLock.current) return;
     
+    if (isCleaned) {
+      toast.error('Esta propiedad ha sido limpiada y ya no se puede generar el PDF. Contactese con administración.');
+      return;
+    }
+    
     actionLock.current = true;
     setIsDropdownOpen(false);
     
@@ -126,6 +141,7 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
     try {
       setStatus('deleting');
       await api.delete(`/propiedades/${propiedad.id}/pdf`);
+      globalMutate('/configuracion/perfil');
       toast.success('Ficha eliminada permanentemente.');
       setStatus('missing');
     } catch {
@@ -139,6 +155,11 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   const handleRegenerate = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (actionLock.current) return;
+    
+    if (isCleaned) {
+      toast.error('Esta propiedad ha sido limpiada y ya no se puede regenerar el PDF. Contactese con administración.');
+      return;
+    }
     
     actionLock.current = true;
     setIsDropdownOpen(false);

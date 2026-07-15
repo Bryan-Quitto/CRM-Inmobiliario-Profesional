@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 import type { KeyedMutator } from 'swr';
+import { mutate as globalMutate } from 'swr';
 import { establecerImagenPrincipal } from '../../api/establecerImagenPrincipal';
 import { deleteImagenPropiedad } from '../../api/deleteImagenPropiedad';
 import { deleteImagenesSeleccionadas } from '../../api/deleteImagenesSeleccionadas';
@@ -51,6 +52,7 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
         } else {
           await deleteImagenesSeleccionadas(propiedad.id, idsArray);
         }
+        globalMutate('/configuracion/perfil');
         mutate();
       } catch {
         toast.error("Error al eliminar del servidor");
@@ -89,8 +91,9 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
     }, false);
   };
 
-  const handleClearGallery = async () => {
+  const handleClearGallery = async (soloGeneral: boolean = false) => {
     if (!propiedad) return;
+
     const previousState = {
       mediaSinSeccion: [...(propiedad.mediaSinSeccion || [])],
       secciones: [...(propiedad.secciones || [])]
@@ -107,7 +110,8 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
       }
       if (isCancelled) return;
       try {
-        await limpiarImagenesPropiedad(id);
+        await limpiarImagenesPropiedad(id, soloGeneral);
+        globalMutate('/configuracion/perfil');
         mutate();
       } catch {
         toast.error("Error al limpiar la galería en el servidor");
@@ -115,8 +119,8 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
       }
     };
 
-    toast.success("Galería depurada", {
-      description: "Se han eliminado todas las fotos excepto la de portada. Tienes unos segundos para deshacer.",
+    toast.success(soloGeneral ? "Galería general depurada" : "Galería depurada", {
+      description: "Se han eliminado las fotos. Tienes unos segundos para deshacer.",
       action: {
         label: "Deshacer",
         onClick: () => {
@@ -139,7 +143,7 @@ export const useGalleryMedia = ({ id, propiedad, mutate, onCoverUpdated }: UseGa
       return {
         ...prev,
         mediaSinSeccion: prev.mediaSinSeccion?.filter(m => m.urlPublica === prev.imagenPortadaUrl) || [],
-        secciones: []
+        secciones: soloGeneral ? prev.secciones : []
       };
     }, false);
   };

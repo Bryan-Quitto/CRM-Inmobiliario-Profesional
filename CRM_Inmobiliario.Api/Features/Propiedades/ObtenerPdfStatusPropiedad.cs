@@ -4,7 +4,6 @@ using CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-
 using Microsoft.Extensions.Configuration;
 using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
@@ -17,13 +16,15 @@ public static class ObtenerPdfStatusPropiedadFeature
     {
         return app.MapGet("/propiedades/{id:guid}/pdf-status", async (Guid id, ClaimsPrincipal user, IPdfGeneratorQueue pdfQueue, IConfiguration config, IAmazonS3 s3Client, CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext context) =>
         {
-            var isGenerating = pdfQueue.IsGenerating(id);
+            var currentUserId = user.GetRequiredUserId();
+            var isGenerating = pdfQueue.IsGenerating(id, currentUserId);
             var publicUrlBase = config["R2_PUBLIC_URL"];
             var bucketName = config["R2_BUCKET_NAME"];
-            var key = $"propiedades/{id}/ficha_{id}.pdf";
+            var key = $"propiedades/{id}/ficha_{id}_{currentUserId}.pdf";
             var url = $"{publicUrlBase?.TrimEnd('/')}/{key}";
 
             bool exists = false;
+
             if (!isGenerating)
             {
                 try

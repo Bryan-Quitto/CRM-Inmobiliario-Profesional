@@ -1,11 +1,11 @@
-using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Infrastructure.Pdf;
-using CRM_Inmobiliario.Api.Infrastructure.Pdf.Models;
+using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using QuestPDF.Fluent;
+using CRM_Inmobiliario.Api.Infrastructure.Pdf.Models;
 
 namespace CRM_Inmobiliario.Api.Infrastructure.BackgroundServices;
 
@@ -30,24 +30,22 @@ public class PdfWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                var propiedadId = await _queue.DequeuePdfGenerationAsync(stoppingToken);
-
+                var request = await _queue.DequeuePdfGenerationAsync(stoppingToken);
                 try
                 {
-                    await ProcessPdfAsync(propiedadId, stoppingToken);
+                    await ProcessPdfAsync(request, stoppingToken);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error crítico al procesar el PDF para la propiedad {PropiedadId}", propiedadId);
+                    _logger.LogError(ex, "Error crítico al procesar el PDF para la propiedad {PropiedadId} y agente {AgenteId}", request.PropiedadId, request.AgenteId);
                 }
                 finally
                 {
-                    _queue.SetStatus(propiedadId, false);
+                    _queue.SetStatus(request.PropiedadId, request.AgenteId, false);
                 }
             }
             catch (OperationCanceledException) { break; }
@@ -58,7 +56,7 @@ public class PdfWorker : BackgroundService
         }
     }
 
-    private async Task ProcessPdfAsync(Guid propiedadId, CancellationToken ct)
+    private async Task ProcessPdfAsync(PdfGenerationRequest request, CancellationToken ct)
     {
         // Pequeño retardo de seguridad para asegurar que la DB ha terminado de escribir
         // y evitar condiciones de carrera en sistemas distribuidos o con alta carga.
@@ -71,14 +69,22 @@ public class PdfWorker : BackgroundService
         var propiedad = await context.Properties
             .AsNoTracking()
             .AsSplitQuery()
-            .Include(p => p.Agente)
-                .ThenInclude(a => a!.Agencia)
             .Include(p => p.Media)
             .Include(p => p.GallerySections)
                 .ThenInclude(s => s.Media)
-            .FirstOrDefaultAsync(p => p.Id == propiedadId, ct);
+            .FirstOrDefaultAsync(p => p.Id == request.PropiedadId, ct);
 
         if (propiedad == null)
+        {
+            return;
+        }
+
+        var reqAgente = await context.Agents
+            .AsNoTracking()
+            .Include(a => a.Agencia)
+            .FirstOrDefaultAsync(a => a.Id == request.AgenteId, ct);
+
+        if (reqAgente == null) 
         {
             return;
         }
@@ -89,12 +95,12 @@ public class PdfWorker : BackgroundService
                 ? DownloadImageAsync(propiedad.Media.First(m => m.EsPrincipal).UrlPublica, ct)
                 : Task.FromResult<byte[]?>(null);
 
-            var agenteLogoTask = !string.IsNullOrEmpty(propiedad.Agente?.LogoUrl)
-                ? DownloadImageAsync(propiedad.Agente.LogoUrl, ct)
+            var agenteLogoTask = !string.IsNullOrEmpty(reqAgente.LogoUrl)
+                ? DownloadImageAsync(reqAgente.LogoUrl, ct)
                 : Task.FromResult<byte[]?>(null);
 
-            var agenteFotoTask = !string.IsNullOrEmpty(propiedad.Agente?.FotoUrl)
-                ? DownloadImageAsync(propiedad.Agente.FotoUrl, ct)
+            var agenteFotoTask = !string.IsNullOrEmpty(reqAgente.FotoUrl)
+                ? DownloadImageAsync(reqAgente.FotoUrl, ct)
                 : Task.FromResult<byte[]?>(null);
 
             // Iniciar descargas en paralelo
@@ -113,7 +119,6 @@ public class PdfWorker : BackgroundService
                 }).ToList();
 
                 var results = await Task.WhenAll(mediaTasks);
-
                 foreach (var res in results.OrderBy(r => r.Orden))
                 {
                     if (res.Bytes != null) imagenesSeccion.Add(new FichaImagenData(res.Bytes, res.Descripcion));
@@ -128,23 +133,19 @@ public class PdfWorker : BackgroundService
                 propiedad.AreaTerreno, propiedad.AreaConstruccion, propiedad.Estacionamientos,
                 propiedad.MediosBanos, propiedad.AniosAntiguedad,
                 imagenPrincipal,
-                $"{propiedad.Agente?.Nombre ?? "Agente"} {propiedad.Agente?.Apellido ?? ""}".Trim(), 
-                propiedad.Agente?.Telefono ?? "",
-                propiedad.Agente?.Agencia?.Nombre, agenteLogo, agenteFoto, seccionesData
+                $"{reqAgente.Nombre ?? "Agente"} {reqAgente.Apellido ?? ""}".Trim(), 
+                reqAgente.Telefono ?? "",
+                reqAgente.Agencia?.Nombre, agenteLogo, agenteFoto, seccionesData
             );
 
             // PRODUCCIÓN: EnableDebugging ELIMINADO intencionalmente.
-            // En true, QuestPDF activa su servidor hot-reload y escribe archivos de
-            // diagnóstico a disco, causando UnauthorizedAccessException en contenedores efímeros (Railway).
             var document = new PropiedadFichaDocument(data);
             var pdfBytes = document.GeneratePdf();
 
-            var fileName = $"ficha_{propiedadId}.pdf";
-            var key = $"propiedades/{propiedadId}/{fileName}";
+            var fileName = $"ficha_{propiedad.Id}_{reqAgente.Id}.pdf";
+            var key = $"propiedades/{propiedad.Id}/{fileName}";
             
-            // AWS SDK S3 permite definir Cache-Control pero R2 maneja la caché principalmente via sus Cache Rules o CDN,
-            // de igual forma, la implementación UploadAsync por defecto basta para el Storage subyacente.
-            await r2Storage.UploadAsync(pdfBytes, key, "application/pdf", propiedad.AgenteId);
+            await r2Storage.UploadAsync(pdfBytes, key, "application/pdf", reqAgente.Id, "Propiedad", propiedad.Id.ToString(), "PDF Ficha Comercial");
         }
         catch (Exception)
         {

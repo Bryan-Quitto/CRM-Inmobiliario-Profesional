@@ -1,5 +1,6 @@
 import React from 'react';
 import { Upload, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface GalleryUploadZoneProps {
   isDragging: boolean;
@@ -7,6 +8,7 @@ interface GalleryUploadZoneProps {
   handleFiles: (files: FileList | File[]) => void;
   isUploading: boolean;
   sectionNombre: string;
+  isCleaned?: boolean;
 }
 
 export const GalleryUploadZone: React.FC<GalleryUploadZoneProps> = ({
@@ -14,11 +16,18 @@ export const GalleryUploadZone: React.FC<GalleryUploadZoneProps> = ({
   setIsDragging,
   handleFiles,
   isUploading,
-  sectionNombre
+  sectionNombre,
+  isCleaned
 }) => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    
+    if (isCleaned) {
+      toast.error('Esta propiedad ha sido limpiada y ya no se puede subir imágenes. Contactese con administración.');
+      return;
+    }
+    
     if (e.target instanceof HTMLElement && e.target.closest('textarea')) return;
     if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
   };
@@ -37,7 +46,16 @@ export const GalleryUploadZone: React.FC<GalleryUploadZoneProps> = ({
         multiple 
         className="hidden" 
         accept="image/*" 
-        onChange={(e) => e.target.files && handleFiles(e.target.files)} 
+        onChange={(e) => {
+          if (isCleaned) return;
+          if (e.target.files) handleFiles(e.target.files);
+        }}
+        onClick={(e) => {
+          if (isCleaned) {
+            e.preventDefault();
+            toast.error('Esta propiedad ha sido limpiada y ya no se puede subir imágenes. Contactese con administración.');
+          }
+        }}
       />
       <div className="flex items-center gap-3">
         {isUploading ? (

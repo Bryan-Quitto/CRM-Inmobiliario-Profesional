@@ -113,16 +113,24 @@ public static class CambiarEstadoContactoFeature
                         .Select(m => new { m.PropiedadId, m.StoragePath })
                         .ToListAsync(ct);
                         
+                    
                     var keysToDelete = allMediaPaths.Select(m => $"propiedades/{m.PropiedadId}/{m.StoragePath}").ToList();
-                    keysToDelete.AddRange(propertiesToInactivate.Select(pId => $"propiedades/{pId}/ficha_{pId}.pdf"));
-
-                    if (keysToDelete.Any())
+                    var pIdStrings = propertiesToInactivate.Select(p => p.ToString()).ToList(); 
+                    var pdfLogs = await context.AgentStorageFileLogs.Where(l => l.TargetType == "Propiedad" && l.TargetId != null && pIdStrings.Contains(l.TargetId!) && l.Context == "PDF Ficha Comercial" && !l.IsDeleted).ToListAsync(ct); 
+                    
+                    if (keysToDelete.Any() || pdfLogs.Any())
                     {
                         try
                         {
-                            await r2Storage.DeleteManyAsync(keysToDelete);
-                            logger.LogInformation("🧹 [ESTADO] {Count} archivos eliminados de R2 para múltiples propiedades de contacto", keysToDelete.Count);
+                            if (keysToDelete.Any())
+                                await r2Storage.DeleteManyAsync(keysToDelete);
+                                
+                            foreach(var log in pdfLogs)
+                                await r2Storage.DeleteWithQuotaLiberationAsync(log.ObjectKey, log.AgentId);
+                                
+                            logger.LogInformation("🧹 [ESTADO] Archivos eliminados de R2 para múltiples propiedades de contacto");
                         }
+
                         catch (Exception ex)
                         {
                             logger.LogWarning(ex, "⚠️ [ESTADO] Error al borrar archivos de R2 masivamente.");

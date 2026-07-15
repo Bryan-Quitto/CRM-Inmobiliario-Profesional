@@ -12,6 +12,8 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
 {
     private readonly IDataProtectionProvider? _dataProtectionProvider;
 
+    public DbSet<AgentStorageFileLog> AgentStorageFileLogs => Set<AgentStorageFileLog>();
+    
     public CrmDbContext(DbContextOptions<CrmDbContext> options, IDataProtectionProvider? dataProtectionProvider = null) : base(options)
     {
         _dataProtectionProvider = dataProtectionProvider;
@@ -252,7 +254,13 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             // Asignar alerta innegociable automáticamente para propiedades cerradas
             if ((p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null)
             {
-                p.FechaProgramadaLimpiezaR2 = p.FechaCierre.Value.AddDays(365);
+                // Si la fecha de cierre fue hace más de un año, y la fecha programada es null, 
+                // significa que el job de limpieza ya pasó. No volver a programarla.
+                bool yaFueLimpiada = p.FechaProgramadaLimpiezaR2 == null && p.FechaCierre.Value.AddDays(365) < DateTimeOffset.UtcNow;
+                if (!yaFueLimpiada)
+                {
+                    p.FechaProgramadaLimpiezaR2 = p.FechaCierre.Value.AddDays(365);
+                }
             }
 
             // Marcar siempre la fecha de actualización más reciente

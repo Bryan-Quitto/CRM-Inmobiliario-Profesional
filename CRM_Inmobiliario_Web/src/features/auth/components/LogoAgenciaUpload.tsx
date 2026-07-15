@@ -3,6 +3,7 @@ import { api } from '@/lib/axios';
 import imageCompression from 'browser-image-compression';
 import { Image, Trash2, Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { mutate } from 'swr';
 import ConfirmModal from '@/components/ConfirmModal';
 import ImageCropperModal from './ImageCropperModal';
 
@@ -71,6 +72,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
       const publicUrl = response.data.url;
 
       onUploadSuccess(publicUrl);
+      mutate('/configuracion/perfil');
       toast.success('Logo de la agencia actualizado');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error desconocido';
@@ -91,6 +93,7 @@ const LogoAgenciaUpload: React.FC<LogoAgenciaUploadProps> = ({
     try {
       await api.delete(`/agentes/${userId}/logo-agencia`);
       onDeleteSuccess();
+      mutate('/configuracion/perfil');
       toast.success('Logo eliminado correctamente');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error desconocido';

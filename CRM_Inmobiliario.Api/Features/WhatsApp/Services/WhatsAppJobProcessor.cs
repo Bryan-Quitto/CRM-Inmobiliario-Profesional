@@ -71,11 +71,12 @@ public class WhatsAppJobProcessor : IWhatsAppJobProcessor
             var dbContext = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
             var agent = await dbContext.Agents.FirstOrDefaultAsync(a => a.WhatsAppPhoneNumberId == phoneNumberId, cancellationToken);
             var agentId = agent?.Id;
+            var contacto = await dbContext.Contactos.FirstOrDefaultAsync(c => c.Telefono == phone && c.AgenteId == agentId, cancellationToken);
 
             var r2Storage = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService>();
             var fileName = $"{Guid.NewGuid()}.ogg";
             var key = $"whatsapp_audio/{fileName}";
-            var mediaUrl = await r2Storage.UploadAsync(audioBytes, key, "audio/ogg", agentId);
+            var mediaUrl = await r2Storage.UploadAsync(audioBytes, key, "audio/ogg", agentId, "WhatsApp", contacto?.Id.ToString(), "Mensaje de Voz");
             await aiService.ProcessIncomingAudioAsync(phone, audioBytes, mediaUrl, phoneNumberId, cancellationToken);
         }
         catch (Polly.Timeout.TimeoutRejectedException)

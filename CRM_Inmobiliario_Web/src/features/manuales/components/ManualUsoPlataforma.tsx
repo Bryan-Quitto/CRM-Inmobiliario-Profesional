@@ -45,14 +45,38 @@ export const ManualUsoPlataforma: React.FC = () => {
             <p className="mb-4 text-slate-600">
               Mide el peso total (en Megabytes o Gigabytes) de todos los archivos que tienes alojados en el mes activo.
             </p>
-            <div className="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200">
-              <p className="text-sm text-slate-700 text-justify leading-relaxed">
-                Todas las imágenes que subes son <strong>comprimidas y optimizadas automáticamente</strong> al moderno formato WebP antes de ser guardadas. Esto significa que una foto de 5 MB de tu celular puede reducirse a unos 200 KB sin perder calidad visual. Gracias a esto, tu límite de almacenamiento rinde muchísimo más, permitiéndote subir miles de fotos al mes sin problemas.
-              </p>
+            <div className="space-y-4">
+              <div className="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200">
+                <p className="text-sm text-slate-700 text-justify leading-relaxed">
+                  Todas las imágenes que subes son <strong>comprimidas y optimizadas automáticamente</strong> al moderno formato WebP antes de ser guardadas. Esto significa que una foto de 5 MB de tu celular puede reducirse a unos 200 KB sin perder calidad visual. Gracias a esto, tu límite de almacenamiento rinde muchísimo más, permitiéndote subir miles de fotos al mes sin problemas.
+                </p>
+              </div>
+              <div className="bg-indigo-50/50 p-4 md:p-5 rounded-xl border border-indigo-100/50">
+                <h4 className="font-bold text-indigo-900 mb-1 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Liberación de Cuota Automática
+                </h4>
+                <p className="text-sm text-slate-700 text-justify">
+                  El sistema optimiza tu espacio de forma automática. Cuando reemplazas un archivo, el sistema <strong>elimina el archivo anterior y te devuelve el espacio</strong> ocupado. <br/><br/>
+                  <strong>Nota sobre las Fichas Comerciales PDF:</strong> Al editar la información de una propiedad, el PDF anterior deja de estar visible para garantizar que siempre compartas datos actualizados. Si generas la nueva ficha en ese momento, el PDF anterior se sobrescribe y el espacio se recupera al instante. Caso contrario, nuestro sistema de mantenimiento automático identificará y eliminará definitivamente los PDFs obsoletos cada día a las 03:00 AM del horario de Ecuador, devolviéndote el espacio a tu cuota sin que tengas que realizar ninguna acción manual.
+                </p>
+              </div>
             </div>
           </ManualSection>
 
-          <ManualSection title="3. Ciclo de Facturación" icon={<AlertCircle className="w-6 h-6 text-indigo-500" />}>
+          <ManualSection title="3. Historial y Auditoría" icon={<AlertCircle className="w-6 h-6 text-indigo-500" />}>
+            <div className="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200">
+              <p className="text-sm text-slate-700 text-justify leading-relaxed mb-3">
+                Para garantizar total transparencia en el uso de tu plataforma, cuentas con un <strong>Historial de Almacenamiento</strong> al que puedes acceder dando clic en el icono del ojo junto a tus estadísticas de almacenamiento.
+              </p>
+              <ul className="list-disc pl-5 text-sm text-slate-700 space-y-2">
+                <li><strong>Trazabilidad:</strong> Cada archivo detalla su origen (WhatsApp, Propiedad, Perfil, etc.), contexto (Ficha PDF, Galería, Logo) y el elemento específico asociado.</li>
+                <li><strong>Estados:</strong> Podrás ver qué archivos están <em>Activos</em> y cuáles han sido <em>Eliminados</em> (por reemplazo o limpieza automática), incluyendo la fecha exacta.</li>
+                <li><strong>Control exacto:</strong> Sabrás con precisión en qué se está consumiendo tu cuota (imágenes, audios de WhatsApp, PDFs, etc.).</li>
+              </ul>
+            </div>
+          </ManualSection>
+
+          <ManualSection title="4. Ciclo de Facturación" icon={<AlertCircle className="w-6 h-6 text-indigo-500" />}>
             <div className="bg-blue-50/50 p-4 md:p-5 rounded-xl border border-blue-100/50">
               <p className="text-sm text-slate-700 text-justify mb-3">
                 <strong>Reinicio Automático:</strong> Tanto las Operaciones como el Almacenamiento se reinician automáticamente al inicio de tu próximo mes de corte. En tu panel siempre podrás visualizar cuántos días faltan para este reinicio.

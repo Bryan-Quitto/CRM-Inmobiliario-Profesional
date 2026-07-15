@@ -3,6 +3,7 @@ import { api } from '@/lib/axios';
 import imageCompression from 'browser-image-compression';
 import { Camera, Trash2, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { mutate } from 'swr';
 import ConfirmModal from '@/components/ConfirmModal';
 import ImageCropperModal from './ImageCropperModal';
 
@@ -72,6 +73,7 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
 
       const publicUrl = response.data.url;
       onUploadSuccess(publicUrl);
+      mutate('/configuracion/perfil');
       setShowCropper(false);
       setSelectedImageSrc(null);
       toast.success('Foto de perfil actualizada');
@@ -90,6 +92,7 @@ const FotoPerfilUpload: React.FC<FotoPerfilUploadProps> = ({
     try {
       await api.delete(`/agentes/${userId}/foto-perfil`);
       onDeleteSuccess();
+      mutate('/configuracion/perfil');
       toast.success('Foto eliminada correctamente');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error desconocido';

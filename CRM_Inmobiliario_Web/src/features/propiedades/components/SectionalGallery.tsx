@@ -21,13 +21,14 @@ interface SectionalGalleryProps {
   onDeleteMedia: (id: string | string[]) => Promise<void>;
   onImageUploaded?: (result: MultimediaPropiedad) => void;
   onRenameSection?: (id: string, nuevoNombre: string, descripcion: string | null) => Promise<void>;
-  onDeleteSection?: (id: string) => Promise<void>;
-  onClearGallery?: () => Promise<void>;
+  onDeleteSection?: (id: string, deleteMedia?: boolean) => Promise<void>;
+  onClearGallery?: (soloGeneral?: boolean) => Promise<void>;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onMoveTo?: (index: number) => void;
   totalSections?: number;
   isReadOnly?: boolean;
+  isCleaned?: boolean;
 }
 
 export const SectionalGallery = React.memo<SectionalGalleryProps>(({
@@ -48,7 +49,8 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
   onMoveDown,
   onMoveTo,
   totalSections = 0,
-  isReadOnly = false
+  isReadOnly = false,
+  isCleaned = false
 }) => {
   const sectionalGallery = useSectionalGallery({
     propiedadId,
@@ -116,6 +118,7 @@ export const SectionalGallery = React.memo<SectionalGalleryProps>(({
             handleFiles={sectionalGallery.handleFiles}
             isUploading={sectionalGallery.isUploading}
             sectionNombre={sectionNombre}
+            isCleaned={isCleaned}
           />
         )}
       </div>

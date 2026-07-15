@@ -17,9 +17,11 @@ public static class EliminarPdfPropiedadFeature
         {
             var currentUserId = user.GetRequiredUserId();
             
+            var reqAgente = await context.Agents.AsNoTracking().FirstOrDefaultAsync(a => a.Id == currentUserId);
+            if (reqAgente == null) return Results.Forbid();
+
             var propiedad = await context.Properties
                 .AsNoTracking()
-                .Include(p => p.Transactions)
                 .Include(p => p.Agente)
                 .FirstOrDefaultAsync(p => p.Id == id);
             
@@ -28,18 +30,16 @@ public static class EliminarPdfPropiedadFeature
                 return Results.NotFound();
             }
 
-            var hasAccess = propiedad.AgenteId == currentUserId || 
-                            (propiedad.Transactions.Any(t => t.CreatedById == currentUserId) && (propiedad.Agente == null || !propiedad.Agente.Activo));
-
+            var hasAccess = reqAgente.Rol == "Admin" || (propiedad.AgenciaId != null && propiedad.AgenciaId == reqAgente.AgenciaId);
             if (!hasAccess)
             {
                 return Results.Forbid();
             }
 
-            var fileName = $"ficha_{id}.pdf";
+            var fileName = $"ficha_{id}_{currentUserId}.pdf";
             var key = $"propiedades/{id}/{fileName}";
-
-            await r2Storage.DeleteAsync(key);
+            
+            await r2Storage.DeleteWithQuotaLiberationAsync(key, currentUserId);
 
             return Results.Ok(new { message = "PDF eliminado exitosamente" });
         })

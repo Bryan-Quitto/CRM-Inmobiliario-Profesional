@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Plus, X, Check, Loader2, Info } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
@@ -19,8 +20,8 @@ interface DetalleGalleryManagerProps {
   handleConfirmAddSection: () => void;
   handleSetCover: (imagenId: string) => Promise<void>;
   handleDeleteMedia: (ids: string | string[]) => Promise<void>;
-  handleClearGallery: () => Promise<void>;
-  handleDeleteSection: (sectionId: string) => Promise<void>;
+  handleClearGallery: (soloGeneral?: boolean) => Promise<void>;
+  handleDeleteSection: (sectionId: string, deleteMedia?: boolean) => Promise<void>;
   handleRenameSection: (id: string, nombre: string, desc: string | null, orden: number) => Promise<void>;
   handleMoveSection: (index: number, direction: 'up' | 'down', customTargetIndex?: number) => void;
   handleDragEnd: (result: DropResult) => void;
@@ -50,6 +51,15 @@ export const DetalleGalleryManager = ({
   mutate,
   isArchived
 }: DetalleGalleryManagerProps) => {
+  
+  const [now] = useState(() => Date.now());
+  const isCleaned = propiedad.bloqueoLimpiezaOverride !== null && propiedad.bloqueoLimpiezaOverride !== undefined
+    ? propiedad.bloqueoLimpiezaOverride
+    : (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && 
+      propiedad.fechaProgramadaLimpiezaR2 === null && 
+      propiedad.fechaCierre && 
+      new Date(propiedad.fechaCierre).getTime() < now - 365 * 24 * 60 * 60 * 1000;
+
   const canManage = !isArchived && propiedad.permissions?.canManageGallery;
   return (
     <div className="space-y-12">
@@ -81,6 +91,7 @@ export const DetalleGalleryManager = ({
         onImageUploaded={() => mutate()}
         onClearGallery={handleClearGallery}
         isReadOnly={!canManage}
+        isCleaned={!!isCleaned}
       />
 
       {/* Secciones Dinámicas con Drag & Drop */}
@@ -110,6 +121,7 @@ export const DetalleGalleryManager = ({
                     onMoveTo={(newIndex) => handleMoveSection(index, newIndex > index ? 'down' : 'up', newIndex)}
                     totalSections={propiedad.secciones?.length || 0}
                     isReadOnly={!canManage}
+                    isCleaned={!!isCleaned}
                   />
                 );
               })}

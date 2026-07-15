@@ -73,7 +73,7 @@ public static class EliminarTodasLasImagenesFeature
                         // No pasamos el CT aquí para asegurar que el borrado físico ocurra 
                         // incluso si el cliente cancela la petición HTTP justo después del borrado en DB
                         var keys = storagePaths.Select(path => $"propiedades/{propiedadId}/{path}").ToList();
-                        await r2Storage.DeleteManyAsync(keys);
+                        await r2Storage.DeleteManyWithQuotaLiberationAsync(keys, agenteId);
                         logger.LogInformation("Archivos físicos eliminados correctamente del bucket");
                     }
                     catch (Exception storageEx)
@@ -102,4 +102,3 @@ public static class EliminarTodasLasImagenesFeature
         .WithName("EliminarTodasLasImagenes");
     }
 }
-

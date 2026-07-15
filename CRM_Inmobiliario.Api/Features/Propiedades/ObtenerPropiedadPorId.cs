@@ -53,7 +53,8 @@ public static class ObtenerPropiedadPorIdFeature
         ActiveTransactionInfo? ActiveTransaction,
         string Version,
         bool IsArchivedForCurrentUser = false,
-        DateTimeOffset? FechaProgramadaLimpiezaR2 = null);
+        DateTimeOffset? FechaProgramadaLimpiezaR2 = null,
+        bool? BloqueoLimpiezaOverride = null);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -197,7 +198,8 @@ public static class ObtenerPropiedadPorIdFeature
                         (x.Property.Media.Any(m => !m.EsPrincipal) || x.Property.GallerySections.Any())
                             ? x.Property.FechaCierre.Value.AddYears(1) 
                             : null
-                    )))
+                    ),
+                    x.Property.BloqueoLimpiezaOverride))
                 .FirstOrDefaultAsync();
 
             return propiedad is not null 

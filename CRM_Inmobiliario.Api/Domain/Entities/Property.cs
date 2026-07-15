@@ -122,6 +122,7 @@ public sealed class Property
     public Pgvector.Vector? GeminiEmbedding { get; set; }
 
     public DateTimeOffset? FechaProgramadaLimpiezaR2 { get; set; }
+    public bool? BloqueoLimpiezaOverride { get; set; }
 
     // Relaciones de navegación
     public ICollection<PropertyGallerySection> GallerySections { get; set; } = new List<PropertyGallerySection>();

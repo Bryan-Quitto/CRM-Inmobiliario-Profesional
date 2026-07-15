@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { BookOpen, UploadCloud, FileText, Loader2, CheckCircle2, ShieldAlert, Globe, X, Database, Building2 } from 'lucide-react';
 import { api } from '../../../lib/axios';
 import { toast } from 'sonner';
-import useSWR from 'swr';
+import useSWR, { mutate as globalMutate } from 'swr';
 import type { Agency } from '../api/agencias';
 import { TruncatedText } from '@/components/ui/TruncatedText';
 
@@ -73,6 +73,7 @@ export const BaseConocimientoSection: React.FC = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
+      globalMutate('/configuracion/perfil');
       toast.success('Documento Ingestado', { 
         description: `El archivo ${file.name} ha sido procesado e integrado a la Base de Conocimiento.` 
       });

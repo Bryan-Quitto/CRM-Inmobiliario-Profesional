@@ -62,6 +62,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapSubirImagenPropiedadEndpoint();
         apiGroup.MapEliminarTodasLasImagenesEndpoint();
         apiGroup.MapGenerarCodigoCortoPropiedadEndpoint();
+        apiGroup.MapToggleBloqueoLimpiezaPropiedadEndpoint();
         apiGroup.MapEstablecerImagenPrincipalEndpoint();
         apiGroup.MapLimpiarImagenesPropiedadEndpoint();
         apiGroup.MapEliminarImagenesSeleccionadasEndpoint();
@@ -108,6 +109,7 @@ public static class EndpointRouteBuilderExtensions
 
         // Configuracion
         apiGroup.MapObtenerPerfilEndpoint();
+        apiGroup.MapObtenerHistorialAlmacenamientoEndpoint();
         apiGroup.MapAceptarTerminosServicioEndpoint();
         apiGroup.MapExportarDatosEndpoint();
         apiGroup.MapActualizarPerfilEndpoint();

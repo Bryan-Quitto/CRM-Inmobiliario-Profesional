@@ -75,7 +75,7 @@ public static class EliminarImagenesSeleccionadasFeature
                     try 
                     {
                         var keys = storagePaths.Select(path => $"propiedades/{propiedadId}/{path}").ToList();
-                        await r2Storage.DeleteManyAsync(keys);
+                        await r2Storage.DeleteManyWithQuotaLiberationAsync(keys, agenteId);
                         logger.LogInformation("Archivos físicos eliminados correctamente");
                     }
                     catch (Exception storageEx)
@@ -98,4 +98,3 @@ public static class EliminarImagenesSeleccionadasFeature
         .WithName("EliminarImagenesSeleccionadas");
     }
 }
-

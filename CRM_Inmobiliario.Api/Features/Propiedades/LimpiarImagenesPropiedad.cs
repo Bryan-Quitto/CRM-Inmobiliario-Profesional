@@ -15,6 +15,7 @@ public static class LimpiarImagenesPropiedadFeature
     {
         app.MapDelete("/propiedades/{propiedadId}/imagenes/limpiar", async (
             [FromRoute] Guid propiedadId,
+            [FromQuery] bool soloGeneral,
             ClaimsPrincipal user,
             CrmDbContext context,
             CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage,
@@ -33,36 +34,48 @@ public static class LimpiarImagenesPropiedadFeature
                     .FirstOrDefaultAsync(ct);
 
                 var exists = await context.Properties
-                    .AnyAsync(p => p.Id == propiedadId && 
-                                  (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)), ct);
+                    .AnyAsync(p => p.Id == propiedadId &&
+                                   (p.AgenteId == agenteId || p.CreatedByAgenteId == agenteId || (currentUserAgenciaId != null && p.AgenciaId == currentUserAgenciaId)), ct);
 
                 if (!exists)
                     return Results.NotFound("Propiedad no encontrada.");
 
                 // 1. Obtener rutas de archivos de imágenes que NO son principales
-                var storagePaths = await context.PropertyMedia
-                    .Where(m => m.PropiedadId == propiedadId && !m.EsPrincipal && !string.IsNullOrEmpty(m.StoragePath))
-                    .Select(m => m.StoragePath!)
-                    .ToListAsync(ct);
+                var query = context.PropertyMedia
+                    .Where(m => m.PropiedadId == propiedadId && !m.EsPrincipal && !string.IsNullOrEmpty(m.StoragePath));
+                
+                if (soloGeneral)
+                {
+                    query = query.Where(m => m.SectionId == null);
+                }
+
+                var storagePaths = await query.Select(m => m.StoragePath!).ToListAsync(ct);
 
                 // 2. Eliminar físicos de R2
                 if (storagePaths.Any())
                 {
                     var keys = storagePaths.Select(path => $"propiedades/{propiedadId}/{path}").ToList();
-                    await r2Storage.DeleteManyAsync(keys);
+                    await r2Storage.DeleteManyWithQuotaLiberationAsync(keys, agenteId); // use the new method
                 }
 
                 // 3. Borrar las imágenes de la base de datos (excepto principal)
-                await context.PropertyMedia
-                    .Where(m => m.PropiedadId == propiedadId && !m.EsPrincipal)
-                    .ExecuteDeleteAsync(ct);
+                var dbQuery = context.PropertyMedia
+                    .Where(m => m.PropiedadId == propiedadId && !m.EsPrincipal);
+                
+                if (soloGeneral)
+                {
+                    dbQuery = dbQuery.Where(m => m.SectionId == null);
+                }
 
-                // 4. Borrar todas las secciones dinámicas (ya que sus fotos fueron borradas arriba o eran principales)
-                // Nota: Las fotos principales que estaban en una sección ahora quedarán con SectionId = NULL
-                // gracias a la configuración ON DELETE SET NULL del FK.
-                await context.PropertyGallerySections
-                    .Where(s => s.PropiedadId == propiedadId)
-                    .ExecuteDeleteAsync(ct);
+                await dbQuery.ExecuteDeleteAsync(ct);
+
+                // 4. Borrar todas las secciones dinámicas solo si no es soloGeneral
+                if (!soloGeneral)
+                {
+                    await context.PropertyGallerySections
+                        .Where(s => s.PropiedadId == propiedadId)
+                        .ExecuteDeleteAsync(ct);
+                }
 
                 await context.Properties
                     .Where(p => p.Id == propiedadId)
@@ -82,4 +95,3 @@ public static class LimpiarImagenesPropiedadFeature
         .WithName("LimpiarImagenesPropiedad");
     }
 }
-

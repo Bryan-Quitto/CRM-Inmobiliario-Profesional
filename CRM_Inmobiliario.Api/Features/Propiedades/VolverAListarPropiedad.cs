@@ -233,17 +233,23 @@ public static class VolverAListarPropiedadFeature
                     .Select(m => m.StoragePath!)
                     .ToListAsync(ct);
 
+                
                 var keysToDelete = storagePaths.Select(path => $"propiedades/{id}/{path}").ToList();
-                keysToDelete.Add($"propiedades/{id}/ficha_{id}.pdf");
-
+                var pdfLogs = await context.AgentStorageFileLogs.Where(l => l.TargetType == "Propiedad" && l.TargetId == id.ToString() && l.Context == "PDF Ficha Comercial" && !l.IsDeleted).ToListAsync(ct);
                 try
                 {
                     if (keysToDelete.Any())
                     {
                         await r2Storage.DeleteManyAsync(keysToDelete);
-                        logger.LogInformation("🧹 [RELIST] {Count} archivos eliminados de R2", keysToDelete.Count);
+                        logger.LogInformation("🧹 [RELIST] {Count} imágenes eliminadas de R2", keysToDelete.Count);
+                    }
+                    
+                    foreach(var log in pdfLogs)
+                    {
+                        await r2Storage.DeleteWithQuotaLiberationAsync(log.ObjectKey, log.AgentId);
                     }
                 }
+
                 catch (Exception ex)
                 {
                     logger.LogWarning(ex, "⚠️ [RELIST] Error al borrar archivos físicos.");

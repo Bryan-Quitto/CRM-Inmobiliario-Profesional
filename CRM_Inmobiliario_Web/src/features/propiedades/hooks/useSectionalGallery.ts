@@ -15,8 +15,8 @@ interface UseSectionalGalleryProps {
   onDeleteMedia: (id: string | string[]) => Promise<void>;
   onImageUploaded?: (result: MultimediaPropiedad) => void;
   onRenameSection?: (id: string, nuevoNombre: string, descripcion: string | null) => Promise<void>;
-  onDeleteSection?: (id: string) => Promise<void>;
-  onClearGallery?: () => Promise<void>;
+  onDeleteSection?: (id: string, deleteMedia?: boolean) => Promise<void>;
+  onClearGallery?: (soloGeneral?: boolean) => Promise<void>;
 }
 
 export const useSectionalGallery = ({
@@ -172,11 +172,15 @@ export const useSectionalGallery = ({
     }
   }, [onRenameSection, sectionId, nombre, sectionNombre, descripcion, propiedadId, mutate]);
 
-  const handleConfirmAction = useCallback(() => {
+  const handleConfirmAction = useCallback((isFullDelete: boolean = false) => {
     if (sectionId && onDeleteSection) {
-      onDeleteSection(sectionId);
+      // isFullDelete means Eliminar sección completa (true) vs parcialmente (false)
+      onDeleteSection(sectionId, isFullDelete);
     } else if (!sectionId && onClearGallery) {
-      onClearGallery();
+      // isFullDelete means Limpiar solo general (true) vs limpiar toda (false)
+      // wait, the signature for onClearGallery is (soloGeneral?: boolean)
+      // so if the user clicks "Limpiar solo la galería general" they pass true.
+      onClearGallery(isFullDelete);
     }
     setConfirmDeleteSection(false);
   }, [sectionId, onDeleteSection, onClearGallery]);

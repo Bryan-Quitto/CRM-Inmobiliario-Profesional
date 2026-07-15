@@ -209,7 +209,7 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
             className="flex items-center gap-3 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all cursor-pointer"
           >
             <Trash2 size={16} />
-            {selectedMediaIds.size > 0 ? `Borrar Selección` : (sectionId ? 'Eliminar' : 'Limpiar')}
+            {selectedMediaIds.size > 0 ? `Borrar Selección` : (sectionId ? 'Eliminar' : 'Limpiar todo')}
           </button>
         )}
         
