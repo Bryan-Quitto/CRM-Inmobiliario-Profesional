@@ -77,6 +77,18 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
         />
       )}
       
+      {/* Global Transition Overlay (Masks old page while new one loads) */}
+      {isPending && (
+        <div className="fixed inset-0 z-[80] bg-slate-50/60 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-200">
+          <div className="h-12 w-12 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-4 border border-slate-100">
+            <div className="h-6 w-6 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
+          </div>
+          <p className="text-xs font-black text-slate-700 uppercase tracking-widest text-center px-4 animate-pulse">
+            Preparando módulo...
+          </p>
+        </div>
+      )}
+      
       {/* Global Top Loading Bar */}
       {isPending && (
         <div className="fixed top-0 left-0 right-0 h-1 z-[9999] bg-blue-100 overflow-hidden">
