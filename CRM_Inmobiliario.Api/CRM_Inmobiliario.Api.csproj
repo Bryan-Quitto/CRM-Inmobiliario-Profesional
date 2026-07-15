@@ -8,6 +8,11 @@
     <ServerGarbageCollection>false</ServerGarbageCollection>
   </PropertyGroup>
 
+  <!-- Optimizaciones de publicación (solo activas con 'dotnet publish', sin impacto en desarrollo) -->
+  <PropertyGroup Condition="'$(PublishProtocol)' != '' OR '$(Publish)' == 'true'">
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.100.2" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />

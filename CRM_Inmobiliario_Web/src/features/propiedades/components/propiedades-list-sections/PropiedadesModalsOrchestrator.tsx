@@ -1,11 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { toast } from 'sonner';
-import { PropiedadDetalle } from '../PropiedadDetalle';
-import { CrearPropiedadForm } from '../CrearPropiedadForm';
-import { ClosingModal } from '../ClosingModal';
-import { PropiedadStatusConfirmModal } from '../modals/PropiedadStatusConfirmModal';
-import { PropiedadReversionModal } from '../modals/PropiedadReversionModal';
-import ConfirmModal from '../../../../components/ConfirmModal';
 import type { Propiedad } from '../../types';
+
+// Lazy-load todos los modales: son pesados, condicionales y solo se necesitan al hacer clic
+const PropiedadDetalle = lazy(() => import('../PropiedadDetalle').then(m => ({ default: m.PropiedadDetalle })));
+const CrearPropiedadForm = lazy(() => import('../CrearPropiedadForm').then(m => ({ default: m.CrearPropiedadForm })));
+const ClosingModal = lazy(() => import('../ClosingModal').then(m => ({ default: m.ClosingModal })));
+const PropiedadStatusConfirmModal = lazy(() => import('../modals/PropiedadStatusConfirmModal').then(m => ({ default: m.PropiedadStatusConfirmModal })));
+const PropiedadReversionModal = lazy(() => import('../modals/PropiedadReversionModal').then(m => ({ default: m.PropiedadReversionModal })));
+const ConfirmModal = lazy(() => import('../../../../components/ConfirmModal'));
+
+// Skeleton mínimo para modales (invisible al usuario, solo evita suspense vacío)
+const ModalFallback = () => null;
 
 interface PropiedadesModalsOrchestratorProps {
   propiedades: Propiedad[];
@@ -55,91 +61,105 @@ export const PropiedadesModalsOrchestrator = ({
   return (
     <>
       {selectedPropiedadId && (
-        <PropiedadDetalle 
-          id={selectedPropiedadId} 
-          onClose={handleCloseDetail} 
-          onCoverUpdated={(url) => handleCoverUpdate(selectedPropiedadId, url)}
-        />
+        <Suspense fallback={<ModalFallback />}>
+          <PropiedadDetalle 
+            id={selectedPropiedadId} 
+            onClose={handleCloseDetail} 
+            onCoverUpdated={(url) => handleCoverUpdate(selectedPropiedadId, url)}
+          />
+        </Suspense>
       )}
 
       {selectedPropiedadIdForEdit && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
-          <CrearPropiedadForm 
-            initialData={propiedades?.find(p => p.id === selectedPropiedadIdForEdit)}
-            onSuccess={() => {
-              import('swr').then(({ mutate: globalMutate }) => {
-                globalMutate(`/propiedades/${selectedPropiedadIdForEdit}/pdf-status`);
-              });
-              mutate();
-              setSelectedPropiedadIdForEdit(null);
-              toast.success('Propiedad actualizada con éxito');
-            }}
-            onCancel={() => setSelectedPropiedadIdForEdit(null)}
-          />
+          <Suspense fallback={<ModalFallback />}>
+            <CrearPropiedadForm 
+              initialData={propiedades?.find(p => p.id === selectedPropiedadIdForEdit)}
+              onSuccess={() => {
+                import('swr').then(({ mutate: globalMutate }) => {
+                  globalMutate(`/propiedades/${selectedPropiedadIdForEdit}/pdf-status`);
+                });
+                mutate();
+                setSelectedPropiedadIdForEdit(null);
+                toast.success('Propiedad actualizada con éxito');
+              }}
+              onCancel={() => setSelectedPropiedadIdForEdit(null)}
+            />
+          </Suspense>
         </div>
       )}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <CrearPropiedadForm 
-            onSuccess={() => { 
-              mutate(); 
-              setIsModalOpen(false); 
-              toast.success('Inmueble registrado correctamente.'); 
-            }} 
-            onCancel={() => setIsModalOpen(false)} 
-          />
+          <Suspense fallback={<ModalFallback />}>
+            <CrearPropiedadForm 
+              onSuccess={() => { 
+                mutate(); 
+                setIsModalOpen(false); 
+                toast.success('Inmueble registrado correctamente.'); 
+              }} 
+              onCancel={() => setIsModalOpen(false)} 
+            />
+          </Suspense>
         </div>
       )}
 
-      <PropiedadStatusConfirmModal 
-        isOpen={!!statusConfirmation}
-        onClose={() => setStatusConfirmation(null)}
-        onConfirm={handleStatusChange}
-        statusConfirmation={statusConfirmation}
-      />
+      <Suspense fallback={<ModalFallback />}>
+        <PropiedadStatusConfirmModal 
+          isOpen={!!statusConfirmation}
+          onClose={() => setStatusConfirmation(null)}
+          onConfirm={handleStatusChange}
+          statusConfirmation={statusConfirmation}
+        />
+      </Suspense>
 
-      <ConfirmModal
-        isOpen={!!ownerReactivation}
-        onClose={() => setOwnerReactivation(null)}
-        onConfirm={() => {
-          if (ownerReactivation) {
-            handleStatusChange(ownerReactivation.id, ownerReactivation.nuevoEstado, true);
-            setOwnerReactivation(null);
-          }
-        }}
-        title="¿Reactivar Propietario?"
-        description="El propietario actual está Inactivo. Al cambiar esta propiedad a Disponible, el propietario pasará a estado Activo."
-        confirmText="Sí, continuar"
-        cancelText="Cancelar"
-        type="info"
-      />
+      <Suspense fallback={<ModalFallback />}>
+        <ConfirmModal
+          isOpen={!!ownerReactivation}
+          onClose={() => setOwnerReactivation(null)}
+          onConfirm={() => {
+            if (ownerReactivation) {
+              handleStatusChange(ownerReactivation.id, ownerReactivation.nuevoEstado, true);
+              setOwnerReactivation(null);
+            }
+          }}
+          title="¿Reactivar Propietario?"
+          description="El propietario actual está Inactivo. Al cambiar esta propiedad a Disponible, el propietario pasará a estado Activo."
+          confirmText="Sí, continuar"
+          cancelText="Cancelar"
+          type="info"
+        />
+      </Suspense>
 
-      <ClosingModal
-        key={closingPropiedad?.propiedad.id || 'closed'}
-        isOpen={!!closingPropiedad}
-        onClose={() => setClosingPropiedad(null)}
-        onConfirm={handleClosingConfirm}
-        mode="property"
-        intendedState={closingPropiedad?.nuevoEstado}
-        initialData={closingPropiedad ? {
-          id: closingPropiedad.propiedad.id,
-          titulo: closingPropiedad.propiedad.titulo,
-          precio: closingPropiedad.propiedad.estadoComercial === 'Reservada' && closingPropiedad.propiedad.precioCierre ? closingPropiedad.propiedad.precioCierre : closingPropiedad.propiedad.precio,
-          operacion: closingPropiedad.propiedad.operacion,
-          propietarioId: closingPropiedad.propiedad.propietarioId,
-          cerradoConId: closingPropiedad.propiedad.cerradoConId,
-          cerradoConNombre: closingPropiedad.propiedad.cerradoConNombre,
-          estadoComercial: closingPropiedad.propiedad.estadoComercial
-        } : undefined}
-      />
+      <Suspense fallback={<ModalFallback />}>
+        <ClosingModal
+          key={closingPropiedad?.propiedad.id || 'closed'}
+          isOpen={!!closingPropiedad}
+          onClose={() => setClosingPropiedad(null)}
+          onConfirm={handleClosingConfirm}
+          mode="property"
+          intendedState={closingPropiedad?.nuevoEstado}
+          initialData={closingPropiedad ? {
+            id: closingPropiedad.propiedad.id,
+            titulo: closingPropiedad.propiedad.titulo,
+            precio: closingPropiedad.propiedad.estadoComercial === 'Reservada' && closingPropiedad.propiedad.precioCierre ? closingPropiedad.propiedad.precioCierre : closingPropiedad.propiedad.precio,
+            operacion: closingPropiedad.propiedad.operacion,
+            propietarioId: closingPropiedad.propiedad.propietarioId,
+            cerradoConId: closingPropiedad.propiedad.cerradoConId,
+            cerradoConNombre: closingPropiedad.propiedad.cerradoConNombre,
+            estadoComercial: closingPropiedad.propiedad.estadoComercial
+          } : undefined}
+        />
+      </Suspense>
 
-      <PropiedadReversionModal 
-        isOpen={!!showReversionModal}
-        onClose={() => setShowReversionModal(null)}
-        onRelist={handleRelistPropiedad}
-        showReversionModal={showReversionModal}
-      />
+      <Suspense fallback={<ModalFallback />}>
+        <PropiedadReversionModal 
+          isOpen={!!showReversionModal}
+          onClose={() => setShowReversionModal(null)}
+          onRelist={handleRelistPropiedad}
+          showReversionModal={showReversionModal}
+        />
+      </Suspense>
     </>
   );
 };

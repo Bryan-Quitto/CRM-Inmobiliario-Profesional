@@ -53,7 +53,7 @@ export default defineConfig({
             // 4. Heavy Engine: Calendar
             if (id.includes('@fullcalendar')) return 'vendor-calendar';
 
-            // 5. Heavy Engine: Charts
+            // 5. Heavy Engine: Charts (only loaded on /kpis & dashboard routes)
             if (id.includes('recharts') || id.includes('d3')) return 'vendor-charts';
             
             // 6. UI: Icons (Lucide can be big if many are used)
@@ -68,11 +68,43 @@ export default defineConfig({
             // 9. Heavy Utils: JSZip (Very heavy)
             if (id.includes('jszip')) return 'vendor-jszip';
 
-            // 10. Media & Compression
-            if (id.includes('browser-image-compression') || id.includes('buffer')) return 'vendor-media';
+            // 10. Media & Compression (includes react-easy-crop)
+            if (
+              id.includes('browser-image-compression') ||
+              id.includes('buffer') ||
+              id.includes('react-easy-crop')
+            ) return 'vendor-media';
 
-            // 11. Forms & State
-            if (id.includes('swr') || id.includes('react-hook-form')) return 'vendor-logic';
+            // 11. Forms & State (SWR, RHF, Zod, resolvers, zustand, fuse)
+            if (
+              id.includes('swr') ||
+              id.includes('react-hook-form') ||
+              id.includes('@hookform') ||
+              id.includes('/zod/') ||
+              id.includes('zustand') ||
+              id.includes('fuse.js')
+            ) return 'vendor-logic';
+
+            // 12. Forms UI: heavy input components
+            if (
+              id.includes('react-international-phone') ||
+              id.includes('react-number-format')
+            ) return 'vendor-forms';
+
+            // 13. Markdown rendering (react-markdown + remark/rehype ecosystem)
+            if (
+              id.includes('react-markdown') ||
+              id.includes('remark') ||
+              id.includes('rehype') ||
+              id.includes('micromark') ||
+              id.includes('mdast') ||
+              id.includes('hast') ||
+              id.includes('unist') ||
+              id.includes('vfile')
+            ) return 'vendor-markdown';
+
+            // 14. Date utilities
+            if (id.includes('date-fns')) return 'vendor-utils';
 
             // El resto que sea realmente pequeño
             return 'vendor-misc';

@@ -1,8 +1,6 @@
 import { Mail, Phone, Clock, Pencil, ArrowUpRight, Share2, Bot } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { CompartirContactoModal } from './CompartirContactoModal';
-import ConfirmModal from '@/components/ConfirmModal';
 import { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
 import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracionIA';
@@ -14,6 +12,10 @@ import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+
+// Lazy-load modals: only rendered on user interaction
+const CompartirContactoModal = lazy(() => import('./CompartirContactoModal').then(m => ({ default: m.CompartirContactoModal })));
+const ConfirmModal = lazy(() => import('@/components/ConfirmModal'));
 
 interface ContactoCardProps {
   contacto: Contacto;
@@ -478,32 +480,42 @@ export const ContactoCard = ({
       {!contacto.esCompartido && (
         <>
           {isShareModalOpen && (
-            <CompartirContactoModal 
-              isOpen={isShareModalOpen}
-              onClose={() => setIsShareModalOpen(false)}
-              contacto={contacto}
-            />
+            <Suspense fallback={null}>
+              <CompartirContactoModal 
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                contacto={contacto}
+              />
+            </Suspense>
           )}
-          <ConfirmModal
-            isOpen={waToggle.showOverrideModal}
-            onClose={waToggle.cancelOverride}
-            onConfirm={waToggle.confirmOverride}
-            title="Reactivar IA (Límite Superado) - WhatsApp"
-            description="Este contacto ha alcanzado su límite de tokens diarios en WhatsApp. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
-            confirmText="Sí, reactivar bot"
-            type="info"
-            icon={<Bot className="h-10 w-10 text-emerald-500" />}
-          />
-          <ConfirmModal
-            isOpen={fbToggle.showOverrideModal}
-            onClose={fbToggle.cancelOverride}
-            onConfirm={fbToggle.confirmOverride}
-            title="Reactivar IA (Límite Superado) - Facebook"
-            description="Este contacto ha alcanzado su límite de tokens diarios en Facebook. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
-            confirmText="Sí, reactivar bot"
-            type="info"
-            icon={<Bot className="h-10 w-10 text-blue-500" />}
-          />
+          {waToggle.showOverrideModal && (
+            <Suspense fallback={null}>
+              <ConfirmModal
+                isOpen={waToggle.showOverrideModal}
+                onClose={waToggle.cancelOverride}
+                onConfirm={waToggle.confirmOverride}
+                title="Reactivar IA (Límite Superado) - WhatsApp"
+                description="Este contacto ha alcanzado su límite de tokens diarios en WhatsApp. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
+                confirmText="Sí, reactivar bot"
+                type="info"
+                icon={<Bot className="h-10 w-10 text-emerald-500" />}
+              />
+            </Suspense>
+          )}
+          {fbToggle.showOverrideModal && (
+            <Suspense fallback={null}>
+              <ConfirmModal
+                isOpen={fbToggle.showOverrideModal}
+                onClose={fbToggle.cancelOverride}
+                onConfirm={fbToggle.confirmOverride}
+                title="Reactivar IA (Límite Superado) - Facebook"
+                description="Este contacto ha alcanzado su límite de tokens diarios en Facebook. ¿Deseas reiniciar su límite para permitir que la IA siga contestando? Podría incurrir en costos extras."
+                confirmText="Sí, reactivar bot"
+                type="info"
+                icon={<Bot className="h-10 w-10 text-blue-500" />}
+              />
+            </Suspense>
+          )}
         </>
       )}
     </div>

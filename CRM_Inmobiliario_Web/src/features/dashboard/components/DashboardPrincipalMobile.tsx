@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, BellRing, AlertCircle } from 'lucide-react';
 import type { DashboardPrincipalLogicType } from '../hooks/useDashboardPrincipalLogic';
 import { usePerfil } from '@/features/auth/api/perfil';
 import { KpiCards } from './KpiCards';
 import { SeguimientoCritico } from './SeguimientoCritico';
-import { EmbudoVentas } from './EmbudoVentas';
+
+const EmbudoVentas = lazy(() => import('./EmbudoVentas').then(m => ({ default: m.EmbudoVentas })));
+const EmbudoSkeleton = () => <div className="h-64 w-full rounded-xl bg-slate-100 animate-pulse" />;
 
 
 interface Props {
@@ -105,7 +107,9 @@ export const DashboardPrincipalMobile: React.FC<Props> = ({ logic }) => {
         </div>
         <div className="w-full overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
           <div className="w-fit min-w-[300px]">
-            <EmbudoVentas data={data} syncing={syncing} />
+            <Suspense fallback={<EmbudoSkeleton />}>
+              <EmbudoVentas data={data} syncing={syncing} />
+            </Suspense>
           </div>
         </div>
       </div>
