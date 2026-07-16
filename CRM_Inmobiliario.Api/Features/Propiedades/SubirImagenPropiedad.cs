@@ -46,6 +46,10 @@ public static class SubirImagenPropiedadFeature
             if (!PropertyPermissionsHelper.CanManage(propiedad, agenteId))
                 return Results.Json(new { Message = "No tienes permisos para subir imágenes a esta propiedad." }, statusCode: StatusCodes.Status403Forbidden);
 
+            if (PropertyPermissionsHelper.IsLockedByAntiquity(propiedad))
+                return Results.Json(new { Message = "La propiedad ha sido bloqueada para modificaciones de galería por antigüedad (más de 1 año cerrada)." }, statusCode: StatusCodes.Status403Forbidden);
+
+
             // 2. Validar extensión de imagen
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };

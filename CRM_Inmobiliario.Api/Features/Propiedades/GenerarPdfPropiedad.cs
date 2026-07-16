@@ -37,6 +37,12 @@ public static class GenerarPdfPropiedadFeature
                 return Results.Forbid();
             }
 
+            if (PropertyPermissionsHelper.IsLockedByAntiquity(propiedad))
+            {
+                return Results.Json(new { Message = "La propiedad ha sido bloqueada para generar PDFs por antigüedad (más de 1 año cerrada)." }, statusCode: StatusCodes.Status403Forbidden);
+            }
+
+
             // Encolar la generación asíncrona
             await pdfQueue.QueuePdfGenerationAsync(new PdfGenerationRequest(id, currentUserId));
 

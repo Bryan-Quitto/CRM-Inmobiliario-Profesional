@@ -36,4 +36,20 @@ public static class PropertyPermissionsHelper
 
         return isDirectManager || isFallbackManager;
     }
+
+    /// <summary>
+    /// Verifica si la propiedad está bloqueada para subir imágenes o generar PDFs
+    /// debido a que ha transcurrido más de 1 año desde su cierre (Venta/Alquiler).
+    /// </summary>
+    public static bool IsLockedByAntiquity(Property property)
+    {
+        if (property.BloqueoLimpiezaOverride.HasValue)
+        {
+            return property.BloqueoLimpiezaOverride.Value;
+        }
+
+        return (property.EstadoComercial == "Vendida" || property.EstadoComercial == "Alquilada") &&
+               property.FechaCierre != null &&
+               property.FechaCierre < DateTimeOffset.UtcNow.AddYears(-1);
+    }
 }

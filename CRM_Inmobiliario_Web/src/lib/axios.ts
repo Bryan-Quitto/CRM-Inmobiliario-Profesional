@@ -186,9 +186,11 @@ api.interceptors.response.use(
 
     // Errores de Baneo / Falta de Permisos (403)
     if (error.response?.status === 403) {
-      supabase.auth.signOut().then(() => {
-        window.location.href = '/login';
+      toast.error('Acceso denegado', {
+        description: 'No tienes los permisos necesarios para realizar esta acción.',
+        id: 'forbidden-error-api'
       });
+      // El error pasa al catch del componente, que puede tener su propio manejo si es necesario
     }
 
     // Traducción global y extracción de mensajes limpios del backend (ProblemDetails RFC 7807)

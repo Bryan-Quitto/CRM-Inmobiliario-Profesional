@@ -3,6 +3,7 @@ using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,24 +18,37 @@ public static class ToggleBloqueoLimpiezaPropiedadFeature
     {
         app.MapPut("/propiedades/{id:guid}/toggle-bloqueo-limpieza", async (
             Guid id, 
-            Command command, 
+            [FromBody] Command command, 
             ClaimsPrincipal user, 
             CrmDbContext context, 
             ILogger<CrmDbContext> logger, 
             CancellationToken ct) =>
         {
+            var currentUserId = user.GetRequiredUserId();
+            var reqAgente = await context.Agents.AsNoTracking().Select(a => new { a.Id, a.Rol }).FirstOrDefaultAsync(a => a.Id == currentUserId, ct);
+            
+            if (reqAgente?.Rol != "Admin") 
+            {
+                logger.LogWarning("Usuario {UserId} intentó modificar bloqueo pero no es Admin en DB.", currentUserId);
+                return Results.Forbid();
+            }
+
             var propiedad = await context.Properties.FirstOrDefaultAsync(p => p.Id == id, ct);
             if (propiedad == null) return Results.NotFound();
 
+            logger.LogInformation("Toggle Bloqueo para propiedad {Id}: Bloquear={Bloquear}", id, command.Bloquear);
 
-            // Bloquear = true means override to blocked
-            // Bloquear = false means override to unblocked
             propiedad.BloqueoLimpiezaOverride = command.Bloquear;
+            
+            if (command.Bloquear == false)
+            {
+                propiedad.FechaProgramadaLimpiezaR2 = null;
+            }
 
             await context.SaveChangesAsync(ct);
             return Results.Ok();
         })
-        .RequireAuthorization("AdminPolicy")
+        .RequireAuthorization()
         .WithTags("Propiedades");
     }
 }

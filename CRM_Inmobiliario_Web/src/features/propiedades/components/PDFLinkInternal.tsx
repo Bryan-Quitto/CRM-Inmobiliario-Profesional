@@ -13,13 +13,7 @@ interface PDFLinkInternalProps {
 const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   const isResponsable = true;
 
-  const [now] = useState(() => Date.now());
-  const isCleaned = propiedad.bloqueoLimpiezaOverride !== null && propiedad.bloqueoLimpiezaOverride !== undefined
-    ? propiedad.bloqueoLimpiezaOverride
-    : (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && 
-      propiedad.fechaProgramadaLimpiezaR2 === null && 
-      propiedad.fechaCierre && 
-      new Date(propiedad.fechaCierre).getTime() < now - 365 * 24 * 60 * 60 * 1000;
+  const isCleaned = propiedad.isLockedByAntiquity || false;
 
   const [status, setStatus] = useState<'checking' | 'exists' | 'missing' | 'generating' | 'deleting'>('checking');
   const [actualPdfUrl, setActualPdfUrl] = useState<string | null>(null);
@@ -112,7 +106,7 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
     if (actionLock.current) return;
     
     if (isCleaned) {
-      toast.error('Esta propiedad ha sido limpiada y ya no se puede generar el PDF. Contactese con administración.');
+      toast.error('Esta propiedad ha sido limpiada y ya no se puede generar el PDF. Contacte con administración.');
       return;
     }
     
@@ -157,7 +151,7 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
     if (actionLock.current) return;
     
     if (isCleaned) {
-      toast.error('Esta propiedad ha sido limpiada y ya no se puede regenerar el PDF. Contactese con administración.');
+      toast.error('Esta propiedad ha sido limpiada y ya no se puede regenerar el PDF. Contacte con administración.');
       return;
     }
     
@@ -259,7 +253,7 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   }
 
   if (status === 'missing') {
-    if (!isResponsable) return null;
+    if (!isResponsable || isCleaned) return null;
     
     return (
       <button 
@@ -298,13 +292,15 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
 
       {isResponsable && isDropdownOpen && !isDownloading && (
         <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          <button
-            onClick={handleRegenerate}
-            className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 cursor-pointer"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Volver a generar
-          </button>
+          {!isCleaned && (
+            <button
+              onClick={handleRegenerate}
+              className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Volver a generar
+            </button>
+          )}
           <button
             onClick={handleDelete}
             className="w-full text-left px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"

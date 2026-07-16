@@ -118,7 +118,26 @@ export const ConfiguracionLimpieza = () => {
                     className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between"
                   >
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">{prop.nombre}</div>
+                      <div className="font-bold text-slate-800 text-sm flex items-center flex-wrap gap-1">
+                        {prop.nombre}
+                        {prop.bloqueoOverride !== undefined && (
+                          <span className="ml-1">
+                            {(() => {
+                              const isLocked = prop.bloqueoOverride === true || (prop.bloqueoOverride !== false && prop.bloqueoAutomatico === true);
+                              if (!isLocked && prop.bloqueoOverride === false) {
+                                return <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold text-indigo-700 ring-1 ring-inset ring-indigo-600/20"><Unlock size={10} /> Desbloqueado Manual</span>;
+                              }
+                              if (!isLocked) {
+                                return <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Activo</span>;
+                              }
+                              if (prop.bloqueoOverride === true) {
+                                return <span className="inline-flex items-center gap-1 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-inset ring-red-600/10"><Lock size={10} /> Bloqueo Manual</span>;
+                              }
+                              return <span className="inline-flex items-center gap-1 rounded-md bg-orange-50 px-1.5 py-0.5 text-[10px] font-bold text-orange-700 ring-1 ring-inset ring-orange-600/20"><Lock size={10} /> Limpieza Automática</span>;
+                            })()}
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs text-slate-500 font-medium">Ref: {prop.referencia}</div>
                     </div>
                   </button>

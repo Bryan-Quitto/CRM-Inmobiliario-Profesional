@@ -253,7 +253,7 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             }
 
             // Asignar alerta innegociable automáticamente para propiedades cerradas
-            if ((p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null)
+            if ((p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null && p.BloqueoLimpiezaOverride == null)
             {
                 // Si la fecha de cierre fue hace más de un año, y la fecha programada es null, 
                 // significa que el job de limpieza ya pasó. No volver a programarla.

@@ -110,7 +110,8 @@ public static class ListarPropiedadesFeature
                         (x.Property.EstadoComercial == "Vendida" || x.Property.EstadoComercial == "Alquilada") && 
                         x.Property.FechaCierre != null && 
                         x.Property.FechaCierre <= limite31Dias &&
-                        (x.Property.Media.Any(m => !m.EsPrincipal) || x.Property.GallerySections.Any())
+                        (x.Property.Media.Any(m => !m.EsPrincipal) || x.Property.GallerySections.Any()) &&
+                        x.Property.BloqueoLimpiezaOverride != false
                             ? x.Property.FechaCierre.Value.AddYears(1) 
                             : null
                     ))) 

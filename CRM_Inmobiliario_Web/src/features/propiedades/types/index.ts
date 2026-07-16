@@ -77,4 +77,5 @@ export interface Propiedad {
   isArchivedForCurrentUser?: boolean;
   fechaProgramadaLimpiezaR2?: string | null;
   bloqueoLimpiezaOverride?: boolean | null;
+  isLockedByAntiquity?: boolean;
 }

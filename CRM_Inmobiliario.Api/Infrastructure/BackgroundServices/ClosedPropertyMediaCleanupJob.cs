@@ -32,8 +32,9 @@ public class ClosedPropertyMediaCleanupJob
         var oneYearAgo = DateTimeOffset.UtcNow.AddYears(-1);
 
         var propertiesToClean = await _context.Properties
-            .Where(p => (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null && p.FechaCierre < oneYearAgo && p.FechaProgramadaLimpiezaR2 != null && p.FechaProgramadaLimpiezaR2 < DateTimeOffset.UtcNow)
+            .Where(p => (p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null && p.FechaCierre < oneYearAgo && p.FechaProgramadaLimpiezaR2 != null && p.FechaProgramadaLimpiezaR2 < DateTimeOffset.UtcNow && p.BloqueoLimpiezaOverride != false)
             .Include(p => p.Media)
+            .Include(p => p.GallerySections)
             .ToListAsync();
 
         int totalDeleted = 0;
@@ -41,6 +42,13 @@ public class ClosedPropertyMediaCleanupJob
         foreach (var property in propertiesToClean)
         {
             var keysToDelete = new List<string>();
+
+            // Antes de borrar secciones, salvaguardar la foto principal (portada) del borrado en cascada
+            var principalMedia = property.Media.FirstOrDefault(m => m.EsPrincipal);
+            if (principalMedia != null && principalMedia.SectionId != null)
+            {
+                principalMedia.SectionId = null;
+            }
 
             // Añadir imágenes que no son principales
             var mediaToDelete = property.Media.Where(m => !m.EsPrincipal && !string.IsNullOrEmpty(m.StoragePath)).ToList();
@@ -77,6 +85,7 @@ public class ClosedPropertyMediaCleanupJob
 
             // Eliminar registros de la base de datos (excepto principal)
             _context.PropertyMedia.RemoveRange(mediaToDelete);
+            _context.PropertyGallerySections.RemoveRange(property.GallerySections);
         }
 
         if (propertiesToClean.Any())

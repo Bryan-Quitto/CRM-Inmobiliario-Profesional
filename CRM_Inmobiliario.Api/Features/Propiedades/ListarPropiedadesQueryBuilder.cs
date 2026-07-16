@@ -65,7 +65,8 @@ public static class ListarPropiedadesQueryBuilder
                     ((p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && 
                      p.FechaCierre != null && 
                      p.FechaCierre <= limite31Dias && 
-                     (p.Media.Any(m => !m.EsPrincipal) || p.GallerySections.Any())));
+                     (p.Media.Any(m => !m.EsPrincipal) || p.GallerySections.Any()) && 
+                     p.BloqueoLimpiezaOverride != false));
             }
             else
             {
