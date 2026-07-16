@@ -18,7 +18,6 @@ public static class LimpiarImagenesPropiedadFeature
             [FromQuery] bool soloGeneral,
             ClaimsPrincipal user,
             CrmDbContext context,
-            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage,
             CancellationToken ct,
             ILoggerFactory loggerFactory) =>
         {
@@ -51,11 +50,11 @@ public static class LimpiarImagenesPropiedadFeature
 
                 var storagePaths = await query.Select(m => m.StoragePath!).ToListAsync(ct);
 
-                // 2. Eliminar físicos de R2
+                // 2. Encolar borrado físico y liberar cuota (Outbox Pattern)
                 if (storagePaths.Any())
                 {
                     var keys = storagePaths.Select(path => $"propiedades/{propiedadId}/{path}").ToList();
-                    await r2Storage.DeleteManyWithQuotaLiberationAsync(keys, agenteId); // use the new method
+                    await context.QueueStorageDeletionsWithQuotaLiberationAsync(keys, agenteId, ct);
                 }
 
                 // 3. Borrar las imágenes de la base de datos (excepto principal)

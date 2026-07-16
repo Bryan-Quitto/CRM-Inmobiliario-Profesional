@@ -18,7 +18,6 @@ public static class EliminarImagenesSeleccionadasFeature
             [FromBody] List<Guid> ids,
             ClaimsPrincipal user,
             CrmDbContext context,
-            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage,
             CancellationToken ct,
             ILoggerFactory loggerFactory) =>
         {
@@ -69,18 +68,18 @@ public static class EliminarImagenesSeleccionadasFeature
                     .Where(p => p.Id == propiedadId)
                     .ExecuteUpdateAsync(s => s.SetProperty(p => p.FechaActualizacion, DateTimeOffset.UtcNow), ct);
 
-                // 3. Limpiar los archivos físicos de R2
+                // 3. Encolar los archivos físicos para borrado en R2
                 if (storagePaths.Count > 0)
                 {
                     try 
                     {
                         var keys = storagePaths.Select(path => $"propiedades/{propiedadId}/{path}").ToList();
-                        await r2Storage.DeleteManyWithQuotaLiberationAsync(keys, agenteId);
-                        logger.LogInformation("Archivos físicos eliminados correctamente");
+                        await context.QueueStorageDeletionsWithQuotaLiberationAsync(keys, agenteId, ct);
+                        logger.LogInformation("Archivos físicos encolados para borrado y cuota liberada");
                     }
                     catch (Exception storageEx)
                     {
-                        logger.LogWarning(storageEx, "Error al eliminar algunos archivos de Storage (huérfanos potenciales).");
+                        logger.LogWarning(storageEx, "Error al encolar archivos para borrado de Storage.");
                     }
                 }
 

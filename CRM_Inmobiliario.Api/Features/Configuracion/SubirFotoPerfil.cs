@@ -50,7 +50,7 @@ public static class SubirFotoPerfilFeature
                 var keyPart = oldPath.Substring(oldPath.IndexOf("perfiles/"));
                 if (!string.IsNullOrEmpty(keyPart))
                 {
-                    await r2Storage.DeleteWithQuotaLiberationAsync(keyPart, agenteId);
+                    await context.QueueStorageDeletionWithQuotaLiberationAsync(keyPart, agenteId);
                 }
             }
 
@@ -91,7 +91,7 @@ public static class SubirFotoPerfilFeature
                 var keyPart = oldPath.Substring(oldPath.IndexOf("perfiles/"));
                 if (!string.IsNullOrEmpty(keyPart))
                 {
-                    await r2Storage.DeleteWithQuotaLiberationAsync(keyPart, agenteId);
+                    await context.QueueStorageDeletionWithQuotaLiberationAsync(keyPart, agenteId);
                 }
             }
             

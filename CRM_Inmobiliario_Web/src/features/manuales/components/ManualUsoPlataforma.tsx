@@ -70,7 +70,7 @@ export const ManualUsoPlataforma: React.FC = () => {
               </p>
               <ul className="list-disc pl-5 text-sm text-slate-700 space-y-2">
                 <li><strong>Trazabilidad:</strong> Cada archivo detalla su origen (WhatsApp, Propiedad, Perfil, etc.), contexto (Ficha PDF, Galería, Logo) y el elemento específico asociado.</li>
-                <li><strong>Estados:</strong> Podrás ver qué archivos están <em>Activos</em> y cuáles han sido <em>Eliminados</em> (por reemplazo o limpieza automática), incluyendo la fecha exacta.</li>
+                <li><strong>Estados:</strong> Podrás ver qué archivos están <em>Activos</em> y cuáles han sido <em>Eliminados</em>, incluyendo la fecha exacta.</li>
                 <li><strong>Control exacto:</strong> Sabrás con precisión en qué se está consumiendo tu cuota (imágenes, audios de WhatsApp, PDFs, etc.).</li>
               </ul>
             </div>

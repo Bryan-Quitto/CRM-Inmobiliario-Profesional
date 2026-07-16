@@ -13,6 +13,7 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
     private readonly IDataProtectionProvider? _dataProtectionProvider;
 
     public DbSet<AgentStorageFileLog> AgentStorageFileLogs => Set<AgentStorageFileLog>();
+    public DbSet<PendingStorageDeletion> PendingStorageDeletions => Set<PendingStorageDeletion>();
     
     public CrmDbContext(DbContextOptions<CrmDbContext> options, IDataProtectionProvider? dataProtectionProvider = null) : base(options)
     {

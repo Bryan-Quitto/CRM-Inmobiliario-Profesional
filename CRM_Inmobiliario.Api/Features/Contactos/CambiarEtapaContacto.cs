@@ -122,18 +122,16 @@ public static class CambiarEstadoContactoFeature
                     {
                         try
                         {
-                            if (keysToDelete.Any())
-                                await r2Storage.DeleteManyAsync(keysToDelete);
+                            var allKeys = keysToDelete.Concat(pdfLogs.Select(l => l.ObjectKey)).ToList();
+                            if (allKeys.Any())
+                                await context.QueueStorageDeletionsWithQuotaLiberationAsync(allKeys, agenteId, ct);
                                 
-                            foreach(var log in pdfLogs)
-                                await r2Storage.DeleteWithQuotaLiberationAsync(log.ObjectKey, log.AgentId);
-                                
-                            logger.LogInformation("🧹 [ESTADO] Archivos eliminados de R2 para múltiples propiedades de contacto");
+                            logger.LogInformation("🧹 [ESTADO] Archivos encolados de R2 para múltiples propiedades de contacto");
                         }
 
                         catch (Exception ex)
                         {
-                            logger.LogWarning(ex, "⚠️ [ESTADO] Error al borrar archivos de R2 masivamente.");
+                            logger.LogWarning(ex, "⚠️ [ESTADO] Error al encolar archivos de R2 masivamente.");
                         }
                     }
 

@@ -16,7 +16,7 @@ public static class EliminarSeccionFeature
 {
     public static RouteHandlerBuilder MapEliminarSeccionEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, [FromQuery] bool deleteMedia, CrmDbContext context, CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage, ClaimsPrincipal user, CancellationToken ct) =>
+        return app.MapDelete("/propiedades/secciones/{id}", async (Guid id, [FromQuery] bool deleteMedia, CrmDbContext context, ClaimsPrincipal user, CancellationToken ct) =>
         {
             var currentUserId = user.GetRequiredUserId();
             // 0. Obtener ID de propiedad antes de borrar
@@ -44,11 +44,11 @@ public static class EliminarSeccionFeature
                         .Select(m => m.StoragePath!)
                         .ToListAsync(ct);
 
-                    // 2. Eliminar archivos físicos de R2
+                    // 2. Encolar borrado físico y liberar cuota (Outbox Pattern)
                     if (storagePaths.Any())
                     {
                         var keys = storagePaths.Select(path => $"propiedades/{seccion.PropiedadId}/{path}").ToList();
-                        await r2Storage.DeleteManyWithQuotaLiberationAsync(keys, currentUserId);
+                        await context.QueueStorageDeletionsWithQuotaLiberationAsync(keys, currentUserId, ct);
                     }
 
                     // 3. Borrar de la base de datos las imágenes que no son principales

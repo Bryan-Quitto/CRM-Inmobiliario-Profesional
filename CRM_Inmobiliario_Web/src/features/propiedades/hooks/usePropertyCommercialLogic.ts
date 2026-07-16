@@ -3,7 +3,6 @@ import { toast } from 'sonner';
 import { mutate as globalMutateSWR } from 'swr';
 import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { relistPropiedad } from '../api/relistPropiedad';
-import { limpiarImagenesPropiedad } from '../api/limpiarImagenesPropiedad';
 import type { Propiedad } from '../types';
 import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
 
@@ -145,10 +144,6 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
         
         await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre ?? undefined, montoReserva ?? undefined, cerradoConId, agenteCerradorId, propiedad.version);
 
-        if (statusToApply === 'Vendida') {
-          await limpiarImagenesPropiedad(propiedad.id);
-        }
-
         await safeRevalidate();
         invalidateGlobalCaches();
         
@@ -209,10 +204,6 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     try {
       if (isMounted.current) setIsProcessing(true);
       await actualizarEstadoPropiedad(propiedad.id, nuevoEstado, undefined, undefined, undefined, undefined, propiedad.version);
-      
-      if (nuevoEstado === 'Inactiva' || nuevoEstado === 'Vendida') {
-        await limpiarImagenesPropiedad(propiedad.id);
-      }
 
       await safeRevalidate();
       invalidateGlobalCaches();

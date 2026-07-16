@@ -141,6 +141,7 @@ builder.Services.AddHostedService<KpiWarmingBackgroundService>();
 builder.Services.AddScoped<ResetAiBotDailyLimitsJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.EnqueueTaskNotificationsJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.ProcessWebPushOutboxJob>();
+builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Propiedades.Jobs.ProcessPendingStorageDeletionsJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchiveEntitiesJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.InactivePropertyMediaCleanupJob>();
@@ -222,6 +223,12 @@ app.Lifetime.ApplicationStarted.Register(() =>
         job => job.ExecuteAsync(CancellationToken.None),
         "* * * * *");
 
+    // Limpieza de R2 Outbox (cada 5 minutos)
+    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Features.Propiedades.Jobs.ProcessPendingStorageDeletionsJob>(
+        "process-pending-storage-deletions",
+        job => job.ExecuteAsync(CancellationToken.None),
+        "*/5 * * * *");
+
     // Limpieza de inactivos
     RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchiveEntitiesJob>(
         "daily-auto-archive-entities",
@@ -242,7 +249,7 @@ app.Lifetime.ApplicationStarted.Register(() =>
     RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.LimpiezaPdfsObsoletosJob>(
         "limpieza-pdfs-obsoletos-daily",
         job => job.ExecuteAsync(CancellationToken.None),
-        "0 3 * * *" // Todos los días a las 3:00 AM
+        "0 8 * * *" // 08:00 UTC (03:00 AM UTC-5)
     );
 });
 

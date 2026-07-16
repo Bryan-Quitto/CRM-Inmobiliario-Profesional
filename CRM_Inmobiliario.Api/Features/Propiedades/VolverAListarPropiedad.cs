@@ -238,21 +238,17 @@ public static class VolverAListarPropiedadFeature
                 var pdfLogs = await context.AgentStorageFileLogs.Where(l => l.TargetType == "Propiedad" && l.TargetId == id.ToString() && l.Context == "PDF Ficha Comercial" && !l.IsDeleted).ToListAsync(ct);
                 try
                 {
-                    if (keysToDelete.Any())
+                    var allKeys = keysToDelete.Concat(pdfLogs.Select(l => l.ObjectKey)).ToList();
+                    if (allKeys.Any())
                     {
-                        await r2Storage.DeleteManyAsync(keysToDelete);
-                        logger.LogInformation("🧹 [RELIST] {Count} imágenes eliminadas de R2", keysToDelete.Count);
-                    }
-                    
-                    foreach(var log in pdfLogs)
-                    {
-                        await r2Storage.DeleteWithQuotaLiberationAsync(log.ObjectKey, log.AgentId);
+                        await context.QueueStorageDeletionsWithQuotaLiberationAsync(allKeys, agenteId, ct);
+                        logger.LogInformation("🧹 [RELIST] {Count} archivos encolados de R2", allKeys.Count);
                     }
                 }
 
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex, "⚠️ [RELIST] Error al borrar archivos físicos.");
+                    logger.LogWarning(ex, "⚠️ [RELIST] Error al encolar archivos físicos.");
                 }
 
                 // Rescatar la foto de portada si estaba dentro de una sección antes de borrarla

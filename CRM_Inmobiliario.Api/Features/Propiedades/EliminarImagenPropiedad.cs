@@ -18,7 +18,7 @@ public static class EliminarImagenPropiedadFeature
             [FromRoute] Guid imagenId,
             ClaimsPrincipal user,
             CrmDbContext context,
-            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage) =>
+            CancellationToken ct) =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -35,17 +35,17 @@ public static class EliminarImagenPropiedadFeature
 
             try
             {
-                // 1. Eliminar archivo físico de R2
+                // 1. Encolar borrado físico y liberar cuota (Outbox)
                 if (!string.IsNullOrEmpty(media.StoragePath))
                 {
                     var key = $"propiedades/{propiedadId}/{media.StoragePath}";
-                    await r2Storage.DeleteWithQuotaLiberationAsync(key, agenteId);
+                    await context.QueueStorageDeletionWithQuotaLiberationAsync(key, agenteId, ct);
                 }
 
                 // 2. Eliminar registro de la DB
                 context.PropertyMedia.Remove(media);
-                await context.SaveChangesAsync();
-                await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), media.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
+                await context.SaveChangesAsync(ct);
+                await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), media.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
 
                 return Results.NoContent();
             }

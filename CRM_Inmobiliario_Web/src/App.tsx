@@ -46,6 +46,7 @@ const ConfirmarInvitacion = lazy(() => import('./features/auth/components/Confir
 const ConfiguracionNotificaciones = lazy(() => import('./features/configuracion/components/ConfiguracionNotificaciones').then(m => ({ default: m.ConfiguracionNotificaciones })));
 const AutoArchivadoSettings = lazy(() => import('./features/configuracion/components/AutoArchivadoSettings').then(m => ({ default: m.AutoArchivadoSettings })));
 const ConfiguracionPortabilidad = lazy(() => import('./features/configuracion/components/ConfiguracionPortabilidad').then(m => ({ default: m.ConfiguracionPortabilidad })));
+const ConfiguracionLimpieza = lazy(() => import('./features/configuracion/components/ConfiguracionLimpieza').then(m => ({ default: m.ConfiguracionLimpieza })));
 const PoliticaPrivacidadView = lazy(() => import('./features/legal/components/PoliticaPrivacidadView').then(m => ({ default: m.PoliticaPrivacidadView })));
 const TerminosServicioView = lazy(() => import('./features/legal/components/TerminosServicioView').then(m => ({ default: m.TerminosServicioView })));
 
@@ -203,6 +204,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="seguridad" element={<AdminRoute><ConfiguracionSeguridad /></AdminRoute>} />
                 <Route path="auto-archivado" element={<AutoArchivadoSettings />} />
                 <Route path="portabilidad" element={<ConfiguracionPortabilidad />} />
+                <Route path="limpieza" element={<AdminRoute><ConfiguracionLimpieza /></AdminRoute>} />
               </Route>
               <Route path="/confirmar-clave" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
               {/* Fallback global para usuarios logueados que intentan acceder a una ruta inexistente o vienen del login */}

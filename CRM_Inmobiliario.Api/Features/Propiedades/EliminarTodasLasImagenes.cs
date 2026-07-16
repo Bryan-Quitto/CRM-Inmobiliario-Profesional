@@ -17,7 +17,6 @@ public static class EliminarTodasLasImagenesFeature
             [FromRoute] Guid propiedadId,
             ClaimsPrincipal user,
             CrmDbContext context,
-            CRM_Inmobiliario.Api.Infrastructure.Services.IR2StorageService r2Storage,
             CancellationToken ct,
             ILoggerFactory loggerFactory) =>
         {
@@ -63,23 +62,20 @@ public static class EliminarTodasLasImagenesFeature
                     .Where(p => p.Id == propiedadId)
                     .ExecuteUpdateAsync(s => s.SetProperty(p => p.FechaActualizacion, DateTimeOffset.UtcNow), ct);
 
-                // 3. Limpiar los archivos físicos de R2
+                // 3. Encolar los archivos físicos de R2 (Outbox Pattern)
                 if (storagePaths.Count > 0)
                 {
-                    logger.LogInformation("Eliminando {Count} archivos físicos de R2", storagePaths.Count);
+                    logger.LogInformation("Encolando {Count} archivos físicos de R2", storagePaths.Count);
                     
                     try 
                     {
-                        // No pasamos el CT aquí para asegurar que el borrado físico ocurra 
-                        // incluso si el cliente cancela la petición HTTP justo después del borrado en DB
                         var keys = storagePaths.Select(path => $"propiedades/{propiedadId}/{path}").ToList();
-                        await r2Storage.DeleteManyWithQuotaLiberationAsync(keys, agenteId);
-                        logger.LogInformation("Archivos físicos eliminados correctamente del bucket");
+                        await context.QueueStorageDeletionsWithQuotaLiberationAsync(keys, agenteId, ct);
+                        logger.LogInformation("Archivos físicos encolados correctamente del bucket");
                     }
                     catch (Exception storageEx)
                     {
-                        // Logueamos pero no fallamos la petición porque la DB ya está limpia
-                        logger.LogWarning(storageEx, "Error al eliminar archivos de Storage (huérfanos potenciales).");
+                        logger.LogWarning(storageEx, "Error al encolar archivos de Storage (huérfanos potenciales).");
                     }
                 }
 

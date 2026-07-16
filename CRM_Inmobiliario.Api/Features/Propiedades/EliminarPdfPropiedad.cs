@@ -13,7 +13,7 @@ public static class EliminarPdfPropiedadFeature
 {
     public static RouteHandlerBuilder MapEliminarPdfPropiedadEndpoint(this IEndpointRouteBuilder app)
     {
-        return app.MapDelete("/propiedades/{id:guid}/pdf", async (Guid id, ClaimsPrincipal user, CrmDbContext context, IR2StorageService r2Storage) =>
+        return app.MapDelete("/propiedades/{id:guid}/pdf", async (Guid id, ClaimsPrincipal user, CrmDbContext context) =>
         {
             var currentUserId = user.GetRequiredUserId();
             
@@ -39,7 +39,7 @@ public static class EliminarPdfPropiedadFeature
             var fileName = $"ficha_{id}_{currentUserId}.pdf";
             var key = $"propiedades/{id}/{fileName}";
             
-            await r2Storage.DeleteWithQuotaLiberationAsync(key, currentUserId);
+            await context.QueueStorageDeletionWithQuotaLiberationAsync(key, currentUserId);
 
             return Results.Ok(new { message = "PDF eliminado exitosamente" });
         })

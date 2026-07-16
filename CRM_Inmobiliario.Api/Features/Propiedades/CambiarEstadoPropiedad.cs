@@ -88,20 +88,16 @@ public static class CambiarEstadoPropiedadFeature
 
                     try
                     {
-                        if (keysToDelete.Any())
+                        var allKeys = keysToDelete.Concat(pdfLogs.Select(l => l.ObjectKey)).ToList();
+                        if (allKeys.Any())
                         {
-                            await r2Storage.DeleteManyAsync(keysToDelete);
-                            logger.LogInformation("🧹 [ESTADO] {Count} imágenes eliminadas de R2 para la propiedad {Id}", keysToDelete.Count, id);
-                        }
-
-                        foreach (var log in pdfLogs)
-                        {
-                            await r2Storage.DeleteWithQuotaLiberationAsync(log.ObjectKey, log.AgentId);
+                            await context.QueueStorageDeletionsWithQuotaLiberationAsync(allKeys, currentUserId, ct);
+                            logger.LogInformation("🧹 [ESTADO] {Count} archivos encolados de R2 para la propiedad {Id}", allKeys.Count, id);
                         }
                     }
                     catch (Exception storageEx)
                     {
-                        logger.LogWarning(storageEx, "⚠️ [ESTADO] Error al eliminar archivos de Storage (huérfanos potenciales) para {Id}.", id);
+                        logger.LogWarning(storageEx, "⚠️ [ESTADO] Error al encolar archivos de Storage (huérfanos potenciales) para {Id}.", id);
                     }
 
                     // Rescatar la foto de portada si estaba dentro de una sección antes de borrarla
