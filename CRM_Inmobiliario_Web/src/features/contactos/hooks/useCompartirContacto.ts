@@ -3,9 +3,11 @@ import { toast } from 'sonner';
 import { getAgentesCompartidos } from '../api/getAgentesCompartidos';
 import { compartirContacto } from '../api/compartirContacto';
 import { revocarCompartido } from '../api/revocarCompartido';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 export const useCompartirContacto = (contactoId?: string) => {
   const { mutate: globalMutate } = useSWRConfig();
+  const { withOptimisticLock } = useGlobalMutationLock();
   
   const { data: agentesCompartidos, error, isLoading, mutate } = useSWR(
     contactoId ? `/contactos/${contactoId}/compartir` : null,
@@ -16,7 +18,7 @@ export const useCompartirContacto = (contactoId?: string) => {
     if (!contactoId) return;
     
     try {
-      await compartirContacto(contactoId, agenteIds);
+      await withOptimisticLock(compartirContacto(contactoId, agenteIds));
       toast.success('Visibilidad compartida exitosamente');
       mutate(); // Revalidar lista local de agentes compartidos
       globalMutate('/contactos'); // Revalidar lista global de contactos por si acaso
@@ -31,7 +33,7 @@ export const useCompartirContacto = (contactoId?: string) => {
     if (!contactoId) return;
 
     try {
-      await revocarCompartido(contactoId, agenteIds);
+      await withOptimisticLock(revocarCompartido(contactoId, agenteIds));
       toast.success('Visibilidad revocada exitosamente');
       mutate(); // Revalidar lista local
       globalMutate('/contactos');

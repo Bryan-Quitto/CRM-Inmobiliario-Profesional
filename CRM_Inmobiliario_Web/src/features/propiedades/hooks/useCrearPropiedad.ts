@@ -3,6 +3,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import useSWR, { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
 import { swrDefaultConfig, invalidateCRMData } from '@/lib/swr';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 // API & Types
 import { crearPropiedad } from '../api/crearPropiedad';
@@ -27,6 +28,7 @@ interface UseCrearPropiedadProps {
 
 export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProps) => {
   const { mutate } = useSWRConfig();
+  const { withOptimisticLock } = useGlobalMutationLock();
   const isEditing = !!listData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -153,14 +155,13 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
       fechaIngreso: data.fechaIngreso ? `${data.fechaIngreso}T12:00:00-05:00` : undefined,
     };
 
-    const action = isEditing 
+    const action: Promise<unknown> = isEditing 
       ? actualizarPropiedad(listData!.id, payload)
       : crearPropiedad(payload);
 
-    action.then(() => {
+    withOptimisticLock(action).then(() => {
       invalidateCRMData(mutate);
     }).catch(() => {
-
       toast.error(`Error al ${isEditing ? 'actualizar' : 'registrar'} propiedad`);
     });
   };

@@ -2,6 +2,7 @@ import React from 'react';
 import { UserCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useReactivarAgente } from '../hooks/useReactivarAgente';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 interface ReactivacionAgenteModalProps {
   agenteId: string;
@@ -20,14 +21,18 @@ export const ReactivacionAgenteModal: React.FC<ReactivacionAgenteModalProps> = (
 }) => {
   const { mutateAsync: reactivar, isLoading } = useReactivarAgente();
 
+  const { withOptimisticLock } = useGlobalMutationLock();
+
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
+    // Optimistic UI
+    onClose();
+    
     try {
-      await reactivar(agenteId);
+      await withOptimisticLock(reactivar(agenteId));
       toast.success('Agente reactivado exitosamente');
       onSuccess();
-      onClose();
     } catch {
       // error handled in hook
     }

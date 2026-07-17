@@ -24,6 +24,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver } from 'react-hook-form';
 import { taskSchema } from '../validations';
 import { DEFAULT_TASK_COLORS } from '../constants/taskColors';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 interface UseEditarTareaProps {
   tareaId: string;
@@ -36,6 +37,7 @@ export type EditarTareaFormValues = ActualizarTareaDTO & { contactoNombre?: stri
 export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTareaProps) => {
   const { mutate } = useSWRConfig();
   const { updateTarea } = useTareas();
+  const { withOptimisticLock } = useGlobalMutationLock();
 
   const { data: contactos = [] } = useSWR('/contactos/dropdown', () => getDropdownContactos(), swrDefaultConfig);
   const { data: propiedades = [] } = useSWR('/propiedades', getPropiedades, swrDefaultConfig);
@@ -193,7 +195,7 @@ export const useEditarTarea = ({ tareaId, initialData, onSuccess }: UseEditarTar
       lugar: data.lugar
     };
 
-    const savePromise = actualizarTarea(tareaId, payload);
+    const savePromise = withOptimisticLock(actualizarTarea(tareaId, payload));
     
     updateTarea(tareaId, updatedFields, savePromise).catch(() => {
       toast.error('No se pudo sincronizar el cambio');

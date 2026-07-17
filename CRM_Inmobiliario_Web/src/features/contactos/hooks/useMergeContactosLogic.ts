@@ -5,6 +5,7 @@ import { api } from '@/lib/axios';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { Contacto } from '../types';
 import type { GetContactosResponse } from '../api/getContactos';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 interface UseMergeContactosLogicProps {
   contactoOriginal: Contacto;
@@ -17,6 +18,7 @@ export const useMergeContactosLogic = ({
   onSuccess,
   onClose,
 }: UseMergeContactosLogicProps) => {
+  const { withOptimisticLock } = useGlobalMutationLock();
   const [localPrincipal, setLocalPrincipal] = useState<Contacto>(contactoOriginal);
   const [localSecundario, setLocalSecundario] = useState<Contacto | null>(null);
   
@@ -43,22 +45,25 @@ export const useMergeContactosLogic = ({
 
   const handleMerge = async () => {
     if (!localSecundario) return;
+    
+    // Optimistic UI: Trigger success callback immediately
+    onSuccess(localPrincipal.id);
+    
     setIsMerging(true);
     try {
-      await api.post('/contactos/fusionar', {
+      await withOptimisticLock(api.post('/contactos/fusionar', {
         primaryContactoId: localPrincipal.id,
         secondaryContactoId: localSecundario.id
-      });
+      }));
       
       // Invalidate contacts list and tasks (agenda) to respect Zero-Wait policy
       globalMutate(key => Array.isArray(key) && key[0] === '/contactos', undefined, { revalidate: true });
       globalMutate('/tareas');
       globalMutate('/dashboard/kpis');
+      globalMutate(`/contactos/${localPrincipal.id}`);
       
       toast.success('Contactos fusionados exitosamente');
-      onSuccess(localPrincipal.id);
     } catch (error) {
-
       const err = error as { response?: { data?: { message?: string } } };
       toast.error(err.response?.data?.message || 'Error al fusionar contactos');
     } finally {

@@ -5,6 +5,7 @@ import Fuse from 'fuse.js';
 import { toast } from 'sonner';
 import { useAgentes } from '../hooks/useAgentes';
 import { useEliminarAgente } from '../hooks/useEliminarAgente';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 interface EliminarAgenteModalProps {
   agenteEliminarId: string;
@@ -42,18 +43,22 @@ export const EliminarAgenteModal: React.FC<EliminarAgenteModalProps> = ({
     return fuse.search(query).map(r => r.item);
   }, [query, agentesValidos, fuse]);
 
+  const { withOptimisticLock } = useGlobalMutationLock();
+  
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
     if (!selectedAgenteId) return;
 
+    // Optimistic UI
+    onClose();
+
     try {
-      await eliminar(agenteEliminarId, { nuevoAgenteId: selectedAgenteId });
+      await withOptimisticLock(eliminar(agenteEliminarId, { nuevoAgenteId: selectedAgenteId }));
       toast.success('Agente eliminado y cartera reasignada', {
         description: `Se han transferido las propiedades y contactos exitosamente.`,
       });
       onSuccess();
-      onClose();
     } catch {
       // El hook ya maneja el error internamente
     }

@@ -5,6 +5,7 @@ import { actualizarEstadoPropiedad } from '../api/actualizarEstadoPropiedad';
 import { relistPropiedad } from '../api/relistPropiedad';
 import type { Propiedad } from '../types';
 import { usePendingOperationsStore } from '@/store/usePendingOperationsStore';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 interface CommercialLogicOptions {
   onSuccess?: () => void;
@@ -23,8 +24,9 @@ interface CommercialLogicOptions {
  * Agnostic to List or Detail views.
  */
 export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Retained for backwards compatibility but shouldn't block UI
   const isMounted = useRef(true);
+  const { withOptimisticLock } = useGlobalMutationLock();
 
   useEffect(() => {
     isMounted.current = true;
@@ -139,18 +141,19 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
     const toastId = toast.loading(`Procesando ${finalStatus.toLowerCase()}...`);
 
     const executeClose = async (statusToApply: string, retryCount = 0) => {
+      // Optimistic UI: Close modal immediately
+      if (isMounted.current) options.onSuccess?.();
+
       try {
         if (isMounted.current) setIsProcessing(true);
         
-        await actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre ?? undefined, montoReserva ?? undefined, cerradoConId, agenteCerradorId, propiedad.version);
+        await withOptimisticLock(actualizarEstadoPropiedad(propiedad.id, statusToApply, precioCierre ?? undefined, montoReserva ?? undefined, cerradoConId, agenteCerradorId, propiedad.version));
 
         await safeRevalidate();
         invalidateGlobalCaches();
         
         // Show success toast even if unmounted
         toast.success(`Propiedad ${statusToApply.toLowerCase()} con éxito`, { id: toastId });
-        
-        if (isMounted.current) options.onSuccess?.();
       } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
 
         safeMutateOptimistic(oldEstado);
@@ -200,18 +203,19 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
   const executeDirectUpdate = async (propiedad: Propiedad, nuevoEstado: string) => {
     const toastId = toast.loading(`Actualizando a ${nuevoEstado}...`);
     safeMutateOptimistic(nuevoEstado);
+    
+    // Optimistic UI: resolve immediately
+    if (isMounted.current) options.onSuccess?.();
 
     try {
       if (isMounted.current) setIsProcessing(true);
-      await actualizarEstadoPropiedad(propiedad.id, nuevoEstado, undefined, undefined, undefined, undefined, propiedad.version);
+      await withOptimisticLock(actualizarEstadoPropiedad(propiedad.id, nuevoEstado, undefined, undefined, undefined, undefined, propiedad.version));
 
       await safeRevalidate();
       invalidateGlobalCaches();
       
       // Global toast
       toast.success(`Estado actualizado a ${nuevoEstado}`, { id: toastId });
-      
-      if (isMounted.current) options.onSuccess?.();
     } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       const errorMessage = error.response?.data?.Message || error.response?.data?.message || error.message || "Error al actualizar estado";
       toast.error(errorMessage, { id: toastId });
@@ -253,9 +257,9 @@ export const usePropertyCommercialLogic = (options: CommercialLogicOptions) => {
         if (isMounted.current) setIsProcessing(true);
         
         if (type === 'Reversion') {
-          await actualizarEstadoPropiedad(propiedad.id, targetStatus, undefined, undefined, undefined, undefined, propiedad.version);
+          await withOptimisticLock(actualizarEstadoPropiedad(propiedad.id, targetStatus, undefined, undefined, undefined, undefined, propiedad.version));
         } else {
-          await relistPropiedad(propiedad.id, undefined, type as 'Relist' | 'Cancel');
+          await withOptimisticLock(relistPropiedad(propiedad.id, undefined, type as 'Relist' | 'Cancel'));
         }
 
         await safeRevalidate();

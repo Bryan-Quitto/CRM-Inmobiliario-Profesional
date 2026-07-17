@@ -21,34 +21,48 @@ import { PageLoader, SidebarLoader } from './components/layout/Loaders';
 import { AdminRoute } from './components/layout/AdminRoute';
 import { TermsOfServiceWrapper } from './components/layout/TermsOfServiceWrapper';
 import { GlobalNavigationGuard } from './components/layout/GlobalNavigationGuard';
+import { GlobalMutationLockProvider } from './contexts/GlobalMutationLockContext';
 
-// Lazy Loading de Features
-const DashboardPrincipal = lazy(() => import('./features/dashboard/components/DashboardPrincipal').then(m => ({ default: m.DashboardPrincipal })));
-const CalendarioView = lazy(() => import('./features/calendario/components/CalendarioView'));
-const ContactosList = lazy(() => import('./features/contactos/components/ContactosList').then(m => ({ default: m.ContactosList })));
-const ContactoDetalle = lazy(() => import('./features/contactos/components/ContactoDetalle').then(m => ({ default: m.ContactoDetalle })));
-const PropiedadesList = lazy(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList })));
-const AnaliticaView = lazy(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView })));
-const AgendaPanel = lazy(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel })));
-const AuditoriaLogsView = lazy(() => import('./features/ia/components/AuditoriaLogsView').then(m => ({ default: m.AuditoriaLogsView })));
-const IaLogsLayout = lazy(() => import('./features/ia/components/IaLogsLayout').then(m => ({ default: m.IaLogsLayout })));
-const PersonalLogsView = lazy(() => import('./features/ia/components/PersonalLogsView').then(m => ({ default: m.PersonalLogsView })));
-const AuditoriaGeneralView = lazy(() => import('./features/ia/components/AuditoriaGeneralView').then(m => ({ default: m.AuditoriaGeneralView })));
-const ConfiguracionLayout = lazy(() => import('./features/configuracion/components/ConfiguracionLayout'));
-const ConfiguracionPerfil = lazy(() => import('./features/auth/components/ConfiguracionPerfil'));
-const ConfiguracionIA = lazy(() => import('./features/configuracion/components/ConfiguracionIA').then(m => ({ default: m.ConfiguracionIA })));
-const ConfiguracionIntegracionIA = lazy(() => import('./features/configuracion/components/ConfiguracionIntegracionIA').then(m => ({ default: m.ConfiguracionIntegracionIA })));
-const ConfiguracionOrganizacion = lazy(() => import('./features/configuracion/components/ConfiguracionOrganizacion').then(m => ({ default: m.ConfiguracionOrganizacion })));
-const ConfiguracionAgentes = lazy(() => import('./features/configuracion/components/ConfiguracionAgentes').then(m => ({ default: m.ConfiguracionAgentes })));
-const ConfiguracionAgencias = lazy(() => import('./features/configuracion/components/ConfiguracionAgencias').then(m => ({ default: m.ConfiguracionAgencias })));
-const ConfiguracionSeguridad = lazy(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad })));
-const ConfirmarInvitacion = lazy(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion })));
-const ConfiguracionNotificaciones = lazy(() => import('./features/configuracion/components/ConfiguracionNotificaciones').then(m => ({ default: m.ConfiguracionNotificaciones })));
-const AutoArchivadoSettings = lazy(() => import('./features/configuracion/components/AutoArchivadoSettings').then(m => ({ default: m.AutoArchivadoSettings })));
-const ConfiguracionPortabilidad = lazy(() => import('./features/configuracion/components/ConfiguracionPortabilidad').then(m => ({ default: m.ConfiguracionPortabilidad })));
-const ConfiguracionLimpieza = lazy(() => import('./features/configuracion/components/ConfiguracionLimpieza').then(m => ({ default: m.ConfiguracionLimpieza })));
-const PoliticaPrivacidadView = lazy(() => import('./features/legal/components/PoliticaPrivacidadView').then(m => ({ default: m.PoliticaPrivacidadView })));
-const TerminosServicioView = lazy(() => import('./features/legal/components/TerminosServicioView').then(m => ({ default: m.TerminosServicioView })));
+/**
+ * Wrapper sobre React.lazy que reintenta la descarga del chunk hasta `retries` veces
+ * con backoff exponencial. Resuelve fallos de red transitorios (WiFi débil, celular).
+ */
+function retryImport<T>(factory: () => Promise<T>, retries = 3, delay = 500): Promise<T> {
+  return factory().catch((err: unknown) => {
+    if (retries <= 0) return Promise.reject(err);
+    return new Promise<T>((resolve, reject) =>
+      setTimeout(() => retryImport(factory, retries - 1, delay * 2).then(resolve, reject), delay)
+    );
+  });
+}
+
+// Lazy Loading de Features (con reintentos automáticos por red inestable)
+const DashboardPrincipal = lazy(() => retryImport(() => import('./features/dashboard/components/DashboardPrincipal').then(m => ({ default: m.DashboardPrincipal }))));
+const CalendarioView = lazy(() => retryImport(() => import('./features/calendario/components/CalendarioView')));
+const ContactosList = lazy(() => retryImport(() => import('./features/contactos/components/ContactosList').then(m => ({ default: m.ContactosList }))));
+const ContactoDetalle = lazy(() => retryImport(() => import('./features/contactos/components/ContactoDetalle').then(m => ({ default: m.ContactoDetalle }))));
+const PropiedadesList = lazy(() => retryImport(() => import('./features/propiedades/components/PropiedadesList').then(m => ({ default: m.PropiedadesList }))));
+const AnaliticaView = lazy(() => retryImport(() => import('./features/analitica/components/AnaliticaView').then(m => ({ default: m.AnaliticaView }))));
+const AgendaPanel = lazy(() => retryImport(() => import('./features/tareas/components/AgendaPanel').then(m => ({ default: m.AgendaPanel }))));
+const AuditoriaLogsView = lazy(() => retryImport(() => import('./features/ia/components/AuditoriaLogsView').then(m => ({ default: m.AuditoriaLogsView }))));
+const IaLogsLayout = lazy(() => retryImport(() => import('./features/ia/components/IaLogsLayout').then(m => ({ default: m.IaLogsLayout }))));
+const PersonalLogsView = lazy(() => retryImport(() => import('./features/ia/components/PersonalLogsView').then(m => ({ default: m.PersonalLogsView }))));
+const AuditoriaGeneralView = lazy(() => retryImport(() => import('./features/ia/components/AuditoriaGeneralView').then(m => ({ default: m.AuditoriaGeneralView }))));
+const ConfiguracionLayout = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionLayout')));
+const ConfiguracionPerfil = lazy(() => retryImport(() => import('./features/auth/components/ConfiguracionPerfil')));
+const ConfiguracionIA = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionIA').then(m => ({ default: m.ConfiguracionIA }))));
+const ConfiguracionIntegracionIA = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionIntegracionIA').then(m => ({ default: m.ConfiguracionIntegracionIA }))));
+const ConfiguracionOrganizacion = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionOrganizacion').then(m => ({ default: m.ConfiguracionOrganizacion }))));
+const ConfiguracionAgentes = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionAgentes').then(m => ({ default: m.ConfiguracionAgentes }))));
+const ConfiguracionAgencias = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionAgencias').then(m => ({ default: m.ConfiguracionAgencias }))));
+const ConfiguracionSeguridad = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionSeguridad').then(m => ({ default: m.ConfiguracionSeguridad }))));
+const ConfirmarInvitacion = lazy(() => retryImport(() => import('./features/auth/components/ConfirmarInvitacion').then(m => ({ default: m.ConfirmarInvitacion }))));
+const ConfiguracionNotificaciones = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionNotificaciones').then(m => ({ default: m.ConfiguracionNotificaciones }))));
+const AutoArchivadoSettings = lazy(() => retryImport(() => import('./features/configuracion/components/AutoArchivadoSettings').then(m => ({ default: m.AutoArchivadoSettings }))));
+const ConfiguracionPortabilidad = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionPortabilidad').then(m => ({ default: m.ConfiguracionPortabilidad }))));
+const ConfiguracionLimpieza = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionLimpieza').then(m => ({ default: m.ConfiguracionLimpieza }))));
+const PoliticaPrivacidadView = lazy(() => retryImport(() => import('./features/legal/components/PoliticaPrivacidadView').then(m => ({ default: m.PoliticaPrivacidadView }))));
+const TerminosServicioView = lazy(() => retryImport(() => import('./features/legal/components/TerminosServicioView').then(m => ({ default: m.TerminosServicioView }))));
 
 import { CopilotDrawer } from './features/copilot/components/CopilotDrawer';
 import { GlobalContactoModal } from './components/layout/GlobalContactoModal';
@@ -299,7 +313,11 @@ function MainApp() {
 }
 
 function App() {
-  return <MainApp />;
+  return (
+    <GlobalMutationLockProvider>
+      <MainApp />
+    </GlobalMutationLockProvider>
+  );
 }
 
 export default App;

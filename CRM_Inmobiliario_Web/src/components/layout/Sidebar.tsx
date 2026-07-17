@@ -27,6 +27,12 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   // Almacenamos el path optimista y la ruta desde la que se inició
   const [optimisticState, setOptimisticState] = useState<{ path: string, from: string } | null>(null);
 
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+    if (location.pathname === path) return;
+    setOptimisticState({ path, from: location.pathname });
+  };
+
   const menuItems = [
     { id: 'dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" />, label: 'Inicio' },
     { id: 'calendario', path: '/calendario', icon: <Calendar className="h-5 w-5" />, label: 'Calendario' },
@@ -118,7 +124,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
             <Link
               key={item.id}
               to={item.path}
-              onClick={() => setOptimisticState({ path: item.path, from: location.pathname })}
+              onClick={(e) => handleLinkClick(e, item.path)}
               aria-label={`Ir a ${item.label}`}
               className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative block ${
                 isActive(item.path)
@@ -147,7 +153,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       <div className="p-3 border-t border-slate-800/50 space-y-2">
         <Link 
           to="/configuracion/perfil"
-          onClick={() => setOptimisticState({ path: '/configuracion', from: location.pathname })}
+          onClick={(e) => handleLinkClick(e, '/configuracion')}
           aria-label="Abrir Configuración"
           className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative block ${
             isActive('/configuracion')

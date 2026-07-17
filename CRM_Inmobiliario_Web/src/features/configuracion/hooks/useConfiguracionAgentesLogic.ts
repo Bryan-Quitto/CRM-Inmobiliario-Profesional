@@ -3,10 +3,12 @@ import { useAuth } from '../../auth/hooks/useAuth';
 import { useAgentes } from './useAgentes';
 import { toast } from 'sonner';
 import { activarAgenteInvitado } from '../api/activarAgenteInvitado';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 export const useConfiguracionAgentesLogic = () => {
   const { user, isAdmin } = useAuth();
   const { agentes, isLoading, mutate } = useAgentes();
+  const { withOptimisticLock } = useGlobalMutationLock();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<{ id: string, nombre: string } | null>(null);
@@ -44,6 +46,9 @@ export const useConfiguracionAgentesLogic = () => {
     if (!selectedInvitadoAgent) return;
     const previousAgentes = agentes;
     
+    // Optimistic UI: Close modal immediately
+    setActivarInvitadoModalOpen(false);
+    
     // Optimistic update local cache
     mutate(
       agentes?.map(a => a.id === selectedInvitadoAgent.id ? { ...a, email: newEmail } : a),
@@ -51,19 +56,20 @@ export const useConfiguracionAgentesLogic = () => {
     );
 
     try {
-      await activarAgenteInvitado({
+      await withOptimisticLock(activarAgenteInvitado({
         id: selectedInvitadoAgent.id,
         realEmail: newEmail,
         agenciaId: agenciaId
-      });
+      }));
       toast.success('Invitación enviada', {
         description: `Se ha enviado la invitación a ${newEmail} exitosamente.`
       });
       mutate();
-    } catch (error) {
+    } catch {
       // Rollback on error
       mutate(previousAgentes, false);
-      throw error;
+      toast.error('Error al enviar la invitación');
+      setActivarInvitadoModalOpen(true);
     }
   };
 

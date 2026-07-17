@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 export const agenciaSchema = z.object({
   nombre: z.string().min(1, 'El nombre comercial es obligatorio').max(150, 'Máximo 150 caracteres'),
@@ -19,12 +20,13 @@ export const agenciaSchema = z.object({
 export type AgenciaFormValues = z.infer<typeof agenciaSchema>;
 
 export const useConfiguracionAgenciasLogic = () => {
+  const { withOptimisticLock } = useGlobalMutationLock();
   const { data: agencias, isLoading, mutate } = useSWR<Agency[]>('/configuracion/agencias', (url: string) => api.get(url).then(res => res.data));
   const [searchTerm, setSearchTerm] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAgency, setEditingAgency] = useState<Agency | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting] = useState(false);
 
   const methods = useForm<AgenciaFormValues>({
     resolver: zodResolver(agenciaSchema),
@@ -61,23 +63,26 @@ export const useConfiguracionAgenciasLogic = () => {
   };
 
   const onSubmit = async (data: AgenciaFormValues) => {
-    setIsSubmitting(true);
+    // Optimistic UI: Close immediately
+    setIsModalOpen(false);
+    
     try {
-      if (editingAgency) {
-        await actualizarAgencia(editingAgency.id, data);
-        toast.success('Agencia actualizada', { description: `La agencia "${data.nombre}" ha sido modificada.` });
-      } else {
-        await crearAgencia(data);
-        toast.success('Agencia creada', { description: `La agencia "${data.nombre}" ha sido registrada.` });
-      }
-      setIsModalOpen(false);
+      const action = editingAgency 
+        ? actualizarAgencia(editingAgency.id, data)
+        : crearAgencia(data);
+        
+      await withOptimisticLock(action);
+      
+      toast.success(editingAgency ? 'Agencia actualizada' : 'Agencia creada', { 
+        description: `La agencia "${data.nombre}" ha sido procesada.` 
+      });
       mutate();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: string } };
       const msg = axiosError.response?.data || 'Error al guardar la agencia';
       toast.error(msg);
-    } finally {
-      setIsSubmitting(false);
+      // Rollback UI (reopen modal so they don't lose data)
+      setIsModalOpen(true);
     }
   };
 

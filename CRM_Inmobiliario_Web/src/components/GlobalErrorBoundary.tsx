@@ -18,7 +18,29 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    // Actualiza el estado para que el siguiente renderizado muestre la interfaz de repuesto
+    // Detectar si es un error de chunk (Vite / Webpack)
+    const isChunkError = 
+      error?.name === 'ChunkLoadError' ||
+      error?.message?.includes('Loading chunk') ||
+      error?.message?.includes('Failed to fetch dynamically imported module') ||
+      error?.message?.includes('Importing a module script failed') ||
+      error?.message?.includes('Unable to preload CSS') ||
+      error?.message?.includes('Dynamic import');
+
+    if (isChunkError) {
+      // Estrategia anti-loop: solo recargamos UNA vez por sesión
+      const alreadyReloaded = sessionStorage.getItem('crm_chunk_reload_attempted');
+      if (!alreadyReloaded) {
+        sessionStorage.setItem('crm_chunk_reload_attempted', '1');
+        // Recarga limpia: fuerza al navegador a bajar los nuevos assets del deploy
+        window.location.reload();
+        // Retornamos el estado de error para el render antes de que recargue
+        return { hasError: true, error };
+      }
+      // Si ya recargamos y sigue fallando → red real o problema de servidor
+      sessionStorage.removeItem('crm_chunk_reload_attempted');
+    }
+
     return { hasError: true, error };
   }
 
@@ -33,10 +55,13 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      // Detectamos si es un error de red al cargar un componente Lazy
-      const isChunkError = this.state.error?.name === 'ChunkLoadError' || 
-                          this.state.error?.message.includes('Loading chunk') ||
-                          this.state.error?.message.includes('Dynamic import');
+      // Detectamos si es un error de red al cargar un componente Lazy (chunk stale o red inestable)
+      const isChunkError = 
+        this.state.error?.name === 'ChunkLoadError' || 
+        this.state.error?.message?.includes('Loading chunk') ||
+        this.state.error?.message?.includes('Failed to fetch dynamically imported module') ||
+        this.state.error?.message?.includes('Importing a module script failed') ||
+        this.state.error?.message?.includes('Dynamic import');
 
       return (
         <OfflinePage 

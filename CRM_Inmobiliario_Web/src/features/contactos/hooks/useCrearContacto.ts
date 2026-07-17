@@ -9,6 +9,7 @@ import type { Contacto } from '../types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Resolver, SubmitHandler } from 'react-hook-form';
 import { contactSchema } from '../validations';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 interface UseCrearContactoProps {
   initialData?: Contacto;
@@ -20,6 +21,7 @@ const DRAFT_STORAGE_KEY = 'crm_contacto_draft';
 
 export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCrearContactoProps) => {
   const { mutate } = useSWRConfig();
+  const { withOptimisticLock } = useGlobalMutationLock();
   const isEditing = !!initialData;
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -145,7 +147,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
       esPropietario: !!data.esPropietario
     };
 
-    const action = isEditing 
+    const action: Promise<unknown> = isEditing 
       ? actualizarContacto(initialData.id, dataToSend)
       : crearContacto(dataToSend);
 
@@ -156,7 +158,7 @@ export const useCrearContacto = ({ initialData, isOwnersView, onSuccess }: UseCr
 
     const toastId = toast.loading('Sincronizando contacto...');
 
-    action.then(() => {
+    withOptimisticLock(action).then(() => {
       invalidateCRMData(mutate);
 
       if (!isEditing) {

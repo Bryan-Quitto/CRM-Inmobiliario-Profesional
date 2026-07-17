@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Database, Calendar, File, Box, XCircle, Trash2, CheckSquare, Square } from 'lucide-react';
 import { useStorageHistory, deleteStorageFiles } from '../../api/almacenamiento';
 import ConfirmModal from '../../../../components/ConfirmModal';
+import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
 
 interface StorageHistoryModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ const formatBytes = (bytes: number, decimals = 2) => {
 };
 
 const StorageHistoryModal: React.FC<StorageHistoryModalProps> = ({ isOpen, onClose }) => {
+  const { withOptimisticLock } = useGlobalMutationLock();
   const { history, isLoading, mutate } = useStorageHistory();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -77,7 +79,7 @@ const StorageHistoryModal: React.FC<StorageHistoryModalProps> = ({ isOpen, onClo
 
     // 2. Optimistic UI (Zero Wait)
     try {
-      await mutate(
+      await withOptimisticLock(mutate(
         // Petición real asíncrona
         deleteStorageFiles(idsToDelete).then(() => {
           // Devolvemos la data esperada para actualizar la caché tras el éxito
@@ -93,7 +95,7 @@ const StorageHistoryModal: React.FC<StorageHistoryModalProps> = ({ isOpen, onClo
           rollbackOnError: true,
           revalidate: true // Hace un refetch automático al finalizar para garantizar consistencia
         }
-      );
+      ));
     } catch (error) {
       console.error('Error eliminando archivos:', error);
       // El rollback (deshacer el cambio visual) se hace automáticamente gracias a rollbackOnError: true
