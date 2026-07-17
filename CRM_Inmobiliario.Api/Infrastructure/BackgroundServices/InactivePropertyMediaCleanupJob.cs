@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -63,7 +64,7 @@ public class InactivePropertyMediaCleanupJob
                 
                 foreach(var log in pdfLogs)
                 {
-                    await _r2Storage.DeleteWithQuotaLiberationAsync(log.ObjectKey, log.AgentId);
+                    await _context.QueueStorageDeletionWithQuotaLiberationAsync(log.ObjectKey, log.AgentId, cancellationToken);
                     totalDeleted++;
                 }
             }

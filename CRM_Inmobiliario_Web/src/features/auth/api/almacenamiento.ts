@@ -1,4 +1,5 @@
 import useSWR from 'swr';
+import { api } from '@/lib/axios';
 
 export interface StorageFileLog {
   id: string;
@@ -21,5 +22,9 @@ export const useStorageHistory = () => {
     isLoading,
     mutate,
   };
+};
+
+export const deleteStorageFiles = async (logIds: string[]): Promise<void> => {
+  await api.post('/configuracion/almacenamiento/eliminar', { logIds });
 };
 

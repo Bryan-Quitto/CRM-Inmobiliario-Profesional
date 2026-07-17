@@ -34,8 +34,10 @@ public static class SubirImagenPropiedadFeature
                 return Results.BadRequest($"La imagen no puede superar {MaxImageSizeBytes / 1024 / 1024} MB.");
 
             // 1. Verificar si la propiedad existe y el usuario tiene permisos de gestión
+            // IMPORTANTE: Usamos AsNoTracking para que EF Core no rastree una entidad obsoleta 
+            // que luego cause un DbUpdateConcurrencyException tras la lenta subida a R2.
             var propiedad = await context.Properties
-                .Include(p => p.Media)
+                .AsNoTracking()
                 .Include(p => p.Agente)
                 .Include(p => p.Transactions)
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -48,7 +50,6 @@ public static class SubirImagenPropiedadFeature
 
             if (PropertyPermissionsHelper.IsLockedByAntiquity(propiedad))
                 return Results.Json(new { Message = "La propiedad ha sido bloqueada para modificaciones de galería por antigüedad (más de 1 año cerrada)." }, statusCode: StatusCodes.Status403Forbidden);
-
 
             // 2. Validar extensión de imagen
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
@@ -107,23 +108,42 @@ public static class SubirImagenPropiedadFeature
                 if (string.IsNullOrEmpty(urlPublica))
                     return Results.Problem("La subida a R2 no devolvió una ruta válida.");
 
-                // 6. Registrar metadatos en la base de datos (PropertyMedia)
-                var media = new PropertyMedia
+                // 6. Registrar metadatos en la base de datos con bloqueo de concurrencia
+                var strategy = context.Database.CreateExecutionStrategy();
+                var media = await strategy.ExecuteAsync(async () =>
                 {
-                    Id = Guid.NewGuid(),
-                    PropiedadId = id,
-                    SectionId = sectionId,
-                    Descripcion = descripcion,
-                    TipoMultimedia = "Image",
-                    UrlPublica = urlPublica,
-                    StoragePath = nombreArchivo,
-                    EsPrincipal = !propiedad.Media.Any(m => m.EsPrincipal),
-                    Orden = propiedad.Media.Count + 1
-                };
+                    await using var transaction = await context.Database.BeginTransactionAsync();
 
-                context.PropertyMedia.Add(media);
-                await context.SaveChangesAsync();
-                await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
+                    // Adquirir un bloqueo (lock) exclusivo sobre la fila de la propiedad para que subidas paralelas se encolen
+                    await context.Database.ExecuteSqlRawAsync("SELECT 1 FROM \"Properties\" WHERE \"Id\" = {0} FOR UPDATE", id);
+
+                    // Cargar la propiedad fresca y trackeada bajo el lock para que EF Core intercepte y actualice FechaActualizacion correctamente sin DbUpdateConcurrencyException
+                    var trackedProp = await context.Properties.FirstOrDefaultAsync(p => p.Id == id);
+
+                    var currentMediaCount = await context.PropertyMedia.CountAsync(m => m.PropiedadId == id);
+                    var hasPrincipal = await context.PropertyMedia.AnyAsync(m => m.PropiedadId == id && m.EsPrincipal);
+
+                    var newMedia = new PropertyMedia
+                    {
+                        Id = Guid.NewGuid(),
+                        PropiedadId = id,
+                        SectionId = sectionId,
+                        Descripcion = descripcion,
+                        TipoMultimedia = "Image",
+                        UrlPublica = urlPublica,
+                        StoragePath = nombreArchivo,
+                        EsPrincipal = !hasPrincipal,
+                        Orden = currentMediaCount + 1
+                    };
+
+                    context.PropertyMedia.Add(newMedia);
+                    await context.SaveChangesAsync();
+                    
+                    await context.UpsertAgentPropertyActivityAsync(user.GetRequiredUserId(), id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), default);
+                    
+                    await transaction.CommitAsync();
+                    return newMedia;
+                });
 
                 return Results.Ok(new 
                 { 
@@ -136,7 +156,6 @@ public static class SubirImagenPropiedadFeature
             }
             catch (Exception ex)
             {
-                // En un entorno real, registraríamos el error completo. Aquí devolvemos el mensaje para debug.
                 return Results.Problem($"Error durante el proceso de subida: {ex.Message}");
             }
         })

@@ -110,6 +110,7 @@ public static class EndpointRouteBuilderExtensions
         // Configuracion
         apiGroup.MapObtenerPerfilEndpoint();
         apiGroup.MapObtenerHistorialAlmacenamientoEndpoint();
+        apiGroup.MapEliminarArchivosAlmacenamientoEndpoint();
         apiGroup.MapAceptarTerminosServicioEndpoint();
         apiGroup.MapExportarDatosEndpoint();
         apiGroup.MapActualizarPerfilEndpoint();

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM_Inmobiliario.Api.Extensions;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using CRM_Inmobiliario.Api.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +48,7 @@ public class LimpiezaPdfsObsoletosJob
                 if (propiedad.FechaActualizacion!.Value > log.UploadedAt)
                 {
                     _logger.LogInformation("Eliminando PDF obsoleto para la propiedad {Id} y agente {AgentId}", propiedad.Id, log.AgentId);
-                    await _r2Storage.DeleteWithQuotaLiberationAsync(log.ObjectKey, log.AgentId);
+                    await _context.QueueStorageDeletionWithQuotaLiberationAsync(log.ObjectKey, log.AgentId, cancellationToken);
                     eliminados++;
                 }
             }

@@ -126,23 +126,30 @@ public class R2StorageService : IR2StorageService
 
     public async Task DeleteWithQuotaLiberationAsync(string key, Guid agentId)
     {
-        long fileSize = await GetFileSizeAsync(key);
+        using var scope = _scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
         
+        var log = await context.AgentStorageFileLogs
+            .FirstOrDefaultAsync(l => l.AgentId == agentId && l.ObjectKey == key && !l.IsDeleted);
+            
+        long fileSize = log?.FileSizeBytes ?? 0;
+
         await DeleteAsync(key);
         
-        if (fileSize > 0)
+        if (log != null)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
             var year = DateTime.UtcNow.Year;
             var month = DateTime.UtcNow.Month;
             
-            await context.AgentStorageUsages
-                .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
-                .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalBytesUploaded, u => Math.Max(0, u.TotalBytesUploaded - fileSize)));
+            if (fileSize > 0)
+            {
+                await context.AgentStorageUsages
+                    .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
+                    .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalBytesUploaded, u => Math.Max(0, u.TotalBytesUploaded - fileSize)));
+            }
                 
             await context.AgentStorageFileLogs
-                .Where(l => l.AgentId == agentId && l.ObjectKey == key && !l.IsDeleted)
+                .Where(l => l.Id == log.Id)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(l => l.IsDeleted, true)
                     .SetProperty(l => l.DeletedAt, DateTimeOffset.UtcNow));
@@ -168,24 +175,29 @@ public class R2StorageService : IR2StorageService
         var keyList = keys.ToList();
         if (keyList.Count == 0) return;
 
-        long totalSize = 0;
-        foreach (var key in keyList)
-        {
-            totalSize += await GetFileSizeAsync(key);
-        }
+        using var scope = _scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
+
+        var logsToDelete = await context.AgentStorageFileLogs
+            .Where(l => l.AgentId == agentId && keyList.Contains(l.ObjectKey) && !l.IsDeleted)
+            .Select(l => new { l.Id, l.ObjectKey, l.FileSizeBytes })
+            .ToListAsync();
+
+        long totalSize = logsToDelete.Sum(l => l.FileSizeBytes);
 
         await DeleteManyAsync(keyList);
 
-        if (totalSize > 0)
+        if (logsToDelete.Count > 0)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext>();
             var year = DateTime.UtcNow.Year;
             var month = DateTime.UtcNow.Month;
             
-            await context.AgentStorageUsages
-                .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
-                .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalBytesUploaded, u => Math.Max(0, u.TotalBytesUploaded - totalSize)));
+            if (totalSize > 0)
+            {
+                await context.AgentStorageUsages
+                    .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
+                    .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalBytesUploaded, u => Math.Max(0, u.TotalBytesUploaded - totalSize)));
+            }
                 
             await context.AgentStorageFileLogs
                 .Where(l => l.AgentId == agentId && keyList.Contains(l.ObjectKey) && !l.IsDeleted)

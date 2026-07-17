@@ -296,9 +296,14 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             }
             else
             {
-                var stub = new Property { Id = id, FechaActualizacion = DateTimeOffset.UtcNow };
-                var entry = Attach(stub);
-                entry.Property(p => p.FechaActualizacion).IsModified = true;
+                // CRITICAL FIX: We CANNOT use a stub with Attach() because Property uses `xmin` as a concurrency token.
+                // A stub would have xmin = 0, causing DbUpdateConcurrencyException unconditionally.
+                // We must query the database to get the real concurrency token and track the entity correctly.
+                var propFromDb = await Properties.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+                if (propFromDb != null)
+                {
+                    propFromDb.FechaActualizacion = DateTimeOffset.UtcNow;
+                }
             }
         }
 

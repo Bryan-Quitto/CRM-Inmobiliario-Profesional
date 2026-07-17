@@ -43,7 +43,7 @@ public static class ObtenerHistorialAlmacenamiento
 
             var properties = await context.Properties.AsNoTracking()
                 .Where(p => propIds.Contains(p.Id))
-                .ToDictionaryAsync(p => p.Id, p => p.Titulo);
+                .ToDictionaryAsync(p => p.Id, p => new { p.Titulo, p.FechaActualizacion });
 
             var contacts = await context.Contactos.AsNoTracking()
                 .Where(c => contactIds.Contains(c.Id))
@@ -52,9 +52,19 @@ public static class ObtenerHistorialAlmacenamiento
             var logs = dbLogs.Select(l => 
             {
                 string? targetName = null;
-                if (l.TargetType == "Propiedad" && Guid.TryParse(l.TargetId, out var pId) && properties.TryGetValue(pId, out var pName))
+                bool isDeleted = l.IsDeleted;
+                DateTimeOffset? deletedAt = l.DeletedAt;
+
+                if (l.TargetType == "Propiedad" && Guid.TryParse(l.TargetId, out var pId) && properties.TryGetValue(pId, out var prop))
                 {
-                    targetName = pName;
+                    targetName = prop.Titulo;
+
+                    // Marcar PDF como eliminado virtualmente si la propiedad fue editada después de que se generó
+                    if (!isDeleted && l.Context == "PDF Ficha Comercial" && prop.FechaActualizacion > l.UploadedAt)
+                    {
+                        isDeleted = true;
+                        deletedAt = prop.FechaActualizacion;
+                    }
                 }
                 else if (l.TargetType == "WhatsApp" && Guid.TryParse(l.TargetId, out var cId) && contacts.TryGetValue(cId, out var cName))
                 {
@@ -70,8 +80,8 @@ public static class ObtenerHistorialAlmacenamiento
                     targetName,
                     l.Context,
                     l.UploadedAt,
-                    l.IsDeleted,
-                    l.DeletedAt
+                    isDeleted,
+                    deletedAt
                 );
             }).ToList();
 

@@ -12,6 +12,7 @@ interface ConfirmModalProps {
   isDeleting?: boolean;
   type?: 'danger' | 'warning' | 'info';
   icon?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -24,7 +25,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   cancelText = 'Cancelar',
   isDeleting = false,
   type = 'danger',
-  icon
+  icon,
+  children
 }) => {
   if (!isOpen) return null;
 
@@ -81,9 +83,15 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
           {title}
         </h3>
-        <p className="text-slate-500 text-sm font-medium mb-8 contactoing-relaxed">
+        <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
           {description}
         </p>
+
+        {children && (
+          <div className="mb-6">
+            {children}
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           <button

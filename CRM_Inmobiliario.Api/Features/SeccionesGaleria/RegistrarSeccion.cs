@@ -20,6 +20,7 @@ public static class RegistrarSeccionFeature
         {
             var currentUserId = user.GetRequiredUserId();
             var propiedad = await context.Properties
+                .AsNoTracking()
                 .Include(p => p.Agente)
                 .Include(p => p.Transactions)
                 .FirstOrDefaultAsync(p => p.Id == request.PropiedadId, ct);
@@ -31,19 +32,34 @@ public static class RegistrarSeccionFeature
                 return Results.Forbid();
             }
 
-            var nuevaSeccion = new PropertyGallerySection
+            var strategy = context.Database.CreateExecutionStrategy();
+            var nuevaSeccion = await strategy.ExecuteAsync(async () =>
             {
-                Id = Guid.NewGuid(),
-                PropiedadId = request.PropiedadId,
-                Nombre = request.Nombre,
-                Descripcion = request.Descripcion,
-                Orden = request.Orden
-            };
+                await using var transaction = await context.Database.BeginTransactionAsync(ct);
+                
+                // Bloqueo pesimista para encolar la creación de secciones y subida de imágenes
+                await context.Database.ExecuteSqlRawAsync("SELECT 1 FROM \"Properties\" WHERE \"Id\" = {0} FOR UPDATE", request.PropiedadId);
 
-            context.PropertyGallerySections.Add(nuevaSeccion);
-            await context.SaveChangesAsync(ct);
+                // Recargar propiedad fresca bajo el bloqueo para evitar DbUpdateConcurrencyException
+                var trackedProp = await context.Properties.FirstOrDefaultAsync(p => p.Id == request.PropiedadId, ct);
 
-            await context.UpsertAgentPropertyActivityAsync(currentUserId, propiedad.Id, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
+                var section = new PropertyGallerySection
+                {
+                    Id = Guid.NewGuid(),
+                    PropiedadId = request.PropiedadId,
+                    Nombre = request.Nombre,
+                    Descripcion = request.Descripcion,
+                    Orden = request.Orden
+                };
+
+                context.PropertyGallerySections.Add(section);
+                await context.SaveChangesAsync(ct);
+
+                await context.UpsertAgentPropertyActivityAsync(currentUserId, request.PropiedadId, DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5)), ct);
+
+                await transaction.CommitAsync(ct);
+                return section;
+            });
 
             return Results.Created($"/propiedades/secciones/{nuevaSeccion.Id}", nuevaSeccion);
         })

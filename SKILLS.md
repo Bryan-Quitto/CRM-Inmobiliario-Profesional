@@ -103,6 +103,7 @@ All new features and refactors MUST implement these zero-latency patterns:
 - **Query Precision:** Cache MUST vary by all query parameters (`SetVaryByQuery`) para prevenir colisiones de datos.
 - **Rule:** Minimize database round-trips. Group multiple checks into a single `Select` using EF Core.
 - **Rule:** Use `ExecuteUpdateAsync` or `ExecuteDeleteAsync` for direct updates/deletes to bypass object loading whenever possible.
+- **Pessimistic Locking for Parallel Operations:** Cuando se suben archivos a un Object Storage (R2/S3) o se realizan operaciones concurrentes pesadas, NUNCA cargues las colecciones de Entity Framework (`Include`) antes de la operación lenta. Para prevenir condiciones de carrera (Lost Updates) y Deadlocks en Postgres, siempre implementa el patrón: 1) Ejecutar operación lenta (R2), 2) Abrir `BeginTransactionAsync`, 3) Bloquear la fila padre pesimistamente con `SELECT 1 FROM "Table" WHERE "Id" = {0} FOR UPDATE`, 4) Calcular orden/estado en vivo con CountAsync/AnyAsync, 5) Insertar y comitear.
 - **Database Connections (.NET + Supabase):** The CRM is a .NET Core WebAPI (a stateful daemon), NOT a serverless architecture. Therefore, it MUST bypass the Supabase transaction pooler (port `6543`) and connect DIRECTLY to the PostgreSQL instance on native port `5432`. DO NOT set `Pooling=false`. You MUST use Npgsql's internal pooling (`Pooling=true;Keepalive=1;`) to keep TCP/TLS channels warm and slash latency drops by over 80%.
 
 ## Agent Behavior & Proactive World-Class Standards
