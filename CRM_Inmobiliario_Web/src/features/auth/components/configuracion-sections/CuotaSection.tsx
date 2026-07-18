@@ -28,6 +28,10 @@ const CuotaSection: React.FC<CuotaSectionProps> = ({ perfil }) => {
   const storageLimit = perfil.monthlyStorageBytesLimit || 0;
   const storagePercentage = storageLimit > 0 ? Math.min((storageUsed / storageLimit) * 100, 100) : 0;
 
+  const globalStorageUsed = perfil.globalStorageBytesUsed || 0;
+  const globalStorageLimit = perfil.globalStorageBytesLimit || 0;
+  const globalStoragePercentage = globalStorageLimit > 0 ? Math.min((globalStorageUsed / globalStorageLimit) * 100, 100) : 0;
+
   return (
     <>
       <div className="bg-white p-6 rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100 mt-8">
@@ -60,15 +64,15 @@ const CuotaSection: React.FC<CuotaSectionProps> = ({ perfil }) => {
             </div>
           </div>
 
-          {/* Almacenamiento */}
+          {/* Almacenamiento Global */}
           <div>
             <div className="flex justify-between items-end mb-2">
               <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
-                <Database size={14} className="text-indigo-500" /> Almacenam.
+                <Database size={14} className="text-indigo-500" /> Almacenamiento Global
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-xs font-bold text-slate-500">
-                  {formatBytes(storageUsed)} / {formatBytes(storageLimit)}
+                  {formatBytes(globalStorageUsed)} / {formatBytes(globalStorageLimit)}
                 </div>
                 <button 
                   onClick={() => setIsHistoryModalOpen(true)}
@@ -81,7 +85,27 @@ const CuotaSection: React.FC<CuotaSectionProps> = ({ perfil }) => {
             </div>
             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
               <div 
-                className={`h-full rounded-full transition-all duration-1000 ${storagePercentage > 90 ? 'bg-rose-500' : storagePercentage > 75 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                className={`h-full rounded-full transition-all duration-1000 ${globalStoragePercentage > 90 ? 'bg-rose-500' : globalStoragePercentage > 75 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                style={{ width: `${globalStoragePercentage}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Almacenamiento Mensual */}
+          <div>
+            <div className="flex justify-between items-end mb-2">
+              <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm text-slate-500">
+                <Database size={14} className="text-slate-400" /> Almacenamiento Mensual
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-xs font-bold text-slate-400">
+                  {formatBytes(storageUsed)} / {formatBytes(storageLimit)}
+                </div>
+              </div>
+            </div>
+            <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-1000 opacity-60 ${storagePercentage > 90 ? 'bg-rose-500' : storagePercentage > 75 ? 'bg-amber-500' : 'bg-slate-400'}`}
                 style={{ width: `${storagePercentage}%` }}
               />
             </div>

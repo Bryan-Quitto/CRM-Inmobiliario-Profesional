@@ -1,4 +1,4 @@
-﻿import { AlertOctagon, Archive, Info } from 'lucide-react';
+import { AlertOctagon, Archive, Info } from 'lucide-react';
 import { ManualSection } from '../../../../components/ui/manuales/ManualSection';
 
 export const ManualConsecuenciasPropiedadDesktop: React.FC = () => {
@@ -22,11 +22,12 @@ export const ManualConsecuenciasPropiedadDesktop: React.FC = () => {
             <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-200/50 mb-4">
               <h3 className="font-bold text-orange-900 mb-2 flex items-center gap-2"><Archive className="w-5 h-5 text-orange-600" /> Limpieza de Almacenamiento (Reglas Globales)</h3>
               <p className="text-sm text-slate-700 mb-3">
-                Para optimizar almacenamiento, Ziel Luxora CRM aplica dos reglas globales (sin importar si la propiedad está archivada o no):
+                Para optimizar almacenamiento, Ziel Luxora CRM aplica reglas globales (sin importar si la propiedad está archivada o no):
               </p>
               <ul className="space-y-2 text-sm text-slate-700 list-disc pl-5 mb-3">
-                <li><strong>Por Inactividad:</strong> Propiedades (excepto cerradas) con más de 1 año (365 días) de inactividad mostrarán alerta roja por 31 días y luego se limpiarán.</li>
-                <li><strong>Por Cierre:</strong> Propiedades "Vendida" o "Alquilada" mostrarán alerta roja y se limpiarán innegociablemente al año de su cierre.</li>
+                <li><strong>Por Inactividad:</strong> Si pasa 1 año (365 días) sin actividad, mostrará alerta roja, se filtra como "Por limpiar" y luego se limpia.</li>
+                <li><strong>Por Cierre:</strong> Propiedades "Vendida" o "Alquilada" muestran alerta roja y se limpian innegociablemente al año de su cierre (bloqueando generación de PDFs, carga de fotos y nuevas secciones).</li>
+                <li><strong>Estado Inactiva:</strong> Limpieza de recursos inmediata al cambiar a estado "Inactiva".</li>
               </ul>
               <p className="text-sm text-slate-700 mb-3">Los recursos afectados son:</p>
               <ul className="space-y-2 text-sm text-slate-700">

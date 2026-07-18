@@ -51,7 +51,7 @@ public record Response(
     int? AniosAntiguedad,
     bool AlreadyHasContact = false,
     bool IsArchivedForCurrentUser = false,
-    DateTimeOffset? FechaProgramadaLimpiezaR2 = null);
+    bool? BloqueoAdministrativo = null);
 
 public record PropertyPermissions(
     bool CanEditMasterData,

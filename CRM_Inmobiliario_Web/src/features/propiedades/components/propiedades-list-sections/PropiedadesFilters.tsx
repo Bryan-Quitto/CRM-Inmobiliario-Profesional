@@ -207,16 +207,7 @@ export const PropiedadesFilters = ({
                       {filterEstado === option.value && <Check className="h-4 w-4" />}
                     </button>
                   ))}
-                  <button
-                    key="Por limpiar"
-                    onClick={() => { setFilterEstado('Por limpiar'); setOpenDropdownId(null); }}
-                    className={`cursor-pointer w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-all hover:bg-slate-50 ${
-                      filterEstado === 'Por limpiar' ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
-                    }`}
-                  >
-                    Por limpiar
-                    {filterEstado === 'Por limpiar' && <Check className="h-4 w-4" />}
-                  </button>
+
                 </div>
               )}
             </div>

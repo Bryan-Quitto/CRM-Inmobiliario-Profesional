@@ -1,4 +1,4 @@
-import { Loader2, AlertTriangle, Info } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { DetalleHeader } from './propiedad-detalle-sections/DetalleHeader';
 import { DetalleHeroInfo } from './propiedad-detalle-sections/DetalleHeroInfo';
 import { DetalleStatsGrid } from './propiedad-detalle-sections/DetalleStatsGrid';
@@ -78,38 +78,17 @@ export const PropiedadDetalleDesktop = ({ id, onClose, logic }: Props) => {
         <div className="p-8 space-y-12 pb-24">
           {activeTab === 'detalle' && (
             <>
-              {propiedad.fechaProgramadaLimpiezaR2 && (
-                <div className="bg-red-500 text-white p-4 mx-0 lg:mx-8 rounded-xl shadow-lg border border-red-600 flex flex-col sm:flex-row items-center gap-4 animate-in slide-in-from-top-4">
-                  <div className="bg-white/20 p-2 rounded-full shrink-0">
-                    <AlertTriangle className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1 text-center sm:text-left">
-                    <h4 className="font-black uppercase tracking-wider text-sm mb-1">Limpieza programada</h4>
-                    <p className="text-sm font-medium text-red-50">
-                      {propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada' ? (
-                        <>La propiedad ha sido vendida/alquilada. Para optimizar espacio, al transcurrir 1 año desde su cierre el <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong>, sus imágenes (excepto la foto principal), archivo PDF y todas sus secciones serán eliminados permanentemente. Además, ya no se permitirá subir nuevas imágenes, generar PDFs o crear secciones. Si desea recuperar estos permisos luego de la fecha indicada, deberá contactarse con administración.</>
-                      ) : (
-                        <>Sus imágenes (excepto la foto principal) y su archivo PDF (ficha técnica) serán eliminadas permanentemente el <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong>. Registra una actividad en el historial para cancelar esta limpieza automáticamente.</>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {propiedad.isLockedByAntiquity && (
+              {propiedad.bloqueoAdministrativo && (
                 <div className="bg-blue-50 text-blue-800 p-4 mx-0 lg:mx-8 rounded-xl shadow-lg border border-blue-200 flex flex-col sm:flex-row items-center gap-4 animate-in slide-in-from-top-4">
                   <div className="bg-blue-100 p-2 rounded-full shrink-0">
                     <Info className="h-6 w-6 text-blue-600" />
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <h4 className="font-black uppercase tracking-wider text-sm mb-1">
-                      {propiedad.bloqueoLimpiezaOverride === true ? 'Propiedad Bloqueada (Solo Lectura)' : 'Propiedad Limpiada (Solo Lectura)'}
+                      Propiedad Congelada (Almacenamiento Bloqueado)
                     </h4>
                     <p className="text-sm font-medium text-blue-900">
-                      {propiedad.bloqueoLimpiezaOverride === true ? (
-                        "Esta propiedad ha sido bloqueada manualmente por administración. Ya no es posible subir nuevos archivos, crear secciones o generar la ficha. Si tiene consultas sobre el motivo de este bloqueo, por favor contacte con administración."
-                      ) : (
-                        "Esta propiedad ha estado cerrada por más de 1 año. Las imágenes, secciones y ficha técnica han sido eliminadas para optimizar espacio, y ya no es posible subir nuevos archivos, crear secciones o generar la ficha. Si desea rehabilitar estos permisos, por favor contacte con administración."
-                      )}
+                      Esta propiedad ha sido congelada manualmente por administración. Ya no es posible subir nuevos archivos, crear secciones o generar la ficha. Si tiene consultas sobre el motivo de este bloqueo, por favor contacte con administración.
                     </p>
                   </div>
                 </div>

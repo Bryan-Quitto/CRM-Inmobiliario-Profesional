@@ -40,14 +40,14 @@ export const ConfiguracionLimpieza = () => {
     if (!selectedPropiedad) return;
     setIsSaving(true);
     try {
-      await api.put(`/propiedades/${selectedPropiedad.id}/toggle-bloqueo-limpieza`, {
+      await api.put(`/propiedades/${selectedPropiedad.id}/toggle-bloqueo-admin`, {
         bloquear: isBlocking
       });
-      toast.success(`La propiedad ha sido ${isBlocking ? 'bloqueada' : 'desbloqueada'} exitosamente.`);
+      toast.success(`La propiedad ha sido ${isBlocking ? 'congelada' : 'descongelada'} exitosamente.`);
       setSelectedPropiedad(null);
       setSearchTerm('');
     } catch (error) {
-      toast.error('Error al actualizar el estado de limpieza de la propiedad.');
+      toast.error('Error al actualizar el estado de bloqueo de la propiedad.');
       console.error(error);
     } finally {
       setIsSaving(false);
@@ -59,10 +59,10 @@ export const ConfiguracionLimpieza = () => {
       <div>
         <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
           <ShieldAlert className="h-6 w-6 text-indigo-600" />
-          Limpieza y Restricciones
+          Bloqueo Administrativo
         </h1>
         <p className="text-slate-500 mt-1 text-sm font-medium">
-          Control manual para bloquear o desbloquear la generación de fichas PDF y subida de multimedia en propiedades.
+          Control manual para congelar o descongelar propiedades, deteniendo su limpieza automática.
         </p>
       </div>
 
@@ -75,19 +75,19 @@ export const ConfiguracionLimpieza = () => {
           <div className="flex bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
             <button
               onClick={() => setIsBlocking(true)}
-              className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${
-                isBlocking ? 'bg-red-50 text-red-600' : 'text-slate-500 hover:bg-slate-50'
+              className={`px-4 py-2 rounded-md text-sm font-bold transition-colors cursor-pointer ${
+                isBlocking ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50'
               }`}
             >
-              Bloquear
+              Congelar Propiedad (Admin)
             </button>
             <button
               onClick={() => setIsBlocking(false)}
-              className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${
-                !isBlocking ? 'bg-green-50 text-green-600' : 'text-slate-500 hover:bg-slate-50'
+              className={`px-4 py-2 rounded-md text-sm font-bold transition-colors cursor-pointer ${
+                !isBlocking ? 'bg-emerald-50 text-emerald-600' : 'text-slate-500 hover:bg-slate-50'
               }`}
             >
-              Desbloquear
+              Descongelar
             </button>
           </div>
         </div>
@@ -115,25 +115,21 @@ export const ConfiguracionLimpieza = () => {
                   <button
                     key={prop.id}
                     onClick={() => handleSelectPropiedad(prop)}
-                    className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between"
+                    className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between cursor-pointer"
                   >
                     <div>
                       <div className="font-bold text-slate-800 text-sm flex items-center flex-wrap gap-1">
                         {prop.nombre}
-                        {prop.bloqueoOverride !== undefined && (
+                        {prop.bloqueoAdministrativo !== undefined && (
                           <span className="ml-1">
                             {(() => {
-                              const isLocked = prop.bloqueoOverride === true || (prop.bloqueoOverride !== false && prop.bloqueoAutomatico === true);
-                              if (!isLocked && prop.bloqueoOverride === false) {
-                                return <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold text-indigo-700 ring-1 ring-inset ring-indigo-600/20"><Unlock size={10} /> Desbloqueado Manual</span>;
+                              if (prop.bloqueoAdministrativo === true) {
+                                return <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold text-indigo-700 ring-1 ring-inset ring-indigo-600/10"><Lock size={10} /> Congelado (Admin)</span>;
                               }
-                              if (!isLocked) {
-                                return <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Activo</span>;
+                              if (prop.bloqueoAdministrativo === false) {
+                                return <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><Unlock size={10} /> Descongelado</span>;
                               }
-                              if (prop.bloqueoOverride === true) {
-                                return <span className="inline-flex items-center gap-1 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-inset ring-red-600/10"><Lock size={10} /> Bloqueo Manual</span>;
-                              }
-                              return <span className="inline-flex items-center gap-1 rounded-md bg-orange-50 px-1.5 py-0.5 text-[10px] font-bold text-orange-700 ring-1 ring-inset ring-orange-600/20"><Lock size={10} /> Limpieza Automática</span>;
+                              return null;
                             })()}
                           </span>
                         )}
@@ -153,15 +149,15 @@ export const ConfiguracionLimpieza = () => {
       {selectedPropiedad && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className={`p-6 text-center ${isBlocking ? 'bg-red-50' : 'bg-green-50'}`}>
-              <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 ${isBlocking ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+            <div className={`p-6 text-center ${isBlocking ? 'bg-indigo-50' : 'bg-emerald-50'}`}>
+              <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 ${isBlocking ? 'bg-indigo-100 text-indigo-600' : 'bg-emerald-100 text-emerald-600'}`}>
                 {isBlocking ? <Lock className="h-6 w-6" /> : <Unlock className="h-6 w-6" />}
               </div>
               <h3 className="text-xl font-black text-slate-800 mb-2">
-                Confirmar {isBlocking ? 'Bloqueo' : 'Desbloqueo'}
+                Confirmar {isBlocking ? 'Congelamiento' : 'Descongelamiento'}
               </h3>
               <p className="text-slate-600 text-sm">
-                Estás a punto de <strong>{isBlocking ? 'bloquear' : 'desbloquear'}</strong> la generación de PDFs y subida de imágenes para la propiedad:
+                Estás a punto de <strong>{isBlocking ? 'congelar' : 'descongelar'}</strong> la propiedad:
               </p>
               <div className="mt-4 p-3 bg-white rounded-xl border border-slate-200 shadow-sm text-left">
                 <div className="font-bold text-slate-800 text-sm truncate">{selectedPropiedad.nombre}</div>
@@ -169,9 +165,9 @@ export const ConfiguracionLimpieza = () => {
               </div>
               
               {isBlocking && (
-                <div className="mt-4 flex gap-2 items-start text-red-700 bg-red-100/50 p-3 rounded-lg text-xs font-medium text-left">
+                <div className="mt-4 flex gap-2 items-start text-indigo-700 bg-indigo-100/50 p-3 rounded-lg text-xs font-medium text-left">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span>Esta acción sobrescribirá las reglas automáticas y evitará modificaciones multimedia y generación de fichas.</span>
+                  <span>Esta acción detendrá la limpieza automática.</span>
                 </div>
               )}
             </div>

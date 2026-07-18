@@ -53,9 +53,7 @@ public static class ObtenerPropiedadPorIdFeature
         ActiveTransactionInfo? ActiveTransaction,
         string Version,
         bool IsArchivedForCurrentUser = false,
-        DateTimeOffset? FechaProgramadaLimpiezaR2 = null,
-        bool? BloqueoLimpiezaOverride = null,
-        bool IsLockedByAntiquity = false);
+        bool? BloqueoAdministrativo = null);
 
     public record PropertyPermissions(
         bool CanEditMasterData,
@@ -93,8 +91,6 @@ public static class ObtenerPropiedadPorIdFeature
                 .Where(a => a.Id == currentUserId)
                 .Select(a => a.AgenciaId)
                 .FirstOrDefaultAsync();
-
-            var limite31Dias = DateTimeOffset.UtcNow.AddYears(-1).AddDays(31);
 
             var propiedad = await context.Properties
                 .AsNoTracking()
@@ -186,25 +182,13 @@ public static class ObtenerPropiedadPorIdFeature
                             m.Orden)),
                     new PropertyPermissions(
                         !context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id) && (x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))),
-                        !context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id) && (x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))) && !(x.Property.BloqueoLimpiezaOverride.HasValue ? x.Property.BloqueoLimpiezaOverride.Value : ((x.Property.EstadoComercial == "Vendida" || x.Property.EstadoComercial == "Alquilada") && x.Property.FechaCierre != null && x.Property.FechaCierre < DateTimeOffset.UtcNow.AddYears(-1))),
+                        !context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id) && (x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))) && !(x.Property.BloqueoAdministrativo ?? false),
                         !context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id) && (x.Property.AgenteId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo)))
                     ),
                     x.ActiveTransaction,
                     x.Property.Version.ToString(),
                     context.AgentArchivedProperties.Any(a => a.AgentId == currentUserId && a.PropiedadId == x.Property.Id),
-                    x.Property.FechaProgramadaLimpiezaR2 ?? (
-                        (x.Property.EstadoComercial == "Vendida" || x.Property.EstadoComercial == "Alquilada") && 
-                        x.Property.FechaCierre != null && 
-                        x.Property.FechaCierre <= limite31Dias &&
-                        (x.Property.Media.Any(m => !m.EsPrincipal) || x.Property.GallerySections.Any()) &&
-                        x.Property.BloqueoLimpiezaOverride != false
-                            ? x.Property.FechaCierre.Value.AddYears(1) 
-                            : null
-                    ),
-                    x.Property.BloqueoLimpiezaOverride,
-                    x.Property.BloqueoLimpiezaOverride.HasValue
-                        ? x.Property.BloqueoLimpiezaOverride.Value
-                        : ((x.Property.EstadoComercial == "Vendida" || x.Property.EstadoComercial == "Alquilada") && x.Property.FechaCierre != null && x.Property.FechaCierre < DateTimeOffset.UtcNow.AddYears(-1))))
+                    x.Property.BloqueoAdministrativo))
                 .FirstOrDefaultAsync();
 
             return propiedad is not null 

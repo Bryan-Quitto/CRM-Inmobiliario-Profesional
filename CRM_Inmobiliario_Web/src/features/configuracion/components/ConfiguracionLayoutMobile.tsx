@@ -43,7 +43,7 @@ export const ConfiguracionLayoutMobile: React.FC<Props> = ({ logic }) => {
                 <option value="agentes">Agentes</option>
                 <option value="agencias">Agencias</option>
                 <option value="seguridad">Seguridad</option>
-                <option value="limpieza">Limpieza</option>
+                <option value="limpieza">Congelar Prop.</option>
               </>
             )}
           </select>

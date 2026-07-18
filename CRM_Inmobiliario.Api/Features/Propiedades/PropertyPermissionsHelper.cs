@@ -43,13 +43,6 @@ public static class PropertyPermissionsHelper
     /// </summary>
     public static bool IsLockedByAntiquity(Property property)
     {
-        if (property.BloqueoLimpiezaOverride.HasValue)
-        {
-            return property.BloqueoLimpiezaOverride.Value;
-        }
-
-        return (property.EstadoComercial == "Vendida" || property.EstadoComercial == "Alquilada") &&
-               property.FechaCierre != null &&
-               property.FechaCierre < DateTimeOffset.UtcNow.AddYears(-1);
+        return property.BloqueoAdministrativo ?? false;
     }
 }

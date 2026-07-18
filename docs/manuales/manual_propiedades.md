@@ -55,19 +55,23 @@ Al registrar una nueva propiedad en el sistema:
 
 ## 6. Limpieza Automática de Recursos (Ahorro de Espacio)
 
-Para mantener la plataforma optimizada, el sistema realiza limpiezas de archivos pesados bajo reglas estrictas que protegen el estado visual de tus inmuebles:
+Para mantener la plataforma optimizada, el sistema realiza limpiezas de archivos pesados bajo reglas estrictas que protegen el estado visual de tus inmuebles. A continuación se detallan los diferentes casos de limpieza:
 
-### A. Propiedades Cerradas (Más de 1 año)
-Si una propiedad permanece ininterrumpidamente en estado **"Vendida"** o **"Alquilada"** por más de **1 año (365 días)**, el sistema eliminará automáticamente para ahorrar espacio:
-- Todas las fotografías secundarias de la galería.
-- Las secciones de fotos creadas.
-- La Ficha Técnica (PDF).
+### A. Propiedades sin actividades (Más de 1 año)
+Si una propiedad no registra ninguna actividad durante **1 año (365 días)**, incluso si se encuentra en estado **"Disponible"** o **"Reservada"**, el sistema eliminará automáticamente todas sus fotos secundarias y PDFs (Ficha Técnica) para ahorrar espacio.
+- **Advertencia visual:** Se mostrará una **advertencia en rojo** en la propiedad cuando esté próxima a limpiarse.
+- **Filtro:** Puedes ubicar fácilmente estas propiedades utilizando el filtro de estado especial: **"Por limpiar"**.
 
-**Nota importante:** La **foto principal** se rescata y conserva siempre para que el historial siga viéndose bien.
+### B. Propiedades Cerradas: Vendidas o Alquiladas (Más de 1 año)
+Si una propiedad permanece ininterrumpidamente en estado **"Vendida"** o **"Alquilada"** por más de **1 año (365 días)** después de la operación, el sistema también ejecutará una limpieza de recursos.
+- **Advertencia y Filtro:** Igual que en el caso anterior, se mostrará una **advertencia en rojo** y podrás filtrarlas con el estado **"Por limpiar"**.
+- **Inevitable:** En este caso, **no se puede evitar la limpieza** (las actividades no la detienen) a menos que te contactes con administración.
+- **Restricciones adicionales:** Una vez pasado el año, además de borrarse las fotos, **no se podrá**: generar ficha técnica, crear secciones, ni subir nuevas fotos, a menos que se pidan de nuevo permisos en administración.
+- **Nota:** La foto principal siempre se rescata y conserva para el historial.
 
-### B. Propiedades Inactivas (Limpieza Inmediata)
-Al momento en que una propiedad pasa al estado **"Inactiva"** (ya sea de forma directa, al cancelarse un trato, o porque su propietario fue desactivado), el sistema ejecuta una limpieza inmediata de recursos:
-- Se eliminan todas las fotografías secundarias de la galería y el PDF (Ficha Técnica).
+### C. Propiedades Inactivas (Limpieza Inmediata)
+Al momento en que una propiedad pasa al estado comercial **"Inactiva"** (ya sea de forma directa por un cambio manual, al cancelarse un trato, o porque su propietario fue desactivado), el sistema ejecuta una **limpieza inmediata** de recursos sin importar si la propiedad está archivada o no:
+- Se eliminan de forma inmediata todas las fotografías secundarias de la galería y el PDF (Ficha Técnica).
 - Se eliminan las secciones de fotos creadas.
 
 **Nota importante:** La **foto principal** (portada) se rescata y se mueve a la galería general automáticamente, garantizando que el registro visual del inmueble permanezca intacto de forma permanente.

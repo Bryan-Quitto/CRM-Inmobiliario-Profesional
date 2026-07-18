@@ -215,12 +215,7 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             @"INSERT INTO ""AgentPropertyActivities"" (""AgentId"", ""PropertyId"", ""LastActivityUtc"")
               VALUES ({0}, {1}, {2})
               ON CONFLICT (""AgentId"", ""PropertyId"") 
-              DO UPDATE SET ""LastActivityUtc"" = EXCLUDED.""LastActivityUtc"";
-              
-              UPDATE ""Properties""
-              SET ""FechaProgramadaLimpiezaR2"" = NULL
-              WHERE ""Id"" = {1} AND ""FechaProgramadaLimpiezaR2"" IS NOT NULL
-              AND ""EstadoComercial"" != 'Vendida' AND ""EstadoComercial"" != 'Alquilada';",
+              DO UPDATE SET ""LastActivityUtc"" = EXCLUDED.""LastActivityUtc"";",
             agentId, propertyId, timestamp.ToUniversalTime());
     }
 
@@ -245,24 +240,6 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             var text = NormalizeText($"{p.Titulo} {p.Descripcion} {p.Sector} {p.Ciudad}");
             p.NormalizedSearchText = text.Length > 2000 ? text.Substring(0, 2000) : text;
             
-            // Si la propiedad es editada de cualquier forma, cancelar la alerta de limpieza R2 (Salvable)
-            // EXCEPTO si es innegociable (Vendida/Alquilada)
-            if (p.FechaProgramadaLimpiezaR2 != null && p.EstadoComercial != "Vendida" && p.EstadoComercial != "Alquilada")
-            {
-                p.FechaProgramadaLimpiezaR2 = null;
-            }
-
-            // Asignar alerta innegociable automáticamente para propiedades cerradas
-            if ((p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null && p.BloqueoLimpiezaOverride == null)
-            {
-                // Si la fecha de cierre fue hace más de un año, y la fecha programada es null, 
-                // significa que el job de limpieza ya pasó. No volver a programarla.
-                bool yaFueLimpiada = p.FechaProgramadaLimpiezaR2 == null && p.FechaCierre.Value.AddDays(365) < DateTimeOffset.UtcNow;
-                if (!yaFueLimpiada)
-                {
-                    p.FechaProgramadaLimpiezaR2 = p.FechaCierre.Value.AddDays(365);
-                }
-            }
 
             // Marcar siempre la fecha de actualización más reciente
             p.FechaActualizacion = DateTimeOffset.UtcNow;

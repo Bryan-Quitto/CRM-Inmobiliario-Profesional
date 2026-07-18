@@ -11,8 +11,7 @@ public static class GetDropdownPropiedadesFeature
         Guid Id,
         string Nombre,
         string Referencia,
-        bool? BloqueoOverride,
-        bool BloqueoAutomatico);
+        bool? BloqueoAdministrativo);
 
     public static RouteHandlerBuilder MapGetDropdownPropiedadesEndpoint(this IEndpointRouteBuilder app)
     {
@@ -70,8 +69,7 @@ public static class GetDropdownPropiedadesFeature
                     p.Id,
                     p.Titulo,
                     !string.IsNullOrEmpty(p.Direccion) ? p.Direccion : p.Ciudad ?? "",
-                    isAdmin ? p.BloqueoLimpiezaOverride : null,
-                    isAdmin ? ((p.EstadoComercial == "Vendida" || p.EstadoComercial == "Alquilada") && p.FechaCierre != null && p.FechaCierre < DateTimeOffset.UtcNow.AddYears(-1)) : false
+                    isAdmin ? p.BloqueoAdministrativo : null
                 ))
                 .Take(50)
                 .ToListAsync(cancellationToken);

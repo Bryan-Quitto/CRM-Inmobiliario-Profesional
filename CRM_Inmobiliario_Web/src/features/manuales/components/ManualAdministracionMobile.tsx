@@ -64,6 +64,10 @@ export const ManualAdministracionMobile = () => {
               <ManualBadge>Config. Propia</ManualBadge>
               <p className="text-xs text-slate-600 mt-1">Notificaciones y auto-archivo.</p>
            </div>
+           <div className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+              <ManualBadge>Congelar Propiedades (Admin)</ManualBadge>
+              <p className="text-xs text-slate-600 mt-1">Bloqueo administrativo (almacenamiento bloqueado). Evita subir imágenes o generar PDFs.</p>
+           </div>
          </div>
       </ManualSection>
 

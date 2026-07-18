@@ -10,13 +10,13 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM_Inmobiliario.Api.Features.Propiedades;
 
-public static class ToggleBloqueoLimpiezaPropiedadFeature
+public static class ToggleBloqueoAdministrativoFeature
 {
     public record Command(bool Bloquear);
 
-    public static void MapToggleBloqueoLimpiezaPropiedadEndpoint(this IEndpointRouteBuilder app)
+    public static void MapToggleBloqueoAdministrativoEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPut("/propiedades/{id:guid}/toggle-bloqueo-limpieza", async (
+        app.MapPut("/propiedades/{id:guid}/toggle-bloqueo-admin", async (
             Guid id, 
             [FromBody] Command command, 
             ClaimsPrincipal user, 
@@ -29,22 +29,17 @@ public static class ToggleBloqueoLimpiezaPropiedadFeature
             
             if (reqAgente?.Rol != "Admin") 
             {
-                logger.LogWarning("Usuario {UserId} intentó modificar bloqueo pero no es Admin en DB.", currentUserId);
+                logger.LogWarning("Usuario {UserId} intentó modificar bloqueo administrativo pero no es Admin en DB.", currentUserId);
                 return Results.Forbid();
             }
 
             var propiedad = await context.Properties.FirstOrDefaultAsync(p => p.Id == id, ct);
             if (propiedad == null) return Results.NotFound();
 
-            logger.LogInformation("Toggle Bloqueo para propiedad {Id}: Bloquear={Bloquear}", id, command.Bloquear);
+            logger.LogInformation("Toggle Bloqueo Administrativo para propiedad {Id}: Bloquear={Bloquear}", id, command.Bloquear);
 
-            propiedad.BloqueoLimpiezaOverride = command.Bloquear;
+            propiedad.BloqueoAdministrativo = command.Bloquear;
             
-            if (command.Bloquear == false)
-            {
-                propiedad.FechaProgramadaLimpiezaR2 = null;
-            }
-
             await context.SaveChangesAsync(ct);
             return Results.Ok();
         })

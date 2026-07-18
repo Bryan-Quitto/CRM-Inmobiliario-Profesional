@@ -1,4 +1,4 @@
-import { Loader2, AlertTriangle, Info } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { DetalleHeader } from './propiedad-detalle-sections/DetalleHeader';
 import { DetalleModalsOrchestrator } from './propiedad-detalle-sections/DetalleModalsOrchestrator';
 import { DetalleFaqManager } from './propiedad-detalle-sections/DetalleFaqManager';
@@ -75,38 +75,17 @@ export const PropiedadDetalleMobile = ({ id, onClose, logic }: Props) => {
       <div className="flex-1 overflow-y-auto p-4 pb-12 space-y-8 w-full">
         {activeTab === 'detalle' && (
           <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
-            {propiedad.fechaProgramadaLimpiezaR2 && (
-              <div className="bg-red-500 text-white p-4 mx-0 rounded-xl shadow-lg border border-red-600 flex flex-col items-center gap-2 animate-in slide-in-from-top-4">
-                <div className="bg-white/20 p-2 rounded-full shrink-0">
-                  <AlertTriangle className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1 text-center">
-                  <h4 className="font-black uppercase tracking-wider text-sm mb-1">Limpieza programada</h4>
-                  <p className="text-xs font-medium text-red-50">
-                    {propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada' ? (
-                      <>La propiedad ha sido vendida/alquilada. El <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong> sus imágenes (excepto foto principal), archivo PDF y secciones serán eliminados. Además, se bloqueará la creación de PDFs, secciones y subida de imágenes. Contacte a administración si desea restablecer los permisos posteriormente.</>
-                    ) : (
-                      <>Sus imágenes y archivo PDF serán eliminados el <strong>{new Date(propiedad.fechaProgramadaLimpiezaR2).toLocaleDateString('es-ES')}</strong>. Registra una actividad en el historial para cancelar esta limpieza.</>
-                    )}
-                  </p>
-                </div>
-              </div>
-            )}
-            {propiedad.isLockedByAntiquity && (
+            {propiedad.bloqueoAdministrativo && (
               <div className="bg-blue-50 text-blue-800 p-4 mx-0 rounded-xl shadow-lg border border-blue-200 flex flex-col items-center gap-2 animate-in slide-in-from-top-4">
                 <div className="bg-blue-100 p-2 rounded-full shrink-0">
                   <Info className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="flex-1 text-center">
                   <h4 className="font-black uppercase tracking-wider text-sm mb-1">
-                    {propiedad.bloqueoLimpiezaOverride === true ? 'Propiedad Bloqueada (Solo Lectura)' : 'Propiedad Limpiada (Solo Lectura)'}
+                    Propiedad Congelada (Almacenamiento Bloqueado)
                   </h4>
                   <p className="text-xs font-medium text-blue-900">
-                    {propiedad.bloqueoLimpiezaOverride === true ? (
-                      "Esta propiedad ha sido bloqueada manualmente por administración. Ya no es posible subir nuevos archivos, crear secciones o generar la ficha. Si tiene consultas sobre el motivo de este bloqueo, por favor contacte con administración."
-                    ) : (
-                      "Esta propiedad ha estado cerrada por más de 1 año. Las imágenes, secciones y ficha técnica han sido eliminadas para optimizar espacio, y ya no es posible subir nuevos archivos, crear secciones o generar la ficha. Si desea rehabilitar estos permisos, por favor contacte con administración."
-                    )}
+                    Esta propiedad ha sido congelada manualmente por administración. Ya no es posible subir nuevos archivos, crear secciones o generar la ficha. Si tiene consultas sobre el motivo de este bloqueo, por favor contacte con administración.
                   </p>
                 </div>
               </div>

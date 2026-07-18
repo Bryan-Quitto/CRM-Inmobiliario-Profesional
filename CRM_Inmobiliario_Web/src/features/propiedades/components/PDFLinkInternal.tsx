@@ -13,7 +13,7 @@ interface PDFLinkInternalProps {
 const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
   const isResponsable = true;
 
-  const isCleaned = propiedad.isLockedByAntiquity || false;
+  const isCleaned = propiedad.bloqueoAdministrativo === true;
 
   const [status, setStatus] = useState<'checking' | 'exists' | 'missing' | 'generating' | 'deleting'>('checking');
   const [actualPdfUrl, setActualPdfUrl] = useState<string | null>(null);
@@ -117,8 +117,8 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
       setStatus('generating');
       await api.post(`/propiedades/${propiedad.id}/generar-pdf`);
       toast.info('Iniciando generación de ficha técnica...');
-    } catch {
-      toast.error('Error al solicitar la generación del PDF');
+    } catch (err: unknown) {
+      toast.error((err as Error)?.message || 'Error al solicitar la generación del PDF');
       setStatus('missing');
     } finally {
       actionLock.current = false;
@@ -163,8 +163,8 @@ const PDFLinkInternal = ({ propiedad }: PDFLinkInternalProps) => {
       await api.delete(`/propiedades/${propiedad.id}/pdf`);
       await api.post(`/propiedades/${propiedad.id}/generar-pdf`);
       toast.info('Iniciando regeneración de ficha técnica...');
-    } catch {
-      toast.error('Error al solicitar la regeneración del PDF');
+    } catch (err: unknown) {
+      toast.error((err as Error)?.message || 'Error al solicitar la regeneración del PDF');
       setStatus('missing');
     } finally {
       actionLock.current = false;

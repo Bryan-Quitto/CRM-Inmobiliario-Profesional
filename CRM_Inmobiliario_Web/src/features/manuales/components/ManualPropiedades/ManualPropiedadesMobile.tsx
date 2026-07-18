@@ -1,4 +1,4 @@
-import { Tag, RefreshCcw, XCircle, CheckCircle, Shield, Lock, Users, Archive, FilePlus, UserCheck, Hash, Bot, Camera, Image as ImageIcon, Folder, Trash2 } from 'lucide-react';
+import { Tag, RefreshCcw, XCircle, CheckCircle, Shield, Lock, Users, Archive, FilePlus, UserCheck, Hash, Bot, Camera, Image as ImageIcon, Folder} from 'lucide-react';
 import { ManualSection } from '../../../../components/ui/manuales/ManualSection';
 import { ManualAlert } from '../../../../components/ui/manuales/ManualAlert';
 import { ManualBadge } from '../../../../components/ui/manuales/ManualBadge';
@@ -119,20 +119,20 @@ export const ManualPropiedadesMobile: React.FC = () => {
         </ul>
       </ManualSection>
 
-      <ManualSection title="6. Limpieza Automática de Recursos" icon={<RefreshCcw className="w-5 h-5" />}>
-        <p className="text-sm text-slate-600 mb-3">Limpieza de archivos pesados bajo reglas estrictas:</p>
-        <div className="bg-orange-50 p-4 rounded-xl border border-orange-200 mt-6 space-y-2">
-          <h3 className="font-bold text-orange-900 text-sm flex items-center gap-2">
-            <Trash2 className="w-4 h-4 text-orange-600" /> Limpieza Global
+      <ManualSection title="6. Bloqueo Administrativo (Congelar)" icon={<Lock className="w-5 h-5" />}>
+        <p className="text-sm text-slate-600 mb-3">La administración puede congelar propiedades como medida de control:</p>
+        <div className="bg-blue-50 p-4 rounded-xl border border-blue-200 mt-6 space-y-2">
+          <h3 className="font-bold text-blue-900 text-sm flex items-center gap-2">
+            <Lock className="w-4 h-4 text-blue-600" /> Propiedades Congeladas
           </h3>
-          <p className="text-xs text-slate-700">Reglas estrictas para optimizar almacenamiento (esté o no archivada):</p>
+          <p className="text-xs text-slate-700">Cuando una propiedad es congelada, tiene <strong>almacenamiento bloqueado</strong>:</p>
           <ul className="text-xs text-slate-700 list-disc pl-4 space-y-1">
-            <li><strong>Estado Inactiva:</strong> Al pasar a "Inactiva", se ejecuta una limpieza inmediata de recursos y fotos secundarias.</li>
-            <li><strong>Inactividad (1 año):</strong> Si pasa 1 año sin actividad (excepto cerradas), muestra alerta roja por 31 días. Se limpia si no hay actividad nueva.</li>
-            <li><strong>Por Cierre:</strong> Al pasar a "Vendida" o "Alquilada" muestra alerta roja inmediata. Se limpia al cumplir 1 año (Innegociable).</li>
+            <li><strong>Subida de imágenes:</strong> Queda deshabilitada temporalmente.</li>
+            <li><strong>Secciones:</strong> No podrás crear, editar ni organizar galerías.</li>
+            <li><strong>Fichas PDF:</strong> No podrás generar la ficha técnica en PDF.</li>
           </ul>
-          <p className="text-xs text-indigo-800 font-semibold">
-            Nota: La foto principal se conserva intacta.
+          <p className="text-[10px] text-indigo-800 font-semibold mt-2">
+            Nota: Si necesitas realizar cambios, contacta a la administración.
           </p>
         </div>
       </ManualSection>

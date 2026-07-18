@@ -144,9 +144,7 @@ builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Tareas.Jobs.ProcessWebP
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.Propiedades.Jobs.ProcessPendingStorageDeletionsJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Jobs.EscalamientoTimerJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.AutoArchiveEntitiesJob>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.InactivePropertyMediaCleanupJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.LimpiezaPdfsObsoletosJob>();
-builder.Services.AddScoped<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.ClosedPropertyMediaCleanupJob>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.PushNotifications.Services.IPushNotificationService, CRM_Inmobiliario.Api.Features.PushNotifications.Services.PushNotificationService>();
 
 builder.Services.AddProblemDetails(); // RFC 7807 (ProblemDetails)
@@ -235,16 +233,6 @@ app.Lifetime.ApplicationStarted.Register(() =>
         job => job.ExecuteAsync(CancellationToken.None),
         "0 7 * * *");
 
-    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.InactivePropertyMediaCleanupJob>(
-        "cleanup-inactive-properties-media",
-        job => job.ExecuteAsync(CancellationToken.None),
-        "0 8 1 * *");
-
-    // Limpieza vendidas
-    RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.ClosedPropertyMediaCleanupJob>(
-        "cleanup-closed-properties-media",
-        job => job.ExecuteAsync(CancellationToken.None),
-        "0 9 1 * *"); // 09:00 UTC (04:00 AM UTC-5) el día 1 de cada mes
 
     RecurringJob.AddOrUpdate<CRM_Inmobiliario.Api.Infrastructure.BackgroundServices.LimpiezaPdfsObsoletosJob>(
         "limpieza-pdfs-obsoletos-daily",

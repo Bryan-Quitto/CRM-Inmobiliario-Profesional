@@ -66,6 +66,7 @@ public class R2StorageService : IR2StorageService
                 }
 
                 if (usage.TotalBytesUploaded - overwrittenBytes + content.Length > agent.MonthlyStorageBytesLimit ||
+                    agent.GlobalStorageBytesUsed - overwrittenBytes + content.Length > agent.GlobalStorageBytesLimit ||
                     usage.UploadOpsCount + 1 > agent.MonthlyStorageUploadsLimit)
                 {
                     throw new CRM_Inmobiliario.Api.Exceptions.StorageQuotaExceededException(
@@ -75,6 +76,9 @@ public class R2StorageService : IR2StorageService
                 usage.UploadOpsCount++;
                 usage.TotalBytesUploaded += content.Length;
                 usage.TotalBytesUploaded = Math.Max(0, usage.TotalBytesUploaded - overwrittenBytes);
+                
+                agent.GlobalStorageBytesUsed += content.Length;
+                agent.GlobalStorageBytesUsed = Math.Max(0, agent.GlobalStorageBytesUsed - overwrittenBytes);
                 
                 var fileLog = new CRM_Inmobiliario.Api.Domain.Entities.AgentStorageFileLog
                 {
@@ -146,6 +150,10 @@ public class R2StorageService : IR2StorageService
                 await context.AgentStorageUsages
                     .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
                     .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalBytesUploaded, u => Math.Max(0, u.TotalBytesUploaded - fileSize)));
+
+                await context.Agents
+                    .Where(a => a.Id == agentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.GlobalStorageBytesUsed, a => Math.Max(0, a.GlobalStorageBytesUsed - fileSize)));
             }
                 
             await context.AgentStorageFileLogs
@@ -197,6 +205,10 @@ public class R2StorageService : IR2StorageService
                 await context.AgentStorageUsages
                     .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
                     .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalBytesUploaded, u => Math.Max(0, u.TotalBytesUploaded - totalSize)));
+
+                await context.Agents
+                    .Where(a => a.Id == agentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.GlobalStorageBytesUsed, a => Math.Max(0, a.GlobalStorageBytesUsed - totalSize)));
             }
                 
             await context.AgentStorageFileLogs

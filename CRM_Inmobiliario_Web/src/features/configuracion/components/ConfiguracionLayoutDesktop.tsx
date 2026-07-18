@@ -156,7 +156,7 @@ export const ConfiguracionLayoutDesktop: React.FC<Props> = ({ logic }) => {
                   }`
                 }
               >
-                Limpieza
+                Congelar Prop.
               </NavLink>
             </>
           )}

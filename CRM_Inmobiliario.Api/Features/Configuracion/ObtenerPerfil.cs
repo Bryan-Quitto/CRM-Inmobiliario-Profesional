@@ -25,6 +25,8 @@ public static class ObtenerPerfil
         string Rol,
         string? TerminosAceptadosVersion,
         DateTimeOffset FechaCreacion,
+        long GlobalStorageBytesLimit,
+        long GlobalStorageBytesUsed,
         long MonthlyStorageBytesLimit,
         long CurrentMonthStorageBytesUsed,
         int DaysUntilStorageReset,
@@ -60,7 +62,7 @@ public static class ObtenerPerfil
             {
                 return Results.Ok(new Response(
                     agenteId, "", "", email, null, null, null, null, null, null, null, "Agente", null, DateTimeOffset.UtcNow,
-                    209715200, 0, daysUntilReset,
+                    16106127360, 0, 3221225472, 0, daysUntilReset,
                     5000, 0
                 ));
             }
@@ -80,6 +82,8 @@ public static class ObtenerPerfil
                 perfilData.Agent.Rol,
                 perfilData.Agent.TerminosAceptadosVersion,
                 perfilData.Agent.FechaCreacion,
+                perfilData.Agent.GlobalStorageBytesLimit,
+                perfilData.Agent.GlobalStorageBytesUsed,
                 perfilData.Agent.MonthlyStorageBytesLimit,
                 perfilData.Usage != null ? perfilData.Usage.TotalBytesUploaded : 0,
                 daysUntilReset,

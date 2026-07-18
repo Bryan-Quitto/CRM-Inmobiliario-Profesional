@@ -21,7 +21,7 @@ export const ManualConsecuenciasPropiedadMobile: React.FC = () => {
           <div className="space-y-2 mb-4">
             <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
               <h4 className="font-bold text-orange-900 text-xs mb-1">Limpieza Global</h4>
-              <p className="text-xs text-slate-600"><strong>Inactivas:</strong> 1 año sin actividad (excepto cerradas) = alerta roja 31 días y limpieza. <br/><strong>Cerradas:</strong> Alerta roja al cerrarse y limpieza innegociable al año.</p>
+              <p className="text-xs text-slate-600"><strong>Inactividad:</strong> Alerta roja ("Por limpiar") al año sin actividad. <br/><strong>Cerradas:</strong> Limpieza inevitable (bloqueando opciones de fotos/PDF) al año del cierre.<br/><strong>Inactivas:</strong> Limpieza inmediata al cambiar estado.</p>
             </div>
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
               <h4 className="font-bold text-rose-800 text-xs mb-1">Datos y Compartir</h4>

@@ -16,6 +16,8 @@ export interface PerfilAgente {
   terminosAceptadosVersion?: string;
   rol: string;
   fechaCreacion: string;
+  globalStorageBytesLimit: number;
+  globalStorageBytesUsed: number;
   monthlyStorageBytesLimit: number;
   currentMonthStorageBytesUsed: number;
   daysUntilStorageReset: number;

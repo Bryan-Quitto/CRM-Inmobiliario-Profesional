@@ -62,7 +62,9 @@ public sealed class Agent
     public bool IsPersonalAiEnabled { get; set; } = false;
 
     public int MonthlyStorageUploadsLimit { get; set; } = 5000;
-    public long MonthlyStorageBytesLimit { get; set; } = 209715200; // 200 MB
+    public long MonthlyStorageBytesLimit { get; set; } = 3000000000; // 3 GB (Decimal, Cloudflare)
+    public long GlobalStorageBytesLimit { get; set; } = 15000000000; // 15 GB (Decimal, Cloudflare)
+    public long GlobalStorageBytesUsed { get; set; } = 0;
 
     public bool IsWhatsAppAiEnabled { get; set; } = false;
 

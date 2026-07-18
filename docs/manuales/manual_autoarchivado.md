@@ -55,5 +55,6 @@ Cuando una propiedad es archivada, se aplican estas restricciones:
 * **Base de Conocimiento (Preguntas frecuentes):** Queda inhabilitada la creación, edición, aprobación y eliminación de preguntas frecuentes (FAQ) asociadas a la propiedad.
 * **Historial de transacciones:** Se deshabilita la función de añadir o editar notas mediante doble clic en la línea de tiempo.
 * **Cambio de estado:** Al igual que con los contactos, no podrás modificar el estado de la propiedad (el sistema te alertará si intentas cambiarlo).
+* **Limpieza por Inactividad (Más de 1 año):** Si una propiedad (incluso Disponible o Reservada) pasa 1 año sin actividad, el sistema eliminará sus fotos y PDFs (mostrando una advertencia en rojo previamente, y siendo filtrable bajo "Por limpiar"). Las propiedades Vendidas o Alquiladas sufren esta limpieza 1 año después de la operación de forma inevitable.
 
 > **Nota:** Para recuperar cualquiera de estas funcionalidades y volver a editar el registro, simplemente debes utilizar la opción de "Desarchivar".

@@ -18,7 +18,8 @@ export const DashboardPrincipalDesktop: React.FC<Props> = ({ logic }) => {
   const { data, syncing, isSupported, isSubscribed, greeting } = logic;
   const { perfil } = usePerfil();
 
-  const isStorageFull = perfil && perfil.monthlyStorageBytesLimit > 0 && perfil.currentMonthStorageBytesUsed >= perfil.monthlyStorageBytesLimit;
+  const isGlobalStorageFull = perfil && perfil.globalStorageBytesLimit > 0 && perfil.globalStorageBytesUsed >= perfil.globalStorageBytesLimit;
+  const isMonthlyStorageFull = perfil && perfil.monthlyStorageBytesLimit > 0 && perfil.currentMonthStorageBytesUsed >= perfil.monthlyStorageBytesLimit;
 
   if (!data) {
     return (
@@ -60,17 +61,33 @@ export const DashboardPrincipalDesktop: React.FC<Props> = ({ logic }) => {
         </div>
       )}
 
-      {isStorageFull && (
+      {isGlobalStorageFull && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in zoom-in-95 duration-500">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-red-100 text-red-700 rounded-xl">
               <AlertCircle className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-800">Has alcanzado tu límite mensual de almacenamiento ({Math.round(perfil.monthlyStorageBytesLimit / (1024 * 1024))} MB)</h3>
+              <h3 className="text-sm font-bold text-slate-800">Has alcanzado tu límite de Almacenamiento Global ({Math.round(perfil.globalStorageBytesLimit / 1000000000)} GB)</h3>
               <p className="text-sm text-slate-600 mt-0.5">
-                Tu cuota se renovará en <strong>{perfil.daysUntilStorageReset} días</strong>. 
-                Por favor, contáctate con <a href="mailto:soporte@zielluxoracrm.com" className="text-red-700 font-bold hover:underline">soporte@zielluxoracrm.com</a> si deseas asistencia.
+                No puedes subir más archivos o generar PDFs. Para continuar operando, elimina archivos antiguos o <strong>actualiza a la suscripción Pro ($7.50)</strong> para ampliar a 30 GB.
+              </p>
+            </div> 
+          </div>
+        </div>
+      )}
+
+      {isMonthlyStorageFull && !isGlobalStorageFull && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in zoom-in-95 duration-500">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-amber-100 text-amber-700 rounded-xl">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">Has alcanzado tu límite de Almacenamiento Mensual ({Math.round(perfil.monthlyStorageBytesLimit / 1000000000)} GB)</h3>
+              <p className="text-sm text-slate-600 mt-0.5">
+                Tu cuota se renovará en <strong>{perfil.daysUntilStorageReset} días</strong>. Puedes ver tu historial de almacenamiento en tu perfil y borrar elementos.
+                Si deseas seguir subiendo archivos ahora mismo (sin borrar nada), puedes <strong>actualizar a la suscripción Pro ($7.50)</strong>.
               </p>
             </div> 
           </div>

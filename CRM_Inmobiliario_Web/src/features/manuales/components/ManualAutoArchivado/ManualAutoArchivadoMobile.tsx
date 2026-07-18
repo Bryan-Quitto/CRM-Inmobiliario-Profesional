@@ -56,7 +56,7 @@ export const ManualAutoArchivadoMobile: React.FC = () => {
               <p className="text-xs text-rose-800 mb-2">Se bloquea la edición, FAQs, compartir, exportar, transacciones, cambiar estado y multimedia.</p>
               <div className="bg-white/60 p-2 rounded border border-rose-200/50">
                 <p className="text-[10px] text-orange-900 font-bold uppercase mb-0.5">⚠️ Limpieza Global</p>
-                <p className="text-[10px] text-rose-800">Reglas estrictas (archivada o no): Inactivas por 1 año sufren alerta de 31 días y limpieza. Cerradas sufren alerta inmediata y limpieza innegociable al año.</p>
+                <p className="text-[10px] text-rose-800">1) <strong>Inactividad:</strong> Alerta roja ("Por limpiar") y limpieza al año sin actividad.<br/>2) <strong>Cerradas:</strong> Limpieza inevitable y bloqueo de carga al año de operación.<br/>3) <strong>Inactivas:</strong> Limpieza inmediata al cambiar estado.</p>
               </div>
             </div>
             

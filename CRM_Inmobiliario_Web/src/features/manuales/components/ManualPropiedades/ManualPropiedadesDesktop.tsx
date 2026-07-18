@@ -1,4 +1,4 @@
-﻿import { Tag, RefreshCcw, XCircle, CheckCircle, Shield, Lock, Users, Archive, FilePlus, UserCheck, Hash, UserPlus, Bot, Camera, Image as ImageIcon, Folder, Trash2 } from 'lucide-react';
+import { Tag, RefreshCcw, XCircle, CheckCircle, Shield, Lock, Users, Archive, FilePlus, UserCheck, Hash, UserPlus, Bot, Camera, Image as ImageIcon, Folder} from 'lucide-react';
 import { ManualSection } from '../../../../components/ui/manuales/ManualSection';
 import { ManualAlert } from '../../../../components/ui/manuales/ManualAlert';
 import { ManualBadge } from '../../../../components/ui/manuales/ManualBadge';
@@ -125,18 +125,18 @@ export const ManualPropiedadesDesktop: React.FC = () => {
           </ul>
         </ManualSection>
 
-        <ManualSection title="6. Limpieza Automática de Recursos" icon={<RefreshCcw className="w-6 h-6" />}>
-          <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-200/50 mt-6 space-y-3">
-            <h3 className="font-bold text-orange-900 flex items-center gap-2"><Trash2 className="w-5 h-5 text-orange-600" /> Limpieza de Almacenamiento (Reglas Globales)</h3>
-            <p className="text-sm text-slate-700">Para optimizar almacenamiento, Ziel Luxora CRM aplica dos reglas globales estrictas (independientes del estado de archivado):</p>
+        <ManualSection title="6. Bloqueo Administrativo (Congelar)" icon={<Lock className="w-6 h-6" />}>
+          <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-200/50 mt-6 space-y-3">
+            <h3 className="font-bold text-blue-900 flex items-center gap-2"><Lock className="w-5 h-5 text-blue-600" /> Propiedades Congeladas (Almacenamiento Bloqueado)</h3>
+            <p className="text-sm text-slate-700">El administrador del sistema tiene la capacidad de <strong>congelar</strong> propiedades en caso de que requieran revisión, investigación o como medida de control. Cuando una propiedad está congelada:</p>
             <ul className="text-sm text-slate-700 list-disc pl-5 space-y-2">
-              <li><strong>Limpieza por Estado Inactiva:</strong> Al momento en que una propiedad pasa al estado "Inactiva" (directamente o porque su dueño se desactivó), el sistema ejecuta una limpieza inmediata e innegociable de fotos secundarias, secciones y PDF.</li>
-              <li><strong>Limpieza por Inactividad (Tiempo):</strong> Toda propiedad (excepto "Vendida" o "Alquilada") que alcance 1 año (365 días) sin actividad mostrará una alerta roja por 31 días. Si no hay actividad en ese periodo, se limpiarán sus fotos secundarias y PDF (salvable).</li>
-              <li><strong>Limpieza por Cierre:</strong> Toda propiedad "Vendida" o "Alquilada" mostrará de inmediato una alerta roja y se limpiará de forma innegociable al transcurrir exactamente 1 año desde su cierre.</li>
+              <li><strong>Subida de imágenes:</strong> Queda deshabilitada temporalmente. No podrás agregar nuevas fotos.</li>
+              <li><strong>Gestión de secciones:</strong> No podrás crear, editar ni organizar las secciones de la galería.</li>
+              <li><strong>Generación de Fichas (PDF):</strong> La opción para generar la ficha técnica en PDF quedará bloqueada.</li>
             </ul>
           </div>
           <p className="text-sm text-indigo-800 font-semibold mt-4">
-              Nota: La foto principal siempre se conserva intacta para el historial.
+              Nota: Si tu propiedad ha sido congelada y necesitas hacer modificaciones, por favor contacta con la administración.
           </p>
         </ManualSection>
       </div>

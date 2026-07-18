@@ -82,6 +82,10 @@ export const ManualAdministracionDesktop = () => {
                 <ManualBadge>Config. Personal</ManualBadge>
                 <p className="text-sm text-slate-600 mt-3">Gestión privada de notificaciones y auto-archivado por cada agente.</p>
              </div>
+             <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow col-span-1 md:col-span-2">
+                <ManualBadge>Congelar Propiedades (Admin)</ManualBadge>
+                <p className="text-sm text-slate-600 mt-3">Permite bloquear administrativamente (congelar) una propiedad temporalmente. Una propiedad congelada tiene el almacenamiento bloqueado: no se pueden subir imágenes, crear secciones ni generar fichas PDF.</p>
+             </div>
            </div>
         </ManualSection>
 

@@ -94,7 +94,7 @@ export const ManualAutoArchivadoDesktop: React.FC = () => {
                 </ul>
                 <div className="bg-white/60 p-3 rounded-lg border border-rose-200/50">
                   <h4 className="font-bold text-orange-900 text-xs mb-1 uppercase tracking-wide">⚠️ Limpieza de Almacenamiento</h4>
-                  <p className="text-xs text-rose-800/90">Aplica reglas globales estrictas sin importar si está archivada o no: <br/>1) <strong>Inactivas:</strong> Alerta roja por 31 días tras 1 año sin actividad y limpieza posterior. <br/>2) <strong>Cerradas:</strong> Alerta roja inmediata al vender/alquilar y limpieza innegociable al año de cierre.</p>
+                  <p className="text-xs text-rose-800/90">Aplica reglas globales estrictas sin importar si está archivada o no: <br/>1) <strong>Inactividad (1 año):</strong> Alerta roja, filtro "Por limpiar" y limpieza tras 1 año sin actividad. <br/>2) <strong>Cerradas:</strong> Limpieza inevitable al año del cierre (pierde PDF, fotos y secciones).<br/>3) <strong>Inactivas:</strong> Limpieza inmediata al cambiar estado a "Inactiva".</p>
                 </div>
               </div>
             </div>

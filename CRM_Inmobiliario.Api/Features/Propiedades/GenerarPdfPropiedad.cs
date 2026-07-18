@@ -37,12 +37,22 @@ public static class GenerarPdfPropiedadFeature
                 return Results.Forbid();
             }
 
-            if (PropertyPermissionsHelper.IsLockedByAntiquity(propiedad))
+            if (propiedad.BloqueoAdministrativo == true)
             {
-                return Results.Json(new { Message = "La propiedad ha sido bloqueada para generar PDFs por antigüedad (más de 1 año cerrada)." }, statusCode: StatusCodes.Status403Forbidden);
+                return Results.Problem(detail: "La propiedad ha sido bloqueada administrativamente y no puede generar PDFs.", statusCode: StatusCodes.Status403Forbidden);
             }
 
+            var year = DateTime.UtcNow.Year;
+            var month = DateTime.UtcNow.Month;
+            var agentUsage = await context.AgentStorageUsages
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.AgentId == currentUserId && u.Year == year && u.Month == month);
+            long currentMonthBytesUsed = agentUsage?.TotalBytesUploaded ?? 0;
 
+            if (currentMonthBytesUsed >= reqAgente.MonthlyStorageBytesLimit || reqAgente.GlobalStorageBytesUsed >= reqAgente.GlobalStorageBytesLimit)
+            {
+                return Results.Problem(detail: "Límite de almacenamiento alcanzado. Para más información revise su panel de inicio.", statusCode: StatusCodes.Status400BadRequest);
+            }
             // Encolar la generación asíncrona
             await pdfQueue.QueuePdfGenerationAsync(new PdfGenerationRequest(id, currentUserId));
 

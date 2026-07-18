@@ -62,7 +62,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapSubirImagenPropiedadEndpoint();
         apiGroup.MapEliminarTodasLasImagenesEndpoint();
         apiGroup.MapGenerarCodigoCortoPropiedadEndpoint();
-        apiGroup.MapToggleBloqueoLimpiezaPropiedadEndpoint();
+        apiGroup.MapToggleBloqueoAdministrativoEndpoint();
         apiGroup.MapEstablecerImagenPrincipalEndpoint();
         apiGroup.MapLimpiarImagenesPropiedadEndpoint();
         apiGroup.MapEliminarImagenesSeleccionadasEndpoint();

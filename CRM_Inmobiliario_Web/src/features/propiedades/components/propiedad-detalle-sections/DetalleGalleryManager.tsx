@@ -55,10 +55,9 @@ export const DetalleGalleryManager = ({
 }: DetalleGalleryManagerProps) => {
   
   const [now] = useState(() => Date.now());
-  const isCleaned = propiedad.bloqueoLimpiezaOverride !== null && propiedad.bloqueoLimpiezaOverride !== undefined
-    ? propiedad.bloqueoLimpiezaOverride
+  const isCleaned = propiedad.bloqueoAdministrativo !== null && propiedad.bloqueoAdministrativo !== undefined
+    ? propiedad.bloqueoAdministrativo
     : (propiedad.estadoComercial === 'Vendida' || propiedad.estadoComercial === 'Alquilada') && 
-      propiedad.fechaProgramadaLimpiezaR2 === null && 
       propiedad.fechaCierre && 
       new Date(propiedad.fechaCierre).getTime() < now - 365 * 24 * 60 * 60 * 1000;
 

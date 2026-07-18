@@ -11,4 +11,6 @@ A continuación, te explicamos qué acciones quedan deshabilitadas:
 * **Historial de transacciones:** Se deshabilita la función de añadir o editar notas en la línea de tiempo.
 * **Cambio de estado:** No podrás modificar el estado de la propiedad desde su ficha.
 
+> **Nota de Limpieza (Inactivas):** Si cambias el estado de una propiedad a "Inactiva" (incluso si no está archivada), el sistema realizará una limpieza **inmediata** de sus fotos y PDFs (conservando solo la foto principal). Esta acción es independiente del archivado.
+
 > **Nota:** Para recuperar cualquiera de estas funcionalidades y volver a ofrecer el inmueble, simplemente debes utilizar la opción de "Desarchivar".
