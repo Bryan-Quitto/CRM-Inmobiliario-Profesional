@@ -1446,6 +1446,60 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.ToTable("SecurityAuditLogs", (string)null);
                 });
 
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Subscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CurrentPeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CurrentPeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExternalCustomerId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ExternalSubscriptionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsManualOverride")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PaymentNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("PlanTier")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentId")
+                        .IsUnique();
+
+                    b.ToTable("Subscriptions");
+                });
+
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.TaskItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2055,6 +2109,17 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Agente");
                 });
 
+            modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.Subscription", b =>
+                {
+                    b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agent")
+                        .WithOne("Subscription")
+                        .HasForeignKey("CRM_Inmobiliario.Api.Domain.Entities.Subscription", "AgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Agent");
+                });
+
             modelBuilder.Entity("CRM_Inmobiliario.Api.Domain.Entities.TaskItem", b =>
                 {
                     b.HasOne("CRM_Inmobiliario.Api.Domain.Entities.Agent", "Agente")
@@ -2116,6 +2181,8 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence.Migrations
                     b.Navigation("Properties");
 
                     b.Navigation("PushSubscriptions");
+
+                    b.Navigation("Subscription");
 
                     b.Navigation("Tasks");
                 });

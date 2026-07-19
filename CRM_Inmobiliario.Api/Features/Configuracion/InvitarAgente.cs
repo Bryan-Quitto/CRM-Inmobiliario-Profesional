@@ -13,7 +13,10 @@ public static class InvitarAgente
 {
     public sealed record Request(
         [Required][EmailAddress] string Email,
-        Guid? AgenciaId = null
+        Guid? AgenciaId = null,
+        string? PlanTier = "Normal",
+        int? Months = 1,
+        string? Notes = null
     );
 
     public static IEndpointRouteBuilder MapInvitarAgenteEndpoint(this IEndpointRouteBuilder endpoints)
@@ -41,7 +44,10 @@ public static class InvitarAgente
                 {
                     Data = new Dictionary<string, object>
                     {
-                        { "agencia_id", request.AgenciaId?.ToString() ?? "" }
+                        { "agencia_id", request.AgenciaId?.ToString() ?? "" },
+                        { "plan_tier", request.PlanTier ?? "Normal" },
+                        { "subscription_months", request.Months ?? 1 },
+                        { "subscription_notes", request.Notes ?? "" }
                     }
                 };
                 

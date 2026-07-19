@@ -61,9 +61,11 @@ public sealed class Agent
 
     public bool IsPersonalAiEnabled { get; set; } = false;
 
-    public int MonthlyStorageUploadsLimit { get; set; } = 5000;
-    public long MonthlyStorageBytesLimit { get; set; } = 3000000000; // 3 GB (Decimal, Cloudflare)
-    public long GlobalStorageBytesLimit { get; set; } = 15000000000; // 15 GB (Decimal, Cloudflare)
+    // Estado degradado: sin suscripción activa o con suscripción expirada.
+    // Estos valores son intencionalmente restrictivos — no existe un plan gratuito.
+    public int MonthlyStorageUploadsLimit { get; set; } = 500;
+    public long MonthlyStorageBytesLimit { get; set; } = 1000000000; // 1 GB (Decimal, Cloudflare)
+    public long GlobalStorageBytesLimit { get; set; } = 1000000000;  // 1 GB (Decimal, Cloudflare)
     public long GlobalStorageBytesUsed { get; set; } = 0;
 
     public bool IsWhatsAppAiEnabled { get; set; } = false;
@@ -122,4 +124,5 @@ public sealed class Agent
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public ICollection<Interaction> Interactions { get; set; } = new List<Interaction>();
     public ICollection<AgentPushSubscription> PushSubscriptions { get; set; } = new List<AgentPushSubscription>();
+    public Subscription? Subscription { get; set; }
 }

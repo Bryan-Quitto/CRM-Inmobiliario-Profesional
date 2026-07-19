@@ -4,6 +4,8 @@ import type { CalendarioViewLogic } from '../hooks/useCalendarioViewLogic';
 import { CalendarioModals } from './calendario-sections/CalendarioModals';
 import { HelpButton } from '../../../components/ui/HelpButton';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface Props {
   logic: CalendarioViewLogic;
@@ -31,6 +33,7 @@ export const CalendarioViewMobile: React.FC<Props> = ({ logic }) => {
     setSelectedDate,
     mutate
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
 
   // Filtrar eventos futuros o pendientes y ordenar
   const eventosOrdenados = [...listaEventos]
@@ -51,8 +54,15 @@ export const CalendarioViewMobile: React.FC<Props> = ({ logic }) => {
           <p className="text-xs text-slate-500 font-medium mt-0.5">{new Date().toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
         <button
-          onClick={() => handleOpenCrear()}
-          className="cursor-pointer bg-blue-600 text-white p-3 rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-transform"
+          onClick={(e) => {
+            if (!canWrite) {
+              e.preventDefault();
+              toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              return;
+            }
+            handleOpenCrear();
+          }}
+          className={`bg-blue-600 text-white p-3 rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-transform ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <Plus size={20} />
         </button>

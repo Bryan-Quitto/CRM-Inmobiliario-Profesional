@@ -1,9 +1,11 @@
 import React from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Link } from 'react-router-dom';
 import { Clock, Lock, RefreshCcw } from 'lucide-react';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
 import type { ContactosKanbanLogicReturn } from '../hooks/useContactosKanbanLogic';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 export interface ContactosKanbanMobileProps {
   logic: ContactosKanbanLogicReturn;
@@ -18,9 +20,18 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
     getEtapaColor,
     isOwnerMode
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
+
+  const handleDragEndIntercept = (result: DropResult) => {
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
+    handleDragEnd(result);
+  };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DragDropContext onDragEnd={handleDragEndIntercept}>
       <div className="flex flex-col gap-2 pb-6 w-full overflow-y-auto">
         {currentEstados.map((etapa) => {
           const count = columns[etapa.value]?.length || 0;
@@ -71,7 +82,7 @@ export const ContactosKanbanMobile: React.FC<ContactosKanbanMobileProps> = ({ lo
                         key={contacto.id} 
                         draggableId={contacto.id} 
                         index={index}
-                        isDragDisabled={(!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && contacto.estadoPropietario === 'Cerrado')}
+                        isDragDisabled={!canWrite || (!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && contacto.estadoPropietario === 'Cerrado')}
                       >
                         {(provided, snapshot) => (
                             <Link

@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import FullCalendar from '@fullcalendar/react';
 import { HelpButton } from '../../../../components/ui/HelpButton';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface CalendarioHeaderProps {
   calendarRef: React.RefObject<FullCalendar | null>;
@@ -29,6 +31,7 @@ export const CalendarioHeader: React.FC<CalendarioHeaderProps> = ({
   changeView,
   onOpenCrear
 }) => {
+  const { canWrite } = useSubscriptionGuard();
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
       <div className="flex items-center gap-6">
@@ -103,8 +106,15 @@ export const CalendarioHeader: React.FC<CalendarioHeaderProps> = ({
         <div className="h-8 w-px bg-slate-100 mx-1"></div>
 
         <button
-          onClick={onOpenCrear}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-100 active:scale-95 cursor-pointer"
+          onClick={(e) => {
+            if (!canWrite) {
+              e.preventDefault();
+              toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              return;
+            }
+            onOpenCrear();
+          }}
+          className={`flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-100 active:scale-95 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <Plus size={18} />
           <span>Nuevo Evento</span>

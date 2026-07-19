@@ -43,7 +43,7 @@ export const LegalModal = ({ isOpen, onClose, type }: Props) => {
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[calc(100dvh-2rem)] md:max-h-[85dvh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100 bg-white z-10 gap-2">
@@ -52,7 +52,7 @@ export const LegalModal = ({ isOpen, onClose, type }: Props) => {
             <div className="flex items-center bg-slate-100 p-1 rounded-lg shrink-0">
               <button
                 onClick={() => setLang('es')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                className={`cursor-pointer px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                   lang === 'es' 
                     ? 'bg-white text-slate-900 shadow-sm' 
                     : 'text-slate-500 hover:text-slate-700'
@@ -62,7 +62,7 @@ export const LegalModal = ({ isOpen, onClose, type }: Props) => {
               </button>
               <button
                 onClick={() => setLang('en')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                className={`cursor-pointer px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                   lang === 'en' 
                     ? 'bg-white text-slate-900 shadow-sm' 
                     : 'text-slate-500 hover:text-slate-700'

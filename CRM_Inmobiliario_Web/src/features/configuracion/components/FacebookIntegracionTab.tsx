@@ -8,6 +8,7 @@ import {
 } from '../api/facebook';
 import { HelpButton } from '../../../components/ui/HelpButton';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 /* ─── FB SDK global types ─────────────────────────────────────────────────── */
 declare global {
@@ -128,6 +129,7 @@ interface ConnectedCardProps {
   renderLimitWarning: (limit: number) => React.ReactNode;
   isDisconnecting: boolean;
   onDisconnect: () => void;
+  canWrite?: boolean;
 }
 
 const ConnectedCard: React.FC<ConnectedCardProps> = ({
@@ -144,6 +146,7 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
   renderLimitWarning,
   isDisconnecting,
   onDisconnect,
+  canWrite = true,
 }) => (
   <div className="space-y-4 animate-in fade-in duration-300">
     {/* Header badge */}
@@ -180,7 +183,7 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
           type="checkbox"
           className="sr-only peer"
           checked={isFacebookAiEnabled}
-          disabled={isSaving}
+          disabled={isSaving || !canWrite}
           onChange={(e) => setIsFacebookAiEnabled(e.target.checked)}
         />
         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1877F2] peer-disabled:opacity-60" />
@@ -205,7 +208,7 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
           type="checkbox"
           className="sr-only peer"
           checked={isFacebookAiEnabled || autoCreateFacebookContacts}
-          disabled={isSaving || isFacebookAiEnabled}
+          disabled={isSaving || isFacebookAiEnabled || !canWrite}
           onChange={(e) => {
             if (!isFacebookAiEnabled) {
               setAutoCreateFacebookContacts(e.target.checked);
@@ -238,10 +241,10 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
             facebookLimitValue < 20000 || facebookLimitValue > 1000000 
               ? 'border-red-300 focus:ring-red-500 bg-red-50' 
               : 'border-slate-300 focus:ring-indigo-500'
-          }`}
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
           value={facebookLimitValue}
           onChange={(e) => setFacebookLimitValue(Number(e.target.value))}
-          disabled={isSaving}
+          disabled={isSaving || !canWrite}
         />
         {renderCostEstimate(facebookLimitValue)}
       </div>
@@ -251,9 +254,15 @@ const ConnectedCard: React.FC<ConnectedCardProps> = ({
     {/* Disconnect button */}
     <div className="pt-2">
       <button
-        onClick={onDisconnect}
+              onClick={() => {
+          if (!canWrite) {
+            import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+            return;
+          }
+          onDisconnect();
+        }}
         disabled={isDisconnecting}
-        className="flex items-center gap-2 px-4 py-2.5 text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        className={`flex items-center gap-2 px-4 py-2.5 text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-60 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
       >
         {isDisconnecting ? (
           <Loader2 size={16} className="animate-spin" />
@@ -281,6 +290,7 @@ export const FacebookIntegracionTab: React.FC<Props> = ({
   renderLimitWarning,
   onSuccess,
 }) => {
+  const { canWrite } = useSubscriptionGuard();
   const [isLoading, setIsLoading] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
@@ -495,6 +505,7 @@ export const FacebookIntegracionTab: React.FC<Props> = ({
             renderLimitWarning={renderLimitWarning}
             isDisconnecting={isDisconnecting}
             onDisconnect={handleDisconnect}
+            canWrite={canWrite}
           />
         ) : (
           /* Not connected state */
@@ -528,9 +539,15 @@ export const FacebookIntegracionTab: React.FC<Props> = ({
 
             {/* Connect button */}
             <button
-              onClick={handleConnectFacebook}
+                    onClick={() => {
+                if (!canWrite) {
+                  import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                  return;
+                }
+                handleConnectFacebook();
+              }}
               disabled={isLoading}
-              className="flex items-center gap-3 px-6 py-3 bg-[#1877F2] hover:bg-[#166FE5] active:bg-[#1468D5] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              className={`flex items-center gap-3 px-6 py-3 bg-[#1877F2] hover:bg-[#166FE5] active:bg-[#1468D5] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-60 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {isLoading ? (
                 <Loader2 className="animate-spin" size={20} />

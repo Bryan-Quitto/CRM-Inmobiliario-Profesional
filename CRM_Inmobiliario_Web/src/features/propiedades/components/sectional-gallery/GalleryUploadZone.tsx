@@ -1,6 +1,7 @@
 import React from 'react';
 import { Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface GalleryUploadZoneProps {
   isDragging: boolean;
@@ -19,10 +20,17 @@ export const GalleryUploadZone: React.FC<GalleryUploadZoneProps> = ({
   sectionNombre,
   isCleaned
 }) => {
+  const { canWrite } = useSubscriptionGuard();
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
+
     if (isCleaned) {
       toast.error('Esta propiedad ha sido limpiada y ya no se puede subir imágenes. Contactese con administración.');
       return;
@@ -34,10 +42,10 @@ export const GalleryUploadZone: React.FC<GalleryUploadZoneProps> = ({
 
   return (
     <label 
-      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+      onDragOver={(e) => { e.preventDefault(); if (canWrite) setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all border-t border-slate-50 cursor-pointer ${
+      className={`relative h-24 flex flex-col items-center justify-center gap-2 transition-all border-t border-slate-50 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${
         isDragging ? 'bg-indigo-600 text-white' : 'bg-slate-50/20 hover:bg-indigo-50/30'
       }`}
     >
@@ -47,10 +55,16 @@ export const GalleryUploadZone: React.FC<GalleryUploadZoneProps> = ({
         className="hidden" 
         accept="image/*" 
         onChange={(e) => {
+          if (!canWrite) return;
           if (isCleaned) return;
           if (e.target.files) handleFiles(e.target.files);
         }}
         onClick={(e) => {
+          if (!canWrite) {
+            e.preventDefault();
+            toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+            return;
+          }
           if (isCleaned) {
             e.preventDefault();
             toast.error('Esta propiedad ha sido limpiada y ya no se puede subir imágenes. Contactese con administración.');

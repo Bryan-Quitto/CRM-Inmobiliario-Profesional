@@ -65,7 +65,8 @@ export const useConfiguracionAgentesLogic = () => {
         description: `Se ha enviado la invitación a ${newEmail} exitosamente.`
       });
       mutate();
-    } catch {
+    } catch (err) {
+      console.error("Detalle del error al activar agente invitado:", err);
       // Rollback on error
       mutate(previousAgentes, false);
       toast.error('Error al enviar la invitación');

@@ -1,10 +1,12 @@
 import React from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Link } from 'react-router-dom';
 import { Clock, Maximize2, Minimize2, Lock, RefreshCcw } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { ContactosKanbanLogicReturn } from '../hooks/useContactosKanbanLogic';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 export interface ContactosKanbanDesktopProps {
   logic: ContactosKanbanLogicReturn;
@@ -21,9 +23,18 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
     getEtapaColor,
     isOwnerMode
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
+
+  const handleDragEndIntercept = (result: DropResult) => {
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
+    handleDragEnd(result);
+  };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DragDropContext onDragEnd={handleDragEndIntercept}>
       <div className="flex h-[calc(100vh-280px)] min-h-[600px] gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200">
         {currentEstados.map((etapa) => {
           const isCollapsed = collapsedColumns.includes(etapa.value);
@@ -111,7 +122,7 @@ export const ContactosKanbanDesktop: React.FC<ContactosKanbanDesktopProps> = ({ 
                           key={contacto.id} 
                           draggableId={contacto.id} 
                           index={index}
-                          isDragDisabled={(!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && contacto.estadoPropietario === 'Cerrado')}
+                          isDragDisabled={!canWrite || (!isOwnerMode && contacto.estadoEmbudo === 'En Negociación') || (isOwnerMode && contacto.estadoPropietario === 'Cerrado')}
                         >
                           {(provided, snapshot) => (
                               <Link

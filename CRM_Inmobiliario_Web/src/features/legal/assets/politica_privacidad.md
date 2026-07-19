@@ -1,6 +1,6 @@
-﻿# Política de Privacidad de Ziel Luxora CRM
+# Política de Privacidad de Ziel Luxora CRM
 
-**Fecha de última actualización:** 13 de julio de 2026
+**Fecha de última actualización:** 19 de julio de 2026
 
 Ziel Luxora CRM ("nosotros", "nuestro", "la Plataforma") está comprometida con la protección de los datos personales. Esta Política de Privacidad describe cómo recopilamos, utilizamos, almacenamos y protegemos la información personal, en cumplimiento de la Ley Orgánica de Protección de Datos Personales (LOPDP) del Ecuador, el Reglamento General de Protección de Datos (GDPR) y otros estándares internacionales aplicables.
 
@@ -10,7 +10,7 @@ Esta política se aplica a todos los usuarios de nuestra plataforma de CRM Inmob
 
 En el contexto de nuestros servicios, existen dos roles claramente diferenciados:
 
-*   **Ziel Luxora CRM como Responsable del Tratamiento:** Actuamos como Responsables respecto a los datos personales de nuestros Usuarios (agentes y representantes legales de agencias) necesarios para la prestación del servicio, gestión de cuentas y facturación.
+*   **Ziel Luxora CRM como Responsable del Tratamiento:** Actuamos como Responsables respecto a los datos personales de nuestros Usuarios (agentes y representantes legales de agencias) necesarios para la prestación del servicio, gestión de cuentas y facturación. (Identificación del Responsable del Tratamiento: QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673).
 *   **Ziel Luxora CRM como Encargado del Tratamiento:** Actuamos como Encargados respecto a los datos personales de los clientes finales (contactos, prospectos, y propietarios de inmuebles) introducidos o vinculados a la plataforma por el Usuario. El Agente actúa como el **Responsable del Tratamiento** de los datos de su propia cartera de clientes y es el único responsable de recabar el consentimiento lícito para su tratamiento, incluyendo su procesamiento mediante herramientas de Inteligencia Artificial (IA) y canales de comunicación como WhatsApp.
 
 ## 2. Datos que Recopilamos

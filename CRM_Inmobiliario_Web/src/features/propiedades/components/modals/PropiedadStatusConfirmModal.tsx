@@ -1,4 +1,5 @@
 import { AlertCircle } from 'lucide-react';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface PropiedadStatusConfirmModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export const PropiedadStatusConfirmModal = ({
   onConfirm,
   statusConfirmation
 }: PropiedadStatusConfirmModalProps) => {
+  const { canWrite } = useSubscriptionGuard();
   if (!isOpen || !statusConfirmation) return null;
 
   return (
@@ -45,8 +47,15 @@ export const PropiedadStatusConfirmModal = ({
               Cancelar
             </button>
             <button
-              onClick={() => onConfirm(statusConfirmation.id, statusConfirmation.nuevoEstado, true)}
-              className="flex-1 px-6 py-4 bg-rose-600 text-white font-bold rounded-2xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-600/20 active:scale-95 cursor-pointer"
+              onClick={() => {
+                if (!canWrite) {
+                  import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                  return;
+                }
+                onConfirm(statusConfirmation.id, statusConfirmation.nuevoEstado, true);
+              }}
+              disabled={!canWrite}
+              className={`flex-1 px-6 py-4 bg-rose-600 text-white font-bold rounded-2xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-600/20 active:scale-95 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >
               Sí, confirmar
             </button>

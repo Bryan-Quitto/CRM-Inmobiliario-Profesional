@@ -3,6 +3,7 @@ import { X, Mail, Building2, Loader2, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { listarAgencias, type Agency } from '../api/agencias';
 import { AxiosError } from 'axios';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface ActivarAgenteInvitadoModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const ActivarAgenteInvitadoModal: React.FC<ActivarAgenteInvitadoModalProp
   const [agencias, setAgencias] = useState<Agency[]>([]);
   const [loadingAgencias, setLoadingAgencias] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { canWrite } = useSubscriptionGuard();
 
   useEffect(() => {
     if (isOpen) {
@@ -47,6 +49,10 @@ export const ActivarAgenteInvitadoModal: React.FC<ActivarAgenteInvitadoModalProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
     
     if (!email) {
       toast.error('El correo electrónico es requerido.');
@@ -58,6 +64,7 @@ export const ActivarAgenteInvitadoModal: React.FC<ActivarAgenteInvitadoModalProp
       await onSubmit(email, agenciaId === '' ? null : agenciaId);
       onClose();
     } catch (err) {
+      console.error("Detalle del error al activar agente:", err);
       const axiosError = err as AxiosError<{ message: string }>;
       const message = axiosError.response?.data?.message || 'Error al enviar la invitación';
       toast.error(message);
@@ -95,7 +102,8 @@ export const ActivarAgenteInvitadoModal: React.FC<ActivarAgenteInvitadoModalProp
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="agente@ejemplo.com"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                disabled={!canWrite}
+                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
               />
             </div>
           </div>
@@ -109,7 +117,8 @@ export const ActivarAgenteInvitadoModal: React.FC<ActivarAgenteInvitadoModalProp
               <select
                 value={agenciaId}
                 onChange={(e) => setAgenciaId(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium appearance-none cursor-pointer"
+                disabled={!canWrite}
+                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium appearance-none disabled:opacity-50 disabled:cursor-not-allowed ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <option value="">Independiente (Sin Agencia)</option>
                 {agencias.map((a) => (
@@ -134,7 +143,7 @@ export const ActivarAgenteInvitadoModal: React.FC<ActivarAgenteInvitadoModalProp
             <button
               type="submit"
               disabled={isSubmitting || !email}
-              className="flex-1 w-full sm:w-auto px-4 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex-1 w-full sm:w-auto px-4 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >
               {isSubmitting ? (
                 <>

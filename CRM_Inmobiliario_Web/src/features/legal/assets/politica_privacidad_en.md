@@ -1,6 +1,6 @@
-﻿# Ziel Luxora CRM Privacy Policy
+# Ziel Luxora CRM Privacy Policy
 
-**Date of last update:** July 13, 2026
+**Date of last update:** July 19, 2026
 
 Ziel Luxora CRM ("we", "our", "the Platform") is committed to protecting personal data. This Privacy Policy describes how we collect, use, store, and protect personal information, in compliance with the Organic Law on Personal Data Protection (LOPDP) of Ecuador, the General Data Protection Regulation (GDPR), and other applicable international standards.
 
@@ -10,7 +10,7 @@ This policy applies to all users of our professional Real Estate CRM platform (S
 
 In the context of our services, there are two clearly differentiated roles:
 
-*   **Ziel Luxora CRM as Data Controller:** We act as Data Controllers regarding the personal data of our Users (agents and legal representatives of agencies) necessary for the provision of the service, account management, and billing.
+*   **Ziel Luxora CRM as Data Controller:** We act as Data Controllers regarding the personal data of our Users (agents and legal representatives of agencies) necessary for the provision of the service, account management, and billing. (Identification of the Data Controller: QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673).
 *   **Ziel Luxora CRM as Data Processor:** We act as Data Processors regarding the personal data of end clients (contacts, prospects, and property owners) entered or linked to the platform by the User. The Agent acts as the **Data Controller** for the data of their own client portfolio and is solely responsible for obtaining lawful consent for its processing, including its processing via Artificial Intelligence (AI) tools and communication channels such as WhatsApp.
 
 ## 2. Data We Collect

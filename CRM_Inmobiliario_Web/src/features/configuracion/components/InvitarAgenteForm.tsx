@@ -2,16 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { invitarAgente, listarAgencias } from '../api/agencias';
 import type { Agency } from '../api/agencias';
 import { toast } from 'sonner';
-import { Check, Mail, Loader2, Send, Building2 } from 'lucide-react';
+import { Check, Mail, Loader2, Send, Building2, Zap } from 'lucide-react';
 import { AxiosError } from 'axios';
+import { InvitarSubscriptionModal } from './InvitarSubscriptionModal';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 export const InvitarAgenteForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [email, setEmail] = useState('');
   const [agenciaId, setAgenciaId] = useState<string>('');
+  const [planTier, setPlanTier] = useState('Normal');
   const [agencias, setAgencias] = useState<Agency[]>([]);
   const [loadingAgencias, setLoadingAgencias] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { canWrite } = useSubscriptionGuard();
 
   useEffect(() => {
     cargarAgencias();
@@ -27,14 +32,26 @@ export const InvitarAgenteForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleOpenModal = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
+    if (!email) return;
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmInvite = async (months: number, notes: string) => {
     setLoading(true);
 
     try {
       await invitarAgente({ 
         email, 
-        agenciaId: agenciaId === '' ? null : agenciaId 
+        agenciaId: agenciaId === '' ? null : agenciaId,
+        planTier,
+        months,
+        notes
       });
       setSuccess(true);
       toast.success('Invitación enviada', {
@@ -45,6 +62,7 @@ export const InvitarAgenteForm: React.FC = () => {
         setSuccess(false);
         setEmail('');
         setAgenciaId('');
+        setPlanTier('Normal');
       }, 2500);
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string }>;
@@ -67,7 +85,7 @@ export const InvitarAgenteForm: React.FC = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 space-y-5">
+      <form onSubmit={handleOpenModal} className="p-6 space-y-5">
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
             Correo Electrónico del Invitado
@@ -80,7 +98,8 @@ export const InvitarAgenteForm: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="agente@ejemplo.com"
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+              disabled={!canWrite}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -94,7 +113,8 @@ export const InvitarAgenteForm: React.FC = () => {
             <select
               value={agenciaId}
               onChange={(e) => setAgenciaId(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium appearance-none"
+              disabled={!canWrite}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Independiente (Sin Agencia)</option>
               {agencias.map((a) => (
@@ -107,6 +127,23 @@ export const InvitarAgenteForm: React.FC = () => {
           </div>
         </div>
 
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+            Plan de Suscripción
+          </label>
+          <div className="relative group">
+            <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+            <select
+              value={planTier}
+              onChange={(e) => setPlanTier(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium appearance-none"
+            >
+              <option value="Normal">Plan Normal</option>
+              <option value="Pro">Plan Pro</option>
+            </select>
+          </div>
+        </div>
+
         <button
           type="submit"
           disabled={loading || success}
@@ -114,7 +151,7 @@ export const InvitarAgenteForm: React.FC = () => {
             ${success 
               ? 'bg-emerald-500 text-white shadow-emerald-200' 
               : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98]'
-            } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            } ${loading ? 'opacity-70 cursor-not-allowed' : ''} ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
         >
           {loading ? (
             <>
@@ -134,6 +171,14 @@ export const InvitarAgenteForm: React.FC = () => {
           )}
         </button>
       </form>
+
+      <InvitarSubscriptionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmInvite}
+        email={email}
+        planTier={planTier}
+      />
     </div>
   );
 };

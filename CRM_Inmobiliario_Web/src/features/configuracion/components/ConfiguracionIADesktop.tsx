@@ -2,12 +2,16 @@ import React from 'react';
 import { Database, AlertTriangle, Loader2, X } from 'lucide-react';
 import { BaseConocimientoSection } from './BaseConocimientoSection';
 import type { UseConfiguracionIALogicReturn } from '../hooks/useConfiguracionIALogic';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface ConfiguracionIADesktopProps {
   logic: UseConfiguracionIALogicReturn;
 }
 
 export const ConfiguracionIADesktop: React.FC<ConfiguracionIADesktopProps> = ({ logic }) => {
+  const { canWrite } = useSubscriptionGuard();
+
   return (
     <div className="space-y-6">
       <section className="space-y-6 bg-slate-100/50 p-8 rounded-[40px] border border-slate-200/60 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -25,18 +29,30 @@ export const ConfiguracionIADesktop: React.FC<ConfiguracionIADesktopProps> = ({ 
           
           <div className="flex flex-col sm:flex-row gap-4">
             <button
-              onClick={() => logic.handleVectorize(false)}
+              onClick={() => {
+                if (!canWrite) {
+                  toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                  return;
+                }
+                logic.handleVectorize(false);
+              }}
               disabled={logic.isVectorizing}
-              className="cursor-pointer flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {logic.isVectorizing ? <Loader2 size={18} className="animate-spin" /> : <Database size={18} />}
               Vectorizar Faltantes
             </button>
 
             <button
-              onClick={() => logic.setShowForceModal(true)}
+              onClick={() => {
+                if (!canWrite) {
+                  toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                  return;
+                }
+                logic.setShowForceModal(true);
+              }}
               disabled={logic.isVectorizing}
-              className="cursor-pointer flex-1 px-6 py-3 bg-white text-rose-600 border-2 border-rose-100 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-rose-50 hover:border-rose-200 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex-1 px-6 py-3 bg-white text-rose-600 border-2 border-rose-100 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-rose-50 hover:border-rose-200 active:scale-95 transition-all disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <AlertTriangle size={18} />
               Forzar Todas
@@ -60,18 +76,30 @@ export const ConfiguracionIADesktop: React.FC<ConfiguracionIADesktopProps> = ({ 
           
           <div className="flex flex-col sm:flex-row gap-4">
             <button
-              onClick={() => logic.handleVectorizeDocs(false)}
+              onClick={() => {
+                if (!canWrite) {
+                  toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                  return;
+                }
+                logic.handleVectorizeDocs(false);
+              }}
               disabled={logic.isVectorizingDocs}
-              className="cursor-pointer flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {logic.isVectorizingDocs ? <Loader2 size={18} className="animate-spin" /> : <Database size={18} />}
               Vectorizar Faltantes
             </button>
 
             <button
-              onClick={() => logic.setShowForceDocsModal(true)}
+              onClick={() => {
+                if (!canWrite) {
+                  toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                  return;
+                }
+                logic.setShowForceDocsModal(true);
+              }}
               disabled={logic.isVectorizingDocs}
-              className="cursor-pointer flex-1 px-6 py-3 bg-white text-rose-600 border-2 border-rose-100 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-rose-50 hover:border-rose-200 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex-1 px-6 py-3 bg-white text-rose-600 border-2 border-rose-100 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-rose-50 hover:border-rose-200 active:scale-95 transition-all disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <AlertTriangle size={18} />
               Forzar Todas

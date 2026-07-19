@@ -1,5 +1,6 @@
 import { RotateCcw, AlertTriangle, Search, UserCheck, Smartphone } from 'lucide-react';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface ContactosListModalsProps {
   newCycleConfirmation: { id: string; etapa: string; nombre: string } | null;
@@ -22,6 +23,7 @@ export const ContactosListModals = ({
   setMigrarRoles,
   executeMigrar
 }: ContactosListModalsProps) => {
+  const { canWrite } = useSubscriptionGuard();
 
   return (
     <>
@@ -59,8 +61,15 @@ export const ContactosListModals = ({
                   Cancelar
                 </button>
                 <button 
-                  onClick={() => executeStageChange(newCycleConfirmation.id, newCycleConfirmation.etapa)}
-                  className="flex-1 px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all active:scale-95 cursor-pointer"
+                  onClick={() => {
+                    if (!canWrite) {
+                      import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                      return;
+                    }
+                    executeStageChange(newCycleConfirmation.id, newCycleConfirmation.etapa);
+                  }}
+                  disabled={!canWrite}
+                  className={`flex-1 px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all active:scale-95 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                 >
                   Confirmar
                 </button>
@@ -143,12 +152,16 @@ export const ContactosListModals = ({
                 </button>
                 <button 
                   onClick={() => {
+                    if (!canWrite) {
+                      import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                      return;
+                    }
                     if (migrarRoles.esCliente || migrarRoles.esPropietario) {
                       executeMigrar(migrarRoles.esCliente, migrarRoles.esPropietario);
                     }
                   }}
-                  disabled={!migrarRoles.esCliente && !migrarRoles.esPropietario}
-                  className="flex-1 px-6 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                  disabled={(!migrarRoles.esCliente && !migrarRoles.esPropietario) || !canWrite}
+                  className={`flex-1 px-6 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                 >
                   Continuar
                 </button>

@@ -6,6 +6,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { HelpButton } from '../../../components/ui/HelpButton';
 import { useCopilotDrawerLogic } from '../hooks/useCopilotDrawerLogic';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilotDrawerLogic> }> = ({ logic }) => {
   const {
@@ -42,6 +43,7 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
     showScrollButton,
     handleScroll
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
 
   if (!isOpen) return null;
 
@@ -222,7 +224,13 @@ export const CopilotDrawerDesktop: React.FC<{ logic: ReturnType<typeof useCopilo
 
           {/* Footer / Input */}
           <div className="p-4 border-t border-slate-200/50 bg-white/80 backdrop-blur-sm flex flex-col gap-3">
-            {!isPersonalAiEnabled ? (
+            {!canWrite ? (
+              <div className="bg-slate-900 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-lg border border-slate-800">
+                <ShieldAlert className="h-5 w-5 text-rose-500 mb-2" />
+                <p className="text-sm font-bold text-white mb-2">Suscripción Expirada</p>
+                <p className="text-xs text-slate-300">Renueva tu suscripción para utilizar el Asistente de IA.</p>
+              </div>
+            ) : !isPersonalAiEnabled ? (
               <div className="bg-slate-900 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-lg border border-slate-800">
                 <ShieldAlert className="h-5 w-5 text-orange-500 mb-2" />
                 <p className="text-sm font-bold text-white mb-2">La IA del Sistema está desactivada.</p>

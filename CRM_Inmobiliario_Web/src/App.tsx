@@ -61,12 +61,15 @@ const ConfiguracionNotificaciones = lazy(() => retryImport(() => import('./featu
 const AutoArchivadoSettings = lazy(() => retryImport(() => import('./features/configuracion/components/AutoArchivadoSettings').then(m => ({ default: m.AutoArchivadoSettings }))));
 const ConfiguracionPortabilidad = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionPortabilidad').then(m => ({ default: m.ConfiguracionPortabilidad }))));
 const ConfiguracionLimpieza = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionLimpieza').then(m => ({ default: m.ConfiguracionLimpieza }))));
+const MiSuscripcion = lazy(() => retryImport(() => import('./features/configuracion/components/MiSuscripcion').then(m => ({ default: m.MiSuscripcion }))));
+const ConfiguracionSuscripciones = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionSuscripciones').then(m => ({ default: m.ConfiguracionSuscripciones }))));
 const PoliticaPrivacidadView = lazy(() => retryImport(() => import('./features/legal/components/PoliticaPrivacidadView').then(m => ({ default: m.PoliticaPrivacidadView }))));
 const TerminosServicioView = lazy(() => retryImport(() => import('./features/legal/components/TerminosServicioView').then(m => ({ default: m.TerminosServicioView }))));
 
 import { CopilotDrawer } from './features/copilot/components/CopilotDrawer';
 import { GlobalContactoModal } from './components/layout/GlobalContactoModal';
 import { HelpDrawer } from './components/ui/HelpDrawer';
+import { SubscriptionBanner } from './components/layout/SubscriptionBanner';
 
 function AppContent({ session }: { session: Session | null }) {
   const location = useLocation();
@@ -175,6 +178,7 @@ function AppContent({ session }: { session: Session | null }) {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 w-full ml-0 ${sidebarMargin} mr-0 ${agendaMargin}`}>
+        <SubscriptionBanner />
         <Header 
           isAgendaOpen={isAgendaOpen} 
           setIsAgendaOpen={setIsAgendaOpen} 
@@ -219,6 +223,8 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="auto-archivado" element={<AutoArchivadoSettings />} />
                 <Route path="portabilidad" element={<ConfiguracionPortabilidad />} />
                 <Route path="limpieza" element={<AdminRoute><ConfiguracionLimpieza /></AdminRoute>} />
+                <Route path="mi-suscripcion" element={<MiSuscripcion />} />
+                <Route path="suscripciones" element={<AdminRoute><ConfiguracionSuscripciones /></AdminRoute>} />
               </Route>
               <Route path="/confirmar-clave" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
               {/* Fallback global para usuarios logueados que intentan acceder a una ruta inexistente o vienen del login */}
@@ -261,7 +267,14 @@ function MainApp() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const isInviteFlow = initialHash.includes('type=invite');
+  useEffect(() => {
+    if (initialHash.includes('type=invite')) {
+      localStorage.setItem('crm_pending_invite', 'true');
+    }
+  }, [initialHash]);
+
+  const isInviteFlow = initialHash.includes('type=invite') || 
+    (localStorage.getItem('crm_pending_invite') === 'true' && session && !session.user?.user_metadata?.nombre);
   const isRecoveryFlow = initialHash.includes('type=recovery') || window.location.pathname === '/actualizar-clave';
 
   if (loading) {

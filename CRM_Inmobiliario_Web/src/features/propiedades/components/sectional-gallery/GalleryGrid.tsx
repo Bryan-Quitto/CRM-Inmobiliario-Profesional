@@ -2,6 +2,7 @@ import React from 'react';
 import { ImageIcon } from 'lucide-react';
 import { MediaCard } from '../MediaCard';
 import type { MultimediaPropiedad } from '../../types';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface GalleryGridProps {
   media: MultimediaPropiedad[];
@@ -28,6 +29,9 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
   isUploading,
   propiedadId
 }) => {
+  const { canWrite } = useSubscriptionGuard();
+  const effectiveIsReadOnly = isReadOnly || !canWrite;
+
   if (media.length > 0) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -40,10 +44,10 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
             onSetCover={handleSetCoverStable}
             onDelete={handleDeleteMediaStable}
             onDownload={handleDownloadSingle}
-            showActions={!isReadOnly && selectedMediaIds.size === 0}
+            showActions={!effectiveIsReadOnly && selectedMediaIds.size === 0}
             onSaved={handleSavedStable}
             propiedadId={propiedadId}
-            isReadOnly={isReadOnly}
+            isReadOnly={effectiveIsReadOnly}
           />
         ))}
       </div>

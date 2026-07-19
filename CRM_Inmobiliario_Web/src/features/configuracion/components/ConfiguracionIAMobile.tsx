@@ -2,12 +2,16 @@ import React from 'react';
 import { Database, AlertTriangle, Loader2, X } from 'lucide-react';
 import { BaseConocimientoSection } from './BaseConocimientoSection';
 import type { UseConfiguracionIALogicReturn } from '../hooks/useConfiguracionIALogic';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface ConfiguracionIAMobileProps {
   logic: UseConfiguracionIALogicReturn;
 }
 
 export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ logic }) => {
+  const { canWrite } = useSubscriptionGuard();
+
   return (
     <div className="space-y-4">
       {/* Propiedades */}
@@ -25,18 +29,30 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
 
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => logic.handleVectorize(false)}
+            onClick={() => {
+              if (!canWrite) {
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
+              logic.handleVectorize(false);
+            }}
             disabled={logic.isVectorizing}
-            className="w-full flex justify-center items-center gap-2 py-3.5 bg-blue-600 text-white rounded-xl font-bold active:scale-95 transition-transform disabled:opacity-50"
+            className={`w-full flex justify-center items-center gap-2 py-3.5 bg-blue-600 text-white rounded-xl font-bold active:scale-95 transition-transform disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
           >
             {logic.isVectorizing ? <Loader2 size={18} className="animate-spin shrink-0" /> : <Database size={18} className="shrink-0" />}
             Vectorizar Faltantes
           </button>
           
           <button
-            onClick={() => logic.setShowForceModal(true)}
+            onClick={() => {
+              if (!canWrite) {
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
+              logic.setShowForceModal(true);
+            }}
             disabled={logic.isVectorizing}
-            className="w-full flex justify-center items-center gap-2 py-3.5 bg-slate-50 text-rose-600 border border-slate-200 rounded-xl font-bold active:scale-95 transition-transform disabled:opacity-50"
+            className={`w-full flex justify-center items-center gap-2 py-3.5 bg-slate-50 text-rose-600 border border-slate-200 rounded-xl font-bold active:scale-95 transition-transform disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <AlertTriangle size={18} className="shrink-0" />
             Forzar Todas
@@ -59,18 +75,30 @@ export const ConfiguracionIAMobile: React.FC<ConfiguracionIAMobileProps> = ({ lo
 
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => logic.handleVectorizeDocs(false)}
+            onClick={() => {
+              if (!canWrite) {
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
+              logic.handleVectorizeDocs(false);
+            }}
             disabled={logic.isVectorizingDocs}
-            className="w-full flex justify-center items-center gap-2 py-3.5 bg-indigo-600 text-white rounded-xl font-bold active:scale-95 transition-transform disabled:opacity-50"
+            className={`w-full flex justify-center items-center gap-2 py-3.5 bg-indigo-600 text-white rounded-xl font-bold active:scale-95 transition-transform disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
           >
             {logic.isVectorizingDocs ? <Loader2 size={18} className="animate-spin shrink-0" /> : <Database size={18} className="shrink-0" />}
             Vectorizar Faltantes
           </button>
           
           <button
-            onClick={() => logic.setShowForceDocsModal(true)}
+            onClick={() => {
+              if (!canWrite) {
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
+              logic.setShowForceDocsModal(true);
+            }}
             disabled={logic.isVectorizingDocs}
-            className="w-full flex justify-center items-center gap-2 py-3.5 bg-slate-50 text-rose-600 border border-slate-200 rounded-xl font-bold active:scale-95 transition-transform disabled:opacity-50"
+            className={`w-full flex justify-center items-center gap-2 py-3.5 bg-slate-50 text-rose-600 border border-slate-200 rounded-xl font-bold active:scale-95 transition-transform disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <AlertTriangle size={18} className="shrink-0" />
             Forzar Todas

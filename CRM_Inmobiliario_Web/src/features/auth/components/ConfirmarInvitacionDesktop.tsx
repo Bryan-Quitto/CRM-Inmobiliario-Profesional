@@ -30,7 +30,6 @@ export const ConfirmarInvitacionDesktop: React.FC<Props> = ({ logic }) => {
           formData={logic.formData}
           isLoading={logic.isLoading}
           error={logic.error}
-          hasPredefinedAgency={logic.hasPredefinedAgency}
           validations={logic.validations}
           allValid={logic.allValid}
           handleChange={logic.handleChange}

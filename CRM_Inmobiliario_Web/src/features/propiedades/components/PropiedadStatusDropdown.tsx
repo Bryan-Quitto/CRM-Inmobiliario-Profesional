@@ -3,6 +3,7 @@ import { ChevronDown, Check, Loader2, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { ESTADOS } from '../constants/propiedades';
 import type { Propiedad } from '../types';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface PropiedadStatusDropdownProps {
   propiedad: Propiedad;
@@ -25,6 +26,8 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
   variant = 'card',
   dropdownRef
 }) => {
+  const { canWrite } = useSubscriptionGuard();
+
   const getStatusStyles = (estado: string) => {
     const found = ESTADOS.find(e => e.value === estado);
     return found?.color || 'bg-slate-500 border-slate-400 text-white';
@@ -37,6 +40,11 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
     e.preventDefault();
     e.stopPropagation();
     
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
+
     if (!canEdit) {
       const responsable = p.agenteNombre || 'el agente asignado';
       
@@ -83,11 +91,11 @@ export const PropiedadStatusDropdown: React.FC<PropiedadStatusDropdownProps> = (
           <button
             onMouseDown={handlePriorityToggle} // PRIORIDAD MÁXIMA
             type="button"
-            className={`font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 ${
+            className={`font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 ${
               variant === 'header' 
                 ? 'px-3 py-1.5 rounded-full text-[10px]' 
                 : 'px-3 py-1 rounded-full text-[10px] border'
-            } ${getStatusStyles(p.estadoComercial)} ${!canEdit ? 'cursor-not-allowed opacity-80' : 'cursor-pointer hover:scale-105 active:scale-95'}`}
+            } ${getStatusStyles(p.estadoComercial)} ${!canWrite ? 'opacity-50 cursor-not-allowed' : (!canEdit ? 'cursor-not-allowed opacity-80' : 'cursor-pointer hover:scale-105 active:scale-95')}`}
           >
             {!canEdit && <Lock className="h-2.5 w-2.5" />}
             {p.estadoComercial}

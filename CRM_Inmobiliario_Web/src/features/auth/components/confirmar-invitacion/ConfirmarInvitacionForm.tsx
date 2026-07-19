@@ -11,12 +11,13 @@ interface ConfirmarInvitacionFormProps {
     telefono: string;
     agenciaId: string;
     agenciaNombre: string;
+    planTier: string;
+    subscriptionMonths: number;
     password: string;
     confirmPassword: string;
   };
   isLoading: boolean;
   error: string | null;
-  hasPredefinedAgency: boolean;
   validations: {
     personal: boolean;
     length: boolean;
@@ -37,7 +38,6 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
   formData,
   isLoading,
   error,
-  hasPredefinedAgency,
   validations,
   allValid,
   handleChange,
@@ -65,6 +65,18 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
             <p>{error}</p>
           </div>
         )}
+
+        {/* Banner de Suscripción */}
+        <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Suscripción Asignada</span>
+            <span className="text-indigo-300 font-bold">Plan {formData.planTier}</span>
+          </div>
+          <div className="flex flex-col text-right">
+            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Válido por</span>
+            <span className="text-indigo-300 font-bold">{formData.subscriptionMonths} mes{formData.subscriptionMonths !== 1 ? 'es' : ''}</span>
+          </div>
+        </div>
 
         {/* Fila 1: Nombre y Apellido */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -102,14 +114,13 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Agencia (Solo lectura)</label>
             <div className="relative group">
-              <Building className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
+              <Building className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 transition-colors" />
               <input
                 name="agenciaNombre"
                 type="text"
                 value={formData.agenciaNombre || 'Independiente'}
-                onChange={handleChange}
-                disabled={hasPredefinedAgency}
-                className={`w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 text-sm outline-none transition-all ${hasPredefinedAgency ? 'opacity-60 cursor-not-allowed border-dashed' : 'focus:border-emerald-500'}`}
+                readOnly
+                className="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 text-sm outline-none opacity-60 cursor-not-allowed border-dashed"
                 placeholder="Nombre empresa"
               />
             </div>
@@ -174,7 +185,7 @@ export const ConfirmarInvitacionForm: React.FC<ConfirmarInvitacionFormProps> = (
             </label>
             <button type="button" onClick={() => openModal('terminos')} className="cursor-pointer text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Términos de Servicio</button>
             {' '}y la{' '}
-            <button type="button" onClick={() => openModal('privacidad')} className="text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Política de Privacidad</button>.
+            <button type="button" onClick={() => openModal('privacidad')} className="cursor-pointer text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Política de Privacidad</button>.
           </div>
         </div>
 

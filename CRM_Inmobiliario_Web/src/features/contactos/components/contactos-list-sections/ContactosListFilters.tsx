@@ -5,6 +5,8 @@ import { ESTADOS, ESTADOS_PROPIETARIO, ORIGENES, ESTADOS_IA } from '../../consta
 import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { SortOptionContacto, SortDirectionContacto } from '../../hooks/useContactosFiltering';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 const SORT_OPTIONS: { value: SortOptionContacto; label: string }[] = [
   { value: 'fechaCreacion', label: 'Fecha Ingreso' },
@@ -78,6 +80,7 @@ export const ContactosListFilters = ({
 
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { canWrite } = useSubscriptionGuard();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -137,8 +140,15 @@ export const ContactosListFilters = ({
 
         <div className="flex items-center gap-3">
           <button 
-            onClick={onOpenCreateModal}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer"
+            onClick={(e) => {
+              if (!canWrite) {
+                e.preventDefault();
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
+              onOpenCreateModal();
+            }}
+            className={`flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <Plus className="h-5 w-5" />
             <span>Nuevo Contacto</span>

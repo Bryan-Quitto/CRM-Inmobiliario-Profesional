@@ -6,12 +6,14 @@ export function CustomSelect<T extends string | number>({
   value, 
   onChange, 
   options,
-  buttonClassName
+  buttonClassName,
+  disabled
 }: { 
   value: T; 
   onChange: (value: T) => void; 
   options: { value: T; label: string }[]; 
   buttonClassName?: string;
+  disabled?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -32,8 +34,9 @@ export function CustomSelect<T extends string | number>({
     <div className="relative w-full" ref={selectRef}>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={buttonClassName || `w-full min-w-0 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl text-left text-sm font-medium transition-all outline-none flex items-center justify-between group cursor-pointer text-slate-700`}
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={buttonClassName || `w-full min-w-0 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl text-left text-sm font-medium transition-all outline-none flex items-center justify-between group ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} text-slate-700`}
       >
         <TruncatedText as="span" className="truncate pr-2">{selectedOpt?.label}</TruncatedText>
         <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
@@ -76,6 +79,7 @@ export interface TimeDurationInputProps {
   unitLabels?: Record<TimeUnit, string>;
   error?: string;
   min?: number;
+  disabled?: boolean;
 }
 
 const calculateBaseValue = (num: number, unit: TimeUnit, baseUnit: 'minutes' | 'hours') => {
@@ -108,7 +112,8 @@ export const TimeDurationInput: React.FC<TimeDurationInputProps> = ({
   prefix,
   unitLabels = { minutes: 'Minutos', hours: 'Horas', days: 'Días' },
   error,
-  min = 1
+  min = 1,
+  disabled
 }) => {
   const [displayNum, setDisplayNum] = useState<string>(getInitialState(value, baseUnit, allowedUnits).num.toString());
   const [displayUnit, setDisplayUnit] = useState<TimeUnit>(getInitialState(value, baseUnit, allowedUnits).unit);
@@ -156,14 +161,16 @@ export const TimeDurationInput: React.FC<TimeDurationInputProps> = ({
           step="1"
           value={displayNum}
           onChange={handleNumChange}
-          className={`w-16 sm:w-20 shrink-0 px-2 py-2.5 bg-transparent outline-none text-slate-800 text-sm font-bold text-center border-r ${error ? 'border-rose-200' : 'border-slate-200'} ${prefix ? 'pl-1' : 'pl-4'}`}
+          disabled={disabled}
+          className={`w-16 sm:w-20 shrink-0 px-2 py-2.5 bg-transparent outline-none text-slate-800 text-sm font-bold text-center border-r ${error ? 'border-rose-200' : 'border-slate-200'} ${prefix ? 'pl-1' : 'pl-4'} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
         />
         <div className="flex-1 min-w-0">
           <CustomSelect<TimeUnit>
             value={displayUnit}
             onChange={handleUnitChange}
             options={allowedUnits.map(u => ({ value: u, label: unitLabels[u] }))}
-            buttonClassName="w-full min-w-0 px-3 py-2.5 bg-transparent text-left text-sm font-medium transition-all outline-none flex items-center justify-between group cursor-pointer text-slate-700"
+            disabled={disabled}
+            buttonClassName={`w-full min-w-0 px-3 py-2.5 bg-transparent text-left text-sm font-medium transition-all outline-none flex items-center justify-between group ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} text-slate-700`}
           />
         </div>
       </div>

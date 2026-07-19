@@ -5,6 +5,7 @@ import { PhoneInputWorldClass } from '../PhoneInputWorldClass';
 import type { Contacto } from '../../types';
 import { InputWithCounter } from '@/components/ui/InputWithCounter';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface CrearContactoFieldsProps {
   register: UseFormRegister<CrearContactoDTO>;
@@ -31,6 +32,8 @@ export const CrearContactoFields = ({
   const esPropietario = useWatch({ control, name: 'esPropietario' });
   const origen = useWatch({ control, name: 'origen' });
   const isWhatsApp = origen?.toLowerCase().includes('whatsapp');
+  const { canWrite } = useSubscriptionGuard();
+  const disabledState = isSuccess || !canWrite;
 
   const numPropiedadesCaptadas = initialData?.numeroPropiedadesCaptadas ?? initialData?.propiedadesCaptadas?.length ?? 0;
   const tienePropiedadesComoPropietario = numPropiedadesCaptadas > 0;
@@ -49,11 +52,16 @@ export const CrearContactoFields = ({
         <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 p-1 rounded-3xl transition-all w-full ${roleError ? 'bg-rose-50 ring-2 ring-rose-200' : ''}`}>
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              if (!canWrite) {
+                e.preventDefault();
+                import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                return;
+              }
               if (tienePropiedadesCerradasComoCliente) return;
               setValue('esCliente', !esCliente);
             }}
-            disabled={isSuccess || tienePropiedadesCerradasComoCliente}
+            disabled={disabledState || tienePropiedadesCerradasComoCliente}
             title={tienePropiedadesCerradasComoCliente ? "No se puede quitar el rol porque tiene propiedades reservadas, alquiladas o vendidas." : ""}
             className={`relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all w-full ${
               tienePropiedadesCerradasComoCliente ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'
@@ -81,11 +89,16 @@ export const CrearContactoFields = ({
 
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+               if (!canWrite) {
+                 e.preventDefault();
+                 import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                 return;
+               }
                if (tienePropiedadesComoPropietario) return;
                setValue('esPropietario', !esPropietario);
             }}
-            disabled={isSuccess || tienePropiedadesComoPropietario}
+            disabled={disabledState || tienePropiedadesComoPropietario}
             title={tienePropiedadesComoPropietario ? "No se puede quitar el rol de propietario porque tiene propiedades enlazadas." : ""}
             className={`relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all w-full ${
               tienePropiedadesComoPropietario ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'
@@ -123,7 +136,7 @@ export const CrearContactoFields = ({
             icon={<User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />}
             maxLength={100}
             type="text" 
-            disabled={isSuccess}
+            disabled={disabledState}
             placeholder="Ej. Juan"
             className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
           />
@@ -136,7 +149,7 @@ export const CrearContactoFields = ({
             {...register('apellido')}
             maxLength={100}
             type="text" 
-            disabled={isSuccess}
+            disabled={disabledState}
             placeholder="Ej. Pérez"
             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50"
           />
@@ -151,7 +164,7 @@ export const CrearContactoFields = ({
           icon={<Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 text-slate-400" />}
           maxLength={150}
           type="email" 
-          disabled={isSuccess}
+          disabled={disabledState}
           placeholder="juan.perez@ejemplo.com"
           className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
         />
@@ -174,7 +187,7 @@ export const CrearContactoFields = ({
               onChange={onChange}
               onBlur={onBlur}
               ref={ref}
-              disabled={isSuccess}
+              disabled={disabledState}
               hasError={!!errors.telefono}
             />
           )}

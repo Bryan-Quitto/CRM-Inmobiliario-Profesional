@@ -3,6 +3,9 @@ import { api } from '../../../lib/axios';
 export interface InvitarAgenteRequest {
   email: string;
   agenciaId?: string | null;
+  planTier?: string;
+  months?: number;
+  notes?: string;
 }
 
 export interface Agency {

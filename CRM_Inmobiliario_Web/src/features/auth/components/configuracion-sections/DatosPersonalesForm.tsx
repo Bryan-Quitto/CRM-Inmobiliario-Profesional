@@ -6,6 +6,7 @@ import { InputWithCounter } from '@/components/ui/InputWithCounter';
 import { TextAreaWithCounter } from '@/components/ui/TextAreaWithCounter';
 import { Controller, type UseFormReturn } from 'react-hook-form';
 import type { FormDataPerfil } from '../../hooks/useConfiguracionPerfil';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface DatosPersonalesFormProps {
   methods: UseFormReturn<FormDataPerfil>;
@@ -19,11 +20,21 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
   onSubmit
 }) => {
   const { register, control, formState: { errors } } = methods;
+  const { canWrite } = useSubscriptionGuard();
+
+  const handleFormSubmit = (e: React.BaseSyntheticEvent) => {
+    e.preventDefault();
+    if (!canWrite) {
+      import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+      return;
+    }
+    onSubmit(e);
+  };
 
   return (
     <div className="bg-white shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden border border-slate-100">
       <div className="p-6">
-        <form onSubmit={onSubmit} className="space-y-8">
+        <form onSubmit={handleFormSubmit} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Nombre */}
             <div className="space-y-2">
@@ -32,7 +43,8 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
                 {...register('nombre')}
                 maxLength={100}
                 type="text"
-                className={`w-full px-6 py-4 rounded-2xl bg-slate-50 border ${errors.nombre ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-transparent focus:border-indigo-200 focus:ring-indigo-100'} focus:bg-white focus:ring-4 outline-none transition-all font-bold text-slate-700`}
+                disabled={!canWrite}
+                className={`w-full px-6 py-4 rounded-2xl bg-slate-50 border ${errors.nombre ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-transparent focus:border-indigo-200 focus:ring-indigo-100'} focus:bg-white focus:ring-4 outline-none transition-all font-bold text-slate-700 disabled:opacity-50`}
                 placeholder="Tu nombre"
               />
               {errors.nombre && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.nombre.message}</p>}
@@ -45,7 +57,8 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
                 {...register('apellido')}
                 maxLength={100}
                 type="text"
-                className={`w-full px-6 py-4 rounded-2xl bg-slate-50 border ${errors.apellido ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-transparent focus:border-indigo-200 focus:ring-indigo-100'} focus:bg-white focus:ring-4 outline-none transition-all font-bold text-slate-700`}
+                disabled={!canWrite}
+                className={`w-full px-6 py-4 rounded-2xl bg-slate-50 border ${errors.apellido ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-transparent focus:border-indigo-200 focus:ring-indigo-100'} focus:bg-white focus:ring-4 outline-none transition-all font-bold text-slate-700 disabled:opacity-50`}
                 placeholder="Tu apellido"
               />
               {errors.apellido && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.apellido.message}</p>}
@@ -72,6 +85,7 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
                   <PhoneInputWorldClass
                     value={field.value || ''}
                     onChange={field.onChange}
+                    disabled={!canWrite}
                   />
                 )}
               />
@@ -84,7 +98,8 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
                 {...register('direccionFisica')}
                 maxLength={500}
                 type="text"
-                className={`w-full px-6 py-4 rounded-2xl bg-slate-50 border ${errors.direccionFisica ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-transparent focus:border-indigo-200 focus:ring-indigo-100'} focus:bg-white focus:ring-4 outline-none transition-all font-bold text-slate-700`}
+                disabled={!canWrite}
+                className={`w-full px-6 py-4 rounded-2xl bg-slate-50 border ${errors.direccionFisica ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-transparent focus:border-indigo-200 focus:ring-indigo-100'} focus:bg-white focus:ring-4 outline-none transition-all font-bold text-slate-700 disabled:opacity-50`}
                 placeholder="Dirección de la sucursal donde trabajas"
               />
             </div>
@@ -96,7 +111,8 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
                 {...register('promptPersonalIA')}
                 maxLength={2000}
                 rows={3}
-                className={`w-full px-6 py-4 rounded-2xl bg-slate-50 border ${errors.promptPersonalIA ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-transparent focus:border-indigo-200 focus:ring-indigo-100'} focus:bg-white focus:ring-4 outline-none transition-all font-bold text-slate-700 resize-none`}
+                disabled={!canWrite}
+                className={`w-full px-6 py-4 rounded-2xl bg-slate-50 border ${errors.promptPersonalIA ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-transparent focus:border-indigo-200 focus:ring-indigo-100'} focus:bg-white focus:ring-4 outline-none transition-all font-bold text-slate-700 resize-none disabled:opacity-50`}
                 placeholder="Ej. Soy Juan Pérez. Uso emojis amigables..."
               />
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider ml-1 mt-1">
@@ -125,7 +141,8 @@ const DatosPersonalesForm: React.FC<DatosPersonalesFormProps> = ({
           <div className="pt-6 border-t border-slate-50 flex flex-col items-center gap-4">
             <button
               type="submit"
-              className="flex items-center justify-center w-full gap-3 px-6 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 cursor-pointer"
+              disabled={!canWrite}
+              className={`flex items-center justify-center w-full gap-3 px-6 py-4 rounded-2xl font-black text-white transition-all transform active:scale-95 shadow-xl bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <Save size={20} className="shrink-0" /> GUARDAR CAMBIOS
             </button>

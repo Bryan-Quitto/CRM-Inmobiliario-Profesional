@@ -13,6 +13,8 @@ import {
 import type { Tarea } from '../../types';
 import { formatDateTime, isExpired } from '../../utils';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 const TIPO_ICONOS = {
   'Llamada': Phone,
@@ -45,6 +47,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onCancel,
   isCompleting 
 }) => {
+  const { canWrite } = useSubscriptionGuard();
   const Icon = TIPO_ICONOS[tarea.tipoTarea] || Clock;
   const colorClass = TIPO_COLORES[tarea.tipoTarea] || 'text-slate-600 bg-slate-50';
   const expired = isExpired(tarea.fechaInicio, tarea.duracionMinutos) && tarea.estado === 'Pendiente';
@@ -67,9 +70,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             title="Editar Tarea"
             onClick={(e) => {
               e.stopPropagation();
+              if (!canWrite) {
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
               onEdit();
             }}
-            className="absolute bottom-2 left-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 cursor-pointer"
+            className={`absolute bottom-2 left-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 ${!canWrite ? 'opacity-50 cursor-not-allowed lg:opacity-50' : 'cursor-pointer'}`}
           >
             <Pencil className="h-3 w-3" />
           </button>
@@ -78,9 +85,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             title="Cancelar Tarea"
             onClick={(e) => {
               e.stopPropagation();
+              if (!canWrite) {
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
               onCancel();
             }}
-            className="absolute bottom-2 right-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-rose-600 hover:border-rose-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 cursor-pointer"
+            className={`absolute bottom-2 right-2 p-1.5 bg-white border border-slate-100 text-slate-400 hover:text-rose-600 hover:border-rose-100 rounded-lg shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all z-10 ${!canWrite ? 'opacity-50 cursor-not-allowed lg:opacity-50' : 'cursor-pointer'}`}
           >
             <XCircle className="h-3 w-3" />
           </button>
@@ -92,11 +103,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <button 
           onClick={(e) => {
             e.stopPropagation();
+            if (!canWrite) {
+              toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              return;
+            }
             onComplete(tarea.id);
           }}
-          disabled={isCompleting}
+          disabled={isCompleting || !canWrite}
           aria-label={`Marcar como completada: ${tarea.titulo}`}
-          className={`cursor-pointer shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center active:scale-90 ${
+          className={`shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center active:scale-90 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'} ${
             isCompleting ? 'border-blue-200 bg-blue-50' : 'border-slate-200 hover:border-blue-500 hover:bg-blue-50'
           }`}
         >

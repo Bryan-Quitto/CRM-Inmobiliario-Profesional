@@ -36,8 +36,10 @@ export const ConfiguracionLayoutMobile: React.FC<Props> = ({ logic }) => {
             <option value="notificaciones">Notificaciones</option>
             <option value="auto-archivado">Auto-Archivado</option>
             <option value="portabilidad">Portabilidad</option>
+            <option value="mi-suscripcion">Mi Suscripción</option>
             {isAdmin && (
               <>
+                <option value="suscripciones">Suscripciones</option>
                 <option value="ia">IA y Vectorización</option>
                 <option value="organizacion">Organización</option>
                 <option value="agentes">Agentes</option>

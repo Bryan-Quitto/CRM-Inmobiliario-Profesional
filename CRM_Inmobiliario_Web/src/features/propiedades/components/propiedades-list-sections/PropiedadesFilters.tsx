@@ -7,6 +7,8 @@ import type { SortOption, SortDirection, AdvancedFiltersState } from '../../hook
 import { AdvancedFiltersDrawer } from './AdvancedFiltersDrawer';
 import { HelpButton } from '../../../../components/ui/HelpButton';
 import type { Propiedad } from '../../types';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'fechaIngreso', label: 'Fecha de Ingreso' },
@@ -59,6 +61,7 @@ export const PropiedadesFilters = ({
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { canWrite } = useSubscriptionGuard();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,8 +154,15 @@ export const PropiedadesFilters = ({
           </div>
           
           <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 cursor-pointer h-[42px] shrink-0"
+            onClick={(e) => {
+              if (!canWrite) {
+                e.preventDefault();
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
+              setIsModalOpen(true);
+            }}
+            className={`flex items-center justify-center gap-2 px-6 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 h-[42px] shrink-0 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <Plus className="h-5 w-5" />
             <span>Nueva Propiedad</span>

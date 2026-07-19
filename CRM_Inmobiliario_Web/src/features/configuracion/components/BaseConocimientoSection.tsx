@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import useSWR, { mutate as globalMutate } from 'swr';
 import type { Agency } from '../api/agencias';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 export const BaseConocimientoSection: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -13,6 +14,7 @@ export const BaseConocimientoSection: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { canWrite } = useSubscriptionGuard();
 
   const { data: agencias } = useSWR<Agency[]>('/configuracion/agencias', (url: string) => api.get(url).then(res => res.data));
 
@@ -38,10 +40,15 @@ export const BaseConocimientoSection: React.FC = () => {
     e.preventDefault();
     setIsDragging(false);
     
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
+    
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       validateAndSetFile(e.dataTransfer.files[0]);
     }
-  }, []);
+  }, [canWrite]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -119,6 +126,7 @@ export const BaseConocimientoSection: React.FC = () => {
                 value="Internal" 
                 checked={audience === 'Internal'} 
                 onChange={() => setAudience('Internal')}
+                disabled={!canWrite}
                 className="sr-only"
               />
               <div className="flex items-center justify-between">
@@ -144,6 +152,7 @@ export const BaseConocimientoSection: React.FC = () => {
                 value="Public" 
                 checked={audience === 'Public'} 
                 onChange={() => setAudience('Public')}
+                disabled={!canWrite}
                 className="sr-only"
               />
               <div className="flex items-center justify-between">
@@ -171,6 +180,7 @@ export const BaseConocimientoSection: React.FC = () => {
                 value="global" 
                 checked={agenciaId === 'global'} 
                 onChange={() => setAgenciaId('global')}
+                disabled={!canWrite}
                 className="sr-only"
               />
               <div className="flex items-center justify-between">
@@ -206,8 +216,9 @@ export const BaseConocimientoSection: React.FC = () => {
                 onChange={(e) => {
                   if (e.target.value) setAgenciaId(e.target.value);
                 }}
+                disabled={!canWrite}
                 onClick={(e) => e.stopPropagation()}
-                className={`mt-2 block w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-opacity ${agenciaId === 'global' ? 'opacity-60 cursor-pointer' : 'opacity-100'}`}
+                className={`mt-2 block w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-opacity ${agenciaId === 'global' ? 'opacity-60 cursor-pointer' : 'opacity-100'} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <option value="" disabled>Selecciona una agencia...</option>
                 {agencias?.map(a => (
@@ -225,13 +236,21 @@ export const BaseConocimientoSection: React.FC = () => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={() => !file && fileInputRef.current?.click()}
+              onClick={() => {
+                if (!canWrite) {
+                  toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                  return;
+                }
+                if (!file) {
+                  fileInputRef.current?.click();
+                }
+              }}
               className={`relative flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-dashed transition-all duration-300 min-h-[220px] ${
                 file 
                   ? 'bg-white border-violet-200'
                   : isDragging
                     ? 'bg-violet-50 border-violet-400 scale-[1.02]'
-                    : 'bg-slate-50 border-slate-300 hover:bg-violet-50/50 hover:border-violet-300 cursor-pointer'
+                    : `bg-slate-50 border-slate-300 hover:bg-violet-50/50 hover:border-violet-300 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`
               }`}
             >
               <input 
@@ -239,6 +258,7 @@ export const BaseConocimientoSection: React.FC = () => {
                 ref={fileInputRef} 
                 onChange={handleFileSelect} 
                 accept=".md"
+                disabled={!canWrite}
                 className="hidden" 
               />
 

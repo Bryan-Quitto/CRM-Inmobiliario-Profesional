@@ -1,6 +1,8 @@
 import React from 'react';
 import { Zap, Plus, XCircle, Filter } from 'lucide-react';
 import { HelpButton } from '../../../../components/ui/HelpButton';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface AgendaHeaderProps {
   tareasPendientesCount: number;
@@ -19,6 +21,8 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
   onCreateTask,
   onClose
 }) => {
+  const { canWrite } = useSubscriptionGuard();
+
   return (
     <div className="px-4 py-5 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10 gap-4 overflow-hidden">
       <div className="flex items-start gap-2 min-w-0">
@@ -46,16 +50,30 @@ export const AgendaHeader: React.FC<AgendaHeaderProps> = ({
         </button>
         <button
           title="Comando Rápido"
-          onClick={onOpenComando}
+          onClick={(e) => {
+            if (!canWrite) {
+              e.preventDefault();
+              toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              return;
+            }
+            onOpenComando();
+          }}
           aria-label="Abrir comando rápido"
-          className="h-7 w-7 bg-gradient-to-br from-violet-600 to-violet-700 text-white rounded-lg flex items-center justify-center hover:from-violet-500 hover:to-violet-600 transition-all shadow-md shadow-violet-500/20 active:scale-95 cursor-pointer"
+          className={`h-7 w-7 bg-gradient-to-br from-violet-600 to-violet-700 text-white rounded-lg flex items-center justify-center hover:from-violet-500 hover:to-violet-600 transition-all shadow-md shadow-violet-500/20 active:scale-95 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <Zap className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
         <button 
-          onClick={onCreateTask}
+          onClick={(e) => {
+            if (!canWrite) {
+              e.preventDefault();
+              toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              return;
+            }
+            onCreateTask();
+          }}
           aria-label="Crear nueva tarea"
-          className="h-7 w-7 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-md shadow-slate-900/10 active:scale-95 cursor-pointer"
+          className={`h-7 w-7 bg-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all shadow-md shadow-slate-900/10 active:scale-95 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
         </button>

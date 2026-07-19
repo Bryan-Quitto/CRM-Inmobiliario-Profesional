@@ -21,6 +21,8 @@ using CRM_Inmobiliario.Api.Features.PushNotifications;
 using CRM_Inmobiliario.Api.Features.Faqs;
 using CRM_Inmobiliario.Api.Features.Shared.OmniSearch;
 using CRM_Inmobiliario.Api.Features.Portabilidad.ExportarDatos;
+using CRM_Inmobiliario.Api.Features.Subscriptions;
+using CRM_Inmobiliario.Api.Infrastructure.Filters;
 
 namespace CRM_Inmobiliario.Api.Extensions;
 
@@ -28,7 +30,9 @@ public static class EndpointRouteBuilderExtensions
 {
     public static void MapProjectEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var apiGroup = endpoints.MapGroup("/api").RequireAuthorization();
+        var apiGroup = endpoints.MapGroup("/api")
+            .RequireAuthorization()
+            .AddEndpointFilter<SubscriptionWriteGuardFilter>();
 
         // Contactos
         apiGroup.MapGetDropdownContactosEndpoint();
@@ -132,6 +136,13 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapConfiguracionIAEndpoints();
         apiGroup.MapFacebookOAuthEndpoints();
         apiGroup.MapGetAgentTokenUsageEndpoint();
+
+        // Suscripciones
+        apiGroup.MapGetAgentSubscription();
+        apiGroup.MapListSubscriptions();
+        apiGroup.MapActivateSubscription();
+        apiGroup.MapUpdateSubscription();
+        apiGroup.MapExpireSubscription();
 
         // OmniSearch
         apiGroup.MapBuscarOmniSearch();

@@ -16,6 +16,7 @@ import { InputWithCounter } from '@/components/ui/InputWithCounter';
 import { TextAreaWithCounter } from '@/components/ui/TextAreaWithCounter';
 import { TimeDurationInput } from '../../configuracion/components/TimeDurationInput';
 import { TaskColorPicker } from './TaskColorPicker';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface EditarTareaFormContentProps {
   register: UseFormRegister<EditarTareaFormValues>;
@@ -43,9 +44,17 @@ export const EditarTareaFormContent = ({
   onSubmit
 }: EditarTareaFormContentProps) => {
   const formData = watch();
+  const { canWrite } = useSubscriptionGuard();
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={(e) => {
+      if (!canWrite) {
+        e.preventDefault();
+        import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+        return;
+      }
+      handleSubmit(onSubmit)(e);
+    }} className="space-y-6">
       <div className="space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título</label>
         <InputWithCounter 
@@ -194,7 +203,8 @@ export const EditarTareaFormContent = ({
         <div className="pt-4">
           <button 
             type="submit"
-            className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer"
+            disabled={!canWrite}
+            className={`w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
           >
             Guardar Cambios
           </button>

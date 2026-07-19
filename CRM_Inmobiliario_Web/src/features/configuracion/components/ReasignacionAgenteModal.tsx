@@ -5,6 +5,7 @@ import Fuse from 'fuse.js';
 import { toast } from 'sonner';
 import { useAgentes } from '../hooks/useAgentes';
 import { useDesactivarAgente } from '../hooks/useDesactivarAgente';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface ReasignacionAgenteModalProps {
   agenteDesactivarId: string;
@@ -26,6 +27,7 @@ export const ReasignacionAgenteModal: React.FC<ReasignacionAgenteModalProps> = (
   
   const [query, setQuery] = useState('');
   const [selectedAgenteId, setSelectedAgenteId] = useState<string | null>(null);
+  const { canWrite } = useSubscriptionGuard();
 
   // Filtrar al agente actual y mantener solo a los activos
   const agentesValidos = useMemo(() => {
@@ -45,6 +47,10 @@ export const ReasignacionAgenteModal: React.FC<ReasignacionAgenteModalProps> = (
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
     if (!selectedAgenteId) return;
 
     try {
@@ -134,7 +140,7 @@ export const ReasignacionAgenteModal: React.FC<ReasignacionAgenteModalProps> = (
           <button
             onClick={handleConfirm}
             disabled={!selectedAgenteId || isDesactivando}
-            className="flex-1 w-full sm:w-auto px-4 py-4 font-bold text-white bg-rose-600 rounded-2xl hover:bg-rose-700 transition-colors shadow-sm shadow-rose-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+            className={`flex-1 w-full sm:w-auto px-4 py-4 font-bold text-white bg-rose-600 rounded-2xl hover:bg-rose-700 transition-colors shadow-sm shadow-rose-600/20 disabled:opacity-50 flex items-center justify-center gap-2 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
           >
             {isDesactivando ? (
               <>

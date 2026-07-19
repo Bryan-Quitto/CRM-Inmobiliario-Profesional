@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { ContenidoLegal } from './ContenidoLegal';
 import terminosEs from '../assets/terminos_servicio.md?raw';
 import terminosEn from '../assets/terminos_servicio_en.md?raw';
@@ -20,7 +20,7 @@ export const TerminosServicioView = () => {
         <div className="flex items-center bg-white border border-slate-200 p-1 rounded-lg shadow-sm">
           <button
             onClick={() => setLang('es')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+            className={`cursor-pointer px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
               lang === 'es' 
                 ? 'bg-slate-900 text-white shadow' 
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
@@ -30,7 +30,7 @@ export const TerminosServicioView = () => {
           </button>
           <button
             onClick={() => setLang('en')}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+            className={`cursor-pointer px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
               lang === 'en' 
                 ? 'bg-slate-900 text-white shadow' 
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'

@@ -3,6 +3,8 @@ import { HelpButton } from '../../../components/ui/HelpButton';
 import { Loader2, Bell, RefreshCw, BellOff, Info, Save } from 'lucide-react';
 import { TimeDurationInput, type TimeUnit } from './TimeDurationInput';
 import type { ConfiguracionNotificacionesLogicReturn } from '../hooks/useConfiguracionNotificacionesLogic';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface Props {
   logic: ConfiguracionNotificacionesLogicReturn;
@@ -21,6 +23,7 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
     validation,
     actions
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
 
   const {
     isInvalidOverdueInterval,
@@ -70,9 +73,16 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                 {!isSubscribed ? (
                   <button
                     type="button"
-                    onClick={subscribeToPush}
-                    disabled={isSubscribing}
-                    className="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                    onClick={(e) => {
+                      if (!canWrite) {
+                        e.preventDefault();
+                        toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                        return;
+                      }
+                      subscribeToPush();
+                    }}
+                    disabled={isSubscribing || !canWrite}
+                    className={`shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     {isSubscribing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
                     {isSubscribing ? 'Activando...' : 'Activar Notificaciones'}
@@ -81,9 +91,16 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                   <>
                     <button
                       type="button"
-                      onClick={resyncPushSubscription}
-                      disabled={isSubscribing}
-                      className="shrink-0 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                      onClick={(e) => {
+                        if (!canWrite) {
+                          e.preventDefault();
+                          toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                          return;
+                        }
+                        resyncPushSubscription();
+                      }}
+                      disabled={isSubscribing || !canWrite}
+                      className={`shrink-0 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isSubscribing ? 'animate-spin' : ''}`} />
                       <span className="hidden sm:inline">{isSubscribing ? 'Sincronizando...' : 'Sincronizar Dispositivo'}</span>
@@ -91,9 +108,16 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                     </button>
                     <button
                       type="button"
-                      onClick={unsubscribeFromPush}
-                      disabled={isSubscribing}
-                      className="shrink-0 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl border border-rose-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                      onClick={(e) => {
+                        if (!canWrite) {
+                          e.preventDefault();
+                          toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                          return;
+                        }
+                        unsubscribeFromPush();
+                      }}
+                      disabled={isSubscribing || !canWrite}
+                      className={`shrink-0 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl border border-rose-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       <BellOff className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Desactivar</span>
@@ -104,7 +128,14 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={(e) => {
+            if (!canWrite) {
+              e.preventDefault();
+              toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              return;
+            }
+            handleSubmit(e);
+          }} className="space-y-6">
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">Frecuencia Tareas Atrasadas</label>
@@ -114,6 +145,7 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                   baseUnit="minutes"
                   allowedUnits={['minutes', 'hours', 'days']}
                   prefix="Cada"
+                  disabled={!canWrite}
                   error={isInvalidOverdueInterval ? "Rango permitido: 1 a 1440 minutos (24h)." : undefined}
                 />
               </div>
@@ -127,6 +159,7 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                   allowedUnits={['hours', 'days']}
                   prefix="Hasta"
                   unitLabels={{ minutes: '', hours: 'Horas después', days: 'Días después' } as Record<TimeUnit, string>}
+                  disabled={!canWrite}
                   error={isInvalidOverdueMax ? "Rango permitido: 1 a 72 horas (3 días)." : undefined}
                 />
               </div>
@@ -139,6 +172,7 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                   baseUnit="minutes"
                   allowedUnits={['minutes', 'hours', 'days']}
                   unitLabels={{ minutes: 'Minutos antes', hours: 'Horas antes', days: 'Días antes' }}
+                  disabled={!canWrite}
                   error={isInvalidTodayAdvance ? "Rango permitido: 1 a 4320 minutos (3 días)." : undefined}
                 />
               </div>
@@ -151,6 +185,7 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                   baseUnit="minutes"
                   allowedUnits={['minutes', 'hours', 'days']}
                   prefix="Cada"
+                  disabled={!canWrite}
                   error={isInvalidTodayInterval ? "Rango permitido: 1 a 1440 minutos (24h)." : undefined}
                 />
               </div>
@@ -172,6 +207,7 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                   baseUnit="minutes"
                   allowedUnits={['minutes', 'hours', 'days']}
                   prefix="Cada"
+                  disabled={!canWrite}
                   error={isInvalidAiInterval ? "Rango permitido: 1 a 1440 minutos (24h)." : undefined}
                 />
               </div>
@@ -183,7 +219,8 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
                     type="number"
                     min="1"
                     max="5"
-                    className={`w-full px-4 py-2.5 bg-slate-50 border ${isInvalidAiRetries ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-100'} rounded-xl focus:ring-2 outline-none transition-all text-slate-700 text-sm font-medium`}
+                    disabled={!canWrite}
+                    className={`w-full px-4 py-2.5 bg-slate-50 border ${isInvalidAiRetries ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-100'} rounded-xl focus:ring-2 outline-none transition-all text-slate-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
                     value={settings.notifyAiHelpTasksMaxRetries}
                     onChange={(e) => handleChange('notifyAiHelpTasksMaxRetries', Number(e.target.value))}
                   />
@@ -196,7 +233,7 @@ export const ConfiguracionNotificacionesDesktop: React.FC<Props> = ({ logic }) =
               <button
                 type="submit"
                 disabled={isSaving || !isFormValid}
-                className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                className={`px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 transition-all flex items-center gap-2 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               >
                 {isSaving ? (
                   <Loader2 className="w-5 h-5 animate-spin" />

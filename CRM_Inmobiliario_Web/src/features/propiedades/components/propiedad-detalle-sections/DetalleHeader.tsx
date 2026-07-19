@@ -7,6 +7,7 @@ import PDFLinkInternal from '../PDFLinkInternal';
 import { PropiedadStatusDropdown } from '../PropiedadStatusDropdown';
 import type { Propiedad } from '../../types';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface DetalleHeaderProps {
   id: string;
@@ -46,6 +47,7 @@ export const DetalleHeader = ({
   const [waLinkCopied, setWaLinkCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { mutate } = useSWRConfig();
+  const { canWrite } = useSubscriptionGuard();
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -149,8 +151,15 @@ export const DetalleHeader = ({
           {!propiedad.isArchivedForCurrentUser && propiedad.permissions?.canEditMasterData && (
             <button
               data-testid="btn-edit-entity"
-              onClick={onShowEditModal}
-              className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              onClick={(e) => {
+                if (!canWrite) {
+                  e.preventDefault();
+                  toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                  return;
+                }
+                onShowEditModal();
+              }}
+              className={`px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-1.5 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50 hover:border-slate-300 cursor-pointer'}`}
             >
               <Pencil className="h-3 w-3 text-indigo-600" />
               Editar

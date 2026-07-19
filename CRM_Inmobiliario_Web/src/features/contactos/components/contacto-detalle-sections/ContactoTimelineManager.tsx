@@ -3,6 +3,8 @@ import { Pencil, Send, Loader2, Filter as FilterIcon, Phone, MessageSquare, Cloc
 import { SearchInput } from '@/components/ui/SearchInput';
 import { TIPO_NOTA_OPCIONES, formatDate } from '../../constants/contactos';
 import type { Interaccion } from '../../types';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface ContactoTimelineManagerProps {
   nuevaNota: string;
@@ -47,6 +49,7 @@ export const ContactoTimelineManager = ({
 }: ContactoTimelineManagerProps) => {
   const [isOpenFilter, setIsOpenFilter] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const { canWrite } = useSubscriptionGuard();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -103,14 +106,22 @@ export const ContactoTimelineManager = ({
             <div className="relative">
               <textarea 
                 value={nuevaNota}
+                disabled={!canWrite}
                 onChange={(e) => setNuevaNota(e.target.value)}
-                placeholder="Escribe aquí los detalles de la interacción..."
-                className="w-full bg-slate-50 border border-slate-100 rounded-[20px] md:rounded-[24px] p-4 md:p-6 text-slate-700 font-medium text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-200 transition-all outline-none min-h-[120px] resize-none"
+                placeholder={canWrite ? "Escribe aquí los detalles de la interacción..." : "Modo lectura (Suscripción expirada)"}
+                className="w-full bg-slate-50 border border-slate-100 rounded-[20px] md:rounded-[24px] p-4 md:p-6 text-slate-700 font-medium text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-200 transition-all outline-none min-h-[120px] resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button 
-                onClick={handleSaveNota}
-                disabled={isSavingNota || !nuevaNota.trim()}
-                className="absolute bottom-3 md:bottom-4 right-3 md:right-4 bg-slate-900 text-white px-4 md:px-6 py-2 md:py-3 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:bg-slate-200 disabled:shadow-none active:scale-95 cursor-pointer"
+                onClick={(e) => {
+                  if (!canWrite) {
+                    e.preventDefault();
+                    toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                    return;
+                  }
+                  handleSaveNota();
+                }}
+                disabled={isSavingNota || !nuevaNota.trim() || !canWrite}
+                className="absolute bottom-3 md:bottom-4 right-3 md:right-4 bg-slate-900 text-white px-4 md:px-6 py-2 md:py-3 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:bg-slate-200 disabled:shadow-none active:scale-95 cursor-pointer disabled:cursor-not-allowed"
               >
                 {isSavingNota ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 {notaEnEdicion ? 'Actualizar' : 'Guardar'}
@@ -201,8 +212,32 @@ export const ContactoTimelineManager = ({
                         </div>
                       ) : (
                         <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleEditarNota(interaccion)} className="p-1.5 hover:bg-blue-50 text-slate-300 hover:text-blue-600 rounded-lg transition-all cursor-pointer"><Pencil className="h-3 w-3" /></button>
-                          <button onClick={() => setIdInteraccionABorrar(interaccion.id)} className="p-1.5 hover:bg-rose-50 text-slate-300 hover:text-rose-600 rounded-lg transition-all cursor-pointer"><Trash2 className="h-3 w-3" /></button>
+                          <button 
+                            onClick={(e) => {
+                              if (!canWrite) {
+                                e.preventDefault();
+                                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                                return;
+                              }
+                              handleEditarNota(interaccion);
+                            }} 
+                            className={`p-1.5 hover:bg-blue-50 text-slate-300 hover:text-blue-600 rounded-lg transition-all ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              if (!canWrite) {
+                                e.preventDefault();
+                                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                                return;
+                              }
+                              setIdInteraccionABorrar(interaccion.id);
+                            }} 
+                            className={`p-1.5 hover:bg-rose-50 text-slate-300 hover:text-rose-600 rounded-lg transition-all ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
                         </div>
                       )}
                     </div>

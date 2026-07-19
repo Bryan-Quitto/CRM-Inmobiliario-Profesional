@@ -9,6 +9,8 @@ import type { CalendarioViewLogic } from '../hooks/useCalendarioViewLogic';
 import { CalendarioHeader } from './calendario-sections/CalendarioHeader';
 import { CalendarioEventContent } from './calendario-sections/CalendarioEventContent';
 import { CalendarioModals } from './calendario-sections/CalendarioModals';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 const FC_LOCALES = [esLocale];
 
@@ -50,6 +52,7 @@ export const CalendarioViewDesktop: React.FC<Props> = ({ logic }) => {
     handleEventDidMount,
     handleEventClick
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
 
   const renderDayCell = (arg: { date: Date; dayNumberText: string; isToday: boolean }) => {
     return (
@@ -113,7 +116,7 @@ export const CalendarioViewDesktop: React.FC<Props> = ({ logic }) => {
             initialView={viewType}
             headerToolbar={false}
             events={calendarEvents}
-            editable={true}
+            editable={canWrite}
             selectable={true}
             selectMirror={true}
             dayMaxEvents={4}
@@ -128,7 +131,13 @@ export const CalendarioViewDesktop: React.FC<Props> = ({ logic }) => {
             dayCellContent={renderDayCell}
             eventContent={(info) => <CalendarioEventContent eventInfo={info} />}
             eventDidMount={handleEventDidMount}
-            select={(arg) => handleOpenCrear(arg.start)}
+            select={(arg) => {
+              if (!canWrite) {
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                return;
+              }
+              handleOpenCrear(arg.start);
+            }}
             timeZone="local"
             nowIndicator={true}
             height="100%"

@@ -41,12 +41,21 @@ public static class StorageOutboxExtensions
 
         if (totalSizeToFree > 0)
         {
-            // 2. Liberar de forma optimista la cuota de uso del agente (Update)
+            // 2. Liberar de forma optimista la cuota mensual de bytes del agente
             await context.AgentStorageUsages
                 .Where(u => u.AgentId == agentId && u.Year == year && u.Month == month)
                 .ExecuteUpdateAsync(s => s.SetProperty(
                     u => u.TotalBytesUploaded, 
                     u => Math.Max(0, u.TotalBytesUploaded - totalSizeToFree)), ct);
+
+            // 3b. Liberar también el almacenamiento global acumulado del agente.
+            // CRÍTICO: Sin este update, GlobalStorageBytesUsed solo crece y nunca se
+            // reduce al borrar archivos vía Outbox, causando bloqueos falsos de cuota.
+            await context.Agents
+                .Where(a => a.Id == agentId)
+                .ExecuteUpdateAsync(s => s.SetProperty(
+                    a => a.GlobalStorageBytesUsed,
+                    a => Math.Max(0, a.GlobalStorageBytesUsed - totalSizeToFree)), ct);
         }
 
         // 3. Marcar los logs de estos archivos como eliminados

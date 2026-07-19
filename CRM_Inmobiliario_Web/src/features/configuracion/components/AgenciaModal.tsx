@@ -5,6 +5,7 @@ import type { ConfiguracionAgenciasLogic } from '../hooks/useConfiguracionAgenci
 import { InputWithCounter } from '@/components/ui/InputWithCounter';
 import { TextAreaWithCounter } from '@/components/ui/TextAreaWithCounter';
 import { Controller } from 'react-hook-form';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface Props {
   logic: ConfiguracionAgenciasLogic;
@@ -19,6 +20,7 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
     methods,
     onSubmit,
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
 
   if (!isModalOpen || !methods) return null;
 
@@ -50,7 +52,8 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
                   {...register('nombre')}
                   maxLength={150}
                   type="text"
-                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium`}
+                  disabled={!canWrite}
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.nombre ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium disabled:opacity-50`}
                   placeholder="Ej. RE/MAX Diamante"
                 />
                 {errors.nombre && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.nombre.message}</p>}
@@ -65,6 +68,7 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
                     <PhoneInputWorldClass
                       value={field.value || ''}
                       onChange={field.onChange}
+                      disabled={!canWrite}
                     />
                   )}
                 />
@@ -76,7 +80,8 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
                   {...register('emailCorporativo')}
                   maxLength={255}
                   type="email"
-                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.emailCorporativo ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium`}
+                  disabled={!canWrite}
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.emailCorporativo ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium disabled:opacity-50`}
                   placeholder="contacto@agencia.com"
                 />
                 {errors.emailCorporativo && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.emailCorporativo.message}</p>}
@@ -88,7 +93,8 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
                   {...register('direccionFisica')}
                   maxLength={500}
                   type="text"
-                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.direccionFisica ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium`}
+                  disabled={!canWrite}
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.direccionFisica ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium disabled:opacity-50`}
                   placeholder="Dirección completa de la oficina..."
                 />
               </div>
@@ -99,7 +105,8 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
                   {...register('sitioWeb')}
                   maxLength={255}
                   type="text"
-                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.sitioWeb ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium`}
+                  disabled={!canWrite}
+                  className={`w-full px-4 py-3 bg-slate-50 border ${errors.sitioWeb ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium disabled:opacity-50`}
                   placeholder="https://www.agencia.com"
                 />
                 {errors.sitioWeb && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.sitioWeb.message}</p>}
@@ -113,7 +120,8 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
                 <TextAreaWithCounter
                   {...register('contextoCorporativoIA')}
                   maxLength={2000}
-                  className={`w-full px-4 py-3 bg-indigo-50/30 border ${errors.contextoCorporativoIA ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-indigo-100 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium min-h-[120px] resize-y`}
+                  disabled={!canWrite}
+                  className={`w-full px-4 py-3 bg-indigo-50/30 border ${errors.contextoCorporativoIA ? 'border-rose-300 focus:border-rose-500 ring-rose-100' : 'border-indigo-100 focus:border-indigo-500 focus:ring-indigo-500/20'} rounded-xl focus:outline-none focus:ring-2 transition-all font-medium min-h-[120px] resize-y disabled:opacity-50`}
                   placeholder="Ej. Somos una agencia especializada en propiedades comerciales de lujo en Quito. Nuestro trato es extremadamente formal..."
                 />
               </div>
@@ -128,9 +136,16 @@ export const AgenciaModal: React.FC<Props> = ({ logic }) => {
                 Cancelar
               </button>
               <button
+                onClick={(e) => {
+                  if (!canWrite) {
+                    e.preventDefault();
+                    import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                    return;
+                  }
+                }}
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className={`w-full sm:w-auto bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-sm active:scale-95 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               >
                 {isSubmitting && <Loader2 size={18} className="animate-spin" />}
                 {editingAgency ? 'Guardar Cambios' : 'Crear Agencia'}

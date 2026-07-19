@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ESTADOS, ESTADOS_PROPIETARIO } from '../constants/contactos';
 import type { Contacto } from '../types';
 import ConfirmModal from '../../../components/ConfirmModal';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface ContactoStatusDropdownProps {
   contacto: Contacto;
@@ -34,6 +35,8 @@ export const ContactoStatusDropdown: React.FC<ContactoStatusDropdownProps> = ({
   const [showReactivateModal, setShowReactivateModal] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  
+  const { canWrite } = useSubscriptionGuard();
 
   // Filter specific stages
   const displayList = isPropietario 
@@ -61,6 +64,11 @@ export const ContactoStatusDropdown: React.FC<ContactoStatusDropdownProps> = ({
           description: `El registro es compartido. Pertenece al agente: ${contacto.nombreAgenteDueno}`
         });
       }
+      return;
+    }
+
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
       return;
     }
 
@@ -123,7 +131,7 @@ export const ContactoStatusDropdown: React.FC<ContactoStatusDropdownProps> = ({
           type="button"
           disabled={isUpdating}
           className={`${buttonClasses} cursor-pointer ${
-            isBlocked 
+            isBlocked || !canWrite
               ? 'cursor-not-allowed opacity-70 bg-slate-50 text-slate-400 border-slate-100' 
               : 'cursor-pointer hover:shadow-sm hover:scale-105 active:scale-95'
           }`}
@@ -138,7 +146,7 @@ export const ContactoStatusDropdown: React.FC<ContactoStatusDropdownProps> = ({
           )}
         </button>
 
-        {isOpen && !isBlocked && (
+        {isOpen && !isBlocked && canWrite && (
           <div 
             className={`absolute mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[150] py-2 animate-in fade-in zoom-in duration-200 backdrop-blur-xl bg-white/95 ${
               variant === 'header' ? 'left-0 origin-top-left' : 'left-0 origin-top-left'

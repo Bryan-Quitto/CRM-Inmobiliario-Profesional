@@ -1,8 +1,8 @@
 # Ziel Luxora CRM Terms of Service
 
-**Date of last update:** July 13, 2026
+**Date of last update:** July 19, 2026
 
-Welcome to Ziel Luxora CRM, the Professional Real Estate CRM ("Ziel Luxora CRM", "we", "the Platform"). These Terms of Service ("Terms") govern the access and use of our Software as a Service platform by Professional Real Estate Agents ("User", "Agent", or "you"). The figure of "Agency" within the system operates solely as a collaborative grouping functionality, and does not constitute a contractual link between Ziel Luxora CRM and such companies or franchises.
+Welcome to Ziel Luxora CRM, the Professional Real Estate CRM ("Ziel Luxora CRM", "we", "the Platform"). *Ziel Luxora CRM is operated by QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673, under the commercial name ZIEL LUXORA CRM.* These Terms of Service ("Terms") govern the access and use of our Software as a Service platform by Professional Real Estate Agents ("User", "Agent", or "you"). The figure of "Agency" within the system operates solely as a collaborative grouping functionality, and does not constitute a contractual link between Ziel Luxora CRM and such companies or franchises.
 
 By registering for, accessing, or using Ziel Luxora CRM, you expressly agree to be legally bound by these Terms, as well as by our [Privacy Policy](/privacidad). If you do not agree with any of the conditions described herein, you must not use the platform.
 
@@ -10,7 +10,7 @@ By registering for, accessing, or using Ziel Luxora CRM, you expressly agree to 
 
 Ziel Luxora CRM is a Software as a Service platform designed to facilitate commercial real estate management (CRM). Services include contact and property management, omnichannel messaging integrations (Meta: WhatsApp, Facebook Messenger), assistance through Artificial Intelligence (AI) models for prospect automation and profiling, and native push notifications to the Agent's device (WebPush/VAPID).
 
-The use of the platform is exclusively intended for commercial and professional purposes (Business to Business).
+The use of the platform is exclusively intended for commercial, mercantile, and professional purposes. This platform is a work tool, therefore the relationship between Ziel Luxora and the User is of a commercial nature (Business to Professional / B2B) and is not subject to consumer protection regulations aimed at personal or domestic use.
 
 ## 2. Privacy Roles and Obligations (LOPDP and GDPR)
 
@@ -47,33 +47,64 @@ The User agrees to:
 
 Ziel Luxora CRM reserves the right to suspend or terminate accounts that violate the acceptable use rules, without the right to a refund.
 
-### 4.1. Storage Optimization and Automatic Cleanup
+### 4.1. Limits of Use and Resources
+The Ziel Luxora CRM service is subject to usage quotas (accumulated global storage, monthly upload limit in bytes, and number of upload operations), which depend on the plan subscribed to by the Agent. An **"upload operation"** is counted each time the Agent uploads or processes a new multimedia file (photo, document, etc.) on the platform. The established quotas are:
+* **Normal Plan**: 5 GB of global storage, 1 GB of monthly upload limit, and up to 2,500 upload operations per month.
+* **Pro Plan**: 15 GB of global storage, 3 GB of monthly upload limit, and up to 6,000 upload operations per month.
+
+Ziel Luxora CRM will transparently inform about the consumption of these resources within the platform. If the User exceeds these quotas, Ziel Luxora CRM reserves the right to temporarily restrict the functionality of uploading new files until the next billing cycle or until the User upgrades their subscription plan. Ziel Luxora CRM applies compression techniques (such as WebP format) to optimize storage, but the control and management of the consumed space is the responsibility of the Agent.
+
+### 4.2. Storage Optimization and Automatic Cleanup
 Ziel Luxora CRM will perform the permanent and automatic deletion of secondary multimedia resources and PDF files attached to properties, under the following three strict global cleanup rules (which apply regardless of the agent's auto-archive configuration):
 1. **Inactive Status Cleanup:** Any property that is changed to the "Inactiva" commercial status will undergo an immediate and non-negotiable cleanup of its secondary resources.
 2. **Inactivity Cleanup (Time-based):** Any property (except those in "Vendida" or "Alquilada" status) that reaches 1 year (365 days) without activity will enter a 31-day red alert grace period. If no activity is recorded, the resources will be deleted.
 3. **Closed Business Cleanup:** Any property that changes to "Vendida" or "Alquilada" status will immediately display a red alert, and its resources will be non-negotiably deleted exactly 1 year after its closing date (regardless of any subsequent activity).
 *Note: The primary photograph of the property will always be kept.*
 
-### 4.2. Technical Modification of Multimedia Content
+### 4.3. Technical Modification of Multimedia Content
 By uploading photographs, images, or any other material to the platform, the User understands and agrees that the System may apply automated processes for compression, resizing, metadata removal (EXIF), and format conversion. These technical optimizations have the sole purpose of ensuring platform performance, fast loading speeds, and saving cloud storage space, without substantially altering the original purpose of the provided visual content.
 
-## 5. Intellectual Property
+## 5. Billing and Payments
+
+### 5.1. Subscription Plans
+The use of the Platform is subject to the payment of a subscription. The available plans are:
+* **Normal Plan**: $5.75 USD.
+* **Pro Plan**: $8.63 USD.
+(Prices include 15% IVA).
+
+### 5.2. Payment Method and Billing Cycle
+* **Method**: Direct bank transfer to the account specified in the platform (Produbanco).
+* **Verification**: The User must mandatorily send the transfer receipt in PDF format to the email address **soporte@zielluxoracrm.com**.
+* **Cycle**: 30 days from activation. Payment verification and account activation is done manually by the administration within up to 24 business hours.
+* **Renewal Calculation**: If the payment is made and verified during the grace period, the new 30-day cycle will be calculated from the original expiration date (thus billing the used grace day). If the account is already in Expired status (outside the grace period), the new 30-day cycle will begin from the exact moment the renewal is activated.
+* **Refund Policy**: No refunds will be issued for partial months or fractions of the billing cycle.
+
+### 5.3. Consequences of Non-Payment (Progressive Degradation)
+In the event of failure to register the renewal payment, the account will undergo a progressive degradation as follows:
+1. **Warning**: The Agent will be notified within the platform at least three (3) days prior to the expiration of their plan.
+2. **Grace Period**: A maximum grace period of one (1) calendar day following the subscription expiration, during which the platform will remain fully functional.
+3. **Read-only Mode and Service Deactivation**: Once the grace period expires (i.e., on the second day of non-payment), the account will switch to Expired status. In this state:
+   * Existing data will be preserved and accessible for export or consultation.
+   * The creation of new records, modification of existing data, and the upload of new multimedia files will be completely blocked.
+   * All Artificial Intelligence features (personal assistant, WhatsApp and Facebook bot integrations) and account automations (auto-archiving) will be **forcibly deactivated** to prevent unauthorized consumption. Ziel Luxora CRM is not responsible for the loss of business opportunities resulting from the deactivation of these services due to non-payment.
+
+## 6. Intellectual Property
 
 *   **Ziel Luxora CRM's Property:** The structure, code, algorithms, user interface and experience, and Ziel Luxora CRM brand are the exclusive property of the software provider company. No licenses are granted to reproduce, modify, or market the software outside the scope of the contracted software service.
 *   **User's Property:** All information, client databases, properties, and multimedia material entered by the Agent belong exclusively to them. The User (Agent) has the right to data portability, allowing them to export to Excel format (.xlsx): (a) the contacts that the Agent has created, and (b) the properties where they appear as the Listing Agent (Holder), regardless of who created them.
 
-## 6. Availability and Limitation of Liability
+## 7. Availability and Limitation of Liability
 
 Ziel Luxora CRM makes its best efforts to ensure continuous availability (uptime) of the platform, using top-tier providers (such as Supabase and Vercel/AWS). However:
 *   The service is provided "as is" and "as available". We do not guarantee that the system will be free of interruptions or errors arising from outages at external providers or force majeure.
 *   To the maximum extent permitted by applicable law, Ziel Luxora CRM shall not be liable for indirect damages, loss of profits, loss of data, business interruption, or loss of sales opportunities that may result from the use or inability to use the CRM.
 *   Ziel Luxora CRM's total cumulative liability, under any circumstances, shall be limited to the amount paid by the Agent during the last six (6) months of active service.
 
-## 7. Modifications to the Terms
+## 8. Modifications to the Terms
 
 We reserve the right to update these Terms at any time. Users will be notified of material changes via **mandatory in-app notifications** upon logging in. The User must explicitly accept the new Terms to continue using the service.
 
-## 8. Applicable Law and Jurisdiction
+## 9. Applicable Law and Jurisdiction
 
 These Terms are governed and construed in accordance with the laws of the Republic of Ecuador. For any dispute arising from the application, interpretation, or execution of this contract, the parties submit to mediation and arbitration centers, and subsidiarily to the jurisdiction of the competent judges of the city of Quito, Ecuador.
 

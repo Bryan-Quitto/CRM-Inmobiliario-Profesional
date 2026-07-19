@@ -1,4 +1,5 @@
 import { AlertCircle, RotateCcw } from 'lucide-react';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface PropiedadReversionModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export const PropiedadReversionModal = ({
   onRelist,
   showReversionModal
 }: PropiedadReversionModalProps) => {
+  const { canWrite } = useSubscriptionGuard();
   if (!isOpen || !showReversionModal) return null;
 
   return (
@@ -31,10 +33,15 @@ export const PropiedadReversionModal = ({
             {showReversionModal.currentStatus !== 'Reservada' && (
               <button 
                 onClick={() => {
+                  if (!canWrite) {
+                    import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                    return;
+                  }
                   onRelist(showReversionModal.id, "Fin de contrato / Relistado natural", "Relist");
                   onClose();
                 }}
-                className="group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-indigo-600 transition-all hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer"
+                disabled={!canWrite}
+                className={`group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-indigo-600 transition-all hover:shadow-xl hover:shadow-indigo-500/10 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               >
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -50,10 +57,15 @@ export const PropiedadReversionModal = ({
 
             <button 
               onClick={() => {
+                if (!canWrite) {
+                  import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+                  return;
+                }
                 onRelist(showReversionModal.id, "Operación anulada / Trato caído", "Cancel");
                 onClose();
               }}
-              className="group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-amber-500 transition-all hover:shadow-xl hover:shadow-amber-500/10 cursor-pointer"
+              disabled={!canWrite}
+              className={`group relative bg-white border-2 border-slate-100 p-6 rounded-[2rem] text-left hover:border-amber-500 transition-all hover:shadow-xl hover:shadow-amber-500/10 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">

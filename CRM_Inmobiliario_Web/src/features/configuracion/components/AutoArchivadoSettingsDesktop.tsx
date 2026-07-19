@@ -4,6 +4,8 @@ import { Save, Loader2, Archive } from 'lucide-react';
 import { TimeDurationDaysInput } from './TimeDurationDaysInput';
 import type { AutoArchivadoSettingsLogic } from '../hooks/useAutoArchivadoSettingsLogic';
 import { AutoArchivadoCandidatesList } from './AutoArchivadoCandidatesList';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface Props {
   logic: AutoArchivadoSettingsLogic;
@@ -20,6 +22,7 @@ export const AutoArchivadoSettingsDesktop: React.FC<Props> = ({ logic }) => {
     handleChange,
     handleSubmit
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
 
   if (isLoading) {
     return (
@@ -46,13 +49,20 @@ export const AutoArchivadoSettingsDesktop: React.FC<Props> = ({ logic }) => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={(e) => {
+            if (!canWrite) {
+              e.preventDefault();
+              toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              return;
+            }
+            handleSubmit(e);
+          }} className="space-y-6">
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-semibold text-slate-700">Contactos Inactivos</label>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" checked={settings.autoArchivarContactos} onChange={(e) => handleChange('autoArchivarContactos', e.target.checked)} />
+                    <input type="checkbox" className="sr-only peer" checked={settings.autoArchivarContactos} onChange={(e) => handleChange('autoArchivarContactos', e.target.checked)} disabled={!canWrite} />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                   </label>
                 </div>
@@ -72,7 +82,7 @@ export const AutoArchivadoSettingsDesktop: React.FC<Props> = ({ logic }) => {
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-semibold text-slate-700">Propiedades Inactivas</label>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" checked={settings.autoArchivarPropiedades} onChange={(e) => handleChange('autoArchivarPropiedades', e.target.checked)} />
+                    <input type="checkbox" className="sr-only peer" checked={settings.autoArchivarPropiedades} onChange={(e) => handleChange('autoArchivarPropiedades', e.target.checked)} disabled={!canWrite} />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                   </label>
                 </div>
@@ -93,7 +103,7 @@ export const AutoArchivadoSettingsDesktop: React.FC<Props> = ({ logic }) => {
               <button
                 type="submit"
                 disabled={isSaving || !isFormValid}
-                className="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                className={`px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 transition-all flex items-center gap-2 disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {isSaving ? (
                   <Loader2 className="w-5 h-5 animate-spin" />

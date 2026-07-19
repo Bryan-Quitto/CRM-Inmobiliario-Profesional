@@ -6,6 +6,7 @@ import { TokenUsageTable } from './TokenUsageTable';
 import type { ConfiguracionIntegracionIALogic } from '../hooks/useConfiguracionIntegracionIALogic';
 import { CostEstimateTooltip, LimitWarning } from './ConfiguracionIntegracionIAShared';
 import { HelpButton } from '../../../components/ui/HelpButton';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionIntegracionIALogic }> = ({ logic }) => {
   const {
@@ -26,6 +27,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
     handleSave, loadSettings, mutateSettings
   } = logic;
   const [showApiKey, setShowApiKey] = React.useState(false);
+  const { canWrite } = useSubscriptionGuard();
 
   return (
     <div className="hidden lg:block space-y-6 animate-in fade-in duration-500">
@@ -79,8 +81,9 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                         type={showApiKey ? "text" : "password"} 
                         value={aiApiKey}
                         onChange={(e) => setAiApiKey(e.target.value)}
+                        disabled={!canWrite}
                         placeholder="Tu API Key (ej. sk-... o AIza...)"
-                        className={`w-full pl-10 pr-12 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono ${aiKeyError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'}`}
+                        className={`w-full pl-10 pr-12 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono ${aiKeyError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
                       />
                       <button
                         type="button"
@@ -120,8 +123,9 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                         type="text" 
                         value={whatsAppId}
                         onChange={(e) => setWhatsAppId(e.target.value)}
+                        disabled={!canWrite}
                         placeholder="1234567890"
-                        className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono ${waIdError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'}`}
+                        className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono ${waIdError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
                       />
                     </div>
                     {waIdError ? (
@@ -145,6 +149,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                         type="checkbox" 
                         className="sr-only peer" 
                         checked={isWhatsAppAiEnabled}
+                        disabled={!canWrite}
                         onChange={(e) => setIsWhatsAppAiEnabled(e.target.checked)}
                       />
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
@@ -173,7 +178,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                             setAutoCreateWhatsAppContacts(e.target.checked);
                           }
                         }}
-                        disabled={isWhatsAppAiEnabled}
+                        disabled={isWhatsAppAiEnabled || !canWrite}
                       />
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                     </label>
@@ -198,10 +203,10 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                           limitValue < 20000 || limitValue > 1000000 
                             ? 'border-red-300 focus:ring-red-500 bg-red-50' 
                             : 'border-slate-300 focus:ring-indigo-500'
-                        }`}
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                         value={limitValue}
                         onChange={(e) => setLimitValue(Number(e.target.value))}
-                        disabled={isSaving}
+                        disabled={isSaving || !canWrite}
                       />
                       <CostEstimateTooltip limit={limitValue} aiApiKey={aiApiKey} />
                     </div>
@@ -234,6 +239,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                         type="checkbox" 
                         className="sr-only peer" 
                         checked={isPersonalAiEnabled}
+                        disabled={!canWrite}
                         onChange={(e) => setIsPersonalAiEnabled(e.target.checked)}
                       />
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
@@ -259,10 +265,10 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                           personalLimitValue < 20000 || personalLimitValue > 1000000 
                             ? 'border-red-300 focus:ring-red-500 bg-red-50' 
                             : 'border-slate-300 focus:ring-indigo-500'
-                        }`}
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                         value={personalLimitValue}
                         onChange={(e) => setPersonalLimitValue(Number(e.target.value))}
-                        disabled={isSaving}
+                        disabled={isSaving || !canWrite}
                       />
                       <CostEstimateTooltip limit={personalLimitValue} aiApiKey={aiApiKey} />
                     </div>
@@ -291,7 +297,14 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
 
             <div className="flex justify-end pt-6 border-t border-slate-100 mt-8">
               <button
-                onClick={handleSave}
+                onClick={(e) => {
+                  if (!canWrite) {
+                    e.preventDefault();
+                    toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                    return;
+                  }
+                  handleSave();
+                }}
                 disabled={
                   isSaving ||
                   isValidating ||
@@ -301,7 +314,7 @@ export const ConfiguracionIntegracionIADesktop: React.FC<{ logic: ConfiguracionI
                   personalLimitValue < 20000 || personalLimitValue > 1000000 ||
                   facebookLimitValue < 20000 || facebookLimitValue > 1000000
                 }
-                className="cursor-pointer flex items-center justify-center gap-2 px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`flex items-center justify-center gap-2 px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {isSaving || isValidating ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                 Guardar Configuración

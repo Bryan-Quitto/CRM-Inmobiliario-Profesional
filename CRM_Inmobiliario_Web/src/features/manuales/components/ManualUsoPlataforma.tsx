@@ -41,10 +41,14 @@ export const ManualUsoPlataforma: React.FC = () => {
             </ul>
           </ManualSection>
 
-          <ManualSection title="2. Almacenamiento" icon={<Database className="w-6 h-6 text-indigo-500" />}>
+          <ManualSection title="2. Almacenamiento (Global y Mensual)" icon={<Database className="w-6 h-6 text-indigo-500" />}>
             <p className="mb-4 text-slate-600">
-              Mide el peso total (en Megabytes o Gigabytes) de todos los archivos que tienes alojados en el mes activo.
+              El sistema utiliza dos medidores diferentes para garantizar un uso justo del espacio en la nube:
             </p>
+            <ul className="list-disc pl-5 text-sm text-slate-700 mb-4 space-y-2">
+              <li><strong>Almacenamiento Global:</strong> Es el peso total histórico de todos tus archivos acumulados en el sistema. Nunca se reinicia a cero, solo baja cuando eliminas archivos antiguos o propiedades.</li>
+              <li><strong>Subida Mensual (Ingesta):</strong> Es el límite de Gigabytes nuevos que se te permite subir específicamente durante tu mes de facturación en curso.</li>
+            </ul>
             <div className="space-y-4">
               <div className="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200">
                 <p className="text-sm text-slate-700 text-justify leading-relaxed">
@@ -79,7 +83,7 @@ export const ManualUsoPlataforma: React.FC = () => {
           <ManualSection title="4. Ciclo de Facturación" icon={<AlertCircle className="w-6 h-6 text-indigo-500" />}>
             <div className="bg-blue-50/50 p-4 md:p-5 rounded-xl border border-blue-100/50">
               <p className="text-sm text-slate-700 text-justify mb-3">
-                <strong>Reinicio Automático:</strong> Tanto las Operaciones como el Almacenamiento se reinician automáticamente al inicio de tu próximo mes de corte. En tu panel siempre podrás visualizar cuántos días faltan para este reinicio.
+                <strong>Reinicio Automático:</strong> Tanto las Operaciones como tu límite de Subida Mensual (ingesta) se reinician automáticamente a cero al inicio de tu próximo mes de corte. En tu panel siempre podrás visualizar cuántos días faltan para este reinicio. El Almacenamiento Global no se reinicia, ya que es tu disco duro acumulativo.
               </p>
               <p className="text-sm text-slate-700 text-justify">
                 Si has alcanzado tu límite y necesitas continuar trabajando con normalidad antes del fin de mes, o si necesitas un plan de almacenamiento mayor, por favor contáctanos de urgencia.

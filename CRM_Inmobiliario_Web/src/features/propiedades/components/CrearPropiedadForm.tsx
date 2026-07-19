@@ -9,8 +9,8 @@ import {
 } from 'lucide-react';
 import type { Propiedad } from '../types';
 
-// Hook modularizado
 import { useCrearPropiedad } from '../hooks/useCrearPropiedad';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 // Componentes de sección
 import { ImportSection } from './crear-propiedad-sections/ImportSection';
@@ -44,6 +44,7 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
     tipoSeleccionado,
     initialData
   } = useCrearPropiedad({ listData, onSuccess });
+  const { canWrite } = useSubscriptionGuard();
 
   if (isEditing && isLoadingDetails) {
     return (
@@ -110,7 +111,14 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
       </div>
 
       <FormProvider {...methods}>
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form onSubmit={(e) => {
+          if (!canWrite) {
+            e.preventDefault();
+            import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+            return;
+          }
+          onSubmit(e);
+        }} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
             
             <ImportSection 
@@ -145,10 +153,10 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
             </button>
             <button 
               type="submit"
-              disabled={isSuccess || !tipoSeleccionado}
-              className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed ${
+              disabled={isSuccess || !tipoSeleccionado || !canWrite}
+              className={`flex-[2] py-4 font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:cursor-not-allowed ${
                 isSuccess ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-blue-600 text-white shadow-blue-600/20 hover:bg-blue-700 disabled:bg-slate-300'
-              }`}
+              } ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >
               {isSuccess ? (
                 <div className="flex items-center gap-2 animate-in zoom-in duration-300">

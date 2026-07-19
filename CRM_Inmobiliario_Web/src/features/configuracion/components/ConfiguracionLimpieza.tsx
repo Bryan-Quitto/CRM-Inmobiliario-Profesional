@@ -3,6 +3,7 @@ import { ShieldAlert, Search, RefreshCw, Lock, Unlock, AlertCircle } from 'lucid
 import { getDropdownPropiedades, type DropdownPropiedadResponse } from '@/features/propiedades/api/getDropdownPropiedades';
 import { api } from '@/lib/axios';
 import { toast } from 'sonner';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 export const ConfiguracionLimpieza = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +12,7 @@ export const ConfiguracionLimpieza = () => {
   const [isBlocking, setIsBlocking] = useState(true); // true = Block, false = Unblock
   const [selectedPropiedad, setSelectedPropiedad] = useState<DropdownPropiedadResponse | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const { canWrite } = useSubscriptionGuard();
 
   useEffect(() => {
     const fetchPropiedades = async () => {
@@ -181,11 +183,17 @@ export const ConfiguracionLimpieza = () => {
                 Cancelar
               </button>
               <button
-                onClick={handleConfirm}
+                onClick={() => {
+                  if (!canWrite) {
+                    toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                    return;
+                  }
+                  handleConfirm();
+                }}
                 disabled={isSaving}
                 className={`flex-1 px-4 py-2.5 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 ${
                   isBlocking ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
-                } ${isSaving ? 'opacity-80 cursor-wait' : ''}`}
+                } ${isSaving ? 'opacity-80 cursor-wait' : ''} ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               >
                 {isSaving ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
                 {isSaving ? 'Procesando...' : 'Confirmar'}

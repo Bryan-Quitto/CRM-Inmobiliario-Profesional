@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useAgentes } from '../hooks/useAgentes';
 import { useEliminarAgente } from '../hooks/useEliminarAgente';
 import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface EliminarAgenteModalProps {
   agenteEliminarId: string;
@@ -27,6 +28,7 @@ export const EliminarAgenteModal: React.FC<EliminarAgenteModalProps> = ({
   
   const [query, setQuery] = useState('');
   const [selectedAgenteId, setSelectedAgenteId] = useState<string | null>(null);
+  const { canWrite } = useSubscriptionGuard();
 
   // Filtrar al agente actual y mantener solo a los activos
   const agentesValidos = useMemo(() => {
@@ -48,6 +50,10 @@ export const EliminarAgenteModal: React.FC<EliminarAgenteModalProps> = ({
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
     if (!selectedAgenteId) return;
 
     // Optimistic UI
@@ -144,7 +150,7 @@ export const EliminarAgenteModal: React.FC<EliminarAgenteModalProps> = ({
           <button
             onClick={handleConfirm}
             disabled={!selectedAgenteId || isEliminando}
-            className="flex-1 w-full sm:w-auto px-4 py-4 font-bold text-white bg-rose-600 rounded-2xl hover:bg-rose-700 transition-colors shadow-sm shadow-rose-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+            className={`flex-1 w-full sm:w-auto px-4 py-4 font-bold text-white bg-rose-600 rounded-2xl hover:bg-rose-700 transition-colors shadow-sm shadow-rose-600/20 disabled:opacity-50 flex items-center justify-center gap-2 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
           >
             {isEliminando ? (
               <>

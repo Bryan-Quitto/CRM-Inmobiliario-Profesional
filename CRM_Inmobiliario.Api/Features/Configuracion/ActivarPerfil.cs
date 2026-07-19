@@ -17,7 +17,10 @@ public static class ActivarPerfil
         string Telefono,
         Guid? AgenciaId,
         Guid? GuestAgentId = null,
-        string? TerminosAceptadosVersion = null);
+        string? TerminosAceptadosVersion = null,
+        string? PlanTier = "Normal",
+        int? SubscriptionMonths = 1,
+        string? SubscriptionNotes = null);
 
     public static IEndpointRouteBuilder MapActivarPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
@@ -96,6 +99,23 @@ public static class ActivarPerfil
                     await context.Agents
                         .Where(a => a.Id == oldId)
                         .ExecuteDeleteAsync();
+                }
+
+                // Crear suscripción si no existe
+                var existingSub = await context.Subscriptions.FirstOrDefaultAsync(s => s.AgentId == agenteId);
+                if (existingSub == null)
+                {
+                    var nowEcuador = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
+                    var newSub = new Subscription
+                    {
+                        AgentId = agenteId,
+                        PlanTier = request.PlanTier ?? "Normal",
+                        Status = "Active",
+                        CurrentPeriodStart = nowEcuador,
+                        CurrentPeriodEnd = nowEcuador.AddMonths(request.SubscriptionMonths ?? 1),
+                        PaymentNotes = request.SubscriptionNotes
+                    };
+                    context.Subscriptions.Add(newSub);
                 }
 
                 await context.SaveChangesAsync();

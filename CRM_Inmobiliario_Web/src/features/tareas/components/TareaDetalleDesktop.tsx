@@ -15,6 +15,8 @@ import {
 import { Link } from 'react-router-dom';
 import type { TareaDetalleLogicReturn } from '../hooks/useTareaDetalleLogic';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface Props {
   logic: TareaDetalleLogicReturn;
@@ -32,6 +34,7 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
     isPending,
     formatFecha
   } = logic;
+  const { canWrite } = useSubscriptionGuard();
 
   return (
     <div className="flex flex-col h-full bg-white animate-in slide-in-from-right duration-300 relative overflow-hidden">
@@ -54,22 +57,43 @@ export const TareaDetalleDesktop = ({ logic }: Props) => {
             <>
               <button 
                 title="Completar Tarea"
-                onClick={onCompleteTask}
-                className="p-2 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-transparent hover:border-emerald-100 cursor-pointer"
+                onClick={(e) => {
+                  if (!canWrite) {
+                    e.preventDefault();
+                    toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                    return;
+                  }
+                  onCompleteTask();
+                }}
+                className={`p-2 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-transparent hover:border-emerald-100 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <CheckCircle2 className="h-4 w-4" />
               </button>
               <button 
                 title="Cancelar Tarea"
-                onClick={onCancelTask}
-                className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 cursor-pointer"
+                onClick={(e) => {
+                  if (!canWrite) {
+                    e.preventDefault();
+                    toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                    return;
+                  }
+                  onCancelTask();
+                }}
+                className={`p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <XCircle className="h-4 w-4" />
               </button>
               <button 
                 title="Editar Tarea"
-                onClick={onEdit}
-                className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100 cursor-pointer"
+                onClick={(e) => {
+                  if (!canWrite) {
+                    e.preventDefault();
+                    toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                    return;
+                  }
+                  onEdit();
+                }}
+                className={`p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <Pencil className="h-4 w-4" />
               </button>

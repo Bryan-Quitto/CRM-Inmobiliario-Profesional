@@ -6,6 +6,7 @@ import { TokenUsageTable } from './TokenUsageTable';
 import type { ConfiguracionIntegracionIALogic } from '../hooks/useConfiguracionIntegracionIALogic';
 import { CostEstimateTooltip, LimitWarning } from './ConfiguracionIntegracionIAShared';
 import { HelpButton } from '../../../components/ui/HelpButton';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIntegracionIALogic }> = ({ logic }) => {
   const {
@@ -26,6 +27,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
     handleSave, loadSettings, mutateSettings
   } = logic;
   const [showApiKey, setShowApiKey] = React.useState(false);
+  const { canWrite } = useSubscriptionGuard();
 
   return (
     <div className="block lg:hidden space-y-4 animate-in fade-in duration-500 pb-20">
@@ -80,8 +82,9 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                       type={showApiKey ? "text" : "password"} 
                       value={aiApiKey}
                       onChange={(e) => setAiApiKey(e.target.value)}
+                      disabled={!canWrite}
                       placeholder="Tu API Key"
-                      className={`w-full pl-10 pr-12 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono text-sm ${aiKeyError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'}`}
+                      className={`w-full pl-10 pr-12 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono text-sm ${aiKeyError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
                     />
                     <button
                       type="button"
@@ -121,8 +124,9 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                       type="text" 
                       value={whatsAppId}
                       onChange={(e) => setWhatsAppId(e.target.value)}
+                      disabled={!canWrite}
                       placeholder="1234567890"
-                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono text-sm ${waIdError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'}`}
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 outline-none transition-all font-mono text-sm ${waIdError ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50 text-red-900' : 'border-slate-200 focus:ring-indigo-500 focus:border-indigo-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
                     />
                   </div>
                   {waIdError ? (
@@ -141,7 +145,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                       <p className="text-xs text-slate-500 mt-0.5 break-words">Responde msjs entrantes.</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input type="checkbox" className="sr-only peer" checked={isWhatsAppAiEnabled} onChange={(e) => setIsWhatsAppAiEnabled(e.target.checked)}/>
+                      <input type="checkbox" className="sr-only peer" checked={isWhatsAppAiEnabled} onChange={(e) => setIsWhatsAppAiEnabled(e.target.checked)} disabled={!canWrite}/>
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                     </label>
                   </div>
@@ -157,7 +161,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                       <p className="text-xs text-slate-500 mt-0.5 break-words">Automático en primer msj.</p>
                     </div>
                     <label className={`relative inline-flex items-center shrink-0 ${isWhatsAppAiEnabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
-                      <input type="checkbox" className="sr-only peer" checked={isWhatsAppAiEnabled || autoCreateWhatsAppContacts} onChange={(e) => { if (!isWhatsAppAiEnabled) setAutoCreateWhatsAppContacts(e.target.checked); }} disabled={isWhatsAppAiEnabled}/>
+                      <input type="checkbox" className="sr-only peer" checked={isWhatsAppAiEnabled || autoCreateWhatsAppContacts} onChange={(e) => { if (!isWhatsAppAiEnabled) setAutoCreateWhatsAppContacts(e.target.checked); }} disabled={isWhatsAppAiEnabled || !canWrite}/>
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                     </label>
                   </div>
@@ -173,10 +177,10 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                     <div className="flex flex-col gap-3 w-full">
                       <input
                         type="number" min={20000} max={1000000} step={1000}
-                        className={`border rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 font-mono ${limitValue < 20000 || limitValue > 1000000 ? 'border-red-300 focus:ring-red-500 bg-red-50' : 'border-slate-300 focus:ring-indigo-500'}`}
+                        className={`border rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 font-mono ${limitValue < 20000 || limitValue > 1000000 ? 'border-red-300 focus:ring-red-500 bg-red-50' : 'border-slate-300 focus:ring-indigo-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
                         value={limitValue}
                         onChange={(e) => setLimitValue(Number(e.target.value))}
-                        disabled={isSaving}
+                        disabled={isSaving || !canWrite}
                       />
                       <div className="self-end">
                         <CostEstimateTooltip limit={limitValue} aiApiKey={aiApiKey} />
@@ -209,7 +213,7 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                       <p className="text-xs text-slate-500 mt-0.5 break-words">Permite usar el Copiloto.</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input type="checkbox" className="sr-only peer" checked={isPersonalAiEnabled} onChange={(e) => setIsPersonalAiEnabled(e.target.checked)}/>
+                      <input type="checkbox" className="sr-only peer" checked={isPersonalAiEnabled} onChange={(e) => setIsPersonalAiEnabled(e.target.checked)} disabled={!canWrite}/>
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                     </label>
                   </div>
@@ -225,10 +229,10 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
                     <div className="flex flex-col gap-3 w-full">
                       <input
                         type="number" min={20000} max={1000000} step={1000}
-                        className={`border rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 font-mono ${personalLimitValue < 20000 || personalLimitValue > 1000000 ? 'border-red-300 focus:ring-red-500 bg-red-50' : 'border-slate-300 focus:ring-indigo-500'}`}
+                        className={`border rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 font-mono ${personalLimitValue < 20000 || personalLimitValue > 1000000 ? 'border-red-300 focus:ring-red-500 bg-red-50' : 'border-slate-300 focus:ring-indigo-500'} disabled:opacity-50 disabled:cursor-not-allowed`}
                         value={personalLimitValue}
                         onChange={(e) => setPersonalLimitValue(Number(e.target.value))}
-                        disabled={isSaving}
+                        disabled={isSaving || !canWrite}
                       />
                       <div className="self-end">
                         <CostEstimateTooltip limit={personalLimitValue} aiApiKey={aiApiKey} />
@@ -259,9 +263,16 @@ export const ConfiguracionIntegracionIAMobile: React.FC<{ logic: ConfiguracionIn
 
             <div className="pt-4 mt-4 border-t border-slate-100">
               <button
-                onClick={handleSave}
+                onClick={(e) => {
+                  if (!canWrite) {
+                    e.preventDefault();
+                    toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                    return;
+                  }
+                  handleSave();
+                }}
                 disabled={isSaving || isValidating || !!aiKeyError || !!waIdError || limitValue < 20000 || limitValue > 1000000 || personalLimitValue < 20000 || personalLimitValue > 1000000 || facebookLimitValue < 20000 || facebookLimitValue > 1000000}
-                className="w-full cursor-pointer flex items-center justify-center gap-2 px-4 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 ${!canWrite ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {isSaving || isValidating ? <Loader2 size={18} className="animate-spin shrink-0" /> : <Save size={18} className="shrink-0" />}
                 <span className="break-words">Guardar Configuración</span>

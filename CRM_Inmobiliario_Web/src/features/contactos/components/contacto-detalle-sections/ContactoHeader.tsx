@@ -5,6 +5,8 @@ import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
 import { useCopilotStore } from '@/features/copilot/store/useCopilotStore';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { toast } from 'sonner';
 
 interface ContactoHeaderProps {
   contacto: Contacto;
@@ -33,8 +35,13 @@ export const ContactoHeader = ({
   const isFromOwners = pathname.includes('/propietarios');
   const backPath = isFromOwners ? '/propietarios' : '/contactos';
   const { setFocusedContext, toggleOpen } = useCopilotStore();
+  const { canWrite } = useSubscriptionGuard();
   
   const handleAnalizarConIA = () => {
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
     setFocusedContext({ id: contacto.id, name: [contacto.nombre, contacto.apellido].filter(Boolean).join(' ') });
     toggleOpen();
   };
@@ -102,10 +109,16 @@ export const ContactoHeader = ({
         {contacto.telefono && (
           <a 
             title="WhatsApp Directo"
+            onClick={(e) => {
+              if (!canWrite) {
+                e.preventDefault();
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              }
+            }}
             href={`https://wa.me/${contacto.telefono.replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm border border-emerald-100 cursor-pointer"
+            className={`h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm border border-emerald-100 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <MessageSquare className="h-5 w-5" />
           </a>
@@ -114,10 +127,16 @@ export const ContactoHeader = ({
         {contacto.facebookSenderId && (
           <a 
             title="Facebook Messenger"
+            onClick={(e) => {
+              if (!canWrite) {
+                e.preventDefault();
+                toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+              }
+            }}
             href={`https://m.me/${contacto.facebookSenderId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100 cursor-pointer"
+            className={`h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <MessageCircle className="h-5 w-5" />
           </a>
@@ -127,7 +146,7 @@ export const ContactoHeader = ({
           <button
             onClick={handleAnalizarConIA}
             title="Analizar con IA"
-            className="h-10 px-3 md:px-4 bg-indigo-50 text-indigo-600 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1.5 md:gap-2 cursor-pointer shrink-0"
+            className={`h-10 px-3 md:px-4 bg-indigo-50 text-indigo-600 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 flex items-center gap-1.5 md:gap-2 shrink-0 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             ✨ <span className="hidden md:inline">Analizar con IA</span>
           </button>
@@ -144,8 +163,15 @@ export const ContactoHeader = ({
             <button 
               title="Fusionar Contactos"
               data-testid="btn-merge-entity"
-              onClick={onMerge}
-              className="h-8 md:h-10 px-3 md:px-4 bg-white text-slate-700 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-slate-50 transition-all shadow-sm border border-slate-200 flex items-center gap-1.5 md:gap-2 cursor-pointer shrink-0"
+              onClick={(e) => {
+                if (!canWrite) {
+                  e.preventDefault();
+                  toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                  return;
+                }
+                onMerge();
+              }}
+              className={`h-8 md:h-10 px-3 md:px-4 bg-white text-slate-700 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-slate-50 transition-all shadow-sm border border-slate-200 flex items-center gap-1.5 md:gap-2 shrink-0 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <Merge className="h-3 w-3 md:h-4 md:w-4 text-blue-500" />
               Fusionar
@@ -153,8 +179,15 @@ export const ContactoHeader = ({
 
             <button 
               data-testid="btn-edit-entity"
-              onClick={onEdit}
-              className="h-8 md:h-10 px-3 md:px-4 bg-slate-900 text-white font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-1.5 md:gap-2 cursor-pointer shrink-0"
+              onClick={(e) => {
+                if (!canWrite) {
+                  e.preventDefault();
+                  toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+                  return;
+                }
+                onEdit();
+              }}
+              className={`h-8 md:h-10 px-3 md:px-4 bg-slate-900 text-white font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-lg md:rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-1.5 md:gap-2 shrink-0 ${!canWrite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <Pencil className="h-3 w-3 md:h-4 md:w-4" />
               Editar

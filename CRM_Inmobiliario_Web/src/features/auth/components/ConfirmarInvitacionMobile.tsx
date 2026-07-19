@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
-  const { formData, isLoading, error, hasPredefinedAgency, validations, allValid, legalAccepted, setLegalAccepted, handleChange, handleActivate } = logic;
+  const { formData, isLoading, error, validations, allValid, legalAccepted, setLegalAccepted, handleChange, handleActivate } = logic;
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   
@@ -85,9 +85,8 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
                   name="agenciaNombre"
                   type="text"
                   value={formData.agenciaNombre || 'Independiente'}
-                  onChange={handleChange}
-                  disabled={hasPredefinedAgency}
-                  className={`w-full bg-slate-900 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none ${hasPredefinedAgency ? 'opacity-60' : 'focus:border-emerald-500'}`}
+                  readOnly
+                  className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none opacity-60 cursor-not-allowed border-dashed"
                   placeholder="Nombre empresa"
                 />
               </div>
@@ -151,7 +150,7 @@ export const ConfirmarInvitacionMobile: React.FC<Props> = ({ logic }) => {
               </label>
               <button type="button" onClick={() => openModal('terminos')} className="cursor-pointer text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Términos de Servicio</button>
               {' '}y la{' '}
-              <button type="button" onClick={() => openModal('privacidad')} className="text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Política de Privacidad</button>.
+              <button type="button" onClick={() => openModal('privacidad')} className="cursor-pointer text-emerald-500 hover:text-emerald-400 hover:underline font-medium transition-colors">Política de Privacidad</button>.
             </div>
           </div>
 

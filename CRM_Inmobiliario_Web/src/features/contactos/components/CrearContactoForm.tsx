@@ -4,6 +4,7 @@ import { CrearContactoFields } from './crear-contacto-sections/CrearContactoFiel
 import { OrigenSelect } from './crear-contacto-sections/OrigenSelect';
 import { CrearContactoFooter } from './crear-contacto-sections/CrearContactoFooter';
 import type { Contacto } from '../types';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface Props {
   initialData?: Contacto;
@@ -29,6 +30,7 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
     validateTelefono,
     roleError
   } = useCrearContacto({ initialData, isOwnersView, onSuccess });
+  const { canWrite } = useSubscriptionGuard();
 
   return (
     <div className="mx-auto bg-white p-6 sm:p-8 rounded-none sm:rounded-3xl w-full max-w-lg shadow-none sm:shadow-2xl animate-in fade-in zoom-in duration-300 relative max-h-full sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 flex flex-col min-w-0">
@@ -42,7 +44,14 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
         onCancel={onCancel}
       />
 
-      <form onSubmit={handleSubmit} className="flex flex-col w-full space-y-6">
+      <form onSubmit={(e) => {
+        if (!canWrite) {
+          e.preventDefault();
+          import('sonner').then(({ toast }) => toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.'));
+          return;
+        }
+        handleSubmit(e);
+      }} className="flex flex-col w-full space-y-6">
         <CrearContactoFields 
           register={register}
           errors={errors}

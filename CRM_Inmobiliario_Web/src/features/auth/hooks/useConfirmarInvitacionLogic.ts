@@ -13,6 +13,9 @@ export const useConfirmarInvitacionLogic = () => {
     telefono: '',
     agenciaId: '',
     agenciaNombre: '',
+    planTier: 'Normal',
+    subscriptionMonths: 1,
+    subscriptionNotes: '',
     password: '',
     confirmPassword: ''
   });
@@ -40,6 +43,15 @@ export const useConfirmarInvitacionLogic = () => {
           if (response.data) {
             setFormData(prev => ({ ...prev, agenciaNombre: response.data.nombre }));
           }
+        }
+
+        if (user.user_metadata?.plan_tier) {
+          setFormData(prev => ({ 
+            ...prev, 
+            planTier: user.user_metadata.plan_tier,
+            subscriptionMonths: user.user_metadata.subscription_months || 1,
+            subscriptionNotes: user.user_metadata.subscription_notes || ''
+          }));
         }
       } catch {
         setFormData(prev => ({ 
@@ -95,6 +107,9 @@ export const useConfirmarInvitacionLogic = () => {
         apellido: formData.apellido,
         telefono: formData.telefono,
         agenciaId: formData.agenciaId || null,
+        planTier: formData.planTier,
+        subscriptionMonths: formData.subscriptionMonths,
+        subscriptionNotes: formData.subscriptionNotes,
         guestAgentId: guestAgentId,
         terminosAceptadosVersion: import.meta.env.VITE_CURRENT_TOS_VERSION || ''
       });
@@ -102,6 +117,8 @@ export const useConfirmarInvitacionLogic = () => {
       toast.success('¡Perfil configurado!', {
         description: 'Tu cuenta ha sido activada con éxito.'
       });
+
+      localStorage.removeItem('crm_pending_invite');
 
       window.history.replaceState(null, '', window.location.pathname);
 

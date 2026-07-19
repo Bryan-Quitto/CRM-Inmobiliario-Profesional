@@ -3,6 +3,7 @@ import { UserCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useReactivarAgente } from '../hooks/useReactivarAgente';
 import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 interface ReactivacionAgenteModalProps {
   agenteId: string;
@@ -20,12 +21,16 @@ export const ReactivacionAgenteModal: React.FC<ReactivacionAgenteModalProps> = (
   onSuccess,
 }) => {
   const { mutateAsync: reactivar, isLoading } = useReactivarAgente();
-
   const { withOptimisticLock } = useGlobalMutationLock();
+  const { canWrite } = useSubscriptionGuard();
 
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
+    if (!canWrite) {
+      toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
+      return;
+    }
     // Optimistic UI
     onClose();
     
@@ -74,7 +79,7 @@ export const ReactivacionAgenteModal: React.FC<ReactivacionAgenteModalProps> = (
             <button
               onClick={handleConfirm}
               disabled={isLoading}
-              className="flex-1 w-full sm:w-auto px-4 py-4 font-bold text-white bg-emerald-600 rounded-2xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              className={`flex-1 w-full sm:w-auto px-4 py-4 font-bold text-white bg-emerald-600 rounded-2xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 flex items-center justify-center gap-2 ${!canWrite ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >
               {isLoading ? (
                 <>
