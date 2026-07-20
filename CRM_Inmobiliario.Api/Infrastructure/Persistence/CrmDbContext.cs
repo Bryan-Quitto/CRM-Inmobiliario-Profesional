@@ -11,13 +11,17 @@ namespace CRM_Inmobiliario.Api.Infrastructure.Persistence;
 public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
 {
     private readonly IDataProtectionProvider? _dataProtectionProvider;
+    private readonly CRM_Inmobiliario.Api.Infrastructure.Security.IEncryptionService? _encryptionService;
 
     public DbSet<AgentStorageFileLog> AgentStorageFileLogs => Set<AgentStorageFileLog>();
     public DbSet<PendingStorageDeletion> PendingStorageDeletions => Set<PendingStorageDeletion>();
     
-    public CrmDbContext(DbContextOptions<CrmDbContext> options, IDataProtectionProvider? dataProtectionProvider = null) : base(options)
+    public CrmDbContext(DbContextOptions<CrmDbContext> options, 
+        IDataProtectionProvider? dataProtectionProvider = null,
+        CRM_Inmobiliario.Api.Infrastructure.Security.IEncryptionService? encryptionService = null) : base(options)
     {
         _dataProtectionProvider = dataProtectionProvider;
+        _encryptionService = encryptionService;
     }
 
     // Requerido por IDataProtectionKeyContext para persistir claves en PostgreSQL (Railway-safe)
@@ -187,6 +191,28 @@ public sealed class CrmDbContext : DbContext, IDataProtectionKeyContext
             modelBuilder.Entity<Agent>()
                 .Property(e => e.AiApiKey)
                 .HasConversion(aiApiKeyConverter);
+        }
+
+        if (_encryptionService != null)
+        {
+            var encryptedStringConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<string, string>(
+                v => _encryptionService.Encrypt(v),
+                v => _encryptionService.Decrypt(v)
+            );
+
+            var encryptedNullableStringConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<string?, string?>(
+                v => v == null ? null : _encryptionService.Encrypt(v),
+                v => v == null ? null : _encryptionService.Decrypt(v)
+            );
+
+            modelBuilder.Entity<WhatsappMessage>().Property(e => e.Contenido).HasConversion(encryptedStringConverter);
+            modelBuilder.Entity<FacebookMessage>().Property(e => e.Contenido).HasConversion(encryptedStringConverter);
+            modelBuilder.Entity<WhatsappConversation>().Property(e => e.HistorialJson).HasConversion(encryptedStringConverter);
+            modelBuilder.Entity<FacebookConversation>().Property(e => e.HistorialJson).HasConversion(encryptedStringConverter);
+            modelBuilder.Entity<AiActionLog>().Property(e => e.TriggerMessage).HasConversion(encryptedNullableStringConverter);
+            modelBuilder.Entity<AiActionLog>().Property(e => e.DetalleJson).HasConversion(encryptedNullableStringConverter);
+            modelBuilder.Entity<AgentMessage>().Property(e => e.Content).HasConversion(encryptedStringConverter);
+            modelBuilder.Entity<Interaction>().Property(e => e.Notas).HasConversion(encryptedStringConverter);
         }
     }
 

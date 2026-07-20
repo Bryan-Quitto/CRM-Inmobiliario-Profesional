@@ -1,8 +1,8 @@
 # Ziel Luxora CRM Terms of Service
 
-**Date of last update:** July 19, 2026
+**Date of last update:** July 20, 2026
 
-Welcome to Ziel Luxora CRM, the Professional Real Estate CRM ("Ziel Luxora CRM", "we", "the Platform"). *Ziel Luxora CRM is operated by QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673, under the commercial name ZIEL LUXORA CRM.* These Terms of Service ("Terms") govern the access and use of our Software as a Service platform by Professional Real Estate Agents ("User", "Agent", or "you"). The figure of "Agency" within the system operates solely as a collaborative grouping functionality, and does not constitute a contractual link between Ziel Luxora CRM and such companies or franchises.
+Welcome to Ziel Luxora CRM, the Professional Real Estate CRM ("Ziel Luxora CRM", "we", "the Platform"). *Ziel Luxora CRM is operated by QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673001, under the commercial name ZIEL LUXORA CRM.* These Terms of Service ("Terms") govern the access and use of our Software as a Service platform by Professional Real Estate Agents ("User", "Agent", or "you"). The figure of "Agency" within the system operates solely as a collaborative grouping functionality, and does not constitute a contractual link between Ziel Luxora CRM and such companies or franchises.
 
 By registering for, accessing, or using Ziel Luxora CRM, you expressly agree to be legally bound by these Terms, as well as by our [Privacy Policy](/privacidad). If you do not agree with any of the conditions described herein, you must not use the platform.
 
@@ -25,6 +25,8 @@ It is the strict and absolute responsibility of the Agent to:
 2. Obtain the explicit consent of end users to process their conversations and data using third-party Artificial Intelligence (AI) tools, as well as to interact with them via the WhatsApp Business API or other integrated messaging platforms.
 3. Address any request to exercise rights (Access, Rectification, Erasure, Objection, Portability) coming from their end clients. Ziel Luxora CRM will provide the technical tools to facilitate this management.
 
+*Note on automation:* Although Ziel Luxora CRM provides an automated flow that requests this consent during the first incoming interaction, the use of this technical tool does not exempt the Agent from their obligation to ensure that all their contacts (including those registered manually or from offline sources) have granted valid consent before activating AI features for them.
+
 Ziel Luxora CRM exempts itself from any legal responsibility, fine, or penalty arising from the Agent's failure to obtain lawful consents.
 
 ## 3. Third-Party Integrations and Artificial Intelligence
@@ -35,7 +37,7 @@ The platform allows linking with Meta channels. The User agrees to fully comply 
 ### 3.2. Artificial Intelligence Providers
 Ziel Luxora CRM integrates Artificial Intelligence engines provided by third parties (e.g., OpenAI, Google Gemini).
 *   **Information Processing:** By using AI features in Ziel Luxora CRM (summaries, automated responses, transcriptions), the Agent authorizes the information and messages of their clients to be temporarily transmitted to the servers of these providers to be processed.
-*   **Own Integration Key Modality:** If the User configures their own OpenAI or Google integration credentials, they assume full responsibility for the billing costs generated on those platforms and for the security in the custody of such credentials within our platform.
+*   **Own Integration Key Modality:** If the User configures their own OpenAI or Google integration credentials, they assume full responsibility for the billing costs generated on those platforms. For our part, Ziel Luxora CRM guarantees that such credentials (API Keys) are protected using advanced encryption algorithms at rest within our database, making them impossible to read in plaintext and safeguarding the security of the integration.
 
 ## 4. Acceptable Use of the Platform
 
@@ -47,21 +49,28 @@ The User agrees to:
 
 Ziel Luxora CRM reserves the right to suspend or terminate accounts that violate the acceptable use rules, without the right to a refund.
 
-### 4.1. Limits of Use and Resources
-The Ziel Luxora CRM service is subject to usage quotas (accumulated global storage, monthly upload limit in bytes, and number of upload operations), which depend on the plan subscribed to by the Agent. An **"upload operation"** is counted each time the Agent uploads or processes a new multimedia file (photo, document, etc.) on the platform. The established quotas are:
+### 4.1. Prohibition of Sensitive Data in Free-Text Fields
+The User (Agent) is strictly prohibited from using free-text fields (such as notes, descriptions, comments, or interaction histories) to collect, store, or transmit "Sensitive Personal Data" of their end clients. This includes, but is not limited to: data concerning physical or mental health, biometric information, sexual orientation, religious or philosophical beliefs, political affiliation, ethnic origin, criminal records, or restricted financial/bank information.
+
+As the Agent is the sole Data Controller for their client portfolio, they assume 100% of the legal, administrative, and economic responsibility in case of a violation of this rule. Ziel Luxora CRM provides "Privacy by Design" mechanisms (interface alerts) to instruct the User, but exempts itself from all liability for the negligence or breach of this prohibition by the Agent.
+
+### 4.2. Prohibition of External Artificial Intelligence Use (Shadow AI)
+Users are strictly prohibited from extracting, copying, or exporting personal information of clients hosted on the platform to process it in unauthorized third-party Artificial Intelligence tools (e.g., personal ChatGPT accounts). All automated processing must be carried out exclusively through the internal tools provided by the CRM.
+
+### 4.3. Limits of Use and Resources
 * **Normal Plan**: 5 GB of global storage, 1 GB of monthly upload limit, and up to 2,500 upload operations per month.
 * **Pro Plan**: 15 GB of global storage, 3 GB of monthly upload limit, and up to 6,000 upload operations per month.
 
 Ziel Luxora CRM will transparently inform about the consumption of these resources within the platform. If the User exceeds these quotas, Ziel Luxora CRM reserves the right to temporarily restrict the functionality of uploading new files until the next billing cycle or until the User upgrades their subscription plan. Ziel Luxora CRM applies compression techniques (such as WebP format) to optimize storage, but the control and management of the consumed space is the responsibility of the Agent.
 
-### 4.2. Storage Optimization and Automatic Cleanup
+### 4.4. Storage Optimization and Automatic Cleanup
 Ziel Luxora CRM will perform the permanent and automatic deletion of secondary multimedia resources and PDF files attached to properties, under the following three strict global cleanup rules (which apply regardless of the agent's auto-archive configuration):
 1. **Inactive Status Cleanup:** Any property that is changed to the "Inactiva" commercial status will undergo an immediate and non-negotiable cleanup of its secondary resources.
 2. **Inactivity Cleanup (Time-based):** Any property (except those in "Vendida" or "Alquilada" status) that reaches 1 year (365 days) without activity will enter a 31-day red alert grace period. If no activity is recorded, the resources will be deleted.
 3. **Closed Business Cleanup:** Any property that changes to "Vendida" or "Alquilada" status will immediately display a red alert, and its resources will be non-negotiably deleted exactly 1 year after its closing date (regardless of any subsequent activity).
 *Note: The primary photograph of the property will always be kept.*
 
-### 4.3. Technical Modification of Multimedia Content
+### 4.5. Technical Modification of Multimedia Content
 By uploading photographs, images, or any other material to the platform, the User understands and agrees that the System may apply automated processes for compression, resizing, metadata removal (EXIF), and format conversion. These technical optimizations have the sole purpose of ensuring platform performance, fast loading speeds, and saving cloud storage space, without substantially altering the original purpose of the provided visual content.
 
 ## 5. Billing and Payments
@@ -106,8 +115,7 @@ We reserve the right to update these Terms at any time. Users will be notified o
 
 ## 9. Applicable Law and Jurisdiction
 
-These Terms are governed and construed in accordance with the laws of the Republic of Ecuador. For any dispute arising from the application, interpretation, or execution of this contract, the parties submit to mediation and arbitration centers, and subsidiarily to the jurisdiction of the competent judges of the city of Quito, Ecuador.
+These Terms are governed and construed in accordance with the laws of the Republic of Ecuador. For any dispute arising from the application, interpretation, or execution of this contract, the parties submit to mediation and arbitration centers, and subsidiarily to the jurisdiction of the competent judges of the city of Ambato, Ecuador.
 
 ---
 If you have questions about these Terms of Service, you may contact us at: `soporte@zielluxoracrm.com`.
-

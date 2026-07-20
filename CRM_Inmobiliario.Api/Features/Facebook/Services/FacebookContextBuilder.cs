@@ -64,7 +64,8 @@ public sealed class FacebookContextBuilder
                 AgenteId = agente.Id,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EstadoEmbudo = "Nuevo",
-                EsCliente = true
+                EsCliente = true,
+                ConsentimientoIA_FB = nameof(Domain.Enums.ConsentResult.PendingConsent)
             };
             db.Contactos.Add(contacto);
             await db.SaveChangesAsync(ct);

@@ -172,6 +172,10 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
               )}
             </button>
           </div>
+          
+          <p className="text-xs text-slate-400 text-center font-medium px-4">
+            Al registrar esta propiedad, confirmas tener la autorización legal o comercial para su gestión.
+          </p>
         </form>
       </FormProvider>
     </div>

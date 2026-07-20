@@ -49,6 +49,7 @@ public static class EndpointRouteBuilderExtensions
         apiGroup.MapRevocarCompartidoEndpoint();
         apiGroup.MapObtenerAgentesCompartidosEndpoint();
         apiGroup.MapToggleBotActivoEndpoint();
+        apiGroup.MapUpdateConsentimientoContactoEndpoint();
         apiGroup.MapBotOverrideContactoEndpoint();
         apiGroup.MapObtenerTokenUsageContactoEndpoint();
         apiGroup.MapFusionarContactosEndpoint();

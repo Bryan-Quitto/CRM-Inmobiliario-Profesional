@@ -40,6 +40,8 @@ export interface Contacto {
   botActivoFB?: boolean;
   estadoIA_WA?: string | null;
   estadoIA_FB?: string | null;
+  consentimientoIA_WA?: string | null;
+  consentimientoIA_FB?: string | null;
   facebookSenderId?: string | null;
   fechaCreacion: string;
   fechaCierre?: string;

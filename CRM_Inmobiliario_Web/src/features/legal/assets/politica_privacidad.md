@@ -1,6 +1,6 @@
 # Política de Privacidad de Ziel Luxora CRM
 
-**Fecha de última actualización:** 19 de julio de 2026
+**Fecha de última actualización:** 20 de julio de 2026
 
 Ziel Luxora CRM ("nosotros", "nuestro", "la Plataforma") está comprometida con la protección de los datos personales. Esta Política de Privacidad describe cómo recopilamos, utilizamos, almacenamos y protegemos la información personal, en cumplimiento de la Ley Orgánica de Protección de Datos Personales (LOPDP) del Ecuador, el Reglamento General de Protección de Datos (GDPR) y otros estándares internacionales aplicables.
 
@@ -10,7 +10,7 @@ Esta política se aplica a todos los usuarios de nuestra plataforma de CRM Inmob
 
 En el contexto de nuestros servicios, existen dos roles claramente diferenciados:
 
-*   **Ziel Luxora CRM como Responsable del Tratamiento:** Actuamos como Responsables respecto a los datos personales de nuestros Usuarios (agentes y representantes legales de agencias) necesarios para la prestación del servicio, gestión de cuentas y facturación. (Identificación del Responsable del Tratamiento: QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673).
+*   **Ziel Luxora CRM como Responsable del Tratamiento:** Actuamos como Responsables respecto a los datos personales de nuestros Usuarios (agentes y representantes legales de agencias) necesarios para la prestación del servicio, gestión de cuentas y facturación. (Identificación del Responsable del Tratamiento: QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673001).
 *   **Ziel Luxora CRM como Encargado del Tratamiento:** Actuamos como Encargados respecto a los datos personales de los clientes finales (contactos, prospectos, y propietarios de inmuebles) introducidos o vinculados a la plataforma por el Usuario. El Agente actúa como el **Responsable del Tratamiento** de los datos de su propia cartera de clientes y es el único responsable de recabar el consentimiento lícito para su tratamiento, incluyendo su procesamiento mediante herramientas de Inteligencia Artificial (IA) y canales de comunicación como WhatsApp.
 
 ## 2. Datos que Recopilamos
@@ -20,8 +20,8 @@ Como Responsables del Tratamiento, recopilamos:
 *   **Información de Identificación y Contacto:** Nombre, apellido, correo electrónico (ID vinculado a Supabase Auth), teléfono y dirección física.
 *   **Datos de Personalización:** Foto de perfil del agente y logotipo de la agencia.
 *   **Integraciones y Credenciales:** Identificadores para canales de comunicación (WhatsApp Phone Number ID, Facebook Page ID, Facebook Page Access Tokens).
-*   **Configuración de Inteligencia Artificial:** Preferencias de modelos de lenguaje, indicaciones (prompts) personalizadas y claves de integración propias cuando aplique.
-*   **Datos Técnicos y de Uso:** Suscripciones a notificaciones WebPush, logs de auditoría de seguridad y de interacciones con la IA, uso de tokens y métricas de desempeño del agente dentro del CRM.
+*   **Configuración de Inteligencia Artificial:** Preferencias de modelos de lenguaje, instrucciones personalizadas y claves de integración propias cuando aplique.
+*   **Datos Técnicos y de Uso:** Suscripciones a notificaciones WebPush, registros de auditoría de seguridad y de interacciones con la IA, uso de tokens y métricas de desempeño del agente dentro del CRM.
 
 ### 2.2. Datos de los Clientes Finales (Contactos y Propietarios)
 Como Encargados del Tratamiento, procesamos por cuenta del Agente:
@@ -78,7 +78,13 @@ Los Usuarios pueden ejercer estos derechos directamente desde su panel de config
 
 ## 8. Seguridad de los Datos
 
-Implementamos medidas técnicas y organizativas robustas para proteger los datos contra accesos no autorizados, alteraciones, divulgaciones o destrucción. Esto incluye cifrado en tránsito (HTTPS/TLS), autenticación segura (JWT), control de acceso basado en roles (RLS) a nivel de base de datos en Supabase, y **cifrado en reposo** transparente (usando la **ASP.NET Core Data Protection API**) para salvaguardar información crítica como las claves de integración de terceros (API Keys de Inteligencia Artificial).
+Implementamos medidas técnicas y organizativas robustas para proteger los datos contra accesos no autorizados, alteraciones, divulgaciones o destrucción. Esto incluye cifrado en tránsito (HTTPS/TLS), autenticación segura (JWT) y control de acceso basado en roles (RLS) a nivel de base de datos en Supabase.
+
+**Privacidad y Seguridad por Diseño:** 
+* **Consentimiento Automatizado por Diseño:** Nuestra plataforma incorpora un mecanismo de bloqueo automático para la Inteligencia Artificial. Cuando un nuevo contacto interactúa por primera vez mediante canales automatizados, el sistema suspende el procesamiento de lenguaje natural y el registro de mensajes hasta que el cliente final emita un consentimiento afirmativo ("Sí") directamente en el chat.
+* **Cifrado en la Capa de Aplicación:** Empleamos cifrado simétrico avanzado (AES-256-GCM) directamente en la capa de software (backend) para salvaguardar la confidencialidad de la información crítica (como historiales de conversaciones, mensajes y registros de interacciones de IA). Esto asegura que los datos se cifren antes de ser enviados a la base de datos, imposibilitando su lectura incluso en caso de acceso directo al almacenamiento físico.
+* **Claves de Integración:** Utilizamos cifrado en reposo (mediante ASP.NET Core Data Protection API) para proteger las credenciales de terceros (API Keys de Inteligencia Artificial).
+* **Mitigación en la Interfaz (UX):** Nuestra plataforma instruye activamente a los Agentes, mediante alertas visuales, sobre la prohibición de ingresar datos personales sensibles en campos de texto libre, trasladando la responsabilidad del tratamiento ético de los datos al Agente.
 
 ## 9. Datos de Plataformas Meta (WhatsApp y Facebook Messenger)
 
@@ -87,7 +93,7 @@ Cuando el Usuario vincula sus canales de WhatsApp Business o Facebook Messenger 
 *   Los datos provenientes de plataformas de Meta **no son utilizados para publicidad** de ningún tipo, ni para crear perfiles comerciales propios de Ziel Luxora CRM ajenos a las funcionalidades del CRM.
 *   Los datos de conversaciones de WhatsApp y Messenger son tratados únicamente para mostrar el historial en el CRM, automatizar respuestas en nombre del Agente y generar alertas de asistencia para el Agente.
 *   El Agente (Usuario) es el único responsable de obtener el consentimiento leal y lícito de sus contactos para el uso de mensajería automatizada o asistida por IA, conforme a las Políticas de Negocio de Meta.
-*   Ziel Luxora CRM opera bajo el modelo de Proveedor de Tecnología (Tech Provider / ISV) sobre cuentas de WhatsApp Business API gestionadas por los propios Agentes.
+*   Ziel Luxora CRM opera bajo el modelo de Proveedor de Tecnología sobre cuentas de WhatsApp Business API gestionadas por los propios Agentes.
 
 ## 10. Menores de Edad
 
@@ -102,8 +108,8 @@ Conservamos los datos personales únicamente durante el tiempo estrictamente nec
 | Datos de cuenta del Agente (perfil, credenciales) | Mientras la cuenta esté activa + 30 días tras eliminación |
 | Contactos y propiedades (datos del cliente final) | Mientras el Agente mantenga activa su cuenta |
 | Historial de conversaciones (WhatsApp / Messenger) | 12 meses desde la última interacción |
-| Logs de IA y uso de tokens | 6 meses |
-| Logs de auditoría de seguridad | 12 meses |
+| Registros de IA y uso de tokens | 6 meses |
+| Registros de auditoría de seguridad | 12 meses |
 | Suscripciones WebPush | Hasta que el Agente las revoque o elimine su cuenta |
 
 Una vez vencido el plazo, los datos son eliminados o anonimizados de forma segura. En el caso específico de las cuentas de Usuario (Agente), pasados los 30 días de su solicitud de eliminación, se aplica un borrado lógico y anonimización. Esto implica la eliminación definitiva de datos identificativos (nombre, teléfono, email, foto de perfil, etc.), quedando la cuenta como un "Agente Anónimo". Este proceso se realiza para preservar la integridad de las métricas históricas de la plataforma sin mantener información personal identificable.
@@ -120,9 +126,8 @@ Dado que utilizamos infraestructura en la nube (como Supabase, OpenAI, Google y 
 
 ## 13. Cambios a la Política de Privacidad
 
-Nos reservamos el derecho de actualizar esta política periódicamente. Los Usuarios serán notificados sobre cambios sustanciales mediante **notificaciones obligatorias dentro de la plataforma (in-app)** al iniciar sesión, requiriendo su aceptación explícita para continuar utilizando el servicio.
+Nos reservamos el derecho de actualizar esta política periódicamente. Los Usuarios serán notificados sobre cambios sustanciales mediante **notificaciones obligatorias dentro de la plataforma** al iniciar sesión, requiriendo su aceptación explícita para continuar utilizando el servicio.
 
 ## 14. Contacto
 
 Para dudas sobre esta Política de Privacidad o consultas legales respecto a la protección de datos, por favor contáctese con: `soporte@zielluxoracrm.com`.
-

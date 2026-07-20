@@ -71,6 +71,23 @@ export const CrearContactoForm = ({ initialData, isOwnersView, onSuccess, onCanc
         />
 
         <div className="space-y-4 w-full">
+          {!isEditing && (
+            <div className="bg-amber-50/80 border border-amber-200/60 rounded-xl p-3 text-[11px] sm:text-xs text-amber-800 flex items-start gap-2 shadow-sm">
+              <span className="shrink-0 mt-0.5">⚠️</span>
+              <p className="leading-relaxed">
+                Recuerda que al registrar datos manualmente, debes haber informado al cliente sobre nuestra{' '}
+                <a 
+                  href="https://zielluxoracrm.com/privacidad" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="font-semibold underline underline-offset-2 hover:text-amber-900 transition-colors cursor-pointer"
+                >
+                  política de privacidad
+                </a>.
+              </p>
+            </div>
+          )}
+
           <CrearContactoFooter 
             isEditing={isEditing}
             isSuccess={isSuccess}

@@ -9,6 +9,7 @@ import { useConfiguracionIA } from '../../../configuracion/hooks/useConfiguracio
 import { Tooltip } from '@/components/ui/Tooltip';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
 import { TruncatedText } from '@/components/ui/TruncatedText';
+import { useContactoConsent } from '../../hooks/useContactoConsent';
 
 interface ContactoProfileCardProps {
   contacto: Contacto;
@@ -261,15 +262,53 @@ interface BotToggleRowProps {
 const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotToggleRowProps) => {
   const { isBotActivo, handleToggle, isLoading } = toggleState;
   const estadoIA = channel === 'Facebook' ? contacto.estadoIA_FB : contacto.estadoIA_WA;
+  const estadoConsentimiento = channel === 'Facebook' ? contacto.consentimientoIA_FB : contacto.consentimientoIA_WA;
+  const consent = useContactoConsent(contacto, channel);
+
+  const toggleBtnContent = (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!isGlobalEnabled) {
+          toast.warning(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
+          return;
+        }
+        const isStageLocked = contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado';
+        if (isStageLocked) {
+          toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
+          return;
+        }
+        if (contacto.isArchivedForCurrentUser) {
+          toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
+          return;
+        }
+        if (isLoading || contacto.esCompartido) return;
+        handleToggle(!isBotActivo);
+      }}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+        !isGlobalEnabled
+          ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+          : (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado')
+            ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+            : contacto.isArchivedForCurrentUser
+              ? 'bg-slate-300 opacity-50 cursor-not-allowed'
+              : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
+      } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+        isBotActivo ? 'translate-x-6' : 'translate-x-1'
+      }`} />
+    </button>
+  );
 
   return (
-    <div className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all">
-      <div className="flex items-center gap-3 md:gap-4">
+    <div className="flex items-start justify-between p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all gap-3">
+      <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
         <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-sm transition-colors shrink-0 ${isBotActivo ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-slate-400'}`}>
           <Bot className="h-5 w-5" />
         </div>
         <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IA {channel}</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-0.5">IA {channel}</p>
           {!isGlobalEnabled ? (
             <>
               <div className="hidden lg:flex">
@@ -302,45 +341,64 @@ const BotToggleRow = ({ channel, isGlobalEnabled, toggleState, contacto }: BotTo
           ) : (
             <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">Desactivado</span>
           )}
+          
+          <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mt-2 w-full">
+            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider shrink-0 ${
+              (estadoConsentimiento === 'PendingConsent' || estadoConsentimiento === null) ? 'bg-amber-50 text-amber-600' 
+              : (estadoConsentimiento === 'Denied' || estadoConsentimiento === 'DeniedResponse') ? 'bg-red-50 text-red-600'
+              : 'bg-emerald-50 text-emerald-600'
+            }`}>
+              {(estadoConsentimiento === 'PendingConsent' || estadoConsentimiento === null) ? 'Consent. Pendiente' 
+               : (estadoConsentimiento === 'Denied' || estadoConsentimiento === 'DeniedResponse') ? 'Consent. Rechazado'
+               : 'Consent. Otorgado'}
+            </span>
+            {estadoConsentimiento !== 'Granted' ? (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  consent.handleUpdateConsent('Granted');
+                }}
+                disabled={consent.isLoading}
+                className="cursor-pointer px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-200/60 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors disabled:opacity-50 shrink-0"
+              >
+                Autorizar
+              </button>
+            ) : (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  consent.handleUpdateConsent('Denied');
+                }}
+                disabled={consent.isLoading}
+                className="cursor-pointer px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-200/60 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50 shrink-0"
+              >
+                Revocar
+              </button>
+            )}
+            {(estadoConsentimiento === 'PendingConsent' || estadoConsentimiento === null) && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  consent.handleUpdateConsent('Denied');
+                }}
+                disabled={consent.isLoading}
+                className="cursor-pointer px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-200/60 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50 shrink-0"
+              >
+                Rechazar
+              </button>
+            )}
+          </div>
         </div>
       </div>
-      <div className="inline-block">
+      <div className="inline-block shrink-0 mt-2">
         <div className="hidden lg:inline-block">
-          <Tooltip content={!isGlobalEnabled ? `Debes activar la IA de ${channel} en Configuración para usar esta función` : ''}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isGlobalEnabled) {
-                  toast.warning(`Debes activar la IA de ${channel} en Configuración para usar esta función`);
-                  return;
-                }
-                const isStageLocked = contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado';
-                if (isStageLocked) {
-                  toast.warning("El cliente está en proceso de trámite, por cuestiones de seguridad debe pasar a otro estado para activar la IA.");
-                  return;
-                }
-                if (contacto.isArchivedForCurrentUser) {
-                  toast.warning("El contacto está archivado. Desarchívalo primero para poder activar la IA.");
-                  return;
-                }
-                if (isLoading || contacto.esCompartido) return;
-                handleToggle(!isBotActivo);
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                !isGlobalEnabled
-                  ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                  : (contacto.estadoEmbudo === 'En Negociación' || contacto.estadoEmbudo === 'Cerrado' || contacto.estadoEmbudo === 'Cerrado Ganado')
-                    ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                    : contacto.isArchivedForCurrentUser
-                      ? 'bg-slate-300 opacity-50 cursor-not-allowed'
-                      : isBotActivo ? 'bg-emerald-500 cursor-pointer' : 'bg-slate-300 cursor-pointer'
-              } ${isLoading || contacto.esCompartido ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isBotActivo ? 'translate-x-6' : 'translate-x-1'
-              }`} />
-            </button>
-          </Tooltip>
+          {!isGlobalEnabled ? (
+            <Tooltip content={`Debes activar la IA de ${channel} en Configuración para usar esta función`}>
+              {toggleBtnContent}
+            </Tooltip>
+          ) : (
+            toggleBtnContent
+          )}
         </div>
         <div className="inline-block lg:hidden">
           {(!isGlobalEnabled) ? (

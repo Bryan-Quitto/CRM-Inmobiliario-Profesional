@@ -109,7 +109,7 @@ export const ContactoTimelineManager = ({
                 disabled={!canWrite}
                 onChange={(e) => setNuevaNota(e.target.value)}
                 placeholder={canWrite ? "Escribe aquí los detalles de la interacción..." : "Modo lectura (Suscripción expirada)"}
-                className="w-full bg-slate-50 border border-slate-100 rounded-[20px] md:rounded-[24px] p-4 md:p-6 text-slate-700 font-medium text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-200 transition-all outline-none min-h-[120px] resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-slate-50 border border-slate-100 rounded-[20px] md:rounded-[24px] p-4 md:p-6 text-slate-700 font-medium text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-200 transition-all outline-none min-h-[120px] resize-none disabled:opacity-50 disabled:cursor-not-allowed pb-14"
               />
               <button 
                 onClick={(e) => {
@@ -127,6 +127,9 @@ export const ContactoTimelineManager = ({
                 {notaEnEdicion ? 'Actualizar' : 'Guardar'}
               </button>
             </div>
+            <p className="text-[10px] text-slate-400 font-medium px-2 leading-relaxed italic">
+              ⚠️ Evita ingresar información personal sensible (salud, religión, datos bancarios) en este campo.
+            </p>
           </div>
         </div>
       )}

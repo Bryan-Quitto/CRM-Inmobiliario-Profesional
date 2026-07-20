@@ -1,6 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
 import type { UseConfiguracionPortabilidadLogicReturn } from '../hooks/useConfiguracionPortabilidadLogic';
-import { Download, Users, Home } from 'lucide-react';
+import { Download, Users, Home, AlertTriangle } from 'lucide-react';
+import ConfirmModal from '@/components/ConfirmModal';
 
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
 }
 
 const ConfiguracionPortabilidadDesktop: React.FC<Props> = ({ logic }) => {
-  const { isExportingContactos, isExportingPropiedades, handleExport } = logic;
+  const { isExportingContactos, isExportingPropiedades, exportModalEntity, requestExport, confirmExport, cancelExport } = logic;
 
   return (
     <div className="space-y-6 max-w-4xl px-6 pb-20">
@@ -31,7 +32,7 @@ const ConfiguracionPortabilidadDesktop: React.FC<Props> = ({ logic }) => {
             </div>
           </div>
           <button
-            onClick={() => handleExport('contactos')}
+            onClick={() => requestExport('contactos')}
             disabled={isExportingContactos}
             className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg font-medium cursor-pointer hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -53,7 +54,7 @@ const ConfiguracionPortabilidadDesktop: React.FC<Props> = ({ logic }) => {
             </div>
           </div>
           <button
-            onClick={() => handleExport('propiedades')}
+            onClick={() => requestExport('propiedades')}
             disabled={isExportingPropiedades}
             className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg font-medium cursor-pointer hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -68,6 +69,22 @@ const ConfiguracionPortabilidadDesktop: React.FC<Props> = ({ logic }) => {
           <strong>Aviso Legal:</strong> Al exportar estos datos, asumes la responsabilidad total de su custodia y tratamiento bajo la ley de protección de datos aplicable. Ziel Luxora CRM no se hace responsable por la filtración de la información una vez descargada del sistema.
         </p>
       </div>
+
+      <ConfirmModal
+        isOpen={exportModalEntity !== null}
+        onClose={cancelExport}
+        onConfirm={confirmExport}
+        title="Aviso de Responsabilidad de Exportación"
+        description="Al descargar esta base de datos, confirmas que actúas como el titular legítimo de esta información o que cuentas con la autorización expresa de tu Agencia/Franquicia para extraer estos registros de la plataforma."
+        confirmText="Confirmo y Exportar"
+        cancelText="Cancelar"
+        type="warning"
+        icon={<AlertTriangle className="h-10 w-10 text-amber-500" />}
+      >
+        <p className="text-sm text-amber-800 bg-amber-50 p-4 rounded-xl font-medium mt-2 border border-amber-200/50">
+          Ziel Luxora CRM no interviene en los acuerdos de confidencialidad o propiedad de datos entre los agentes y sus respectivas agencias. El uso indebido de esta información exportada es de tu exclusiva responsabilidad legal.
+        </p>
+      </ConfirmModal>
     </div>
   );
 };

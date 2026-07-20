@@ -1,6 +1,6 @@
 # Ziel Luxora CRM Privacy Policy
 
-**Date of last update:** July 19, 2026
+**Date of last update:** July 20, 2026
 
 Ziel Luxora CRM ("we", "our", "the Platform") is committed to protecting personal data. This Privacy Policy describes how we collect, use, store, and protect personal information, in compliance with the Organic Law on Personal Data Protection (LOPDP) of Ecuador, the General Data Protection Regulation (GDPR), and other applicable international standards.
 
@@ -10,7 +10,7 @@ This policy applies to all users of our professional Real Estate CRM platform (S
 
 In the context of our services, there are two clearly differentiated roles:
 
-*   **Ziel Luxora CRM as Data Controller:** We act as Data Controllers regarding the personal data of our Users (agents and legal representatives of agencies) necessary for the provision of the service, account management, and billing. (Identification of the Data Controller: QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673).
+*   **Ziel Luxora CRM as Data Controller:** We act as Data Controllers regarding the personal data of our Users (agents and legal representatives of agencies) necessary for the provision of the service, account management, and billing. (Identification of the Data Controller: QUITTO NAVARRETE BRYAN LENIN, RUC 1850026673001).
 *   **Ziel Luxora CRM as Data Processor:** We act as Data Processors regarding the personal data of end clients (contacts, prospects, and property owners) entered or linked to the platform by the User. The Agent acts as the **Data Controller** for the data of their own client portfolio and is solely responsible for obtaining lawful consent for its processing, including its processing via Artificial Intelligence (AI) tools and communication channels such as WhatsApp.
 
 ## 2. Data We Collect
@@ -77,7 +77,13 @@ Users can exercise these rights directly from their settings dashboard or by con
 
 ## 8. Data Security
 
-We implement robust technical and organizational measures to protect data against unauthorized access, alteration, disclosure, or destruction. This includes encryption in transit (HTTPS/TLS), secure authentication (JWT), role-based access control (RLS) at the database level in Supabase, and transparent **encryption at rest** (using the **ASP.NET Core Data Protection API**) to safeguard critical information such as third-party integration keys (Artificial Intelligence API Keys).
+We implement robust technical and organizational measures to protect data against unauthorized access, alteration, disclosure, or destruction. This includes encryption in transit (HTTPS/TLS), secure authentication (JWT), and role-based access control (RLS) at the database level in Supabase.
+
+**Privacy and Security by Design:** 
+* **Automated Consent by Design:** Our platform incorporates an automatic blocking mechanism for Artificial Intelligence. When a new contact interacts for the first time via automated channels, the system suspends natural language processing and message logging until the end client issues an affirmative consent ("Yes") directly in the chat.
+* **Application Layer Encryption:** We employ advanced symmetric encryption (AES-256-GCM) directly at the software (backend) layer to safeguard the confidentiality of critical information (such as conversation histories, messages, and AI interaction logs). This ensures that data is encrypted before being sent to the database, making it impossible to read even in the event of direct access to the physical storage.
+* **Integration Keys:** We use encryption at rest (via the ASP.NET Core Data Protection API) to protect third-party credentials (Artificial Intelligence API Keys).
+* **Interface Mitigation (UX):** Our platform actively instructs Agents, through visual alerts, regarding the prohibition of entering sensitive personal data in free-text fields, transferring the responsibility for ethical data processing to the Agent.
 
 ## 9. Meta Platform Data (WhatsApp and Facebook Messenger)
 
@@ -124,4 +130,3 @@ We reserve the right to update this policy periodically. Users will be notified 
 ## 14. Contact
 
 For questions about this Privacy Policy or legal inquiries regarding data protection, please contact: `soporte@zielluxoracrm.com`.
-

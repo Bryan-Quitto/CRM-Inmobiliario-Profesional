@@ -45,6 +45,12 @@ public sealed class Contacto
     public string? EstadoIA_FB { get; set; }
     public bool TransferenciaNotificada { get; set; } = false;
 
+    // Consentimiento explícito ("PendingConsent" | "Granted" | "Denied" | null)
+    [MaxLength(20)]
+    public string? ConsentimientoIA_WA { get; set; }
+    [MaxLength(20)]
+    public string? ConsentimientoIA_FB { get; set; }
+
     // PSID de Facebook Messenger — identificador único del contacto dentro de la página
     [MaxLength(50)]
     public string? FacebookSenderId { get; set; }

@@ -5,8 +5,17 @@ import { toast } from 'sonner';
 export const useConfiguracionPortabilidadLogic = () => {
   const [isExportingContactos, setIsExportingContactos] = useState(false);
   const [isExportingPropiedades, setIsExportingPropiedades] = useState(false);
+  const [exportModalEntity, setExportModalEntity] = useState<'contactos' | 'propiedades' | null>(null);
 
-  const handleExport = async (entidad: 'contactos' | 'propiedades') => {
+  const requestExport = (entidad: 'contactos' | 'propiedades') => {
+    setExportModalEntity(entidad);
+  };
+
+  const confirmExport = async () => {
+    if (!exportModalEntity) return;
+    const entidad = exportModalEntity;
+    setExportModalEntity(null);
+
     try {
       if (entidad === 'contactos') setIsExportingContactos(true);
       if (entidad === 'propiedades') setIsExportingPropiedades(true);
@@ -49,7 +58,10 @@ export const useConfiguracionPortabilidadLogic = () => {
   return {
     isExportingContactos,
     isExportingPropiedades,
-    handleExport,
+    exportModalEntity,
+    requestExport,
+    confirmExport,
+    cancelExport: () => setExportModalEntity(null),
   };
 };
 

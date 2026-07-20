@@ -25,6 +25,8 @@ public static class ObtenerContactoPorIdFeature
         bool BotActivoFB,
         string? EstadoIA_WA,
         string? EstadoIA_FB,
+        string? ConsentimientoIA_WA,
+        string? ConsentimientoIA_FB,
         bool IsArchivedForCurrentUser,
         List<InteraccionResponse> Interacciones,
         List<InteresPropiedadResponse> Intereses,
@@ -83,6 +85,8 @@ public static class ObtenerContactoPorIdFeature
                     c.BotActivoFB,
                     c.EstadoIA_WA,
                     c.EstadoIA_FB,
+                    c.ConsentimientoIA_WA,
+                    c.ConsentimientoIA_FB,
                     context.AgentArchivedContacts.Any(a => a.AgentId == agenteId && a.ContactoId == c.Id),
                     c.Interactions
                         .OrderByDescending(i => i.FechaInteraccion)

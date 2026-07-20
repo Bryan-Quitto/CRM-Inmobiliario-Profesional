@@ -36,6 +36,8 @@ public static class ListarContactosFeature
         bool BotActivoFB,
         string? EstadoIA_WA,
         string? EstadoIA_FB,
+        string? ConsentimientoIA_WA,
+        string? ConsentimientoIA_FB,
         bool IsArchivedForCurrentUser);
 
     public record GetContactosRequest(
@@ -242,6 +244,8 @@ public static class ListarContactosFeature
                     l.BotActivoFB,
                     l.EstadoIA_WA,
                     l.EstadoIA_FB,
+                    l.ConsentimientoIA_WA,
+                    l.ConsentimientoIA_FB,
                     request.IsArchived
                 ))
                 .ToListAsync(cancellationToken);

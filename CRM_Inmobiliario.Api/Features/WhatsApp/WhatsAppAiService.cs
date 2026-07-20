@@ -22,6 +22,7 @@ public sealed class WhatsAppAiService
     private readonly CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory _providerFactory;
     private readonly string? _openAiApiKey;
     private readonly IWhatsAppLlmOrchestrator _llmOrchestrator;
+    private readonly IWhatsAppConsentService _consentService;
 
     public WhatsAppAiService(
         ILogger<WhatsAppAiService> logger,
@@ -30,7 +31,8 @@ public sealed class WhatsAppAiService
         IWhatsAppConversationManager conversationManager,
         IDbContextFactory<CRM_Inmobiliario.Api.Infrastructure.Persistence.CrmDbContext> dbContextFactory,
         CRM_Inmobiliario.Api.Features.WhatsApp.Services.LLMProviderFactory providerFactory,
-        IWhatsAppLlmOrchestrator llmOrchestrator)
+        IWhatsAppLlmOrchestrator llmOrchestrator,
+        IWhatsAppConsentService consentService)
     {
         _logger = logger;
         _semanticRouterService = semanticRouterService;
@@ -40,6 +42,7 @@ public sealed class WhatsAppAiService
         _providerFactory = providerFactory;
         _openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")?.Trim().Trim('"');
         _llmOrchestrator = llmOrchestrator;
+        _consentService = consentService;
     }
 
     public async Task ProcessIncomingAudioAsync(string phone, byte[] audioBytes, string mediaUrl, string phoneNumberId, CancellationToken cancellationToken = default)
@@ -85,6 +88,19 @@ public sealed class WhatsAppAiService
                     await _conversationManager.LogMessageAsync(contacto.Id, phone, "user", messageText, cancellationToken);
                 }
                 return;
+            }
+
+            if (contacto != null && agente != null)
+            {
+                var consentResult = await _consentService.HandleConsentAsync(contacto, phone, messageText, phoneNumberId, $"{agente.Nombre} {agente.Apellido}", cancellationToken);
+                if (consentResult == ConsentResult.RequestSent || 
+                    consentResult == ConsentResult.DeniedResponse || 
+                    consentResult == ConsentResult.StillPending || 
+                    consentResult == ConsentResult.Denied ||
+                    consentResult == ConsentResult.JustGranted)
+                {
+                    return; // Abortar flujo, el ConsentService ya se encargó de responder
+                }
             }
 
 

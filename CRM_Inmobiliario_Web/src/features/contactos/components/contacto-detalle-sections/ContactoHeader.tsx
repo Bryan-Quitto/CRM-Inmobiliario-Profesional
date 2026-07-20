@@ -1,5 +1,7 @@
-import { ChevronLeft, UserCheck, Search, MessageSquare, MessageCircle, Pencil, Merge } from 'lucide-react';
+import { ChevronLeft, UserCheck, Search, MessageSquare, MessageCircle, Pencil, Merge, ShieldAlert } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
+import { useState } from 'react';
+import ConfirmModal from '@/components/ConfirmModal';
 import type { Contacto } from '../../types';
 import { ContactoStatusDropdown } from '../ContactoStatusDropdown';
 import { ArchiveToggleButton } from '@/components/ui/ArchiveToggleButton';
@@ -37,13 +39,28 @@ export const ContactoHeader = ({
   const { setFocusedContext, toggleOpen } = useCopilotStore();
   const { canWrite } = useSubscriptionGuard();
   
+  const [showConsentModal, setShowConsentModal] = useState(false);
+
+  const proceedWithAnalysis = () => {
+    setFocusedContext({ id: contacto.id, name: [contacto.nombre, contacto.apellido].filter(Boolean).join(' ') });
+    toggleOpen();
+    setShowConsentModal(false);
+  };
+  
   const handleAnalizarConIA = () => {
     if (!canWrite) {
       toast.warning('Tu suscripción ha vencido. Contacta al administrador para renovar.');
       return;
     }
-    setFocusedContext({ id: contacto.id, name: [contacto.nombre, contacto.apellido].filter(Boolean).join(' ') });
-    toggleOpen();
+    
+    const hasConsent = contacto.consentimientoIA_WA === 'Granted' || contacto.consentimientoIA_FB === 'Granted';
+    
+    if (!hasConsent) {
+      setShowConsentModal(true);
+      return;
+    }
+    
+    proceedWithAnalysis();
   };
   
 
@@ -195,6 +212,17 @@ export const ContactoHeader = ({
           </>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={showConsentModal}
+        onClose={() => setShowConsentModal(false)}
+        onConfirm={proceedWithAnalysis}
+        title="Aviso de Privacidad"
+        description="Este contacto no tiene registrado un consentimiento explícito para Inteligencia Artificial. Al continuar, confirmas bajo tu entera responsabilidad legal que posees autorización verbal o escrita del cliente para el tratamiento automatizado de su información."
+        confirmText="Asumo la responsabilidad y Analizar"
+        type="warning"
+        icon={<ShieldAlert className="h-10 w-10 text-amber-500" />}
+      />
     </div>
   );
 };

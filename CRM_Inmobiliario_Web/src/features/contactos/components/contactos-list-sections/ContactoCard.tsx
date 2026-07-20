@@ -222,15 +222,27 @@ export const ContactoCard = ({
                     </div>
                   </>
                 ) : (
-                  <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                    waToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
-                    : contacto.estadoIA_WA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
-                    : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
-                    : contacto.estadoIA_WA === 'Derivado a Captacion' ? 'bg-indigo-50 text-indigo-600 border-indigo-100/50'
-                    : 'bg-slate-50 text-slate-400 border-slate-100'
-                  }`}>
-                    {waToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_WA === 'Escalado' ? 'Escalado' : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'Límite de uso' : contacto.estadoIA_WA === 'Derivado a Captacion' ? 'Desactivado (Captación)' : 'Desactivado'}
-                  </span>
+                  <>
+                    <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                      waToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
+                      : contacto.estadoIA_WA === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
+                      : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+                      : contacto.estadoIA_WA === 'Derivado a Captacion' ? 'bg-indigo-50 text-indigo-600 border-indigo-100/50'
+                      : 'bg-slate-50 text-slate-400 border-slate-100'
+                    }`}>
+                      {waToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_WA === 'Escalado' ? 'Escalado' : contacto.estadoIA_WA === 'LimiteAlcanzado' ? 'Límite de uso' : contacto.estadoIA_WA === 'Derivado a Captacion' ? 'Desactivado (Captación)' : 'Desactivado'}
+                    </span>
+                    {(contacto.consentimientoIA_WA === 'PendingConsent' || contacto.consentimientoIA_WA === null) && (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-amber-50 text-amber-600 border-amber-100/50">
+                        Consent. Pendiente
+                      </span>
+                    )}
+                    {(contacto.consentimientoIA_WA === 'Denied' || contacto.consentimientoIA_WA === 'DeniedResponse') && (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-red-50 text-red-600 border-red-100/50">
+                        Consent. Rechazado
+                      </span>
+                    )}
+                  </>
                 )}
                 <div className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all inline-block ml-1">
                   <div className="hidden lg:block">
@@ -335,15 +347,27 @@ export const ContactoCard = ({
                     </div>
                   </>
                 ) : (
-                  <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                    fbToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
-                    : contacto.estadoIA_FB === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
-                    : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
-                    : contacto.estadoIA_FB === 'Derivado a Captacion' ? 'bg-indigo-50 text-indigo-600 border-indigo-100/50'
-                    : 'bg-slate-50 text-slate-400 border-slate-100'
-                  }`}>
-                    {fbToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_FB === 'Escalado' ? 'Escalado' : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'Límite de uso' : contacto.estadoIA_FB === 'Derivado a Captacion' ? 'Desactivado (Captación)' : 'Desactivado'}
-                  </span>
+                  <>
+                    <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                      fbToggle.isBotActivo ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
+                      : contacto.estadoIA_FB === 'Escalado' ? 'bg-amber-50 text-amber-600 border-amber-100/50'
+                      : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'bg-purple-50 text-purple-600 border-purple-100/50'
+                      : contacto.estadoIA_FB === 'Derivado a Captacion' ? 'bg-indigo-50 text-indigo-600 border-indigo-100/50'
+                      : 'bg-slate-50 text-slate-400 border-slate-100'
+                    }`}>
+                      {fbToggle.isBotActivo ? 'Operativo' : contacto.estadoIA_FB === 'Escalado' ? 'Escalado' : contacto.estadoIA_FB === 'LimiteAlcanzado' ? 'Límite de uso' : contacto.estadoIA_FB === 'Derivado a Captacion' ? 'Desactivado (Captación)' : 'Desactivado'}
+                    </span>
+                    {(contacto.consentimientoIA_FB === 'PendingConsent' || contacto.consentimientoIA_FB === null) && (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-amber-50 text-amber-600 border-amber-100/50">
+                        Consent. Pendiente
+                      </span>
+                    )}
+                    {(contacto.consentimientoIA_FB === 'Denied' || contacto.consentimientoIA_FB === 'DeniedResponse') && (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border bg-red-50 text-red-600 border-red-100/50">
+                        Consent. Rechazado
+                      </span>
+                    )}
+                  </>
                 )}
                 <div className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all inline-block ml-1">
                   <div className="hidden lg:block">

@@ -44,7 +44,15 @@ builder.Services.Configure<FormOptions>(options =>
 
 
 // Inyección de Dependencias (Slices & IA)
-    builder.Services.AddScoped<IAgentStateService, AgentStateService>();
+
+var encryptionKey = Environment.GetEnvironmentVariable("ENCRYPTION_KEY");
+if (string.IsNullOrEmpty(encryptionKey))
+{
+    throw new InvalidOperationException("ENCRYPTION_KEY no configurada. El sistema no puede iniciar sin cifrado de datos sensibles.");
+}
+builder.Services.AddSingleton<CRM_Inmobiliario.Api.Infrastructure.Security.IEncryptionService>(new CRM_Inmobiliario.Api.Infrastructure.Security.EncryptionService(encryptionKey));
+
+builder.Services.AddScoped<IAgentStateService, AgentStateService>();
 builder.Services.AddTransient<ByokCircuitBreakerHandler>();
 
 builder.Services.AddHttpClient<IGeminiApiClient, GeminiApiClient>()
@@ -92,6 +100,7 @@ builder.Services.AddScoped<IWhatsAppMemoryProcessor, WhatsAppMemoryProcessor>();
 builder.Services.AddScoped<IWhatsAppTokenUsageProcessor, WhatsAppTokenUsageProcessor>();
 builder.Services.AddScoped<IWhatsAppConversationManager, WhatsAppConversationManager>();
 builder.Services.AddScoped<IWhatsAppLlmOrchestrator, WhatsAppLlmOrchestrator>();
+builder.Services.AddScoped<IWhatsAppConsentService, WhatsAppConsentService>();
 builder.Services.AddScoped<WhatsAppAiService>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.CoreAi.Services.ISemanticRouterService, CRM_Inmobiliario.Api.Features.CoreAi.Services.SemanticRouterService>();
 builder.Services.AddScoped<CRM_Inmobiliario.Api.Features.AgentAi.Services.AgentSystemPromptFactory>();
@@ -103,6 +112,7 @@ builder.Services.AddScoped<IWhatsAppJobProcessor, WhatsAppJobProcessor>();
 builder.Services.AddHttpClient<IFacebookMessageSender, FacebookMessageSender>()
     .AddStandardResilienceHandler();
 builder.Services.AddScoped<IFacebookJobProcessor, FacebookJobProcessor>();
+builder.Services.AddScoped<IFacebookConsentService, FacebookConsentService>();
 builder.Services.AddScoped<FacebookAiService>();
 
 // Handlers de herramientas IA

@@ -20,7 +20,8 @@ public static class ObtenerAuditoriaGeneral
             [Microsoft.AspNetCore.Mvc.FromQuery] DateTime? endDate,
             [Microsoft.AspNetCore.Mvc.FromQuery] string? canal,
             ClaimsPrincipal user,
-            CrmDbContext context, 
+            CrmDbContext context,
+            CRM_Inmobiliario.Api.Infrastructure.Security.IEncryptionService encryptionService, 
             ILogger<CrmDbContext> logger) =>
         {
             DateTimeOffset queryStartDate;
@@ -60,6 +61,14 @@ public static class ObtenerAuditoriaGeneral
 #pragma warning disable DAP005
                 var events = await connection.QueryAsync<AuditoriaEventRow>(sql, new { StartDate = queryStartDate, EndDate = queryEndDate, Canal = dbCanal, AgenteId = agenteId, AgenteIdStr = agenteIdStr });
 #pragma warning restore DAP005
+
+                foreach (var ev in events)
+                {
+                    if (!string.IsNullOrEmpty(ev.DetalleJson))
+                        ev.DetalleJson = encryptionService.Decrypt(ev.DetalleJson);
+                    if (!string.IsNullOrEmpty(ev.TriggerMessage))
+                        ev.TriggerMessage = encryptionService.Decrypt(ev.TriggerMessage);
+                }
 
                 var sessions = ObtenerAuditoriaGeneralProcessor.AgruparEventos(events);
 

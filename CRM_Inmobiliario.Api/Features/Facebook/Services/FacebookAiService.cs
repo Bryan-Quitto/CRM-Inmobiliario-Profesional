@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using CRM_Inmobiliario.Api.Domain.Enums;
 
 namespace CRM_Inmobiliario.Api.Features.Facebook.Services;
 
@@ -21,6 +22,7 @@ public sealed class FacebookAiService
     private readonly ILogger<FacebookAiService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Microsoft.Extensions.DependencyInjection.IServiceScopeFactory _scopeFactory;
+    private readonly IFacebookConsentService _consentService;
 
     public FacebookAiService(
         IDbContextFactory<CrmDbContext> dbFactory,
@@ -28,7 +30,8 @@ public sealed class FacebookAiService
         LLMProviderFactory providerFactory,
         ILogger<FacebookAiService> logger,
         IHttpClientFactory httpClientFactory,
-        Microsoft.Extensions.DependencyInjection.IServiceScopeFactory scopeFactory)
+        Microsoft.Extensions.DependencyInjection.IServiceScopeFactory scopeFactory,
+        IFacebookConsentService consentService)
     {
         _dbFactory = dbFactory;
         _messageSender = messageSender;
@@ -36,6 +39,7 @@ public sealed class FacebookAiService
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _scopeFactory = scopeFactory;
+        _consentService = consentService;
     }
 
     public async Task ProcessMessageAsync(string senderId, string text, string pageId, string? codigoCorto = null, CancellationToken ct = default)
@@ -73,7 +77,20 @@ public sealed class FacebookAiService
                 return;
             }
 
-            var ctx = await builder.PrepareAsync(agente, contacto, senderId, pageId, ct);
+            if (contacto != null && agente != null)
+            {
+                var consentResult = await _consentService.HandleConsentAsync(contacto, senderId, text, agente.FacebookPageAccessToken, $"{agente.Nombre} {agente.Apellido}", ct);
+                if (consentResult == ConsentResult.RequestSent || 
+                    consentResult == ConsentResult.DeniedResponse || 
+                    consentResult == ConsentResult.StillPending || 
+                    consentResult == ConsentResult.Denied ||
+                    consentResult == ConsentResult.JustGranted)
+                {
+                    return; // Abortar flujo, el ConsentService ya se encargó de responder
+                }
+            }
+
+            var ctx = await builder.PrepareAsync(agente!, contacto, senderId, pageId, ct);
             if (ctx is null) return;
 
             var history = ctx.History;

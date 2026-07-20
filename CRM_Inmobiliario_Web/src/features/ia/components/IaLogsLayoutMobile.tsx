@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Bot, Activity } from 'lucide-react';
+import { Bot, Activity, AlertCircle } from 'lucide-react';
 import { HelpButton } from '../../../components/ui/HelpButton';
 import type { IaLogsLayoutLogicReturn } from '../hooks/useIaLogsLayoutLogic';
 
@@ -28,6 +28,17 @@ export const IaLogsLayoutMobile = ({ logic }: Props) => {
           <Activity className="h-3 w-3 text-emerald-500 shrink-0" />
           <span className="flex-1 min-w-0 break-words">Supervisión proactiva</span>
         </p>
+
+        {/* Banner Informativo sobre Consentimiento */}
+        <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex flex-col gap-2 mt-4">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+            <h4 className="text-[11px] font-black text-amber-900 uppercase tracking-tight">Consentimiento IA Activo</h4>
+          </div>
+          <p className="text-[10px] text-amber-700/90 font-medium leading-relaxed">
+            Los clientes reciben un mensaje solicitando su permiso. Puedes gestionar los permisos en el perfil de cada contacto (Tarjeta de Contacto).
+          </p>
+        </div>
 
         {/* Top Scrolling Tab Bar */}
         <div className="flex items-center gap-2 overflow-x-auto pt-4 scrollbar-hide w-full">

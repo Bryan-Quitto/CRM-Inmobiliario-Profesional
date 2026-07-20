@@ -1,4 +1,4 @@
-﻿using CRM_Inmobiliario.Api.Domain.Entities;
+using CRM_Inmobiliario.Api.Domain.Entities;
 using CRM_Inmobiliario.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -49,7 +49,8 @@ public sealed class WhatsAppContactProcessor : IWhatsAppContactProcessor
                 Agente = agente,
                 FechaCreacion = DateTimeOffset.UtcNow,
                 EstadoEmbudo = "Nuevo",
-                EsCliente = true
+                EsCliente = true,
+                ConsentimientoIA_WA = nameof(Domain.Enums.ConsentResult.PendingConsent)
             };
             _context.Contactos.Add(contacto);
             await _context.SaveChangesAsync(cancellationToken);

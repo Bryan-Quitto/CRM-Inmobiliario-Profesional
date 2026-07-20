@@ -80,11 +80,39 @@ public static class EliminarArchivosAlmacenamiento
                     var whatsappLogs = logs.Where(l => l.TargetType == "WhatsApp").ToList();
                     foreach (var log in whatsappLogs)
                     {
-                        var messages = await context.WhatsappMessages
-                            .Where(m => m.AgenteId == agenteId && m.Contenido.Contains(log.ObjectKey))
-                            .ToListAsync(ct);
+                        var messagesList = new List<Domain.Entities.WhatsappMessage>();
+                        if (Guid.TryParse(log.TargetId, out var contactoId))
+                        {
+                            var dbMessages = await context.WhatsappMessages
+                                .Where(m => m.AgenteId == agenteId && m.ContactoId == contactoId)
+                                .ToListAsync(ct);
+                                
+                            messagesList = dbMessages
+                                .Where(m => m.Contenido != null && m.Contenido.Contains(log.ObjectKey))
+                                .ToList();
+                        }
+                        else
+                        {
+                            // Respaldo en caso de que falte TargetId
+                            var messageData = await context.WhatsappMessages
+                                .Where(m => m.AgenteId == agenteId)
+                                .Select(m => new { m.Id, m.Contenido })
+                                .ToListAsync(ct);
+                                
+                            var matchedIds = messageData
+                                .Where(m => m.Contenido != null && m.Contenido.Contains(log.ObjectKey))
+                                .Select(m => m.Id)
+                                .ToList();
+
+                            if (matchedIds.Any())
+                            {
+                                messagesList = await context.WhatsappMessages
+                                    .Where(m => matchedIds.Contains(m.Id))
+                                    .ToListAsync(ct);
+                            }
+                        }
                             
-                        foreach (var m in messages)
+                        foreach (var m in messagesList)
                         {
                             var idxStart = m.Contenido.IndexOf("[Audio Note:");
                             var idxEnd = m.Contenido.IndexOf("]", idxStart + 1);
