@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, Users, Calendar, TrendingUp, ArrowUpRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { DashboardKpis } from '../types';
 import { HelpButton } from '../../../components/ui/HelpButton';
 
@@ -15,21 +16,24 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ data, syncing }) => {
       value: data.totalPropiedadesDisponibles,
       icon: <Home className="h-5 w-5" />,
       color: 'bg-blue-50 text-blue-600',
-      description: 'Listas para la venta'
+      description: 'Listas para la venta',
+      link: '/propiedades'
     },
     {
       title: 'Contactos Activos',
       value: data.totalContactosActivos,
       icon: <Users className="h-5 w-5" />,
       color: 'bg-indigo-50 text-indigo-600',
-      description: 'En seguimiento actual'
+      description: 'En seguimiento actual',
+      link: '/contactos'
     },
     {
       title: 'Tareas Hoy y Vencidas',
       value: data.tareasPendientesHoy,
       icon: <Calendar className="h-5 w-5" />,
       color: 'bg-emerald-50 text-emerald-600',
-      description: 'Pendientes por completar'
+      description: 'Pendientes por completar',
+      link: '/calendario'
     }
   ];
 
@@ -62,7 +66,13 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ data, syncing }) => {
           </div>
           <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             <span>Últimas 24h</span>
-            <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Link 
+              to={card.link} 
+              aria-label={`Ver más detalles sobre ${card.title}`}
+              className="p-1 -m-1 rounded-full hover:bg-slate-50 hover:text-blue-600 transition-colors"
+            >
+              <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
           </div>
         </div>
       ))}

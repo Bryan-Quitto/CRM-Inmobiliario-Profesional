@@ -82,7 +82,11 @@ export const GalleryModals: React.FC<GalleryModalsProps> = ({
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => handleConfirmAction(true)}
-                  className="w-full py-4 bg-rose-600 hover:bg-rose-700 shadow-rose-200 text-white font-black rounded-2xl transition-all shadow-xl flex flex-col items-center justify-center gap-1 cursor-pointer"
+                  className={`w-full py-4 text-white font-black rounded-2xl transition-all shadow-xl flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                    sectionId 
+                      ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200' 
+                      : 'bg-amber-500 hover:bg-amber-600 shadow-amber-200'
+                  }`}
                 >
                   <span>{sectionId ? "Eliminar sección completa" : "Limpiar solo la galería general"}</span>
                   <span className="text-[10px] font-medium opacity-80 font-normal">
@@ -92,7 +96,11 @@ export const GalleryModals: React.FC<GalleryModalsProps> = ({
                 
                 <button
                   onClick={() => handleConfirmAction(false)}
-                  className="w-full py-4 bg-amber-500 hover:bg-amber-600 shadow-amber-200 text-white font-black rounded-2xl transition-all shadow-xl flex flex-col items-center justify-center gap-1 cursor-pointer"
+                  className={`w-full py-4 text-white font-black rounded-2xl transition-all shadow-xl flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                    sectionId 
+                      ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200'
+                      : 'bg-rose-600 hover:bg-rose-700 shadow-rose-200'
+                  }`}
                 >
                   <span>{sectionId ? "Eliminar sección parcialmente" : "Limpiar toda la galería"}</span>
                   <span className="text-[10px] font-medium opacity-80 font-normal">

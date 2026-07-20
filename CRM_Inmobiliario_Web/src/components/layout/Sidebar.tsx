@@ -27,9 +27,22 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   // Almacenamos el path optimista y la ruta desde la que se inició
   const [optimisticState, setOptimisticState] = useState<{ path: string, from: string } | null>(null);
 
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  if (location.pathname !== prevPathname) {
+    setPrevPathname(location.pathname);
+    setOptimisticState(null);
+  }
+
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+    
+    // Evitar navegación si ya estamos en la ruta exacta
     if (location.pathname === path) return;
+    
+    // Evitar loop de carga si hacemos click en un padre que redirige al hijo actual 
+    // Ej: click en /configuracion estando en /configuracion/perfil
+    if (path === '/configuracion' && location.pathname.startsWith('/configuracion')) return;
+
     setOptimisticState({ path, from: location.pathname });
   };
 

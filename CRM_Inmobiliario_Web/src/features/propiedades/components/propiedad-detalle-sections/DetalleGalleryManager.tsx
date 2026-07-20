@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSWRConfig } from 'swr';
 import { Plus, X, Check, Loader2, Info } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { MobileInfoPopover } from '@/components/ui/MobileInfoPopover';
@@ -49,11 +50,10 @@ export const DetalleGalleryManager = ({
   handleRenameSection,
   handleMoveSection,
   handleDragEnd,
-  mutate,
   isArchived,
   showOnly = 'all'
 }: DetalleGalleryManagerProps) => {
-  
+  const { mutate: globalMutate } = useSWRConfig();
   const [now] = useState(() => Date.now());
   const isCleaned = propiedad.bloqueoAdministrativo !== null && propiedad.bloqueoAdministrativo !== undefined
     ? propiedad.bloqueoAdministrativo
@@ -92,7 +92,15 @@ export const DetalleGalleryManager = ({
           media={propiedad.mediaSinSeccion || []}
           onSetCover={handleSetCover}
           onDeleteMedia={handleDeleteMedia}
-          onImageUploaded={() => mutate()}
+          onImageUploaded={(result) => {
+            globalMutate(`/propiedades/${id}`, (prev: Propiedad | undefined) => {
+              if (!prev || !result) return prev;
+              return {
+                ...prev,
+                mediaSinSeccion: [...(prev.mediaSinSeccion || []), result]
+              };
+            }, false);
+          }}
           onClearGallery={handleClearGallery}
           isReadOnly={!canManage}
           isCleaned={!!isCleaned}
@@ -119,7 +127,19 @@ export const DetalleGalleryManager = ({
                       media={seccion.media || []}
                       onSetCover={handleSetCover}
                       onDeleteMedia={handleDeleteMedia}
-                      onImageUploaded={() => mutate()}
+                      onImageUploaded={(result) => {
+                        globalMutate(`/propiedades/${id}`, (prev: Propiedad | undefined) => {
+                          if (!prev || !result) return prev;
+                          return {
+                            ...prev,
+                            secciones: prev.secciones?.map(s => 
+                              s.id === seccion.id 
+                                ? { ...s, media: [...(s.media || []), result] } 
+                                : s
+                            )
+                          };
+                        }, false);
+                      }}
                       onDeleteSection={handleDeleteSection}
                       onRenameSection={(id, nombre, desc) => handleRenameSection(id, nombre, desc, seccion.orden)}
                       onMoveUp={() => handleMoveSection(index, 'up')}

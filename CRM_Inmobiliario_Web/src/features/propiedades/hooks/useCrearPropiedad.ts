@@ -183,8 +183,13 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
     onSubmit: handleSubmit(
       onSubmit as unknown as SubmitHandler<CrearPropiedadDTO>,
       (errors) => {
-        console.error('❌ Validation Errors:', errors);
-        import('sonner').then(({ toast }) => toast.error('Error de validación. Revisa la consola o los campos marcados.'));
+        const firstErrorKey = Object.keys(errors)[0];
+        const fieldName = firstErrorKey ? firstErrorKey.charAt(0).toUpperCase() + firstErrorKey.slice(1) : '';
+        const msg = fieldName 
+          ? `Error de validación, revisa el campo: ${fieldName}` 
+          : 'Error de validación, revisa los campos marcados';
+          
+        import('sonner').then(({ toast }) => toast.error(msg));
       }
     ),
     tipoSeleccionado,

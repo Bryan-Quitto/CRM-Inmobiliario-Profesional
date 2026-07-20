@@ -3,9 +3,14 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Buffer } from 'buffer'
 import { Toaster } from 'sonner'
+import { configureZodLocale } from './lib/zod-locale'
 
 // Polyfill de Buffer para compatibilidad con librerías de PDF
 window.Buffer = window.Buffer || Buffer;
+
+// Locale global de Zod en español con mensajes amigables para el usuario final.
+// Los mensajes custom de cada validations.ts tienen prioridad y no se sobreescriben.
+configureZodLocale();
 
 // Monitorización global de errores para depuración de producción/test
 window.onerror = function(message, source, lineno, colno, error) {
