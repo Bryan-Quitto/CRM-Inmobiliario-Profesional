@@ -10,8 +10,13 @@ interface Props {
 }
 
 export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
-  const { control, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
+  const { control, watch, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
   const tipoSeleccionado = useWatch({ control, name: 'tipoPropiedad' });
+
+  const checkIsMissed = (field: keyof CrearPropiedadDTO) => {
+    const val = watch(field);
+    return missedFields.includes(field) && (val === undefined || val === null || val === '' || Number.isNaN(val as number));
+  };
 
 
 
@@ -22,7 +27,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
       {/* Área Total */}
       <div className="md:col-span-2 space-y-2">
         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-          Área Total (m²) {missedFields.includes('areaTotal') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+          Área Total (m²) {checkIsMissed('areaTotal') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
         </label>
         <Controller
           name="areaTotal"
@@ -35,7 +40,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
               suffixIcon={<span className="text-slate-400 text-xs font-bold mr-1">m²</span>}
               disabled={isSuccess}
               error={errors.areaTotal?.message}
-              containerClassName={missedFields.includes('areaTotal') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+              containerClassName={checkIsMissed('areaTotal') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
               placeholder="Ej. 120,50"
             />
           )}
@@ -46,7 +51,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
       {['Casa', 'Terreno', 'Galpón', 'Bodega', 'Local Comercial', 'Hotel'].includes(tipoSeleccionado) && (
         <div className="md:col-span-2 space-y-2">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Área Terreno (m²) {missedFields.includes('areaTerreno') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+            Área Terreno (m²) {checkIsMissed('areaTerreno') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
           <Controller
             name="areaTerreno"
@@ -58,7 +63,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 suffixIcon={<span className="text-slate-400 text-xs font-bold mr-1">m²</span>}
                 disabled={isSuccess}
                 error={errors.areaTerreno?.message}
-                containerClassName={missedFields.includes('areaTerreno') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                containerClassName={checkIsMissed('areaTerreno') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
                 placeholder="Ej. 250,00"
               />
             )}
@@ -70,7 +75,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
       {['Casa', 'Galpón', 'Bodega', 'Hotel'].includes(tipoSeleccionado) && (
         <div className="md:col-span-2 space-y-2">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Área Cubierta (m²) {missedFields.includes('areaConstruccion') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+            Área Cubierta (m²) {checkIsMissed('areaConstruccion') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
           <Controller
             name="areaConstruccion"
@@ -82,7 +87,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 suffixIcon={<span className="text-slate-400 text-xs font-bold mr-1">m²</span>}
                 disabled={isSuccess}
                 error={errors.areaConstruccion?.message}
-                containerClassName={missedFields.includes('areaConstruccion') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                containerClassName={checkIsMissed('areaConstruccion') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
                 placeholder="Ej. 180,50"
               />
             )}
@@ -94,7 +99,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
       {['Casa', 'Departamento', 'Suite', 'Hotel'].includes(tipoSeleccionado) && (
         <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Habitaciones {missedFields.includes('habitaciones') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+            Habitaciones {checkIsMissed('habitaciones') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
           <Controller
             name="habitaciones"
@@ -106,7 +111,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 icon={<Bed className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
                 disabled={isSuccess}
                 error={errors.habitaciones?.message}
-                containerClassName={missedFields.includes('habitaciones') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                containerClassName={checkIsMissed('habitaciones') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
               />
             )}
           />
@@ -117,7 +122,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
       {tipoSeleccionado !== 'Terreno' && (
         <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Baños {missedFields.includes('banos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+            Baños {checkIsMissed('banos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
           <Controller
             name="banos"
@@ -129,7 +134,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 icon={<Bath className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
                 disabled={isSuccess}
                 error={errors.banos?.message}
-                containerClassName={missedFields.includes('banos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                containerClassName={checkIsMissed('banos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
               />
             )}
           />
@@ -140,7 +145,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
       {tipoSeleccionado !== 'Terreno' && (
         <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Medios Baños {missedFields.includes('mediosBanos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+            Medios Baños {checkIsMissed('mediosBanos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
           <Controller
             name="mediosBanos"
@@ -151,7 +156,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 icon={<Droplet className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
                 disabled={isSuccess}
                 error={errors.mediosBanos?.message}
-                containerClassName={missedFields.includes('mediosBanos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                containerClassName={checkIsMissed('mediosBanos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
               />
             )}
           />
@@ -162,7 +167,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
       {tipoSeleccionado !== 'Terreno' && (
         <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Parqueaderos {missedFields.includes('estacionamientos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+            Parqueaderos {checkIsMissed('estacionamientos') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
           <Controller
             name="estacionamientos"
@@ -173,7 +178,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 icon={<CarFront className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
                 disabled={isSuccess}
                 error={errors.estacionamientos?.message}
-                containerClassName={missedFields.includes('estacionamientos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                containerClassName={checkIsMissed('estacionamientos') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
               />
             )}
           />
@@ -184,7 +189,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
       {tipoSeleccionado !== 'Terreno' && (
         <div className="md:col-span-2 space-y-2 animate-in fade-in duration-300">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Antigüedad (Años) {missedFields.includes('aniosAntiguedad') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+            Antigüedad (Años) {checkIsMissed('aniosAntiguedad') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
           </label>
           <Controller
             name="aniosAntiguedad"
@@ -195,7 +200,7 @@ export const TechnicalSpecsSection = ({ isSuccess, missedFields }: Props) => {
                 icon={<Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />}
                 disabled={isSuccess}
                 error={errors.aniosAntiguedad?.message}
-                containerClassName={missedFields.includes('aniosAntiguedad') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
+                containerClassName={checkIsMissed('aniosAntiguedad') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
               />
             )}
           />

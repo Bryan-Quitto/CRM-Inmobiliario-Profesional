@@ -7,10 +7,16 @@ import { FormattedNumberInput } from '@/components/ui/FormattedNumberInput';
 
 interface Props {
   isSuccess: boolean;
+  missedFields: string[];
 }
 
-export const LocationSection = ({ isSuccess }: Props) => {
-  const { register, control, setValue, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
+export const LocationSection = ({ isSuccess, missedFields }: Props) => {
+  const { register, control, setValue, watch, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
+  
+  const checkIsMissed = (field: keyof CrearPropiedadDTO) => {
+    const val = watch(field);
+    return missedFields.includes(field) && (val === undefined || val === null || val === '' || Number.isNaN(val as number));
+  };
   const [activeSelect, setActiveSelect] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
   
@@ -76,7 +82,9 @@ export const LocationSection = ({ isSuccess }: Props) => {
 
       {/* Precio */}
       <div className="md:col-span-3 space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Precio ($)</label>
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+          Precio ($) {checkIsMissed('precio') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+        </label>
         <Controller
           name="precio"
           control={control}
@@ -88,6 +96,7 @@ export const LocationSection = ({ isSuccess }: Props) => {
               disabled={isSuccess}
               placeholder="Ej. 150.000,00"
               error={errors.precio?.message}
+              containerClassName={checkIsMissed('precio') ? 'rounded-2xl ring-2 ring-amber-100 bg-amber-50/20' : ''}
             />
           )}
         />
@@ -110,46 +119,51 @@ export const LocationSection = ({ isSuccess }: Props) => {
         </p>
       </div>
 
-      <div className="md:col-span-3 space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Sector</label>
-        <InputWithCounter 
-          {...register('sector')}
-          icon={<Map className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
-          maxLength={100}
-          type="text" 
-          disabled={isSuccess}
-          placeholder="Ej. La Carolina"
-          className={`w-full pl-10 px-4 py-3 bg-slate-50 border ${errors.sector ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
-        />
-        {errors.sector && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.sector.message}</p>}
-      </div>
 
       {/* Ciudad */}
       <div className="md:col-span-3 space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Ciudad</label>
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+          Ciudad {checkIsMissed('ciudad') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+        </label>
         <InputWithCounter 
           {...register('ciudad')}
           icon={<Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
           maxLength={100}
-          type="text" 
           disabled={isSuccess}
           placeholder="Ej. Quito"
-          className={`w-full pl-10 px-4 py-3 bg-slate-50 border ${errors.ciudad ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
+          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${checkIsMissed('ciudad') ? 'border-amber-300 ring-amber-50' : errors.ciudad ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
         />
         {errors.ciudad && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.ciudad.message}</p>}
       </div>
 
-      {/* Dirección Exacta */}
+      {/* Sector */}
+      <div className="md:col-span-3 space-y-2">
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+          Sector {checkIsMissed('sector') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+        </label>
+        <InputWithCounter 
+          {...register('sector')}
+          icon={<Map className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
+          maxLength={100}
+          disabled={isSuccess}
+          placeholder="Ej. La Carolina"
+          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${checkIsMissed('sector') ? 'border-amber-300 ring-amber-50' : errors.sector ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
+        />
+        {errors.sector && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.sector.message}</p>}
+      </div>
+
+      {/* Dirección */}
       <div className="md:col-span-6 space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Dirección Exacta</label>
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+          Dirección Exacta {checkIsMissed('direccion') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+        </label>
         <InputWithCounter 
           {...register('direccion')}
           icon={<Navigation className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
           maxLength={255}
-          type="text" 
           disabled={isSuccess}
-          placeholder="Calle principal, número y calle secundaria"
-          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.direccion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all outline-none disabled:opacity-50`}
+          placeholder="Ej. Av. República de El Salvador N34-12"
+          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${checkIsMissed('direccion') ? 'border-amber-300 ring-amber-50' : errors.direccion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
         />
         {errors.direccion && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.direccion.message}</p>}
       </div>

@@ -13,7 +13,7 @@ public class RegistrarPropiedadCommandValidator : AbstractValidator<RegistrarPro
         RuleFor(x => x.Descripcion)
             .NotEmpty().WithMessage("La descripción es requerida.")
             .MinimumLength(20).WithMessage("Debe proporcionar una descripción detallada (mín. 20 caracteres).")
-            .MaximumLength(1000).WithMessage("La descripción no puede exceder los 1000 caracteres.");
+            .MaximumLength(5000).WithMessage("La descripción no puede exceder los 5000 caracteres.");
 
         RuleFor(x => x.TipoPropiedad)
             .NotEmpty().WithMessage("El tipo de propiedad es requerido.")

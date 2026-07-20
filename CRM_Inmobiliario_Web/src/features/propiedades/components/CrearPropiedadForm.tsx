@@ -131,11 +131,12 @@ export const CrearPropiedadForm = ({ initialData: listData, onSuccess, onCancel 
               isSuccess={isSuccess} 
               isListening={isListening} 
               onToggleVoice={toggleListening} 
+              missedFields={missedFields}
             />
 
             {tipoSeleccionado && (
               <>
-                <LocationSection isSuccess={isSuccess} />
+                <LocationSection isSuccess={isSuccess} missedFields={missedFields} />
                 <TechnicalSpecsSection isSuccess={isSuccess} missedFields={missedFields} />
                 <CommissionSection initialData={initialData} />
               </>

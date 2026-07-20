@@ -73,6 +73,7 @@ public static class ListarPropiedadesFeature
                     x.Property.TipoPropiedad,
                     x.Property.Operacion,
                     x.Property.Precio,
+                    (x.Property.AgenteId == currentUserId || x.Property.AgenteCerradorId == currentUserId || (x.Property.Transactions.Any(t => t.CreatedById == currentUserId) && (x.Property.Agente == null || !x.Property.Agente.Activo))) ? x.Property.PrecioCierre : null,
                     x.Property.Sector,
                     x.Property.Ciudad,
                     x.Property.EstadoComercial,

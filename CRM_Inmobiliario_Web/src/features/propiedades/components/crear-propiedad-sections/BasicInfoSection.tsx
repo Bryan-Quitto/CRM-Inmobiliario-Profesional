@@ -10,10 +10,16 @@ interface Props {
   isSuccess: boolean;
   isListening: boolean;
   onToggleVoice: () => void;
+  missedFields: string[];
 }
 
-export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Props) => {
-  const { register, control, setValue, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
+export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice, missedFields }: Props) => {
+  const { register, control, setValue, watch, formState: { errors } } = useFormContext<CrearPropiedadDTO>();
+  
+  const checkIsMissed = (field: keyof CrearPropiedadDTO) => {
+    const val = watch(field);
+    return missedFields.includes(field) && (val === undefined || val === null || val === '');
+  };
   const [activeSelect, setActiveSelect] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +39,9 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
     <>
       {/* 1. TÍTULO */}
       <div className="md:col-span-6 space-y-2">
-        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Título de la Propiedad</label>
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">
+          Título de la Propiedad {checkIsMissed('titulo') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+        </label>
         <InputWithCounter 
           {...register('titulo')}
           icon={<PenLine className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />}
@@ -41,7 +49,7 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
           type="text" 
           disabled={isSuccess}
           placeholder="Ej. Penthouse de Lujo en La Carolina"
-          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${errors.titulo ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
+          className={`w-full pl-10 pr-4 py-3 bg-slate-50 border ${checkIsMissed('titulo') ? 'border-amber-300 ring-amber-50' : errors.titulo ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none disabled:opacity-50`}
         />
         {errors.titulo && <p className="text-[10px] text-rose-500 font-bold mt-1 pl-1 uppercase">{errors.titulo.message}</p>}
       </div>
@@ -49,7 +57,9 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
       {/* 2. DESCRIPCI�N */}
       <div className="md:col-span-6 space-y-2">
         <div className="flex items-center justify-between pl-1">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Descripción Detallada</label>
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+            Descripción Detallada {checkIsMissed('descripcion') && <span className="text-amber-500 font-black ml-1">(Vacío)</span>}
+          </label>
           <button
             type="button"
             onClick={onToggleVoice}
@@ -70,11 +80,11 @@ export const BasicInfoSection = ({ isSuccess, isListening, onToggleVoice }: Prop
           <TextAreaWithCounter 
             {...register('descripcion')}
             icon={<AlignLeft className="absolute left-3.5 top-4 h-4 w-4 text-slate-400" />}
-            maxLength={1000}
+            maxLength={5000}
             disabled={isSuccess}
             placeholder="Describe las características principales, acabados, seguridad, etc."
             rows={3}
-            className={`w-full pl-10 pr-12 py-3 bg-slate-50 border ${errors.descripcion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none resize-none disabled:opacity-50`}
+            className={`w-full pl-10 pr-12 py-3 bg-slate-50 border ${checkIsMissed('descripcion') ? 'border-amber-300 ring-amber-50' : errors.descripcion ? 'border-rose-300 ring-rose-50' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-2xl text-sm font-medium transition-all focus:ring-4 outline-none resize-none disabled:opacity-50`}
           />
           {isListening && (
             <div className="absolute right-4 top-4">

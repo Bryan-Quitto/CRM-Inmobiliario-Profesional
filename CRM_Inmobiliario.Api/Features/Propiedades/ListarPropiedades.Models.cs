@@ -29,6 +29,7 @@ public record Response(
     string TipoPropiedad,
     string Operacion,
     decimal Precio,
+    decimal? PrecioCierre,
     string Sector,
     string Ciudad,
     string EstadoComercial,

@@ -180,7 +180,13 @@ export const useCrearPropiedad = ({ listData, onSuccess }: UseCrearPropiedadProp
     missedFields,
     handleImportar,
     handleClearDraft,
-    onSubmit: handleSubmit(onSubmit as unknown as SubmitHandler<CrearPropiedadDTO>),
+    onSubmit: handleSubmit(
+      onSubmit as unknown as SubmitHandler<CrearPropiedadDTO>,
+      (errors) => {
+        console.error('❌ Validation Errors:', errors);
+        import('sonner').then(({ toast }) => toast.error('Error de validación. Revisa la consola o los campos marcados.'));
+      }
+    ),
     tipoSeleccionado,
     initialData
   };
