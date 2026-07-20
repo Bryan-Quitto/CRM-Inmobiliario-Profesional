@@ -1,15 +1,16 @@
 import { ManualComunicacionesDesktop } from './ManualComunicacionesDesktop';
 import { ManualComunicacionesMobile } from './ManualComunicacionesMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const ManualComunicaciones = () => {
+  const isMobile = useIsMobile();
   return (
     <div className="w-full">
-      <div className="hidden lg:block">
-        <ManualComunicacionesDesktop />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ManualComunicacionesMobile />
-      </div>
+      ) : (
+        <ManualComunicacionesDesktop />
+      )}
     </div>
   );
 };

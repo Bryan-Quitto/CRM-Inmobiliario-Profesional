@@ -31,7 +31,9 @@ public static class ObtenerPerfil
         long CurrentMonthStorageBytesUsed,
         int DaysUntilStorageReset,
         int MonthlyUploadOpsLimit,
-        int CurrentMonthUploadOpsUsed);
+        int CurrentMonthUploadOpsUsed,
+        DateTimeOffset CurrentCycleStartDate,
+        DateTimeOffset CurrentCycleEndDate);
 
     public static IEndpointRouteBuilder MapObtenerPerfilEndpoint(this IEndpointRouteBuilder endpoints)
     {
@@ -43,10 +45,14 @@ public static class ObtenerPerfil
                         ?? user.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress") 
                         ?? "";
 
-            var year = DateTime.UtcNow.Year;
-            var month = DateTime.UtcNow.Month;
+            var ecuadorTime = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-5));
+            var year = ecuadorTime.Year;
+            var month = ecuadorTime.Month;
             var daysInMonth = DateTime.DaysInMonth(year, month);
-            var daysUntilReset = daysInMonth - DateTime.UtcNow.Day + 1;
+            var daysUntilReset = daysInMonth - ecuadorTime.Day + 1;
+
+            var currentCycleStartDate = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.FromHours(-5));
+            var currentCycleEndDate = currentCycleStartDate.AddMonths(1).AddSeconds(-1);
 
             var perfilData = await context.Agents
                 .AsNoTracking()
@@ -63,7 +69,7 @@ public static class ObtenerPerfil
                 return Results.Ok(new Response(
                     agenteId, "", "", email, null, null, null, null, null, null, null, "Agente", null, DateTimeOffset.UtcNow,
                     16106127360, 0, 3221225472, 0, daysUntilReset,
-                    5000, 0
+                    5000, 0, currentCycleStartDate, currentCycleEndDate
                 ));
             }
 
@@ -88,7 +94,9 @@ public static class ObtenerPerfil
                 perfilData.Usage != null ? perfilData.Usage.TotalBytesUploaded : 0,
                 daysUntilReset,
                 perfilData.Agent.MonthlyStorageUploadsLimit,
-                perfilData.Usage != null ? perfilData.Usage.UploadOpsCount : 0);
+                perfilData.Usage != null ? perfilData.Usage.UploadOpsCount : 0,
+                currentCycleStartDate,
+                currentCycleEndDate);
 
             return Results.Ok(perfil);
 

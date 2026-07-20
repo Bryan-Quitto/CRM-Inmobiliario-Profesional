@@ -68,15 +68,30 @@ export const ManualUsoPlataforma: React.FC = () => {
           </ManualSection>
 
           <ManualSection title="3. Historial y Auditoría" icon={<AlertCircle className="w-6 h-6 text-indigo-500" />}>
-            <div className="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200">
-              <p className="text-sm text-slate-700 text-justify leading-relaxed mb-3">
-                Para garantizar total transparencia en el uso de tu plataforma, cuentas con un <strong>Historial de Almacenamiento</strong> al que puedes acceder dando clic en el icono del ojo junto a tus estadísticas de almacenamiento.
-              </p>
-              <ul className="list-disc pl-5 text-sm text-slate-700 space-y-2">
-                <li><strong>Trazabilidad:</strong> Cada archivo detalla su origen (WhatsApp, Propiedad, Perfil, etc.), contexto (Ficha PDF, Galería, Logo) y el elemento específico asociado.</li>
-                <li><strong>Estados:</strong> Podrás ver qué archivos están <em>Activos</em> y cuáles han sido <em>Eliminados</em>, incluyendo la fecha exacta.</li>
-                <li><strong>Control exacto:</strong> Sabrás con precisión en qué se está consumiendo tu cuota (imágenes, audios de WhatsApp, PDFs, etc.).</li>
-              </ul>
+            <div className="space-y-4">
+              <div className="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200">
+                <p className="text-sm text-slate-700 text-justify leading-relaxed mb-3">
+                  Para garantizar total transparencia en el uso de tu plataforma, cuentas con dos vistas detalladas para tu <strong>Historial de Almacenamiento</strong>:
+                </p>
+                <ul className="list-disc pl-5 text-sm text-slate-700 space-y-2">
+                  <li><strong>Historial Global:</strong> Accesible desde la barra lateral. Muestra <em>todos</em> los archivos que has subido a la plataforma a lo largo del tiempo, permitiéndote buscar, filtrar, ordenar (por fecha o tamaño) y eliminar registros antiguos masivamente para liberar espacio.</li>
+                  <li><strong>Historial Mensual:</strong> Accesible dando clic en el icono del ojo junto a tus estadísticas de uso. Muestra específicamente los archivos que has subido durante tu mes de facturación actual, ayudándote a auditar tu cuota del mes.</li>
+                </ul>
+              </div>
+
+              <div className="bg-indigo-50/50 p-4 md:p-5 rounded-xl border border-indigo-100/50">
+                <h4 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Nomenclatura Dinámica Inteligente
+                </h4>
+                <p className="text-sm text-slate-700 text-justify mb-3">
+                  Ya no tienes que preocuparte por cómo se llamaban tus archivos originales. El sistema genera <strong>nombres amigables y dinámicos</strong> de forma automática para cada registro, basándose en su origen y contexto:
+                </p>
+                <ul className="list-disc pl-5 text-sm text-slate-700 space-y-2">
+                  <li><strong>Trazabilidad:</strong> Si subes una foto a una propiedad, el sistema la nombra combinando el título de la propiedad con la sección (Ej. <em>"Casa en la Playa - Galería General.webp"</em>).</li>
+                  <li><strong>Numeración Única:</strong> Si subes múltiples archivos al mismo lugar (como una galería), el sistema les asigna automáticamente un número consecutivo para que cada archivo sea fácil de identificar (Ej. <em>"Casa en la Playa - Galería General 1.webp"</em>, <em>"... 2.webp"</em>, etc.).</li>
+                  <li><strong>Audios y Perfiles:</strong> Los audios de WhatsApp incluyen el nombre del contacto y la hora de recepción, mientras que las fotos de perfil o logotipos reciben su nombre correspondiente.</li>
+                </ul>
+              </div>
             </div>
           </ManualSection>
 

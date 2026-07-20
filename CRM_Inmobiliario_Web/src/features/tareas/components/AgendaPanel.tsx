@@ -2,6 +2,7 @@ import React from 'react';
 import { useAgendaPanelLogic } from '../hooks/useAgendaPanelLogic';
 import { AgendaPanelDesktop } from './AgendaPanelDesktop';
 import { AgendaPanelMobile } from './AgendaPanelMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface AgendaPanelProps {
   onClose?: () => void;
@@ -9,15 +10,15 @@ interface AgendaPanelProps {
 
 export const AgendaPanel: React.FC<AgendaPanelProps> = ({ onClose }) => {
   const logic = useAgendaPanelLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block h-full">
-        <AgendaPanelDesktop logic={logic} onClose={onClose} />
-      </div>
-      <div className="block lg:hidden h-full w-full">
+      {isMobile ? (
         <AgendaPanelMobile logic={logic} onClose={onClose} />
-      </div>
+      ) : (
+        <AgendaPanelDesktop logic={logic} onClose={onClose} />
+      )}
     </>
   );
 };

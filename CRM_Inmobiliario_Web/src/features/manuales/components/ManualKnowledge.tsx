@@ -1,15 +1,16 @@
 import { ManualKnowledgeDesktop } from './ManualKnowledgeDesktop';
 import { ManualKnowledgeMobile } from './ManualKnowledgeMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const ManualKnowledge = () => {
+  const isMobile = useIsMobile();
   return (
     <div className="w-full">
-      <div className="hidden lg:block">
-        <ManualKnowledgeDesktop />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ManualKnowledgeMobile />
-      </div>
+      ) : (
+        <ManualKnowledgeDesktop />
+      )}
     </div>
   );
 };

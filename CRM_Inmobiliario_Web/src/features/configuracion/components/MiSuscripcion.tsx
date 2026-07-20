@@ -1,26 +1,27 @@
 import { MiSuscripcionDesktop } from './MiSuscripcionDesktop';
 import { MiSuscripcionMobile } from './MiSuscripcionMobile';
 import { useMySubscription } from '../hooks/useMySubscription';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const MiSuscripcion = () => {
   const { suscripcion, isLoading, isError } = useMySubscription();
 
+  const isMobile = useIsMobile();
   return (
     <>
-      <div className="hidden lg:block">
-        <MiSuscripcionDesktop 
-          suscripcion={suscripcion} 
-          isLoading={isLoading}
-          isError={isError}
-        />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <MiSuscripcionMobile 
           suscripcion={suscripcion} 
           isLoading={isLoading} 
           isError={isError}
         />
-      </div>
+      ) : (
+        <MiSuscripcionDesktop 
+          suscripcion={suscripcion} 
+          isLoading={isLoading}
+          isError={isError}
+        />
+      )}
     </>
   );
 };

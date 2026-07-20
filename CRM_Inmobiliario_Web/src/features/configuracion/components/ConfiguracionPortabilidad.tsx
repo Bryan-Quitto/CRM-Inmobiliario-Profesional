@@ -2,18 +2,19 @@ import React from 'react';
 import { useConfiguracionPortabilidadLogic } from '../hooks/useConfiguracionPortabilidadLogic';
 import ConfiguracionPortabilidadDesktop from './ConfiguracionPortabilidadDesktop';
 import ConfiguracionPortabilidadMobile from './ConfiguracionPortabilidadMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const ConfiguracionPortabilidad: React.FC = () => {
   const logic = useConfiguracionPortabilidadLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <ConfiguracionPortabilidadDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ConfiguracionPortabilidadMobile logic={logic} />
-      </div>
+      ) : (
+        <ConfiguracionPortabilidadDesktop logic={logic} />
+      )}
     </>
   );
 };

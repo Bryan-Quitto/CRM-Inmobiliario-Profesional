@@ -2,18 +2,19 @@ import React from 'react';
 import { OlvideMiClaveDesktop } from './OlvideMiClaveDesktop';
 import { OlvideMiClaveMobile } from './OlvideMiClaveMobile';
 import { useOlvideMiClaveLogic } from '../hooks/useOlvideMiClaveLogic';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const OlvideMiClave: React.FC = () => {
   const logic = useOlvideMiClaveLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <OlvideMiClaveDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <OlvideMiClaveMobile logic={logic} />
-      </div>
+      ) : (
+        <OlvideMiClaveDesktop logic={logic} />
+      )}
     </>
   );
 };

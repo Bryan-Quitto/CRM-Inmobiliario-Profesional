@@ -3,18 +3,19 @@ import { localStorageProvider } from '@/lib/swr';
 import { useContactosListLogic } from '../hooks/useContactosListLogic';
 import { ContactosListDesktop } from './ContactosListDesktop';
 import { ContactosListMobile } from './ContactosListMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const ContactosContentOrchestrator = () => {
   const logic = useContactosListLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <ContactosListDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ContactosListMobile logic={logic} />
-      </div>
+      ) : (
+        <ContactosListDesktop logic={logic} />
+      )}
     </>
   );
 };

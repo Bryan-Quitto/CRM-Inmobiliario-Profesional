@@ -2,18 +2,19 @@ import React from 'react';
 import { useConfiguracionOrganizacionLogic } from '../hooks/useConfiguracionOrganizacionLogic';
 import { ConfiguracionOrganizacionDesktop } from './ConfiguracionOrganizacionDesktop';
 import { ConfiguracionOrganizacionMobile } from './ConfiguracionOrganizacionMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const ConfiguracionOrganizacion: React.FC = () => {
   const logic = useConfiguracionOrganizacionLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <ConfiguracionOrganizacionDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ConfiguracionOrganizacionMobile logic={logic} />
-      </div>
+      ) : (
+        <ConfiguracionOrganizacionDesktop logic={logic} />
+      )}
     </>
   );
 };

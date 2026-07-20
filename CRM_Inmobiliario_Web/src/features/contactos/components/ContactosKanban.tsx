@@ -5,6 +5,7 @@ import { ContactosKanbanDesktop } from './ContactosKanbanDesktop';
 import { ContactosKanbanMobile } from './ContactosKanbanMobile';
 
 import ConfirmModal from '../../../components/ConfirmModal';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface ContactosKanbanProps {
   contactos: Contacto[];
@@ -14,15 +15,15 @@ interface ContactosKanbanProps {
 
 export const ContactosKanban: React.FC<ContactosKanbanProps> = (props) => {
   const logic = useContactosKanbanLogic(props);
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block w-full">
-        <ContactosKanbanDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden w-full">
+      {isMobile ? (
         <ContactosKanbanMobile logic={logic} />
-      </div>
+      ) : (
+        <ContactosKanbanDesktop logic={logic} />
+      )}
 
       <ConfirmModal
         isOpen={logic.reactivationModal.isOpen}

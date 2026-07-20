@@ -5,14 +5,19 @@ import { usePropiedadesListLogic } from '../hooks/usePropiedadesListLogic';
 import { PropiedadesListDesktop } from './PropiedadesListDesktop';
 import { PropiedadesListMobile } from './PropiedadesListMobile';
 import { PropiedadesModalsOrchestrator } from './propiedades-list-sections/PropiedadesModalsOrchestrator';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const PropiedadesOrchestrator = () => {
   const logic = usePropiedadesListLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <PropiedadesListDesktop logic={logic} />
-      <PropiedadesListMobile logic={logic} />
+      {isMobile ? (
+        <PropiedadesListMobile logic={logic} />
+      ) : (
+        <PropiedadesListDesktop logic={logic} />
+      )}
       
       <PropiedadesModalsOrchestrator 
         propiedades={logic.propiedades}

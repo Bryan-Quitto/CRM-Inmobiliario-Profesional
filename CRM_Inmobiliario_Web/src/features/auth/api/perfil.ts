@@ -23,6 +23,8 @@ export interface PerfilAgente {
   daysUntilStorageReset: number;
   monthlyUploadOpsLimit: number;
   currentMonthUploadOpsUsed: number;
+  currentCycleStartDate: string;
+  currentCycleEndDate: string;
 }
 
 export const usePerfil = () => {

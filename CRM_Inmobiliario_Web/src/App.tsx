@@ -63,6 +63,7 @@ const ConfiguracionPortabilidad = lazy(() => retryImport(() => import('./feature
 const ConfiguracionLimpieza = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionLimpieza').then(m => ({ default: m.ConfiguracionLimpieza }))));
 const MiSuscripcion = lazy(() => retryImport(() => import('./features/configuracion/components/MiSuscripcion').then(m => ({ default: m.MiSuscripcion }))));
 const ConfiguracionSuscripciones = lazy(() => retryImport(() => import('./features/configuracion/components/ConfiguracionSuscripciones').then(m => ({ default: m.ConfiguracionSuscripciones }))));
+const GlobalStorageHistoryPage = lazy(() => retryImport(() => import('./features/auth/components/configuracion-sections/GlobalStorageHistoryPage')));
 const PoliticaPrivacidadView = lazy(() => retryImport(() => import('./features/legal/components/PoliticaPrivacidadView').then(m => ({ default: m.PoliticaPrivacidadView }))));
 const TerminosServicioView = lazy(() => retryImport(() => import('./features/legal/components/TerminosServicioView').then(m => ({ default: m.TerminosServicioView }))));
 
@@ -225,6 +226,7 @@ function AppContent({ session }: { session: Session | null }) {
                 <Route path="limpieza" element={<AdminRoute><ConfiguracionLimpieza /></AdminRoute>} />
                 <Route path="mi-suscripcion" element={<MiSuscripcion />} />
                 <Route path="suscripciones" element={<AdminRoute><ConfiguracionSuscripciones /></AdminRoute>} />
+                <Route path="historial-almacenamiento" element={<GlobalStorageHistoryPage />} />
               </Route>
               <Route path="/confirmar-clave" element={<Suspense fallback={<PageLoader />}><ConfirmarInvitacion /></Suspense>} />
               {/* Fallback global para usuarios logueados que intentan acceder a una ruta inexistente o vienen del login */}

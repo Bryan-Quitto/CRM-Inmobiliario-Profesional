@@ -1,15 +1,16 @@
 import { ManualBusquedaDesktop } from './ManualBusquedaDesktop';
 import { ManualBusquedaMobile } from './ManualBusquedaMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export function ManualBusqueda() {
+  const isMobile = useIsMobile();
   return (
     <>
-      <div className="hidden lg:block">
-        <ManualBusquedaDesktop />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ManualBusquedaMobile />
-      </div>
+      ) : (
+        <ManualBusquedaDesktop />
+      )}
     </>
   );
 }

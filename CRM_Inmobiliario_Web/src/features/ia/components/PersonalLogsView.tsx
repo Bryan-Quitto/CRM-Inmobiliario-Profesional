@@ -1,18 +1,19 @@
 import { usePersonalLogsViewLogic } from '../hooks/usePersonalLogsViewLogic';
 import { PersonalLogsViewDesktop } from './PersonalLogsViewDesktop';
 import { PersonalLogsViewMobile } from './PersonalLogsViewMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const PersonalLogsView = () => {
   const logic = usePersonalLogsViewLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <PersonalLogsViewDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <PersonalLogsViewMobile logic={logic} />
-      </div>
+      ) : (
+        <PersonalLogsViewDesktop logic={logic} />
+      )}
     </>
   );
 };

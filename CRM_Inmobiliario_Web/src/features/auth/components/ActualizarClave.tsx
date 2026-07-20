@@ -2,18 +2,19 @@ import React from 'react';
 import { ActualizarClaveDesktop } from './ActualizarClaveDesktop';
 import { ActualizarClaveMobile } from './ActualizarClaveMobile';
 import { useActualizarClaveLogic } from '../hooks/useActualizarClaveLogic';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const ActualizarClave: React.FC = () => {
   const logic = useActualizarClaveLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <ActualizarClaveDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ActualizarClaveMobile logic={logic} />
-      </div>
+      ) : (
+        <ActualizarClaveDesktop logic={logic} />
+      )}
     </>
   );
 };

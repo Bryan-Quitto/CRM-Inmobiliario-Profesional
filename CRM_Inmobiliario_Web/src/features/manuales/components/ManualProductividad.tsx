@@ -1,15 +1,16 @@
 import { ManualProductividadDesktop } from './ManualProductividadDesktop';
 import { ManualProductividadMobile } from './ManualProductividadMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export function ManualProductividad() {
+  const isMobile = useIsMobile();
   return (
     <>
-      <div className="hidden lg:block">
-        <ManualProductividadDesktop />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ManualProductividadMobile />
-      </div>
+      ) : (
+        <ManualProductividadDesktop />
+      )}
     </>
   );
 }

@@ -4,14 +4,19 @@ import { localStorageProvider } from '../../../lib/swr';
 import { useAnaliticaViewLogic } from '../hooks/useAnaliticaViewLogic';
 import { AnaliticaViewDesktop } from './AnaliticaViewDesktop';
 import { AnaliticaViewMobile } from './AnaliticaViewMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const AnaliticaOrchestrator: React.FC = () => {
   const logic = useAnaliticaViewLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <AnaliticaViewDesktop logic={logic} />
-      <AnaliticaViewMobile logic={logic} />
+      {isMobile ? (
+        <AnaliticaViewMobile logic={logic} />
+      ) : (
+        <AnaliticaViewDesktop logic={logic} />
+      )}
     </>
   );
 };

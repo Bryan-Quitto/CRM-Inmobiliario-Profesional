@@ -1,18 +1,19 @@
 import { useContactoDetalle } from '../hooks/useContactoDetalle';
 import { ContactoDetalleDesktop } from './ContactoDetalleDesktop';
 import { ContactoDetalleMobile } from './ContactoDetalleMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const ContactoDetalle = () => {
   const logic = useContactoDetalle();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <ContactoDetalleDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ContactoDetalleMobile logic={logic} />
-      </div>
+      ) : (
+        <ContactoDetalleDesktop logic={logic} />
+      )}
     </>
   );
 };

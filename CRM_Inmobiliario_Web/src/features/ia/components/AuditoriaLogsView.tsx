@@ -1,18 +1,19 @@
 import { useAuditoriaLogsViewLogic } from '../hooks/useAuditoriaLogsViewLogic';
 import { AuditoriaLogsViewDesktop } from './AuditoriaLogsViewDesktop';
 import { AuditoriaLogsViewMobile } from './AuditoriaLogsViewMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const AuditoriaLogsView = ({ canal = 'WhatsApp' }: { canal?: string }) => {
   const logic = useAuditoriaLogsViewLogic(canal);
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <AuditoriaLogsViewDesktop logic={logic} canal={canal} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <AuditoriaLogsViewMobile logic={logic} canal={canal} />
-      </div>
+      ) : (
+        <AuditoriaLogsViewDesktop logic={logic} canal={canal} />
+      )}
     </>
   );
 };

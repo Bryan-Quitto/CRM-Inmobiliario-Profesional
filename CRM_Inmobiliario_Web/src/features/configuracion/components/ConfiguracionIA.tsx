@@ -2,18 +2,19 @@ import React from 'react';
 import { useConfiguracionIALogic } from '../hooks/useConfiguracionIALogic';
 import { ConfiguracionIADesktop } from './ConfiguracionIADesktop';
 import { ConfiguracionIAMobile } from './ConfiguracionIAMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const ConfiguracionIA: React.FC = () => {
   const logic = useConfiguracionIALogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <ConfiguracionIADesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ConfiguracionIAMobile logic={logic} />
-      </div>
+      ) : (
+        <ConfiguracionIADesktop logic={logic} />
+      )}
     </>
   );
 };

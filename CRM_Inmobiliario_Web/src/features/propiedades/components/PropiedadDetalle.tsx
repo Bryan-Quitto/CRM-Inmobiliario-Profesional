@@ -3,6 +3,7 @@ import { localStorageProvider } from '@/lib/swr';
 import { usePropiedadDetalleLogic } from '../hooks/usePropiedadDetalleLogic';
 import { PropiedadDetalleDesktop } from './PropiedadDetalleDesktop';
 import { PropiedadDetalleMobile } from './PropiedadDetalleMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface PropiedadDetalleProps {
   id: string;
@@ -12,11 +13,15 @@ interface PropiedadDetalleProps {
 
 const PropiedadDetalleOrchestrator = (props: PropiedadDetalleProps) => {
   const logic = usePropiedadDetalleLogic(props);
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <PropiedadDetalleDesktop id={props.id} onClose={props.onClose} logic={logic} />
-      <PropiedadDetalleMobile id={props.id} onClose={props.onClose} logic={logic} />
+      {isMobile ? (
+        <PropiedadDetalleMobile id={props.id} onClose={props.onClose} logic={logic} />
+      ) : (
+        <PropiedadDetalleDesktop id={props.id} onClose={props.onClose} logic={logic} />
+      )}
     </>
   );
 };

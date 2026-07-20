@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Database, UploadCloud, Eye } from 'lucide-react';
+import { Database, UploadCloud, Eye, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { PerfilAgente } from '../../api/perfil';
 import { HelpButton } from '@/components/ui/HelpButton';
 import StorageHistoryModal from './StorageHistoryModal';
@@ -74,20 +75,21 @@ const CuotaSection: React.FC<CuotaSectionProps> = ({ perfil }) => {
                 <div className="text-xs font-bold text-slate-500">
                   {formatBytes(globalStorageUsed)} / {formatBytes(globalStorageLimit)}
                 </div>
-                <button 
-                  onClick={() => setIsHistoryModalOpen(true)}
-                  className="text-slate-400 hover:text-indigo-500 transition-colors cursor-pointer"
-                  title="Ver historial de almacenamiento"
-                >
-                  <Eye size={16} />
-                </button>
               </div>
             </div>
-            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-2">
               <div 
                 className={`h-full rounded-full transition-all duration-1000 ${globalStoragePercentage > 90 ? 'bg-rose-500' : globalStoragePercentage > 75 ? 'bg-amber-500' : 'bg-indigo-500'}`}
                 style={{ width: `${globalStoragePercentage}%` }}
               />
+            </div>
+            <div className="flex justify-end">
+              <Link 
+                to="/configuracion/historial-almacenamiento"
+                className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 uppercase tracking-widest flex items-center gap-1 transition-colors"
+              >
+                Administrar Historial <ArrowRight size={12} />
+              </Link>
             </div>
           </div>
 
@@ -101,6 +103,13 @@ const CuotaSection: React.FC<CuotaSectionProps> = ({ perfil }) => {
                 <div className="text-xs font-bold text-slate-400">
                   {formatBytes(storageUsed)} / {formatBytes(storageLimit)}
                 </div>
+                <button 
+                  onClick={() => setIsHistoryModalOpen(true)}
+                  className="text-slate-400 hover:text-indigo-500 transition-colors cursor-pointer"
+                  title="Ver historial de almacenamiento mensual"
+                >
+                  <Eye size={16} />
+                </button>
               </div>
             </div>
             <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
@@ -120,6 +129,8 @@ const CuotaSection: React.FC<CuotaSectionProps> = ({ perfil }) => {
       <StorageHistoryModal 
         isOpen={isHistoryModalOpen} 
         onClose={() => setIsHistoryModalOpen(false)} 
+        startDate={perfil.currentCycleStartDate}
+        endDate={perfil.currentCycleEndDate}
       />
     </>
   );

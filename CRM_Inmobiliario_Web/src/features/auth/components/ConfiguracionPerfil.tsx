@@ -3,9 +3,11 @@ import { Loader2 } from 'lucide-react';
 import { useConfiguracionPerfilLogic } from '../hooks/useConfiguracionPerfilLogic';
 import ConfiguracionPerfilDesktop from './ConfiguracionPerfilDesktop';
 import ConfiguracionPerfilMobile from './ConfiguracionPerfilMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const ConfiguracionPerfil: React.FC = () => {
   const logic = useConfiguracionPerfilLogic();
+  const isMobile = useIsMobile();
 
   if (logic.isLoading || !logic.perfil) {
     return (
@@ -18,12 +20,11 @@ const ConfiguracionPerfil: React.FC = () => {
 
   return (
     <>
-      <div className="hidden lg:block">
-        <ConfiguracionPerfilDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ConfiguracionPerfilMobile logic={logic} />
-      </div>
+      ) : (
+        <ConfiguracionPerfilDesktop logic={logic} />
+      )}
     </>
   );
 };

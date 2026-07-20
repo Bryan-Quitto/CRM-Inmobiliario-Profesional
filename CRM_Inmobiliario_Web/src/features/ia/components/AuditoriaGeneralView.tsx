@@ -2,18 +2,19 @@ import React from 'react';
 import { useAuditoriaGeneralViewLogic } from '../hooks/useAuditoriaGeneralViewLogic';
 import { AuditoriaGeneralViewDesktop } from './AuditoriaGeneralViewDesktop';
 import { AuditoriaGeneralViewMobile } from './AuditoriaGeneralViewMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const AuditoriaGeneralView: React.FC = () => {
   const logic = useAuditoriaGeneralViewLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block h-full">
-        <AuditoriaGeneralViewDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden h-full">
+      {isMobile ? (
         <AuditoriaGeneralViewMobile logic={logic} />
-      </div>
+      ) : (
+        <AuditoriaGeneralViewDesktop logic={logic} />
+      )}
     </>
   );
 };

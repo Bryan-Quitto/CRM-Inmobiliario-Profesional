@@ -3,18 +3,19 @@ import React from 'react';
 import { useDashboardPrincipalLogic } from '../hooks/useDashboardPrincipalLogic';
 import { DashboardPrincipalDesktop } from './DashboardPrincipalDesktop';
 import { DashboardPrincipalMobile } from './DashboardPrincipalMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const DashboardContent: React.FC = () => {
   const logic = useDashboardPrincipalLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block">
-        <DashboardPrincipalDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <DashboardPrincipalMobile logic={logic} />
-      </div>
+      ) : (
+        <DashboardPrincipalDesktop logic={logic} />
+      )}
     </>
   );
 };

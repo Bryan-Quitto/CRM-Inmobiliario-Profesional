@@ -3,9 +3,11 @@ import { useConfiguracionIntegracionIALogic } from '../hooks/useConfiguracionInt
 import { ConfiguracionIntegracionIAAuth } from './ConfiguracionIntegracionIAShared';
 import { ConfiguracionIntegracionIADesktop } from './ConfiguracionIntegracionIADesktop';
 import { ConfiguracionIntegracionIAMobile } from './ConfiguracionIntegracionIAMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const ConfiguracionIntegracionIA: React.FC = () => {
   const logic = useConfiguracionIntegracionIALogic();
+  const isMobile = useIsMobile();
 
   if (!logic.isAuthenticated) {
     return <ConfiguracionIntegracionIAAuth logic={logic} />;
@@ -13,8 +15,11 @@ export const ConfiguracionIntegracionIA: React.FC = () => {
 
   return (
     <>
-      <ConfiguracionIntegracionIADesktop logic={logic} />
-      <ConfiguracionIntegracionIAMobile logic={logic} />
+      {isMobile ? (
+        <ConfiguracionIntegracionIAMobile logic={logic} />
+      ) : (
+        <ConfiguracionIntegracionIADesktop logic={logic} />
+      )}
     </>
   );
 };

@@ -1,15 +1,16 @@
 import { ManualDashboardDesktop } from './ManualDashboardDesktop';
 import { ManualDashboardMobile } from './ManualDashboardMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export function ManualDashboard() {
+  const isMobile = useIsMobile();
   return (
     <>
-      <div className="hidden lg:block">
-        <ManualDashboardDesktop />
-      </div>
-      <div className="block lg:hidden">
+      {isMobile ? (
         <ManualDashboardMobile />
-      </div>
+      ) : (
+        <ManualDashboardDesktop />
+      )}
     </>
   );
 }

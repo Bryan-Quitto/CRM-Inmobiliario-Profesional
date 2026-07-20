@@ -3,6 +3,7 @@ import { useTareaDetalleLogic } from '../hooks/useTareaDetalleLogic';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 import { TareaDetalleDesktop } from './TareaDetalleDesktop';
 import { TareaDetalleMobile } from './TareaDetalleMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface Props {
   tarea: Tarea;
@@ -30,14 +31,15 @@ export const TareaDetalle = (props: Props) => {
     onCompleteTask: () => handleAction(props.onCompleteTask)
   });
 
+  const isMobile = useIsMobile();
+
   return (
     <>
-      <div className="hidden lg:block h-full">
-        <TareaDetalleDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden h-full">
+      {isMobile ? (
         <TareaDetalleMobile logic={logic} />
-      </div>
+      ) : (
+        <TareaDetalleDesktop logic={logic} />
+      )}
     </>
   );
 };

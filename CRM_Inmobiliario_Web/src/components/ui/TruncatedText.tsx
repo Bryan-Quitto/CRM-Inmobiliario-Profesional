@@ -6,9 +6,10 @@ interface TruncatedTextProps {
   children: ReactNode;
   className?: string;
   as?: React.ElementType;
+  lines?: number;
 }
 
-export const TruncatedText = ({ children, className = '', as: Component = 'span' }: TruncatedTextProps) => {
+export const TruncatedText = ({ children, className = '', as: Component = 'span', lines = 1 }: TruncatedTextProps) => {
   const textRef = useRef<HTMLElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
@@ -26,7 +27,7 @@ export const TruncatedText = ({ children, className = '', as: Component = 'span'
         <TooltipPrimitive.Trigger asChild>
           <Component 
             ref={textRef} 
-            className={`truncate block ${className}`}
+            className={`${lines === 1 ? 'truncate block' : `line-clamp-${lines}`} ${className}`}
             onMouseEnter={checkTruncation}
           >
             {children}

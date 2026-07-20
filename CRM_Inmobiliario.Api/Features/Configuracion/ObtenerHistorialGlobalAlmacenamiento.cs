@@ -5,28 +5,31 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using static CRM_Inmobiliario.Api.Features.Configuracion.ObtenerHistorialAlmacenamiento;
 
 namespace CRM_Inmobiliario.Api.Features.Configuracion;
 
-public static class ObtenerHistorialAlmacenamiento
+public static class ObtenerHistorialGlobalAlmacenamiento
 {
-    public record FileLogDto(
-        Guid Id,
-        string ObjectKey,
-        long FileSizeBytes,
-        string TargetType,
-        string? TargetId,
-        string? TargetName,
-        string? Context,
-        DateTimeOffset UploadedAt,
-        bool IsDeleted,
-        DateTimeOffset? DeletedAt,
-        string FriendlyName
+    public record PaginatedResponse(
+        List<FileLogDto> Items,
+        int TotalCount
     );
 
-    public static IEndpointRouteBuilder MapObtenerHistorialAlmacenamientoEndpoint(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapObtenerHistorialGlobalAlmacenamientoEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/configuracion/almacenamiento/historial", async (ClaimsPrincipal user, CrmDbContext context, DateTimeOffset? startDate, DateTimeOffset? endDate) =>
+        endpoints.MapGet("/configuracion/almacenamiento/historial-global", async (
+            ClaimsPrincipal user, 
+            CrmDbContext context, 
+            int limit = 50, 
+            int offset = 0,
+            string? search = null,
+            string? targetType = null,
+            string? status = null,
+            DateTimeOffset? startDate = null, 
+            DateTimeOffset? endDate = null,
+            string? sortBy = "uploadedAt",
+            string? sortOrder = "desc") =>
         {
             var agenteId = user.GetRequiredUserId();
 
@@ -44,9 +47,12 @@ public static class ObtenerHistorialAlmacenamiento
                 query = query.Where(l => l.UploadedAt <= endDate.Value);
             }
 
-            var dbLogs = await query
-                .OrderByDescending(l => l.UploadedAt)
-                .ToListAsync();
+            if (!string.IsNullOrEmpty(targetType) && targetType != "Todas")
+            {
+                query = query.Where(l => l.TargetType == targetType);
+            }
+
+            var dbLogs = await query.ToListAsync();
 
             var propIds = dbLogs.Where(l => l.TargetType == "Propiedad" && Guid.TryParse(l.TargetId, out _))
                 .Select(l => Guid.Parse(l.TargetId!)).Distinct().ToList();
@@ -148,13 +154,56 @@ public static class ObtenerHistorialAlmacenamiento
                 }
             }
 
-            // Ordenar por fecha por defecto
-            var sortedDtos = dtos.OrderByDescending(d => d.UploadedAt).ToList();
+            IEnumerable<FileLogDto> logs = dtos;
 
-            return Results.Ok(sortedDtos);
+            // 1. Search in memory against FriendlyName
+            if (!string.IsNullOrEmpty(search))
+            {
+                var lowerSearch = search.ToLowerInvariant();
+                logs = logs.Where(l => l.FriendlyName.ToLowerInvariant().Contains(lowerSearch) || 
+                                       (l.TargetName != null && l.TargetName.ToLowerInvariant().Contains(lowerSearch)));
+            }
+
+            // 2. Status in memory filter
+            if (!string.IsNullOrEmpty(status) && status != "Todos")
+            {
+                if (status == "Activos")
+                    logs = logs.Where(l => !l.IsDeleted);
+                else if (status == "Eliminados")
+                    logs = logs.Where(l => l.IsDeleted);
+            }
+
+            // 3. Sort in memory
+            var isAsc = sortOrder == "asc";
+            if (sortBy == "deletedAt")
+            {
+                logs = isAsc 
+                    ? logs.OrderBy(l => l.DeletedAt ?? (isAsc ? DateTimeOffset.MaxValue : DateTimeOffset.MinValue)) 
+                    : logs.OrderByDescending(l => l.DeletedAt ?? (isAsc ? DateTimeOffset.MaxValue : DateTimeOffset.MinValue));
+            }
+            else if (sortBy == "fileSizeBytes")
+            {
+                logs = isAsc 
+                    ? logs.OrderBy(l => l.FileSizeBytes) 
+                    : logs.OrderByDescending(l => l.FileSizeBytes);
+            }
+            else // uploadedAt default
+            {
+                logs = isAsc 
+                    ? logs.OrderBy(l => l.UploadedAt) 
+                    : logs.OrderByDescending(l => l.UploadedAt);
+            }
+
+            var logsList = logs.ToList();
+            var totalCount = logsList.Count;
+
+            // 3. Paginate
+            var paginatedLogs = logsList.Skip(offset).Take(limit).ToList();
+
+            return Results.Ok(new PaginatedResponse(paginatedLogs, totalCount));
         })
         .WithTags("Configuracion")
-        .WithName("ObtenerHistorialAlmacenamiento");
+        .WithName("ObtenerHistorialGlobalAlmacenamiento");
 
         return endpoints;
     }

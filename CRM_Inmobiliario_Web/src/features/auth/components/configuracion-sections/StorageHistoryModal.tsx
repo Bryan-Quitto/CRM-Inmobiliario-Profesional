@@ -3,10 +3,13 @@ import { X, Database, Calendar, File, Box, XCircle, Trash2, CheckSquare, Square 
 import { useStorageHistory, deleteStorageFiles } from '../../api/almacenamiento';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import { useGlobalMutationLock } from '@/contexts/GlobalMutationLockContext';
+import { TruncatedText } from '@/components/ui/TruncatedText';
 
 interface StorageHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  startDate?: string;
+  endDate?: string;
 }
 
 const formatBytes = (bytes: number, decimals = 2) => {
@@ -18,9 +21,9 @@ const formatBytes = (bytes: number, decimals = 2) => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };
 
-const StorageHistoryModal: React.FC<StorageHistoryModalProps> = ({ isOpen, onClose }) => {
+const StorageHistoryModal: React.FC<StorageHistoryModalProps> = ({ isOpen, onClose, startDate, endDate }) => {
   const { withOptimisticLock } = useGlobalMutationLock();
-  const { history, isLoading, mutate } = useStorageHistory();
+  const { history, isLoading, mutate } = useStorageHistory(startDate, endDate);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -116,8 +119,12 @@ const StorageHistoryModal: React.FC<StorageHistoryModalProps> = ({ isOpen, onClo
                 <Database size={24} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Historial de Almacenamiento</h3>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auditoría de Archivos</p>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Historial de Almacenamiento Mensual</h3>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {startDate && endDate 
+                    ? `Ciclo actual: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`
+                    : 'Auditoría de Archivos'}
+                </p>
               </div>
             </div>
             
@@ -189,9 +196,9 @@ const StorageHistoryModal: React.FC<StorageHistoryModalProps> = ({ isOpen, onClo
                           <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${log.isDeleted ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-600'}`}>
                             {log.isDeleted ? 'Eliminado' : 'Activo'}
                           </span>
-                          <h4 className="text-sm font-black text-slate-900 flex-1 truncate" title={log.objectKey}>
-                            {log.objectKey.split('/').pop()}
-                          </h4>
+                          <TruncatedText className="text-sm font-black text-slate-900 flex-1" as="h4" lines={2}>
+                            {log.friendlyName}
+                          </TruncatedText>
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-2">
@@ -203,12 +210,6 @@ const StorageHistoryModal: React.FC<StorageHistoryModalProps> = ({ isOpen, onClo
                           <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
                             <Box size={14} className="text-indigo-300" />
                             <span className="text-indigo-600 uppercase">{log.targetType}</span>
-                            {log.targetName && (
-                              <span className="text-slate-500 font-bold ml-1">{log.targetName}</span>
-                            )}
-                            {log.context && (
-                              <span className="text-slate-400 ml-1">- {log.context}</span>
-                            )}
                           </div>
                           
                           <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">

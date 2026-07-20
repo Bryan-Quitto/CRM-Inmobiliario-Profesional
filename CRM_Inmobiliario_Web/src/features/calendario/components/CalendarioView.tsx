@@ -3,18 +3,19 @@ import React from 'react';
 import { useCalendarioViewLogic } from '../hooks/useCalendarioViewLogic';
 import { CalendarioViewDesktop } from './CalendarioViewDesktop';
 import { CalendarioViewMobile } from './CalendarioViewMobile';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const CalendarioContent: React.FC = () => {
   const logic = useCalendarioViewLogic();
+  const isMobile = useIsMobile();
 
   return (
     <>
-      <div className="hidden lg:block h-full">
-        <CalendarioViewDesktop logic={logic} />
-      </div>
-      <div className="block lg:hidden h-full">
+      {isMobile ? (
         <CalendarioViewMobile logic={logic} />
-      </div>
+      ) : (
+        <CalendarioViewDesktop logic={logic} />
+      )}
     </>
   );
 };
